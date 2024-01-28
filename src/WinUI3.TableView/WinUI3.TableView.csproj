@@ -1,0 +1,7 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.WinUI.Controls.Sizers" Version="8.0.230907" />
+    <PackageReference Include="CommunityToolkit.WinUI.Converters" Version="8.0.230907" />
+    <PackageReference Include="CommunityToolkit.WinUI.Helpers" Version="8.0.240109" />
+  </ItemGroup>
+</Project>

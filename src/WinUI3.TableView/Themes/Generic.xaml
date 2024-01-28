@@ -1,0 +1,369 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="using:WinUI3.TableView"
+                    xmlns:ui="using:CommunityToolkit.WinUI"
+                    xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
+                    xmlns:converters="using:CommunityToolkit.WinUI.Converters">
+
+    <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+
+    <StaticResource x:Key="TableViewGridLinesBrush"
+                    ResourceKey="ControlStrokeColorDefaultBrush" />
+
+    <x:String x:Key="SortIconAscending">&#xE74A;</x:String>
+    <x:String x:Key="SortIconDescending">&#xE74B;</x:String>
+    <x:String x:Key="FilterIcon">&#xe71c;</x:String>
+    <x:String x:Key="OptionsButtonIcon">&#xe712;</x:String>
+
+    <Style x:Key="DefaultTableViewColumnHeaderStyle"
+           TargetType="local:TableViewColumnHeader">
+        <Setter Property="FontWeight"
+                Value="SemiBold" />
+        <Setter Property="BackgroundSizing"
+                Value="InnerBorderEdge" />
+        <Setter Property="Foreground"
+                Value="{ThemeResource ButtonForeground}" />
+        <Setter Property="BorderBrush"
+                Value="{ThemeResource TableViewGridLinesBrush}" />
+        <Setter Property="BorderThickness"
+                Value="0,0,1,0" />
+        <Setter Property="Padding"
+                Value="16,0,0,0" />
+        <Setter Property="UseSystemFocusVisuals"
+                Value="{StaticResource UseSystemFocusVisuals}" />
+        <Setter Property="FocusVisualMargin"
+                Value="-3" />
+        <Setter Property="CornerRadius"
+                Value="0" />
+        <Setter Property="VerticalAlignment"
+                Value="Stretch" />
+        <Setter Property="HorizontalAlignment"
+                Value="Stretch" />
+        <Setter Property="VerticalContentAlignment"
+                Value="Center" />
+        <Setter Property="HorizontalContentAlignment"
+                Value="Left" />
+        <Setter Property="Background">
+            <Setter.Value>
+                <SolidColorBrush Opacity="0" />
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:TableViewColumnHeader">
+                    <Grid>
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+                                <VisualState x:Name="PointerOver" />
+                                <VisualState x:Name="Pressed" />
+                            </VisualStateGroup>
+                            <VisualStateGroup x:Name="FocusStates">
+                                <VisualState x:Name="Unfocused" />
+                                <VisualState x:Name="Focused" />
+                            </VisualStateGroup>
+                            <VisualStateGroup x:Name="SortStates">
+                                <VisualState x:Name="Unsorted" />
+                                <VisualState x:Name="SortAscending">
+                                    <VisualState.Setters>
+                                        <Setter Target="SortIcon.Visibility"
+                                                Value="Visible" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="SortDescending">
+                                    <VisualState.Setters>
+                                        <Setter Target="SortIcon.Visibility"
+                                                Value="Visible" />
+                                        <Setter Target="SortIcon.Glyph"
+                                                Value="{ThemeResource SortIconDescending}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                        <Grid Padding="{TemplateBinding Padding}"
+                              Background="{TemplateBinding Background}"
+                              BorderBrush="{TemplateBinding BorderBrush}"
+                              BorderThickness="{TemplateBinding BorderThickness}"
+                              BackgroundSizing="{TemplateBinding BackgroundSizing}"
+                              VerticalAlignment="{TemplateBinding VerticalAlignment}"
+                              HorizontalAlignment="{TemplateBinding HorizontalAlignment}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ContentPresenter Foreground="{TemplateBinding Foreground}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+
+                            <FontIcon x:Name="SortIcon"
+                                      Grid.Column="1"
+                                      FontSize="10"
+                                      MinWidth="16"
+                                      Margin="0,2,0,0"
+                                      Visibility="Collapsed"
+                                      VerticalAlignment="Top"
+                                      Glyph="{ThemeResource SortIconAscending}" />
+
+                            
+                        </Grid>
+
+                        <toolkit:ContentSizer Margin="0,0,-4,0"
+                                              IsThumbVisible="False"
+                                              HorizontalAlignment="Right"
+                                              TargetControl="{Binding RelativeSource={RelativeSource TemplatedParent}}"
+                                              Visibility="{Binding CanResize, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="DefaultTableViewCellStyle"
+           TargetType="local:TableViewCell">
+        <Setter Property="VerticalContentAlignment"
+                Value="Center" />
+        <Setter Property="HorizontalContentAlignment"
+                Value="Stretch" />
+        <Setter Property="BorderBrush"
+                Value="{ThemeResource TableViewGridLinesBrush}" />
+        <Setter Property="BorderThickness"
+                Value="0" />
+        <Setter Property="Padding"
+                Value="4,0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:TableViewCell">
+                    <Border Padding="{TemplateBinding Padding}"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}">
+                        <ContentPresenter Grid.Column="1"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="DefaultTableViewHeaderRowStyle"
+           TargetType="local:TableViewHeaderRow">
+        <Setter Property="Height"
+                Value="32" />
+        <Setter Property="Background"
+                Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+        <Setter Property="ItemsPanel">
+            <Setter.Value>
+                <ItemsPanelTemplate>
+                    <ItemsStackPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:TableViewHeaderRow">
+                    <Border Background="{TemplateBinding Background}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="13" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Button x:Name="SelectAllButton"
+                                    VerticalAlignment="Stretch"
+                                    HorizontalAlignment="Stretch"
+                                    BorderThickness="0,0,1,1"
+                                    Background="Transparent"
+                                    Padding="0"
+                                    CornerRadius="4,0,0,0"
+                                    BorderBrush="{ThemeResource TableViewGridLinesBrush}" />
+
+                            <ItemsPresenter Grid.Column="1" />
+
+                            <Border Grid.Column="1"
+                                    BorderThickness="0,0,0,1"
+                                    BorderBrush="{ThemeResource TableViewGridLinesBrush}" />
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="DefaultTableViewRowStyle"
+           TargetType="local:TableViewRow">
+        <Setter Property="ItemsPanel">
+            <Setter.Value>
+                <ItemsPanelTemplate>
+                    <ItemsStackPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:TableViewRow">
+                    <Border Background="{TemplateBinding Background}">
+                        <Grid>
+                            <ItemsPresenter Grid.Column="1" />
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="DefaultTableViewStyle"
+           TargetType="local:TableView">
+        <Setter Property="IsTabStop"
+                Value="False" />
+        <Setter Property="SelectionMode"
+                Value="Extended" />
+        <Setter Property="TabNavigation"
+                Value="Cycle" />
+        <Setter Property="IsSwipeEnabled"
+                Value="False" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility"
+                Value="Auto" />
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility"
+                Value="Auto" />
+        <Setter Property="ScrollViewer.HorizontalScrollMode"
+                Value="Auto" />
+        <Setter Property="ScrollViewer.IsHorizontalRailEnabled"
+                Value="True" />
+        <Setter Property="ScrollViewer.VerticalScrollMode"
+                Value="Enabled" />
+        <Setter Property="ScrollViewer.IsVerticalRailEnabled"
+                Value="True" />
+        <Setter Property="ScrollViewer.ZoomMode"
+                Value="Disabled" />
+        <Setter Property="ScrollViewer.IsDeferredScrollingEnabled"
+                Value="False" />
+        <Setter Property="ScrollViewer.BringIntoViewOnFocusChange"
+                Value="True" />
+        <Setter Property="UseSystemFocusVisuals"
+                Value="{StaticResource UseSystemFocusVisuals}" />
+        <Setter Property="CornerRadius"
+                Value="{ThemeResource ControlCornerRadius}" />
+        <Setter Property="BorderBrush"
+                Value="{ThemeResource TableViewGridLinesBrush}" />
+        <Setter Property="BorderThickness"
+                Value="1" />
+        <Setter Property="HeaderRowStyle"
+                Value="{StaticResource DefaultTableViewHeaderRowStyle}" />
+        <Setter Property="RowStyle"
+                Value="{StaticResource DefaultTableViewRowStyle}" />
+        <Setter Property="ItemContainerTransitions">
+            <Setter.Value>
+                <TransitionCollection>
+                    <AddDeleteThemeTransition />
+                    <ContentThemeTransition />
+                    <ReorderThemeTransition />
+                    <EntranceThemeTransition IsStaggeringEnabled="False" />
+                </TransitionCollection>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="ItemTemplate">
+            <Setter.Value>
+                <DataTemplate>
+                    <local:TableViewRow x:Name="tableViewRow"
+                                        ui:FrameworkElementExtensions.AncestorType="local:TableView"
+                                        Height="{Binding TableView.RowHeight, RelativeSource={RelativeSource Self}}"
+                                        MaxHeight="{Binding TableView.RowMaxHeight, RelativeSource={RelativeSource Self}}"
+                                        Style="{Binding TableView.RowStyle, RelativeSource={RelativeSource Self}}"
+                                        TableView="{Binding (ui:FrameworkElementExtensions.Ancestor), RelativeSource={RelativeSource Self}}"
+                                        ItemsSource="{Binding TableView.Columns, RelativeSource={RelativeSource Self}}"
+                                        DataContext="{Binding}">
+                        <local:TableViewRow.ItemTemplate>
+                            <DataTemplate>
+                                <Border Width="{Binding Width}">
+                                    <local:TableViewCell />
+                                </Border>
+                            </DataTemplate>
+                        </local:TableViewRow.ItemTemplate>
+                    </local:TableViewRow>
+                </DataTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:TableView">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}">
+
+                        <ScrollViewer Margin="-4,0"
+                                      TabNavigation="{TemplateBinding TabNavigation}"
+                                      HorizontalScrollMode="{TemplateBinding ScrollViewer.HorizontalScrollMode}"
+                                      HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                                      IsHorizontalScrollChainingEnabled="{TemplateBinding ScrollViewer.IsHorizontalScrollChainingEnabled}"
+                                      VerticalScrollMode="Disabled"
+                                      VerticalScrollBarVisibility="Disabled"
+                                      IsVerticalScrollChainingEnabled="False"
+                                      IsHorizontalRailEnabled="{TemplateBinding ScrollViewer.IsHorizontalRailEnabled}"
+                                      IsVerticalRailEnabled="False"
+                                      ZoomMode="{TemplateBinding ScrollViewer.ZoomMode}"
+                                      IsDeferredScrollingEnabled="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}"
+                                      BringIntoViewOnFocusChange="{TemplateBinding ScrollViewer.BringIntoViewOnFocusChange}"
+                                      AutomationProperties.AccessibilityView="Raw">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <local:TableViewHeaderRow x:Name="HeaderPresenter"
+                                                          Style="{TemplateBinding HeaderRowStyle}"
+                                                          ItemsSource="{TemplateBinding Columns}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <local:TableViewColumnHeader Content="{Binding Header}"
+                                                                         Width="{Binding Width, Mode=TwoWay}"
+                                                                         MinWidth="{Binding MinWidth}"
+                                                                         MaxWidth="{Binding MaxWidth}"
+                                                                         CanResize="{Binding CanResize}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </local:TableViewHeaderRow>
+                                <ScrollViewer x:Name="ScrollViewer"
+                                              Grid.Row="1"
+                                              TabNavigation="{TemplateBinding TabNavigation}"
+                                              HorizontalScrollMode="Disabled"
+                                              HorizontalScrollBarVisibility="Disabled"
+                                              IsHorizontalScrollChainingEnabled="False"
+                                              VerticalScrollMode="{TemplateBinding ScrollViewer.VerticalScrollMode}"
+                                              VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}"
+                                              IsVerticalScrollChainingEnabled="{TemplateBinding ScrollViewer.IsVerticalScrollChainingEnabled}"
+                                              IsHorizontalRailEnabled="False"
+                                              IsVerticalRailEnabled="{TemplateBinding ScrollViewer.IsVerticalRailEnabled}"
+                                              ZoomMode="{TemplateBinding ScrollViewer.ZoomMode}"
+                                              IsDeferredScrollingEnabled="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}"
+                                              BringIntoViewOnFocusChange="{TemplateBinding ScrollViewer.BringIntoViewOnFocusChange}"
+                                              AutomationProperties.AccessibilityView="Raw">
+                                    <ItemsPresenter Padding="{TemplateBinding Padding}" />
+                                </ScrollViewer>
+                            </Grid>
+                        </ScrollViewer>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="local:TableViewHeaderRow"
+           BasedOn="{StaticResource DefaultTableViewHeaderRowStyle}" />
+
+    <Style TargetType="local:TableViewRow"
+           BasedOn="{StaticResource DefaultTableViewRowStyle}" />
+
+    <Style TargetType="local:TableViewColumnHeader"
+           BasedOn="{StaticResource DefaultTableViewColumnHeaderStyle}" />
+
+    <Style TargetType="local:TableViewCell"
+           BasedOn="{StaticResource DefaultTableViewCellStyle}" />
+
+    <Style TargetType="local:TableView"
+           BasedOn="{StaticResource DefaultTableViewStyle}" />
+
+</ResourceDictionary>
