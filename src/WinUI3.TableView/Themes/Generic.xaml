@@ -86,7 +86,8 @@
                               BorderThickness="{TemplateBinding BorderThickness}"
                               BackgroundSizing="{TemplateBinding BackgroundSizing}"
                               VerticalAlignment="{TemplateBinding VerticalAlignment}"
-                              HorizontalAlignment="{TemplateBinding HorizontalAlignment}">
+                              HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+                              ui:FrameworkElementExtensions.AncestorType="local:TableView">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
@@ -103,8 +104,6 @@
                                       Visibility="Collapsed"
                                       VerticalAlignment="Top"
                                       Glyph="{ThemeResource SortIconAscending}" />
-
-                            
                         </Grid>
 
                         <toolkit:ContentSizer Margin="0,0,-4,0"
@@ -137,7 +136,8 @@
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="{TemplateBinding CornerRadius}">
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Width="{Binding Column.Width, RelativeSource={RelativeSource TemplatedParent}}">
                         <ContentPresenter Grid.Column="1"
                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                           HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
@@ -191,34 +191,10 @@
         </Setter>
     </Style>
 
-    <Style x:Key="DefaultTableViewRowStyle"
-           TargetType="local:TableViewRow">
-        <Setter Property="ItemsPanel">
-            <Setter.Value>
-                <ItemsPanelTemplate>
-                    <ItemsStackPanel Orientation="Horizontal" />
-                </ItemsPanelTemplate>
-            </Setter.Value>
-        </Setter>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="local:TableViewRow">
-                    <Border Background="{TemplateBinding Background}">
-                        <Grid>
-                            <ItemsPresenter Grid.Column="1" />
-                        </Grid>
-                    </Border>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
     <Style x:Key="DefaultTableViewStyle"
            TargetType="local:TableView">
         <Setter Property="IsTabStop"
                 Value="False" />
-        <Setter Property="SelectionMode"
-                Value="Extended" />
         <Setter Property="TabNavigation"
                 Value="Cycle" />
         <Setter Property="IsSwipeEnabled"
@@ -249,10 +225,6 @@
                 Value="{ThemeResource TableViewGridLinesBrush}" />
         <Setter Property="BorderThickness"
                 Value="1" />
-        <Setter Property="HeaderRowStyle"
-                Value="{StaticResource DefaultTableViewHeaderRowStyle}" />
-        <Setter Property="RowStyle"
-                Value="{StaticResource DefaultTableViewRowStyle}" />
         <Setter Property="ItemContainerTransitions">
             <Setter.Value>
                 <TransitionCollection>
@@ -263,25 +235,17 @@
                 </TransitionCollection>
             </Setter.Value>
         </Setter>
+        <Setter Property="ItemsPanel">
+            <Setter.Value>
+                <ItemsPanelTemplate>
+                    <ItemsStackPanel Orientation="Vertical" />
+                </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
         <Setter Property="ItemTemplate">
             <Setter.Value>
                 <DataTemplate>
-                    <local:TableViewRow x:Name="tableViewRow"
-                                        ui:FrameworkElementExtensions.AncestorType="local:TableView"
-                                        Height="{Binding TableView.RowHeight, RelativeSource={RelativeSource Self}}"
-                                        MaxHeight="{Binding TableView.RowMaxHeight, RelativeSource={RelativeSource Self}}"
-                                        Style="{Binding TableView.RowStyle, RelativeSource={RelativeSource Self}}"
-                                        TableView="{Binding (ui:FrameworkElementExtensions.Ancestor), RelativeSource={RelativeSource Self}}"
-                                        ItemsSource="{Binding TableView.Columns, RelativeSource={RelativeSource Self}}"
-                                        DataContext="{Binding}">
-                        <local:TableViewRow.ItemTemplate>
-                            <DataTemplate>
-                                <Border Width="{Binding Width}">
-                                    <local:TableViewCell />
-                                </Border>
-                            </DataTemplate>
-                        </local:TableViewRow.ItemTemplate>
-                    </local:TableViewRow>
+                    <local:TableViewRowPresenter />
                 </DataTemplate>
             </Setter.Value>
         </Setter>
@@ -314,7 +278,6 @@
                                 </Grid.RowDefinitions>
 
                                 <local:TableViewHeaderRow x:Name="HeaderPresenter"
-                                                          Style="{TemplateBinding HeaderRowStyle}"
                                                           ItemsSource="{TemplateBinding Columns}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
@@ -353,10 +316,7 @@
 
     <Style TargetType="local:TableViewHeaderRow"
            BasedOn="{StaticResource DefaultTableViewHeaderRowStyle}" />
-
-    <Style TargetType="local:TableViewRow"
-           BasedOn="{StaticResource DefaultTableViewRowStyle}" />
-
+    
     <Style TargetType="local:TableViewColumnHeader"
            BasedOn="{StaticResource DefaultTableViewColumnHeaderStyle}" />
 

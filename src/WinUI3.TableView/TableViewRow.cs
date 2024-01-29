@@ -1,66 +1,67 @@
 ﻿using CommunityToolkit.WinUI;
-using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace WinUI3.TableView;
 
-public class TableViewRow : ItemsControl
+public class TableViewRowPresenter : StackPanel
 {
-    public TableViewRow()
-    {
-        DefaultStyleKey = typeof(TableViewRow);
-    }
+    private TableView? _tableView;
 
     public IEnumerable<TableViewCell> GetCells()
     {
-        return this.FindDescendant<ItemsStackPanel>()!.Children.Select(x => x.FindDescendantOrSelf<TableViewCell>()!);
+        return Children.Select(x => x.FindDescendantOrSelf<TableViewCell>()!);
     }
 
     internal void SelectNextCell(TableViewCell? currentCell)
     {
-        var cells = GetCells().ToList();
-        var nextCellIndex = currentCell is null ? 0 : cells.IndexOf(currentCell) + 1;
-        if (nextCellIndex < cells.Count)
+        _tableView ??= this.FindAscendant<TableView>();
+
+        if (_tableView is not null)
         {
-            var nextCell = cells[nextCellIndex];
-            if (nextCell.IsReadOnly)
+            var cells = GetCells().ToList();
+            var nextCellIndex = currentCell is null ? 0 : cells.IndexOf(currentCell) + 1;
+            if (nextCellIndex < cells.Count)
             {
-                SelectNextCell(nextCell);
+                var nextCell = cells[nextCellIndex];
+                if (nextCell.IsReadOnly)
+                {
+                    SelectNextCell(nextCell);
+                }
+                else
+                {
+                    nextCell.PrepareForEdit();
+                }
             }
-            nextCell.PrepareForEdit();
-        }
-        else
-        {
-            TableView.SelectNextRow();
+            else
+            {
+                _tableView.SelectNextRow();
+            }
         }
     }
 
     internal void SelectPreviousCell(TableViewCell? currentCell)
     {
-        var cells = GetCells().ToList();
-        var previousCellIndex = currentCell is null ? cells.Count - 1 : cells.IndexOf(currentCell) - 1;
-        if (previousCellIndex >= 0)
+        _tableView ??= this.FindAscendant<TableView>();
+
+        if (_tableView is not null)
         {
-            var previousCell = cells[previousCellIndex];
-            if (previousCell.IsReadOnly)
+            var cells = GetCells().ToList();
+            var previousCellIndex = currentCell is null ? cells.Count - 1 : cells.IndexOf(currentCell) - 1;
+            if (previousCellIndex >= 0)
             {
-                SelectPreviousCell(previousCell);
+                var previousCell = cells[previousCellIndex];
+                if (previousCell.IsReadOnly)
+                {
+                    SelectPreviousCell(previousCell);
+                }
+                previousCell.PrepareForEdit();
             }
-            previousCell.PrepareForEdit();
-        }
-        else
-        {
-            TableView.SelectPreviousRow();
+            else
+            {
+                _tableView.SelectPreviousRow();
+            }
         }
     }
-
-    public TableView TableView
-    {
-        get => (TableView)GetValue(TableViewProperty);
-        set => SetValue(TableViewProperty, value);
-    }
-
-    public static readonly DependencyProperty TableViewProperty = DependencyProperty.Register(nameof(TableView), typeof(TableView), typeof(TableViewRow), new PropertyMetadata(null));
 }

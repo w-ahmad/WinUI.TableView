@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using CommunityToolkit.WinUI.Helpers;
-using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using System;
@@ -12,7 +11,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -26,9 +24,9 @@ namespace CommunityToolkit.WinUI.Collections;
 /// </summary>
 public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPropertyChanged, ISupportIncrementalLoading, IComparer<object>
 {
-    private readonly ContentControl _contentControl = new();
     private readonly List<object> _view = [];
     private readonly ObservableCollection<SortDescription> _sortDescriptions = [];
+    private readonly Dictionary<string, PropertyInfo> _sortProperties = [];
     private readonly bool _liveShapingEnabled;
     private readonly HashSet<string> _observedFilterProperties = [];
     private IList _source = new List<object>(0);
@@ -390,7 +388,6 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
     /// </summary>
     public IEnumerable SourceCollection => _source;
 
-    private string? _lastPropertyName;
     /// <summary>
     /// IComparer implementation
     /// </summary>
@@ -399,19 +396,29 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
     /// <returns>Comparison value</returns>
     int IComparer<object>.Compare(object? x, object? y)
     {
+        if (_sortProperties.Count == 0)
+        {
+            var listType = _source?.GetType();
+            var type = listType is not null && listType.IsGenericType ? listType.GetGenericArguments()[0] : x?.GetType();
+            foreach (var sd in _sortDescriptions)
+            {
+                if (!string.IsNullOrEmpty(sd.PropertyName) && type?.GetProperty(sd.PropertyName) is { } pi)
+                {
+                    _sortProperties[sd.PropertyName] = pi;
+                }
+            }
+        }
+
         foreach (var sd in _sortDescriptions)
         {
-            if (_lastPropertyName != sd.PropertyName)
+            var cx = x;
+            var cy = y;
+
+            if (!string.IsNullOrEmpty(sd.PropertyName) && _sortProperties.TryGetValue(sd.PropertyName, out var pi))
             {
-                _lastPropertyName = sd.PropertyName;
-                _contentControl.SetBinding(ContentControl.ContentProperty, new Binding { Path = new PropertyPath(sd.PropertyName) });
+                cx = pi.GetValue(x);
+                cy = pi.GetValue(y);
             }
-
-            _contentControl.DataContext = x;
-            var cx = _contentControl.Content;
-
-            _contentControl.DataContext = y;
-            var cy = _contentControl.Content;
 
             var cmp = sd.Comparer.Compare(cx, cy);
 
@@ -538,7 +545,9 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
 
     private void HandleSortChanged()
     {
+        _sortProperties.Clear();
         _view.Sort(this);
+        _sortProperties.Clear();
 
         OnVectorChanged(new VectorChangedEventArgs(CollectionChange.Reset));
     }
@@ -580,6 +589,7 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
 
     private void HandleSourceChanged()
     {
+        _sortProperties.Clear();
         var currentItem = CurrentItem;
         _view.Clear();
         foreach (var item in Source)
@@ -605,6 +615,7 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
             }
         }
 
+        _sortProperties.Clear();
         OnVectorChanged(new VectorChangedEventArgs(CollectionChange.Reset));
         MoveCurrentTo(currentItem);
     }
@@ -666,6 +677,7 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
 
         if (_sortDescriptions.Any())
         {
+            _sortProperties.Clear();
             newViewIndex = _view.BinarySearch(newItem!, this);
             if (newViewIndex < 0)
             {

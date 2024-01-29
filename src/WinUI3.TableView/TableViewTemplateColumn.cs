@@ -4,11 +4,6 @@ namespace WinUI3.TableView;
 
 public class TableViewTemplateColumn : TableViewColumn
 {
-    public TableViewTemplateColumn()
-    {
-        IsReadOnly = true;
-    }
-
     internal override FrameworkElement GenerateElement()
     {
         return (FrameworkElement)CellTemplate.LoadContent();

@@ -3,20 +3,44 @@ using CommunityToolkit.WinUI.Collections;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Markup;
 using System.Collections;
+using System.Collections.Specialized;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace WinUI3.TableView;
-
-[StyleTypedProperty(Property = nameof(HeaderRowStyle), StyleTargetType = typeof(TableViewHeaderRow))]
-[StyleTypedProperty(Property = nameof(RowStyle), StyleTargetType = typeof(TableViewRow))]
 public class TableView : ListView
 {
     public TableView()
     {
         DefaultStyleKey = typeof(TableView);
         Columns = [];
+        Columns.CollectionChanged += OnColumnsCollectionChanged;
         base.ItemsSource = CollectionView;
+    }
+
+    private void OnColumnsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        var templateString = $$$"""
+            <DataTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:local="using:WinUI3.TableView"
+                          xmlns:ui="using:CommunityToolkit.WinUI">
+                <local:TableViewRowPresenter x:Name="stackPanel"
+                                             Orientation="Horizontal"
+                                             ui:FrameworkElementExtensions.AncestorType="local:TableView"
+                                             Tag="{Binding (ui:FrameworkElementExtensions.Ancestor).Columns, RelativeSource={RelativeSource Self}}">
+                                             {{{string.Join('\n', Columns.Select(x =>
+                                             {
+                                                 var i = Columns.IndexOf(x);
+                                                 return $"<local:TableViewCell Column=\"{{Binding Tag[{i}], ElementName=stackPanel}}\" />";
+                                             }))}}}
+                </local:TableViewRowPresenter>
+            </DataTemplate>
+            """;
+
+        ItemTemplate = (DataTemplate)XamlReader.Load(templateString);
     }
 
     internal async void SelectNextRow()
@@ -37,7 +61,7 @@ public class TableView : ListView
 
         await Task.Delay(5);
         var listViewItem = ContainerFromItem(SelectedItem) as ListViewItem;
-        var row = listViewItem?.FindDescendant<TableViewRow>();
+        var row = listViewItem?.FindDescendant<TableViewRowPresenter>();
         row?.SelectNextCell(null);
     }
 
@@ -59,7 +83,7 @@ public class TableView : ListView
 
         await Task.Delay(5);
         var listViewItem = ContainerFromItem(SelectedItem) as ListViewItem;
-        var row = listViewItem?.FindDescendant<TableViewRow>();
+        var row = listViewItem?.FindDescendant<TableViewRowPresenter>();
         row?.SelectPreviousCell(null);
     }
 
@@ -84,19 +108,7 @@ public class TableView : ListView
     public TableViewColumnsColection Columns
     {
         get => (TableViewColumnsColection)GetValue(ColumnsProperty);
-        set => SetValue(ColumnsProperty, value);
-    }
-
-    public Style HeaderRowStyle
-    {
-        get => (Style)GetValue(HeaderRowStyleProperty);
-        set => SetValue(HeaderRowStyleProperty, value);
-    }
-
-    public Style RowStyle
-    {
-        get => (Style)GetValue(RowStyleProperty);
-        set => SetValue(RowStyleProperty, value);
+        private set => SetValue(ColumnsProperty, value);
     }
 
     public double RowHeight
@@ -119,8 +131,6 @@ public class TableView : ListView
 
     public static readonly new DependencyProperty ItemsSourceProperty = DependencyProperty.Register(nameof(ItemsSource), typeof(IList), typeof(TableView), new PropertyMetadata(null, OnItemsSourceChanged));
     public static readonly DependencyProperty ColumnsProperty = DependencyProperty.Register(nameof(Columns), typeof(TableViewColumnsColection), typeof(TableView), new PropertyMetadata(null));
-    public static readonly DependencyProperty RowStyleProperty = DependencyProperty.Register(nameof(RowStyle), typeof(Style), typeof(TableView), new PropertyMetadata(default));
-    public static readonly DependencyProperty HeaderRowStyleProperty = DependencyProperty.Register(nameof(HeaderRowStyle), typeof(Style), typeof(TableView), new PropertyMetadata(default));
     public static readonly DependencyProperty RowHeightProperty = DependencyProperty.Register(nameof(RowHeight), typeof(double), typeof(TableView), new PropertyMetadata(40d));
     public static readonly DependencyProperty RowMaxHeightProperty = DependencyProperty.Register(nameof(RowMaxHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.PositiveInfinity));
 }

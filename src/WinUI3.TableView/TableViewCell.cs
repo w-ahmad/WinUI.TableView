@@ -2,9 +2,10 @@
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.System;
 using Windows.UI.Core;
@@ -13,7 +14,7 @@ namespace WinUI3.TableView;
 
 public class TableViewCell : ContentControl
 {
-    private TableViewRow? _tableViewRow;
+    private TableViewRowPresenter? _tableViewRow;
     private TableViewColumn? _column;
     private Lazy<FrameworkElement> _element = null!;
     private Lazy<FrameworkElement> _editingElement = null!;
@@ -21,27 +22,6 @@ public class TableViewCell : ContentControl
     public TableViewCell()
     {
         DefaultStyleKey = typeof(TableViewCell);
-        Loaded += OnLoaded;
-    }
-
-    private void OnLoaded(object sender, RoutedEventArgs e)
-    {
-        _column = (TableViewColumn)DataContext;
-        _tableViewRow = this.FindAscendant<TableViewRow>();
-        SetBinding(DataContextProperty, new Binding { Path = new PropertyPath(nameof(DataContext)), Source = _tableViewRow });
-
-        if (_column is not null)
-        {
-            _element = new Lazy<FrameworkElement>(_column.GenerateElement());
-            _editingElement = new Lazy<FrameworkElement>(_column.GenerateEditingElement());
-        }
-
-        if (_column is TableViewBoundColumn boundColumn)
-        {
-            SetBinding(ValueProperty, boundColumn.Binding);
-        }
-
-        SetElement();
     }
 
     protected override void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
@@ -52,20 +32,13 @@ public class TableViewCell : ContentControl
         }
     }
 
-    internal async void PrepareForEdit()
+    protected override void OnKeyDown(KeyRoutedEventArgs e)
     {
-        SetEditingElement();
+        base.OnKeyDown(e);
 
-        await Task.Delay(20);
+        _tableViewRow ??= this.FindAscendant<TableViewRowPresenter>();
 
-        _editingElement.Value.Focus(FocusState.Programmatic);
-        _editingElement.Value.KeyDown += OnEdititingElementKeyDown;
-        _editingElement.Value.LostFocus += OnEdititingElementLostFocus;
-    }
-
-    private void OnEdititingElementKeyDown(object sender, KeyRoutedEventArgs e)
-    {
-        if (e.Key is VirtualKey.Tab or VirtualKey.Enter && _tableViewRow is not null)
+        if (e.Key is VirtualKey.Tab or VirtualKey.Enter && _tableViewRow is not null && !IsAnyFlyoutOpen(this))
         {
             var shiftKey = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Shift);
             var isShiftKeyDown = shiftKey is CoreVirtualKeyStates.Down or (CoreVirtualKeyStates.Down | CoreVirtualKeyStates.Locked);
@@ -81,7 +54,20 @@ public class TableViewCell : ContentControl
         }
         else if (e.Key == VirtualKey.Escape)
         {
-            OnEdititingElementLostFocus(default!, default!);
+            OnEdititingElementLostFocus(Content ?? ContentTemplateRoot, default!);
+        }
+    }
+
+    internal async void PrepareForEdit()
+    {
+        SetEditingElement();
+
+        await Task.Delay(20);
+
+        if ((Content ?? ContentTemplateRoot) is UIElement editingElement)
+        {
+            editingElement.Focus(FocusState.Programmatic);
+            editingElement.LostFocus += OnEdititingElementLostFocus;
         }
     }
 
@@ -89,14 +75,32 @@ public class TableViewCell : ContentControl
     {
         await Task.Delay(20);
 
-        if (sender is ComboBox comboBox && comboBox.IsDropDownOpen)
+        if (sender is FrameworkElement element && IsAnyFlyoutOpen(element))
         {
             return;
         }
 
         SetElement();
-        _editingElement!.Value.LostFocus -= OnEdititingElementLostFocus;
-        _editingElement.Value.KeyDown -= OnEdititingElementKeyDown;
+
+        ((UIElement)sender).LostFocus -= OnEdititingElementLostFocus;
+    }
+
+    private static bool IsAnyFlyoutOpen(FrameworkElement element)
+    {
+        if (FlyoutBase.GetAttachedFlyout(element) is { IsOpen: true })
+        {
+            return true;
+        }
+
+        foreach (var child in element.FindDescendants().OfType<FrameworkElement>())
+        {
+            if (FlyoutBase.GetAttachedFlyout(child) is { IsOpen: true })
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void SetElement()
@@ -123,13 +127,25 @@ public class TableViewCell : ContentControl
         }
     }
 
-    public bool IsReadOnly => _column is { IsReadOnly: true };
-
-    public object Value
+    private static void OnColumnChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        get => GetValue(ValueProperty);
-        private set => SetValue(ValueProperty, value);
+        if (d is TableViewCell cell && e.NewValue is TableViewColumn column)
+        {
+            cell._column = column;
+            cell._element = new Lazy<FrameworkElement>(column.GenerateElement());
+            cell._editingElement = new Lazy<FrameworkElement>(column.GenerateEditingElement());
+            cell.SetElement();
+        }
+
     }
 
-    public static readonly DependencyProperty ValueProperty = DependencyProperty.Register(nameof(Value), typeof(object), typeof(TableViewCell), new PropertyMetadata(default));
+    public bool IsReadOnly => _column is TableViewTemplateColumn { EditingTemplate: null } || _column is { IsReadOnly: true };
+
+    public TableViewColumn Column
+    {
+        get { return (TableViewColumn)GetValue(ColumnProperty); }
+        set { SetValue(ColumnProperty, value); }
+    }
+
+    public static readonly DependencyProperty ColumnProperty = DependencyProperty.Register(nameof(Column), typeof(TableViewColumn), typeof(TableViewCell), new PropertyMetadata(default, OnColumnChanged));
 }
