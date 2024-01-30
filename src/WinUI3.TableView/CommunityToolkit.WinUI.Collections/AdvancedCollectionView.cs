@@ -26,7 +26,7 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
 {
     private readonly List<object> _view = new();
     private readonly ObservableCollection<SortDescription> _sortDescriptions = new();
-    private readonly Dictionary<string, PropertyInfo> _sortProperties = new();
+    private readonly Dictionary<string, (PropertyInfo, object?)[]> _sortProperties = new();
     private readonly bool _liveShapingEnabled;
     private readonly HashSet<string> _observedFilterProperties = new();
     private IList _source = new List<object>(0);
@@ -396,28 +396,23 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
     /// <returns>Comparison value</returns>
     int IComparer<object>.Compare(object? x, object? y)
     {
-        if (_sortProperties.Count == 0)
-        {
-            var listType = _source?.GetType();
-            var type = listType is not null && listType.IsGenericType ? listType.GetGenericArguments()[0] : x?.GetType();
-            foreach (var sd in _sortDescriptions)
-            {
-                if (!string.IsNullOrEmpty(sd.PropertyName) && type?.GetProperty(sd.PropertyName) is { } pi)
-                {
-                    _sortProperties[sd.PropertyName] = pi;
-                }
-            }
-        }
-
         foreach (var sd in _sortDescriptions)
         {
-            var cx = x;
-            var cy = y;
+            object? cx;
+            object? cy;
 
-            if (!string.IsNullOrEmpty(sd.PropertyName) && _sortProperties.TryGetValue(sd.PropertyName, out var pi))
+            if (!string.IsNullOrEmpty(sd.PropertyName) && _sortProperties.TryGetValue(sd.PropertyName, out (PropertyInfo, object?)[]? pis))
             {
-                cx = pi.GetValue(x);
-                cy = pi.GetValue(y);
+                cx = GetValue(x, pis);
+                cy = GetValue(y, pis);
+            }
+            else
+            {
+                var type = _source?.GetType() is { } listType && listType.IsGenericType ? listType.GetGenericArguments()[0] : x?.GetType();
+                cx = GetValue(type, x, sd.PropertyName, out pis);
+                cy = GetValue(y, pis);
+
+                _sortProperties.Add(sd.PropertyName, pis);
             }
 
             var cmp = sd.Comparer.Compare(cx, cy);
@@ -429,6 +424,51 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
         }
 
         return 0;
+    }
+
+    private static object? GetValue(object? obj, (PropertyInfo pi, object? index)[] pis)
+    {
+        foreach (var pi in pis)
+        {
+            if (obj is null)
+            {
+                break;
+            }
+
+            obj = pi.index is not null ? pi.pi.GetValue(obj, new[] { pi.index }) : pi.pi.GetValue(obj);
+        }
+
+        return obj;
+    }
+
+    private static object? GetValue(Type? type, object? obj, string path, out (PropertyInfo pi, object? index)[] pis)
+    {
+        var parts = path.Split('.');
+        pis = new (PropertyInfo, object?)[parts.Length];
+        for (int i = 0; i < parts.Length; i++)
+        {
+            var part = parts[i];
+            var index = default(object?);
+            if (part.StartsWith('[') && part.EndsWith(']'))
+            {
+                index = int.TryParse(part[1..^1], out var ind) ? ind : index;
+                part = "Item";
+            }
+
+            var pi = type?.GetProperty(part);
+            if (pi is not null)
+            {
+                pis[i] = (pi, index);
+                obj = index is not null ? pi?.GetValue(obj, new[] { index }) : pi?.GetValue(obj);
+                type = obj?.GetType();
+            }
+            else
+            {
+                return obj;
+            }
+        }
+
+        return obj;
     }
 
     /// <summary>
