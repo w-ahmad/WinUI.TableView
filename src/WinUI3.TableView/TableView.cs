@@ -6,7 +6,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Markup;
 using System.Collections;
 using System.Collections.Specialized;
-using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace WinUI3.TableView;
@@ -15,32 +15,32 @@ public class TableView : ListView
     public TableView()
     {
         DefaultStyleKey = typeof(TableView);
-        Columns = [];
+        Columns = new();
         Columns.CollectionChanged += OnColumnsCollectionChanged;
         base.ItemsSource = CollectionView;
     }
 
     private void OnColumnsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        var templateString = $$$"""
-            <DataTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                          xmlns:local="using:WinUI3.TableView"
-                          xmlns:ui="using:CommunityToolkit.WinUI">
-                <local:TableViewRowPresenter x:Name="stackPanel"
-                                             Orientation="Horizontal"
-                                             ui:FrameworkElementExtensions.AncestorType="local:TableView"
-                                             Tag="{Binding (ui:FrameworkElementExtensions.Ancestor).Columns, RelativeSource={RelativeSource Self}}">
-                                             {{{string.Join('\n', Columns.Select(x =>
-                                             {
-                                                 var i = Columns.IndexOf(x);
-                                                 return $"<local:TableViewCell Column=\"{{Binding Tag[{i}], ElementName=stackPanel}}\" />";
-                                             }))}}}
-                </local:TableViewRowPresenter>
-            </DataTemplate>
-            """;
+        var templateBuilder = new StringBuilder();
+        templateBuilder.AppendLine("<DataTemplate xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"");
+        templateBuilder.AppendLine("xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\"");
+        templateBuilder.AppendLine("xmlns:local=\"using:WinUI3.TableView\"");
+        templateBuilder.AppendLine("xmlns:ui=\"using:CommunityToolkit.WinUI\">");
+        templateBuilder.AppendLine("<local:TableViewRowPresenter x:Name=\"stackPanel\"");
+        templateBuilder.AppendLine("Orientation=\"Horizontal\"");
+        templateBuilder.AppendLine("ui:FrameworkElementExtensions.AncestorType=\"local:TableView\"");
+        templateBuilder.AppendLine("Tag=\"{Binding (ui:FrameworkElementExtensions.Ancestor).Columns, RelativeSource={RelativeSource Self}}\">");
 
-        ItemTemplate = (DataTemplate)XamlReader.Load(templateString);
+        for (int i = 0; i < Columns.Count; i++)
+        {
+            templateBuilder.AppendLine($"<local:TableViewCell Column=\"{{Binding Tag[{i}], ElementName=stackPanel}}\" />");
+        }
+
+        templateBuilder.AppendLine("</local:TableViewRowPresenter>");
+        templateBuilder.AppendLine("</DataTemplate>");
+
+        ItemTemplate = (DataTemplate)XamlReader.Load(templateBuilder.ToString());
     }
 
     internal async void SelectNextRow()

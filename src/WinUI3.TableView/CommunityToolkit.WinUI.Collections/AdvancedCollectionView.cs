@@ -24,11 +24,11 @@ namespace CommunityToolkit.WinUI.Collections;
 /// </summary>
 public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPropertyChanged, ISupportIncrementalLoading, IComparer<object>
 {
-    private readonly List<object> _view = [];
-    private readonly ObservableCollection<SortDescription> _sortDescriptions = [];
-    private readonly Dictionary<string, PropertyInfo> _sortProperties = [];
+    private readonly List<object> _view = new();
+    private readonly ObservableCollection<SortDescription> _sortDescriptions = new();
+    private readonly Dictionary<string, PropertyInfo> _sortProperties = new();
     private readonly bool _liveShapingEnabled;
-    private readonly HashSet<string> _observedFilterProperties = [];
+    private readonly HashSet<string> _observedFilterProperties = new();
     private IList _source = new List<object>(0);
     private Predicate<object> _filter = default!;
     private int _deferCounter;

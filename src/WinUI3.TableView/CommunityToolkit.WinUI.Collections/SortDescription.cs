@@ -11,53 +11,45 @@ namespace CommunityToolkit.WinUI.Collections;
 /// Sort description
 /// </summary>
 /// <remarks>
-/// Initializes a new instance of the <see cref="SortDescription"/> class.
-/// </remarks>
-/// <param name="propertyName">Name of property to sort on</param>
-/// <param name="direction">Direction of sort</param>
-/// <param name="comparer">Comparer to use. If null, will use default comparer</param>
-public class SortDescription(string propertyName, SortDirection direction, IComparer? comparer = null)
+public class SortDescription
 {
-    /// <summary>
-    /// Gets the name of property to sort on
-    /// </summary>
-    public string PropertyName { get; } = propertyName;
-
-    /// <summary>
-    /// Gets the direction of sort
-    /// </summary>
-    public SortDirection Direction { get; } = direction;
-
-    /// <summary>
-    /// Gets the comparer
-    /// </summary>
-    public IComparer Comparer { get; } = comparer ?? ObjectComparer.Instance;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="SortDescription"/> class that describes
     /// a sort on the object itself
     /// </summary>
     /// <param name="direction">Direction of sort</param>
     /// <param name="comparer">Comparer to use. If null, will use default comparer</param>
-    public SortDescription(SortDirection direction, IComparer? comparer = null)
-        : this(null!, direction, comparer!)
+    public SortDescription(string propertyName, SortDirection direction, IComparer? comparer = null)
     {
+        PropertyName = propertyName;
+        Direction = direction;
+        Comparer = comparer ?? ObjectComparer.Instance;
     }
-}
+    /// <summary>
+    /// Gets the name of property to sort on
+    /// </summary>
+    public string PropertyName { get; }
 
-file class ObjectComparer : IComparer
-{
-    public static readonly IComparer Instance = new ObjectComparer();
+    /// <summary>
+    /// Gets the direction of sort
+    /// </summary>
+    public SortDirection Direction { get; }
 
-    private ObjectComparer()
+    /// <summary>
+    /// Gets the comparer
+    /// </summary>
+    public IComparer Comparer { get; }
+
+    private class ObjectComparer : IComparer
     {
-    }
+        public static readonly IComparer Instance = new ObjectComparer();
 
-    public int Compare(object? x, object? y)
-    {
-        var cx = x as IComparable;
-        var cy = y as IComparable;
+        public int Compare(object? x, object? y)
+        {
+            var cx = x as IComparable;
+            var cy = y as IComparable;
 
-        return cx == cy ? 0 : cx == null ? -1 : cy == null ? +1 : cx.CompareTo(cy);
+            return cx == cy ? 0 : cx == null ? -1 : cy == null ? +1 : cx.CompareTo(cy);
+        }
     }
 }

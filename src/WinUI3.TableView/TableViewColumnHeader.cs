@@ -42,9 +42,9 @@ public class TableViewColumnHeader : ContentControl
             {
                 _tableView.CollectionView.SortDescriptions.Clear();
 
-                foreach (var header in _tableView.Columns.Except([_column]).Select(x => x.HeaderControl))
+                foreach (var header in _tableView.Columns.Select(x => x.HeaderControl))
                 {
-                    if (header is not null)
+                    if (header is not null && header != this)
                     {
                         header.SortDirection = null;
                     }
