@@ -28,7 +28,7 @@
         <Setter Property="BorderThickness"
                 Value="0,0,1,0" />
         <Setter Property="Padding"
-                Value="16,0,0,0" />
+                Value="12,0,0,0" />
         <Setter Property="UseSystemFocusVisuals"
                 Value="{StaticResource UseSystemFocusVisuals}" />
         <Setter Property="FocusVisualMargin"
@@ -128,7 +128,7 @@
         <Setter Property="BorderThickness"
                 Value="0" />
         <Setter Property="Padding"
-                Value="4,0" />
+                Value="4,4" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:TableViewCell">
@@ -166,7 +166,7 @@
                     <Border Background="{TemplateBinding Background}">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="13" />
+                                <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
@@ -177,7 +177,15 @@
                                     Background="Transparent"
                                     Padding="0"
                                     CornerRadius="4,0,0,0"
+                                    Width="16"
+                                    Visibility="Visible"
                                     BorderBrush="{ThemeResource TableViewGridLinesBrush}" />
+
+                            <CheckBox x:Name="SelectAllCheckBox"
+                                      Margin="14,0,2,0"
+                                      MinWidth="0"
+                                      IsThreeState="True"
+                                      Visibility="Collapsed" />
 
                             <ItemsPresenter Grid.Column="1" />
 

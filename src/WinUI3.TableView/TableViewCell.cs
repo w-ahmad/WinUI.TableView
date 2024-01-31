@@ -38,7 +38,7 @@ public class TableViewCell : ContentControl
 
         _tableViewRow ??= this.FindAscendant<TableViewRowPresenter>();
 
-        if (e.Key is VirtualKey.Tab or VirtualKey.Enter && _tableViewRow is not null && !IsAnyFlyoutOpen(this))
+        if (e.Key is VirtualKey.Tab or VirtualKey.Enter && _tableViewRow is not null && !IsAnyPopupOrFlyoutOpen(this))
         {
             var shiftKey = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Shift);
             var isShiftKeyDown = shiftKey is CoreVirtualKeyStates.Down or (CoreVirtualKeyStates.Down | CoreVirtualKeyStates.Locked);
@@ -75,7 +75,7 @@ public class TableViewCell : ContentControl
     {
         await Task.Delay(20);
 
-        if (sender is FrameworkElement element && IsAnyFlyoutOpen(element))
+        if (sender is FrameworkElement element && IsAnyPopupOrFlyoutOpen(element))
         {
             return;
         }
@@ -85,8 +85,13 @@ public class TableViewCell : ContentControl
         ((UIElement)sender).LostFocus -= OnEdititingElementLostFocus;
     }
 
-    private static bool IsAnyFlyoutOpen(FrameworkElement element)
+    private static bool IsAnyPopupOrFlyoutOpen(FrameworkElement element)
     {
+        if (element.FindDescendant<Popup>() is { IsOpen: true })
+        {
+            return true;
+        }
+
         if (FlyoutBase.GetAttachedFlyout(element) is { IsOpen: true })
         {
             return true;
