@@ -14,7 +14,7 @@ namespace WinUI3.TableView;
 
 public class TableViewCell : ContentControl
 {
-    private TableViewRowPresenter? _tableViewRow;
+    private TableViewRow? _tableViewRow;
     private TableViewColumn? _column;
     private Lazy<FrameworkElement> _element = null!;
     private Lazy<FrameworkElement> _editingElement = null!;
@@ -36,7 +36,7 @@ public class TableViewCell : ContentControl
     {
         base.OnKeyDown(e);
 
-        _tableViewRow ??= this.FindAscendant<TableViewRowPresenter>();
+        _tableViewRow ??= this.FindAscendant<TableViewRow>();
 
         if (e.Key is VirtualKey.Tab or VirtualKey.Enter && _tableViewRow is not null && !IsAnyPopupOrFlyoutOpen(this))
         {

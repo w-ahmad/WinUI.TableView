@@ -16,31 +16,7 @@ public class TableView : ListView
     {
         DefaultStyleKey = typeof(TableView);
         Columns = new();
-        Columns.CollectionChanged += OnColumnsCollectionChanged;
         base.ItemsSource = CollectionView;
-    }
-
-    private void OnColumnsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        var templateBuilder = new StringBuilder();
-        templateBuilder.AppendLine("<DataTemplate xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"");
-        templateBuilder.AppendLine("xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\"");
-        templateBuilder.AppendLine("xmlns:local=\"using:WinUI3.TableView\"");
-        templateBuilder.AppendLine("xmlns:ui=\"using:CommunityToolkit.WinUI\">");
-        templateBuilder.AppendLine("<local:TableViewRowPresenter x:Name=\"stackPanel\"");
-        templateBuilder.AppendLine("Orientation=\"Horizontal\"");
-        templateBuilder.AppendLine("ui:FrameworkElementExtensions.AncestorType=\"local:TableView\"");
-        templateBuilder.AppendLine("Tag=\"{Binding (ui:FrameworkElementExtensions.Ancestor).Columns, RelativeSource={RelativeSource Self}}\">");
-
-        for (int i = 0; i < Columns.Count; i++)
-        {
-            templateBuilder.AppendLine($"<local:TableViewCell Column=\"{{Binding Tag[{i}], ElementName=stackPanel}}\" />");
-        }
-
-        templateBuilder.AppendLine("</local:TableViewRowPresenter>");
-        templateBuilder.AppendLine("</DataTemplate>");
-
-        ItemTemplate = (DataTemplate)XamlReader.Load(templateBuilder.ToString());
     }
 
     internal async void SelectNextRow()
@@ -61,7 +37,7 @@ public class TableView : ListView
 
         await Task.Delay(5);
         var listViewItem = ContainerFromItem(SelectedItem) as ListViewItem;
-        var row = listViewItem?.FindDescendant<TableViewRowPresenter>();
+        var row = listViewItem?.FindDescendant<TableViewRow>();
         row?.SelectNextCell(null);
     }
 
@@ -83,7 +59,7 @@ public class TableView : ListView
 
         await Task.Delay(5);
         var listViewItem = ContainerFromItem(SelectedItem) as ListViewItem;
-        var row = listViewItem?.FindDescendant<TableViewRowPresenter>();
+        var row = listViewItem?.FindDescendant<TableViewRow>();
         row?.SelectPreviousCell(null);
     }
 

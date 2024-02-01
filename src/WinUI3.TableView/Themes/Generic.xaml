@@ -1,9 +1,8 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:local="using:WinUI3.TableView"
-                    xmlns:ui="using:CommunityToolkit.WinUI"
                     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
-                    xmlns:converters="using:CommunityToolkit.WinUI.Converters">
+                    xmlns:converters="using:CommunityToolkit.WinUI.Converters"
+                    xmlns:local="using:WinUI3.TableView">
 
     <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
 
@@ -86,8 +85,7 @@
                               BorderThickness="{TemplateBinding BorderThickness}"
                               BackgroundSizing="{TemplateBinding BackgroundSizing}"
                               VerticalAlignment="{TemplateBinding VerticalAlignment}"
-                              HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
-                              ui:FrameworkElementExtensions.AncestorType="local:TableView">
+                              HorizontalAlignment="{TemplateBinding HorizontalAlignment}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
@@ -99,7 +97,6 @@
                             <FontIcon x:Name="SortIcon"
                                       Grid.Column="1"
                                       FontSize="10"
-                                      MinWidth="16"
                                       Margin="0,2,0,0"
                                       Visibility="Collapsed"
                                       VerticalAlignment="Top"
@@ -141,6 +138,23 @@
                         <ContentPresenter Grid.Column="1"
                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                           HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="TableViewRowDefaultStyle"
+           TargetType="local:TableViewRow">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:TableViewRow">
+                    <Border Padding="{TemplateBinding Padding}"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                        <StackPanel x:Name="PART_StackPanel"
+                                    Orientation="Horizontal" />
                     </Border>
                 </ControlTemplate>
             </Setter.Value>
@@ -253,7 +267,7 @@
         <Setter Property="ItemTemplate">
             <Setter.Value>
                 <DataTemplate>
-                    <local:TableViewRowPresenter />
+                    <local:TableViewRow />
                 </DataTemplate>
             </Setter.Value>
         </Setter>
@@ -330,6 +344,9 @@
 
     <Style TargetType="local:TableViewCell"
            BasedOn="{StaticResource DefaultTableViewCellStyle}" />
+
+    <Style TargetType="local:TableViewRow" 
+           BasedOn="{StaticResource TableViewRowDefaultStyle}"/>
 
     <Style TargetType="local:TableView"
            BasedOn="{StaticResource DefaultTableViewStyle}" />

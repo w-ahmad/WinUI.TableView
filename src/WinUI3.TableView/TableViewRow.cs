@@ -1,17 +1,59 @@
 ﻿using CommunityToolkit.WinUI;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 
 namespace WinUI3.TableView;
 
-public class TableViewRowPresenter : StackPanel
+public class TableViewRow : Control
 {
     private TableView? _tableView;
+    private StackPanel? _stackPanel;
+
+    public TableViewRow()
+    {
+        DefaultStyleKey = typeof(TableViewRow);
+    }
+
+    protected override void OnApplyTemplate()
+    {
+        base.OnApplyTemplate();
+
+        _tableView = this.FindAscendant<TableView>();
+        _stackPanel = GetTemplateChild("PART_StackPanel") as StackPanel;
+
+        if (_tableView is not null)
+        {
+            _tableView.Columns.CollectionChanged += OnColumnsCollectionChanged;
+        }
+
+        GenerateCells();
+    }
+
+    private void OnColumnsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        GenerateCells();
+    }
+
+    private void GenerateCells()
+    {
+        if (_tableView is null || _stackPanel is null)
+        {
+            return;
+        }
+
+        _stackPanel.Children.Clear();
+
+        foreach (var column in _tableView.Columns)
+        {
+            _stackPanel.Children.Add(new TableViewCell { Column = column });
+        }
+    }
 
     public IEnumerable<TableViewCell> GetCells()
     {
-        return Children.Select(x => x.FindDescendantOrSelf<TableViewCell>()!);
+        return _stackPanel?.Children.OfType<TableViewCell>() ?? Enumerable.Empty<TableViewCell>();
     }
 
     internal void SelectNextCell(TableViewCell? currentCell)
