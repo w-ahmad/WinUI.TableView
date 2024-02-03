@@ -144,7 +144,7 @@
         </Setter>
     </Style>
 
-    <Style x:Key="TableViewRowDefaultStyle"
+    <Style x:Key="DefaultTableViewRowStyle"
            TargetType="local:TableViewRow">
         <Setter Property="Template">
             <Setter.Value>
@@ -346,7 +346,7 @@
            BasedOn="{StaticResource DefaultTableViewCellStyle}" />
 
     <Style TargetType="local:TableViewRow" 
-           BasedOn="{StaticResource TableViewRowDefaultStyle}"/>
+           BasedOn="{StaticResource DefaultTableViewRowStyle}" />
 
     <Style TargetType="local:TableView"
            BasedOn="{StaticResource DefaultTableViewStyle}" />

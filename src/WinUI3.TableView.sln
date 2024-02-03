@@ -5,6 +5,8 @@ VisualStudioVersion = 17.8.34408.163
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WinUI3.TableView", "WinUI3.TableView\WinUI3.TableView.csproj", "{48F8B84A-7C15-4204-A659-23F83B574767}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleApp", "SampleApp\SampleApp.csproj", "{8D3695E5-C1B4-4E36-BAD9-BBD87B283CB0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|arm64 = Debug|arm64
@@ -27,6 +29,18 @@ Global
 		{48F8B84A-7C15-4204-A659-23F83B574767}.Release|x64.Build.0 = Release|x64
 		{48F8B84A-7C15-4204-A659-23F83B574767}.Release|x86.ActiveCfg = Release|x86
 		{48F8B84A-7C15-4204-A659-23F83B574767}.Release|x86.Build.0 = Release|x86
+		{8D3695E5-C1B4-4E36-BAD9-BBD87B283CB0}.Debug|arm64.ActiveCfg = Debug|arm64
+		{8D3695E5-C1B4-4E36-BAD9-BBD87B283CB0}.Debug|arm64.Build.0 = Debug|arm64
+		{8D3695E5-C1B4-4E36-BAD9-BBD87B283CB0}.Debug|x64.ActiveCfg = Debug|x64
+		{8D3695E5-C1B4-4E36-BAD9-BBD87B283CB0}.Debug|x64.Build.0 = Debug|x64
+		{8D3695E5-C1B4-4E36-BAD9-BBD87B283CB0}.Debug|x86.ActiveCfg = Debug|x86
+		{8D3695E5-C1B4-4E36-BAD9-BBD87B283CB0}.Debug|x86.Build.0 = Debug|x86
+		{8D3695E5-C1B4-4E36-BAD9-BBD87B283CB0}.Release|arm64.ActiveCfg = Release|arm64
+		{8D3695E5-C1B4-4E36-BAD9-BBD87B283CB0}.Release|arm64.Build.0 = Release|arm64
+		{8D3695E5-C1B4-4E36-BAD9-BBD87B283CB0}.Release|x64.ActiveCfg = Release|x64
+		{8D3695E5-C1B4-4E36-BAD9-BBD87B283CB0}.Release|x64.Build.0 = Release|x64
+		{8D3695E5-C1B4-4E36-BAD9-BBD87B283CB0}.Release|x86.ActiveCfg = Release|x86
+		{8D3695E5-C1B4-4E36-BAD9-BBD87B283CB0}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
