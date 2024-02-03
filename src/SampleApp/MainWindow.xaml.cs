@@ -2,7 +2,6 @@ using Microsoft.UI.Xaml;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -12,6 +11,7 @@ namespace SampleApp;
 public sealed partial class MainWindow : Window
 {
     private readonly List<DataGridDataItem> _items = new();
+    private readonly ObservableCollection<string> _mountains = new();
 
     public MainWindow()
     {
@@ -39,6 +39,7 @@ public sealed partial class MainWindow : Window
                     First_ascent = DateTimeOffset.Parse(values[7], CultureInfo.InvariantCulture.DateTimeFormat),
                     Ascents = values[8],
                 });
+            _mountains.Add(values[1]);
         }
 
         tableView.ItemsSource = new ObservableCollection<DataGridDataItem>(_items);

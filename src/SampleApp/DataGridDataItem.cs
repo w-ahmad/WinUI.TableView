@@ -6,12 +6,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace SampleApp;
 
 #nullable disable
 
-public class DataGridDataItem : INotifyDataErrorInfo, IComparable
+public class DataGridDataItem : INotifyDataErrorInfo, IComparable, INotifyPropertyChanged
 {
     private Dictionary<string, List<string>> _errors = new Dictionary<string, List<string>>();
     private uint _rank;
@@ -19,8 +20,13 @@ public class DataGridDataItem : INotifyDataErrorInfo, IComparable
     private uint _height;
     private string _range;
     private string _parentMountain;
+    private string coordinates;
+    private uint prominence;
+    private DateTimeOffset first_ascent;
+    private string ascents;
 
     public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
+    public event PropertyChangedEventHandler PropertyChanged;
 
     public uint Rank
     {
@@ -34,6 +40,7 @@ public class DataGridDataItem : INotifyDataErrorInfo, IComparable
             if (_rank != value)
             {
                 _rank = value;
+                OnPropertyChanged();
             }
         }
     }
@@ -64,6 +71,8 @@ public class DataGridDataItem : INotifyDataErrorInfo, IComparable
                     _errors.Remove("Mountain");
                     ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs("Mountain"));
                 }
+
+                OnPropertyChanged();
             }
         }
     }
@@ -80,6 +89,7 @@ public class DataGridDataItem : INotifyDataErrorInfo, IComparable
             if (_height != value)
             {
                 _height = value;
+                OnPropertyChanged();
             }
         }
     }
@@ -110,6 +120,8 @@ public class DataGridDataItem : INotifyDataErrorInfo, IComparable
                     _errors.Remove("Range");
                     ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs("Range"));
                 }
+
+                OnPropertyChanged();
             }
         }
     }
@@ -140,18 +152,62 @@ public class DataGridDataItem : INotifyDataErrorInfo, IComparable
                     _errors.Remove("Parent_mountain");
                     ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs("Parent_mountain"));
                 }
+
+                OnPropertyChanged();
             }
         }
     }
 
-    public string Coordinates { get; set; }
+    public string Coordinates
+    {
+        get => coordinates;
+        set
+        {
+            if (coordinates != value)
+            {
+                coordinates = value;
+                OnPropertyChanged();
+            }
+        }
+    }
 
-    public uint Prominence { get; set; }
+    public uint Prominence
+    {
+        get => prominence;
+        set
+        {
+            if (prominence != value)
+            {
+                prominence = value;
+                OnPropertyChanged();
+            }
+        }
+    }
 
     // You need to use DateTimeOffset to get proper binding to the CalendarDatePicker control, DateTime won't work.
-    public DateTimeOffset First_ascent { get; set; }
+    public DateTimeOffset First_ascent
+    {
+        get => first_ascent; set
+        {
+            if (first_ascent != value)
+            {
+                first_ascent = value;
+                OnPropertyChanged();
+            }
+        }
+    }
 
-    public string Ascents { get; set; }
+    public string Ascents
+    {
+        get => ascents; set
+        {
+            if (ascents != value)
+            {
+                ascents = value;
+                OnPropertyChanged();
+            }
+        }
+    }
 
     bool INotifyDataErrorInfo.HasErrors
     {
@@ -190,5 +246,10 @@ public class DataGridDataItem : INotifyDataErrorInfo, IComparable
         {
             return lnCompare;
         }
+    }
+
+    private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

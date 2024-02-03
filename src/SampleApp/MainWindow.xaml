@@ -64,7 +64,8 @@
                 <table:TableViewTextColumn Header="Rank"
                                            Binding="{Binding Rank}" />
                 <table:TableViewComboBoxColumn Header="Mountain"
-                                               Binding="{Binding Mountain}" />
+                                               Binding="{Binding Mountain}"
+                                               ItemsSource="{x:Bind _mountains}" />
                 <table:TableViewTextColumn Header="Height (m)"
                                            Binding="{Binding Height_m}" />
                 <table:TableViewTextColumn Header="Range"
@@ -83,7 +84,7 @@
                         <DataTemplate>
                             <CalendarDatePicker Date="{Binding First_ascent, Mode=TwoWay}" />
                         </DataTemplate>
-                    </table:TableViewTemplateColumn.EditingTemplate>    
+                    </table:TableViewTemplateColumn.EditingTemplate>
                 </table:TableViewTemplateColumn>
             </table:TableView.Columns>
         </table:TableView>
