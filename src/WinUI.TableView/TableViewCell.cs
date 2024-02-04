@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Windows.System;
 using Windows.UI.Core;
 
-namespace WinUI3.TableView;
+namespace WinUI.TableView;
 
 public class TableViewCell : ContentControl
 {

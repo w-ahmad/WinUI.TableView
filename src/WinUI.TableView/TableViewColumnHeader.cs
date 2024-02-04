@@ -10,7 +10,7 @@ using Windows.System;
 using Windows.UI.Core;
 using SD = CommunityToolkit.WinUI.Collections.SortDirection;
 
-namespace WinUI3.TableView;
+namespace WinUI.TableView;
 
 [TemplateVisualState(Name = VisualStates.StateNormal, GroupName = VisualStates.GroupCommon)]
 [TemplateVisualState(Name = VisualStates.StatePointerOver, GroupName = VisualStates.GroupCommon)]
@@ -25,6 +25,7 @@ public class TableViewColumnHeader : ContentControl
     private bool _canSort;
     private TableViewColumn? _column;
     private TableView? _tableView;
+    private Button? _optionsButton;
 
     public TableViewColumnHeader()
     {
@@ -68,9 +69,16 @@ public class TableViewColumnHeader : ContentControl
         base.OnApplyTemplate();
 
         _tableView = this.FindAscendant<TableView>();
+        _optionsButton = GetTemplateChild("PART_OptionsButton") as Button;
         _column = (TableViewColumn)DataContext;
         _column.HeaderControl = this;
         _canSort = _column is TableViewBoundColumn { CanSort: true, Binding.Path.Path.Length: > 0 };
+
+        if (_optionsButton is not null && _column is TableViewBoundColumn)
+        {
+            _optionsButton.Visibility = Visibility.Visible;
+            _optionsButton.Tapped += OnOptionsButtonTaped;
+        }
     }
 
     private void OnOptionsButtonTaped(object sender, TappedRoutedEventArgs e)

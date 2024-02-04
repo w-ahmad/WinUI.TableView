@@ -1,9 +1,9 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
-namespace WinUI3.TableView;
+namespace WinUI.TableView;
 
-public class TableViewTextColumn : TableViewBoundColumn
+public class TableViewNumberColumn : TableViewBoundColumn
 {
     internal override FrameworkElement GenerateElement()
     {
@@ -19,9 +19,9 @@ public class TableViewTextColumn : TableViewBoundColumn
 
     internal override FrameworkElement GenerateEditingElement()
     {
-        var textBox = new TextBox();
-        textBox.SetBinding(TextBox.TextProperty, Binding);
+        var numberBox = new NumberBox();
+        numberBox.SetBinding(NumberBox.ValueProperty, Binding);
 
-        return textBox;
+        return numberBox;
     }
 }

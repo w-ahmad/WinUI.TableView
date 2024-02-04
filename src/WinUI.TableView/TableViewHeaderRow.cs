@@ -2,7 +2,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
-namespace WinUI3.TableView;
+namespace WinUI.TableView;
 
 public class TableViewHeaderRow : ItemsControl
 {

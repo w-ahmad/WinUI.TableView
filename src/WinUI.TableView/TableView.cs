@@ -3,13 +3,10 @@ using CommunityToolkit.WinUI.Collections;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Markup;
 using System.Collections;
-using System.Collections.Specialized;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace WinUI3.TableView;
+namespace WinUI.TableView;
 public class TableView : ListView
 {
     public TableView()

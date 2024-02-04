@@ -4,7 +4,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:converters="using:CommunityToolkit.WinUI.Converters"
-        xmlns:table="using:WinUI3.TableView"
+        xmlns:table="using:WinUI.TableView"
         mc:Ignorable="d">
 
     <Grid Loaded="OnRootGridLoded"
@@ -31,12 +31,12 @@
                                        Margin="8,0,0,0" />
                         </DataTemplate>
                     </table:TableViewTemplateColumn.CellTemplate>
-                    <!--<table:TableViewTemplateColumn.EditingTemplate>
+                    <table:TableViewTemplateColumn.EditingTemplate>
                         <DataTemplate>
                             <CalendarDatePicker HorizontalAlignment="Stretch" 
                                                 Date="{Binding First_ascent, Mode=TwoWay}" />
                         </DataTemplate>
-                    </table:TableViewTemplateColumn.EditingTemplate>-->
+                    </table:TableViewTemplateColumn.EditingTemplate>
                 </table:TableViewTemplateColumn>
             </table:TableViewColumnsColection>
 

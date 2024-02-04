@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
                     xmlns:converters="using:CommunityToolkit.WinUI.Converters"
-                    xmlns:local="using:WinUI3.TableView">
+                    xmlns:local="using:WinUI.TableView">
 
     <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
 
@@ -101,6 +101,32 @@
                                       Visibility="Collapsed"
                                       VerticalAlignment="Top"
                                       Glyph="{ThemeResource SortIconAscending}" />
+
+                            <Button x:Name="PART_OptionsButton"
+                                    Grid.Column="1"
+                                    Padding="4,6,4,4"
+                                    BorderThickness="0"
+                                    Visibility="Collapsed"
+                                    Background="Transparent"
+                                    Opacity="0"
+                                    VerticalAlignment="Bottom">
+                                <FontIcon Grid.Row="1"
+                                          Grid.ColumnSpan="2"
+                                          FontSize="11"
+                                          VerticalAlignment="Center"
+                                          HorizontalAlignment="Right"
+                                          Glyph="{ThemeResource OptionsButtonIcon}" />
+                                <Button.Flyout>
+                                    <Flyout Placement="BottomEdgeAlignedLeft">
+                                        <StackPanel>
+                                            <TextBlock Style="{ThemeResource BaseTextBlockStyle}"
+                                                       Text="All items will be removed. Do you want to continue?"
+                                                       Margin="0,0,0,12" />
+                                            <Button Content="Yes, empty my cart" />
+                                        </StackPanel>
+                                    </Flyout>
+                                </Button.Flyout>
+                            </Button>
                         </Grid>
 
                         <toolkit:ContentSizer Margin="0,0,-4,0"
@@ -338,14 +364,14 @@
 
     <Style TargetType="local:TableViewHeaderRow"
            BasedOn="{StaticResource DefaultTableViewHeaderRowStyle}" />
-    
+
     <Style TargetType="local:TableViewColumnHeader"
            BasedOn="{StaticResource DefaultTableViewColumnHeaderStyle}" />
 
     <Style TargetType="local:TableViewCell"
            BasedOn="{StaticResource DefaultTableViewCellStyle}" />
 
-    <Style TargetType="local:TableViewRow" 
+    <Style TargetType="local:TableViewRow"
            BasedOn="{StaticResource DefaultTableViewRowStyle}" />
 
     <Style TargetType="local:TableView"

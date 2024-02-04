@@ -2,7 +2,7 @@
 using Microsoft.UI.Xaml.Controls;
 using System.Diagnostics;
 
-namespace WinUI3.TableView;
+namespace WinUI.TableView;
 
 /// <summary>
 /// Names and helpers for visual states in the control.

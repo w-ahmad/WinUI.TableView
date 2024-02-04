@@ -1,13 +1,13 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 
-namespace WinUI3.TableView;
+namespace WinUI.TableView;
 
 public abstract class TableViewBoundColumn : TableViewColumn
 {
     private Binding _binding = new();
 
-    public Binding Binding
+    public virtual Binding Binding
     {
         get => _binding;
         set

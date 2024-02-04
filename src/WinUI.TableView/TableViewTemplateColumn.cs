@@ -1,6 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 
-namespace WinUI3.TableView;
+namespace WinUI.TableView;
 
 public class TableViewTemplateColumn : TableViewColumn
 {

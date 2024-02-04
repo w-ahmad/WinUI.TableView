@@ -3,7 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 
-namespace WinUI3.TableView;
+namespace WinUI.TableView;
 
 public class TableViewComboBoxColumn : TableViewBoundColumn
 {

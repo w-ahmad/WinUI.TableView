@@ -7,9 +7,8 @@
     <SelfContained>true</SelfContained>
     <WindowsPackageType>None</WindowsPackageType>
   </PropertyGroup>
-
   <ItemGroup>
-    <ProjectReference Include="..\WinUI3.TableView\WinUI3.TableView.csproj" />
+    <ProjectReference Include="..\WinUI.TableView\WinUI.TableView.csproj" />
   </ItemGroup>
 
   <ItemGroup>

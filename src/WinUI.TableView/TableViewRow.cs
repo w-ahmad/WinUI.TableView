@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 
-namespace WinUI3.TableView;
+namespace WinUI.TableView;
 
 public class TableViewRow : Control
 {

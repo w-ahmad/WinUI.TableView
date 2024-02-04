@@ -1,5 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 
-namespace WinUI3.TableView;
+namespace WinUI.TableView;
 
 public class TableViewColumnsColection : ObservableCollection<TableViewColumn> { }

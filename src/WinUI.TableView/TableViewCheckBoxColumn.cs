@@ -2,7 +2,7 @@
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 
-namespace WinUI3.TableView;
+namespace WinUI.TableView;
 
 public class TableViewCheckBoxColumn : TableViewBoundColumn
 {

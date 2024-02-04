@@ -1,6 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 
-namespace WinUI3.TableView;
+namespace WinUI.TableView;
 
 [StyleTypedProperty(Property = nameof(HeaderStyle), StyleTargetType = typeof(TableViewColumnHeader))]
 public abstract class TableViewColumn : DependencyObject
