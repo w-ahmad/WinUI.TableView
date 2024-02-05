@@ -4,7 +4,14 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
+using Windows.ApplicationModel.DataTransfer;
+using Windows.System;
+using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView;
 public class TableView : ListView
@@ -14,6 +21,57 @@ public class TableView : ListView
         DefaultStyleKey = typeof(TableView);
         Columns = new();
         base.ItemsSource = CollectionView;
+    }
+
+    protected override void OnProcessKeyboardAccelerators(ProcessKeyboardAcceleratorEventArgs args)
+    {
+        base.OnProcessKeyboardAccelerators(args);
+
+        if (args.Key == VirtualKey.C && args.Modifiers is VirtualKeyModifiers.Control or (VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift))
+        {
+            CopyToClipboard(args.Modifiers is (VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift));
+            args.Handled = true;
+        }
+    }
+
+    private void CopyToClipboard(bool includeHeaders)
+    {
+        var package = new DataPackage();
+        package.SetText(GetClipboardContent(includeHeaders));
+        Clipboard.SetContent(package);
+    }
+
+    private string GetClipboardContent(bool includeHeaders)
+    {
+        var stringBuilder = new StringBuilder();
+        var properties = new Dictionary<string, (PropertyInfo, object?)[]>();
+
+        if (includeHeaders)
+        {
+            stringBuilder.AppendLine(string.Join('\t', Columns.OfType<TableViewBoundColumn>().Select(x => x.Header)));
+        }
+
+        foreach (var item in SelectedItems)
+        {
+            var type = ItemsSource?.GetType() is { } listType && listType.IsGenericType ? listType.GetGenericArguments()[0] : item?.GetType();
+            foreach (var column in Columns.OfType<TableViewBoundColumn>())
+            {
+                var property = column.Binding.Path.Path;
+                if (!properties.TryGetValue(property, out (PropertyInfo, object?)[]? pis))
+                {
+                    stringBuilder.Append($"{item.GetValue(type, property, out pis)}\t");
+                    properties.Add(property, pis);
+                }
+                else
+                {
+                    stringBuilder.Append($"{item.GetValue(pis)}\t");
+                }
+            }
+
+            stringBuilder.Append('\n');
+        }
+
+        return stringBuilder.ToString();
     }
 
     internal async void SelectNextRow()

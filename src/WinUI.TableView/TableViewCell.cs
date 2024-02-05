@@ -141,7 +141,6 @@ public class TableViewCell : ContentControl
             cell._editingElement = new Lazy<FrameworkElement>(column.GenerateEditingElement());
             cell.SetElement();
         }
-
     }
 
     public bool IsReadOnly => _column is TableViewTemplateColumn { EditingTemplate: null } || _column is { IsReadOnly: true };

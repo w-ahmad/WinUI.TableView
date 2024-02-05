@@ -16,6 +16,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using WinUI.TableView.Extensions;
 
 namespace CommunityToolkit.WinUI.Collections;
 
@@ -403,14 +404,14 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
 
             if (!string.IsNullOrEmpty(sd.PropertyName) && _sortProperties.TryGetValue(sd.PropertyName, out (PropertyInfo, object?)[]? pis))
             {
-                cx = GetValue(x, pis);
-                cy = GetValue(y, pis);
+                cx = x.GetValue(pis);
+                cy = y.GetValue(pis);
             }
             else
             {
                 var type = _source?.GetType() is { } listType && listType.IsGenericType ? listType.GetGenericArguments()[0] : x?.GetType();
-                cx = GetValue(type, x, sd.PropertyName, out pis);
-                cy = GetValue(y, pis);
+                cx = x.GetValue(type, sd.PropertyName, out pis);
+                cy = y.GetValue(pis);
 
                 _sortProperties.Add(sd.PropertyName, pis);
             }
@@ -424,51 +425,6 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
         }
 
         return 0;
-    }
-
-    private static object? GetValue(object? obj, (PropertyInfo pi, object? index)[] pis)
-    {
-        foreach (var pi in pis)
-        {
-            if (obj is null)
-            {
-                break;
-            }
-
-            obj = pi.index is not null ? pi.pi.GetValue(obj, new[] { pi.index }) : pi.pi.GetValue(obj);
-        }
-
-        return obj;
-    }
-
-    private static object? GetValue(Type? type, object? obj, string path, out (PropertyInfo pi, object? index)[] pis)
-    {
-        var parts = path.Split('.');
-        pis = new (PropertyInfo, object?)[parts.Length];
-        for (int i = 0; i < parts.Length; i++)
-        {
-            var part = parts[i];
-            var index = default(object?);
-            if (part.StartsWith('[') && part.EndsWith(']'))
-            {
-                index = int.TryParse(part[1..^1], out var ind) ? ind : index;
-                part = "Item";
-            }
-
-            var pi = type?.GetProperty(part);
-            if (pi is not null)
-            {
-                pis[i] = (pi, index);
-                obj = index is not null ? pi?.GetValue(obj, new[] { index }) : pi?.GetValue(obj);
-                type = obj?.GetType();
-            }
-            else
-            {
-                return obj;
-            }
-        }
-
-        return obj;
     }
 
     /// <summary>
