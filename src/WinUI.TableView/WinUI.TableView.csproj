@@ -4,7 +4,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <Description>TableView for WinUI.</Description>
-    <PackageTags>WinUI, WinUI, WinAppSDK, Windows, XAML, WinUI TableView</PackageTags>
+    <PackageTags>WinUI, WinAppSDK, Windows, XAML, WinUI TableView</PackageTags>
     <PackageId>WinUI.TableView</PackageId>
     <Product>WinUI TableView</Product>
     <RepositoryUrl>https://github.com/w-ahmad/WinUI3.TableView</RepositoryUrl>
@@ -12,12 +12,14 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageOutputPath>$(MSBuildThisFileDirectory)..\..\artifacts\NuGet\$(Configuration)\</PackageOutputPath>
+    <Authors>w-ahmad - https://github.com/w-ahmad</Authors>
   </PropertyGroup>
-
+  
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.WinUI.Controls.Sizers" Version="8.0.230907" />
-    <PackageReference Include="CommunityToolkit.WinUI.Converters" Version="8.0.230907" />
+    <PackageReference Include="CommunityToolkit.WinUI.Controls.Sizers" Version="8.0.240109" />
+    <PackageReference Include="CommunityToolkit.WinUI.Converters" Version="8.0.240109" />
     <PackageReference Include="CommunityToolkit.WinUI.Helpers" Version="8.0.240109" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.4.231219000" />
   </ItemGroup>
 
   <ItemGroup>

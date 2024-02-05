@@ -11,35 +11,6 @@
           Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.Resources>
             <converters:StringFormatConverter x:Key="StringFormatConverter" />
-
-            <table:TableViewColumnsColection x:Key="Columns">
-                <table:TableViewTextColumn Header="Rank"
-                                           Binding="{Binding Rank}" />
-                <table:TableViewTextColumn Header="Mountain"
-                                           Binding="{Binding Mountain}" />
-                <table:TableViewTextColumn Header="Height (m)"
-                                           Binding="{Binding Height_m}" />
-                <table:TableViewTextColumn Header="Range"
-                                           Binding="{Binding Range}" />
-                <table:TableViewTextColumn Header="Parent Mountain"
-                                           Binding="{Binding Parent_mountain}" />
-                <table:TableViewTemplateColumn Header="First Ascent">
-                    <table:TableViewTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding First_ascent, Converter={StaticResource StringFormatConverter}, ConverterParameter='{}{0:MMM/dd/yyy}'}"
-                                       VerticalAlignment="Center"
-                                       Margin="8,0,0,0" />
-                        </DataTemplate>
-                    </table:TableViewTemplateColumn.CellTemplate>
-                    <table:TableViewTemplateColumn.EditingTemplate>
-                        <DataTemplate>
-                            <CalendarDatePicker HorizontalAlignment="Stretch" 
-                                                Date="{Binding First_ascent, Mode=TwoWay}" />
-                        </DataTemplate>
-                    </table:TableViewTemplateColumn.EditingTemplate>
-                </table:TableViewTemplateColumn>
-            </table:TableViewColumnsColection>
-
         </Grid.Resources>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
