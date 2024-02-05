@@ -4,7 +4,6 @@ using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using System;
 using System.Linq;
 using Windows.System;
 using Windows.UI.Core;
@@ -36,7 +35,8 @@ public class TableViewColumnHeader : ContentControl
     {
         if (_canSort && _tableView is not null && _column is TableViewBoundColumn column)
         {
-            var isShiftButtonDown = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Shift) is CoreVirtualKeyStates.Down or (CoreVirtualKeyStates.Down | CoreVirtualKeyStates.Locked);
+            var isShiftButtonDown = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control) is
+                CoreVirtualKeyStates.Down or (CoreVirtualKeyStates.Down | CoreVirtualKeyStates.Locked);
             var path = column.Binding.Path.Path;
 
             if (!isShiftButtonDown)
