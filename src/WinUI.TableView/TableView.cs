@@ -19,6 +19,7 @@ public class TableView : ListView
     public TableView()
     {
         DefaultStyleKey = typeof(TableView);
+
         Columns = new();
         base.ItemsSource = CollectionView;
     }
@@ -32,9 +33,14 @@ public class TableView : ListView
             CopyToClipboard(args.Modifiers is (VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift));
             args.Handled = true;
         }
+        else if (args.Key == VirtualKey.A && args.Modifiers == (VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift))
+        {
+            this.DeselectAll();
+            args.Handled = true;
+        }
     }
 
-    private void CopyToClipboard(bool includeHeaders)
+    internal void CopyToClipboard(bool includeHeaders)
     {
         var package = new DataPackage();
         package.SetText(GetClipboardContent(includeHeaders));

@@ -210,7 +210,7 @@
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
-                            <Button x:Name="SelectAllButton"
+                            <Button x:Name="OptionsButton"
                                     VerticalAlignment="Stretch"
                                     HorizontalAlignment="Stretch"
                                     BorderThickness="0,0,1,1"
@@ -219,7 +219,28 @@
                                     CornerRadius="4,0,0,0"
                                     Width="16"
                                     Visibility="Visible"
-                                    BorderBrush="{ThemeResource TableViewGridLinesBrush}" />
+                                    BorderBrush="{ThemeResource TableViewGridLinesBrush}">
+                                <FontIcon Grid.Row="1"
+                                          FontSize="12"
+                                          Margin="4,0,0,0"
+                                          Grid.ColumnSpan="2"
+                                          VerticalAlignment="Center"
+                                          HorizontalAlignment="Center"
+                                          Glyph="{ThemeResource OptionsButtonIcon}"
+                                          RenderTransformOrigin="0.5,0.5">
+                                    <FontIcon.RenderTransform>
+                                        <RotateTransform Angle="90" />
+                                    </FontIcon.RenderTransform>
+                                </FontIcon>
+                                <Button.Flyout>
+                                    <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                                        <MenuFlyoutItem Command="{Binding SelectAllCommand, RelativeSource={RelativeSource TemplatedParent}}" />
+                                        <MenuFlyoutItem Command="{Binding DeselectAllCommand, RelativeSource={RelativeSource TemplatedParent}}" />
+                                        <MenuFlyoutItem Command="{Binding CopyCommand, RelativeSource={RelativeSource TemplatedParent}}" />
+                                        <MenuFlyoutItem Command="{Binding CopyWithHeadersCommand, RelativeSource={RelativeSource TemplatedParent}}" />
+                                    </MenuFlyout>
+                                </Button.Flyout>
+                            </Button>
 
                             <CheckBox x:Name="SelectAllCheckBox"
                                       Margin="14,0,2,0"
