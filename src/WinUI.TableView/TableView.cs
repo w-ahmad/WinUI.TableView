@@ -3,6 +3,7 @@ using CommunityToolkit.WinUI.Collections;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,13 @@ public class TableView : ListView
         DefaultStyleKey = typeof(TableView);
 
         Columns = new();
+        CollectionView.Filter = Filter;
         base.ItemsSource = CollectionView;
+    }
+
+    private bool Filter(object obj)
+    {
+        return ActiveFilters.All(item => item.Value(obj));
     }
 
     protected override void OnProcessKeyboardAccelerators(ProcessKeyboardAcceleratorEventArgs args)
@@ -65,13 +72,11 @@ public class TableView : ListView
                 var property = column.Binding.Path.Path;
                 if (!properties.TryGetValue(property, out (PropertyInfo, object?)[]? pis))
                 {
-                    stringBuilder.Append($"{item.GetValue(type, property, out pis)}\t");
+                    pis = type!.GetPropertyInfos(property);
                     properties.Add(property, pis);
                 }
-                else
-                {
-                    stringBuilder.Append($"{item.GetValue(pis)}\t");
-                }
+
+                stringBuilder.Append($"{item.GetValue(pis)}\t");
             }
 
             stringBuilder.Append('\n');
@@ -141,6 +146,8 @@ public class TableView : ListView
     }
 
     public IAdvancedCollectionView CollectionView { get; private set; } = new AdvancedCollectionView();
+
+    internal IDictionary<string, Predicate<object>> ActiveFilters { get; } = new Dictionary<string, Predicate<object>>();
 
     public TableViewColumnsColection Columns
     {

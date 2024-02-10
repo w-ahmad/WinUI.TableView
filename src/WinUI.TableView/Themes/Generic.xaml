@@ -9,8 +9,8 @@
     <StaticResource x:Key="TableViewGridLinesBrush"
                     ResourceKey="ControlStrokeColorDefaultBrush" />
 
-    <x:String x:Key="SortIconAscending">&#xE74A;</x:String>
-    <x:String x:Key="SortIconDescending">&#xE74B;</x:String>
+    <x:String x:Key="SortIconAscending">&#xf0ad;</x:String>
+    <x:String x:Key="SortIconDescending">&#xf0ae;</x:String>
     <x:String x:Key="FilterIcon">&#xe71c;</x:String>
     <x:String x:Key="OptionsButtonIcon">&#xe712;</x:String>
 
@@ -78,6 +78,17 @@
                                     </VisualState.Setters>
                                 </VisualState>
                             </VisualStateGroup>
+                            <VisualStateGroup x:Name="FilterStates">
+                                <VisualState x:Name="Unfiltered" />
+                                <VisualState x:Name="Filtered">
+                                    <VisualState.Setters>
+                                        <Setter Target="OptionsIcon.Visibility"
+                                                Value="Collapsed" />
+                                        <Setter Target="FilterIcon.Visibility"
+                                                Value="Visible" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
                         <Grid Padding="{TemplateBinding Padding}"
                               Background="{TemplateBinding Background}"
@@ -102,38 +113,102 @@
                                       VerticalAlignment="Top"
                                       Glyph="{ThemeResource SortIconAscending}" />
 
-                            <Button x:Name="PART_OptionsButton"
+                            <Button x:Name="OptionsButton"
                                     Grid.Column="1"
-                                    Padding="4,6,4,4"
+                                    Padding="4"
                                     BorderThickness="0"
                                     Visibility="Collapsed"
                                     Background="Transparent"
-                                    Opacity="0"
                                     VerticalAlignment="Bottom">
-                                <FontIcon Grid.Row="1"
-                                          Grid.ColumnSpan="2"
-                                          FontSize="11"
-                                          VerticalAlignment="Center"
-                                          HorizontalAlignment="Right"
-                                          Glyph="{ThemeResource OptionsButtonIcon}" />
+
+                                <Grid>
+                                    <FontIcon x:Name="OptionsIcon"
+                                              FontSize="11"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Right"
+                                              Glyph="{ThemeResource OptionsButtonIcon}" />
+
+                                    <FontIcon x:Name="FilterIcon"
+                                              FontSize="11"
+                                              Visibility="Collapsed"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Right"
+                                              Glyph="{ThemeResource FilterIcon}" />
+                                </Grid>
+
                                 <Button.Flyout>
-                                    <Flyout Placement="BottomEdgeAlignedLeft">
-                                        <StackPanel>
-                                            <TextBlock Style="{ThemeResource BaseTextBlockStyle}"
-                                                       Text="All items will be removed. Do you want to continue?"
-                                                       Margin="0,0,0,12" />
-                                            <Button Content="Yes, empty my cart" />
-                                        </StackPanel>
-                                    </Flyout>
+                                    <MenuFlyout x:Name="OptionsFlyout"
+                                                Placement="Bottom">
+                                        <MenuFlyoutItem Command="{Binding SortAscendingCommand}" />
+                                        <MenuFlyoutItem Command="{Binding SortDescendingCommand}" />
+                                        <MenuFlyoutItem Command="{Binding ClearSortingCommand}" />
+                                        <MenuFlyoutSeparator />
+                                        <MenuFlyoutItem Command="{Binding ClearFilterCommand}" />
+                                        <MenuFlyoutItem x:Name="ItemsCheckFlyoutItem">
+                                            <MenuFlyoutItem.Template>
+                                                <ControlTemplate TargetType="MenuFlyoutItem">
+                                                    <Grid Margin="8,4"
+                                                          Width="220"
+                                                          Height="300">
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="Auto" />
+                                                            <RowDefinition Height="Auto" />
+                                                            <RowDefinition Height="*" />
+                                                        </Grid.RowDefinitions>
+                                                        <AutoSuggestBox x:Name="SearchBox"
+                                                                        QueryIcon="Find"
+                                                                        PlaceholderText="Search..."
+                                                                        Text="{Binding FilterText, Mode=TwoWay}" />
+                                                        <Border Grid.Row="1"
+                                                                BorderThickness="0,0,0,1"
+                                                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                                                            <CheckBox x:Name="SelectAllCheckBox"
+                                                                      Margin="12,8,12,0"
+                                                                      IsThreeState="True"
+                                                                      Content="(Select All)" />
+                                                        </Border>
+                                                        <ScrollView Grid.Row="2"
+                                                                    Padding="12,0">
+                                                            <ItemsControl ItemsSource="{Binding FilterItems}">
+                                                                <ItemsControl.ItemTemplate>
+                                                                    <DataTemplate>
+                                                                        <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}">
+                                                                            <TextBlock Text="{Binding Value}"
+                                                                                       TextWrapping="NoWrap" />
+                                                                        </CheckBox>
+                                                                    </DataTemplate>
+                                                                </ItemsControl.ItemTemplate>
+                                                            </ItemsControl>
+                                                        </ScrollView>
+                                                    </Grid>
+                                                </ControlTemplate>
+                                            </MenuFlyoutItem.Template>
+                                        </MenuFlyoutItem>
+                                        <MenuFlyoutSeparator />
+                                        <MenuFlyoutItem>
+                                            <MenuFlyoutItem.Template>
+                                                <ControlTemplate TargetType="MenuFlyoutItem">
+                                                    <StackPanel Margin="8,4"
+                                                                Spacing="16"
+                                                                HorizontalAlignment="Right"
+                                                                Orientation="Horizontal">
+                                                        <Button Command="{Binding OkCommand}" />
+                                                        <Button Command="{Binding CancelCommand}" />
+                                                    </StackPanel>
+                                                </ControlTemplate>
+                                            </MenuFlyoutItem.Template>
+                                        </MenuFlyoutItem>
+                                    </MenuFlyout>
                                 </Button.Flyout>
                             </Button>
                         </Grid>
 
-                        <toolkit:ContentSizer Margin="0,0,-4,0"
+                        <toolkit:ContentSizer x:Name="HeaderSizer"
+                                              Margin="0,0,-4,0"
                                               IsThumbVisible="False"
                                               HorizontalAlignment="Right"
                                               TargetControl="{Binding RelativeSource={RelativeSource TemplatedParent}}"
-                                              Visibility="{Binding CanResize, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                              Visibility="{Binding CanResize, Converter={StaticResource BoolToVisibilityConverter}}" />
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>
@@ -234,10 +309,14 @@
                                 </FontIcon>
                                 <Button.Flyout>
                                     <MenuFlyout Placement="BottomEdgeAlignedLeft">
-                                        <MenuFlyoutItem Command="{Binding SelectAllCommand, RelativeSource={RelativeSource TemplatedParent}}" />
-                                        <MenuFlyoutItem Command="{Binding DeselectAllCommand, RelativeSource={RelativeSource TemplatedParent}}" />
-                                        <MenuFlyoutItem Command="{Binding CopyCommand, RelativeSource={RelativeSource TemplatedParent}}" />
-                                        <MenuFlyoutItem Command="{Binding CopyWithHeadersCommand, RelativeSource={RelativeSource TemplatedParent}}" />
+                                        <MenuFlyoutItem Command="{Binding SelectAllCommand}" />
+                                        <MenuFlyoutItem Command="{Binding DeselectAllCommand}" />
+                                        <MenuFlyoutSeparator />
+                                        <MenuFlyoutItem Command="{Binding CopyCommand}" />
+                                        <MenuFlyoutItem Command="{Binding CopyWithHeadersCommand}" />
+                                        <MenuFlyoutSeparator />
+                                        <MenuFlyoutItem Command="{Binding ClearSortingsCommand}" />
+                                        <MenuFlyoutItem Command="{Binding ClearFiltersCommand}" />
                                     </MenuFlyout>
                                 </Button.Flyout>
                             </Button>
@@ -353,8 +432,7 @@
                                             <local:TableViewColumnHeader Content="{Binding Header}"
                                                                          Width="{Binding Width, Mode=TwoWay}"
                                                                          MinWidth="{Binding MinWidth}"
-                                                                         MaxWidth="{Binding MaxWidth}"
-                                                                         CanResize="{Binding CanResize}" />
+                                                                         MaxWidth="{Binding MaxWidth}" />
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </local:TableViewHeaderRow>

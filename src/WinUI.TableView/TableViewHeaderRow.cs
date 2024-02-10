@@ -2,7 +2,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Windows.System;
 
 namespace WinUI.TableView;
@@ -16,69 +16,6 @@ public class TableViewHeaderRow : ItemsControl
     public TableViewHeaderRow()
     {
         DefaultStyleKey = typeof(TableViewHeaderRow);
-
-        InitializeCommands();
-    }
-
-    [MemberNotNull(nameof(SelectAllCommand), nameof(DeselectAllCommand), nameof(CopyCommand), nameof(CopyWithHeadersCommand))]
-    private void InitializeCommands()
-    {
-        SelectAllCommand = new(StandardUICommandKind.SelectAll)
-        {
-            Description = "Select all rows."
-        };
-        SelectAllCommand.ExecuteRequested += OnSelectAllCommand;
-
-        DeselectAllCommand = new()
-        {
-            IconSource = new SymbolIconSource { Symbol = Symbol.ClearSelection },
-            Label = "Deselect All",
-            Description = "Deselect all rows."
-        };
-        DeselectAllCommand.KeyboardAccelerators.Add(new KeyboardAccelerator
-        {
-            Key = VirtualKey.A,
-            Modifiers = VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift
-        });
-        DeselectAllCommand.ExecuteRequested += OnDeselectAllCommand;
-
-        CopyCommand = new(StandardUICommandKind.Copy)
-        {
-            Description = "Copy the selected row's content to clipboard."
-        };
-        CopyCommand.ExecuteRequested += OnCopyCommand;
-
-        CopyWithHeadersCommand = new()
-        {
-            Label = "Copy with Headers",
-            Description = "Copy the selected row's content including column headers to clipboard."
-        };
-        CopyWithHeadersCommand.KeyboardAccelerators.Add(new KeyboardAccelerator
-        {
-            Key = VirtualKey.C,
-            Modifiers = VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift
-        });
-        CopyWithHeadersCommand.ExecuteRequested += OnCopyWithHeadersCommand;
-    }
-
-    private void OnSelectAllCommand(XamlUICommand sender, ExecuteRequestedEventArgs args)
-    {
-        _tableView?.SelectAllSafe();
-    }
-
-    private void OnDeselectAllCommand(XamlUICommand sender, ExecuteRequestedEventArgs args)
-    {
-        _tableView?.DeselectAll();
-    }
-
-    private void OnCopyCommand(XamlUICommand sender, ExecuteRequestedEventArgs args)
-    {
-        _tableView?.CopyToClipboard(false);
-    }
-
-    private void OnCopyWithHeadersCommand(XamlUICommand sender, ExecuteRequestedEventArgs args)
-    {
-        _tableView?.CopyToClipboard(true);
     }
 
     protected override void OnApplyTemplate()
@@ -95,6 +32,11 @@ public class TableViewHeaderRow : ItemsControl
         {
             _tableView.SelectionChanged += delegate { OnTableViewSelectionChanged(); };
             _tableView.Items.VectorChanged += delegate { OnTableViewSelectionChanged(); };
+        }
+
+        if (_optionsButton is not null && _tableView is not null)
+        {
+            _optionsButton.DataContext = new OptionsFlyoutViewModel(_tableView);
         }
 
         if (_selectAllCheckBox is not null)
@@ -162,8 +104,81 @@ public class TableViewHeaderRow : ItemsControl
         }
     }
 
-    public StandardUICommand SelectAllCommand { get; private set; }
-    public StandardUICommand DeselectAllCommand { get; private set; }
-    public StandardUICommand CopyCommand { get; private set; }
-    public StandardUICommand CopyWithHeadersCommand { get; private set; }
+    private class OptionsFlyoutViewModel
+    {
+
+        public OptionsFlyoutViewModel(TableView _tableView)
+        {
+
+            InitializeCommands();
+            TableView = _tableView;
+        }
+
+        private void InitializeCommands()
+        {
+            SelectAllCommand.Description = "Select all rows.";
+            SelectAllCommand.ExecuteRequested += delegate { TableView.SelectAllSafe(); };
+
+            DeselectAllCommand.IconSource = new SymbolIconSource { Symbol = Symbol.ClearSelection };
+            DeselectAllCommand.Description = "Deselect all rows.";
+            DeselectAllCommand.KeyboardAccelerators.Add(new KeyboardAccelerator
+            {
+                Key = VirtualKey.A,
+                Modifiers = VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift
+            });
+            DeselectAllCommand.ExecuteRequested += delegate { TableView.DeselectAll(); };
+
+            CopyCommand.Description = "Copy the selected row's content to clipboard.";
+            CopyCommand.ExecuteRequested += delegate { TableView.CopyToClipboard(false); };
+
+            CopyWithHeadersCommand.Description = "Copy the selected row's content including column headers to clipboard.";
+            CopyWithHeadersCommand.KeyboardAccelerators.Add(new KeyboardAccelerator
+            {
+                Key = VirtualKey.C,
+                Modifiers = VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift
+            });
+            CopyWithHeadersCommand.ExecuteRequested += delegate { TableView.CopyToClipboard(true); };
+
+            ClearSortingsCommand.ExecuteRequested += delegate { ClearSortings(); };
+            ClearSortingsCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.CollectionView.SortDescriptions.Count > 0;
+
+            ClearFiltersCommand.ExecuteRequested += delegate { ClearFilters(); };
+            ClearFiltersCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.ActiveFilters.Count > 0;
+        }
+
+        private void ClearSortings()
+        {
+            TableView.CollectionView.SortDescriptions.Clear();
+
+            foreach (var header in TableView.Columns.Select(x => x.HeaderControl))
+            {
+                if (header is not null)
+                {
+                    header.SortDirection = null;
+                }
+            }
+        }
+
+        private void ClearFilters()
+        {
+            TableView.ActiveFilters.Clear();
+            TableView.CollectionView.RefreshFilter();
+
+            foreach (var header in TableView.Columns.Select(x => x.HeaderControl))
+            {
+                if (header is not null)
+                {
+                    header.IsFiltered = false;
+                }
+            }
+        }
+
+        public StandardUICommand SelectAllCommand { get; } = new(StandardUICommandKind.SelectAll);
+        public StandardUICommand DeselectAllCommand { get; } = new() { Label = "Deselect All" };
+        public StandardUICommand CopyCommand { get; } = new(StandardUICommandKind.Copy);
+        public StandardUICommand CopyWithHeadersCommand { get; } = new() { Label = "Copy with Headers" };
+        public StandardUICommand ClearSortingsCommand { get; } = new() { Label = "Clear Sortigns" };
+        public StandardUICommand ClearFiltersCommand { get; } = new() { Label = "Clear Filters" };
+        public TableView TableView { get; }
+    }
 }

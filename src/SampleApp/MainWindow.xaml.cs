@@ -18,7 +18,7 @@ public sealed partial class MainWindow : Window
         InitializeComponent();
     }
 
-    private async void OnRootGridLoded(object sender, RoutedEventArgs e)
+    private async void OnRootGridLoaded(object sender, RoutedEventArgs e)
     {
         var lines = await File.ReadAllLinesAsync("Assets\\mtns.csv");
 

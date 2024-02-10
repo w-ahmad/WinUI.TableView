@@ -7,7 +7,7 @@
         xmlns:table="using:WinUI.TableView"
         mc:Ignorable="d">
 
-    <Grid Loaded="OnRootGridLoded"
+    <Grid Loaded="OnRootGridLoaded"
           Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.Resources>
             <converters:StringFormatConverter x:Key="StringFormatConverter" />
@@ -38,7 +38,7 @@
                                                Binding="{Binding Mountain}"
                                                ItemsSource="{x:Bind _mountains}" />
                 <table:TableViewTextColumn Header="Height (m)"
-                                           Binding="{Binding Height_m}" />
+                                           Binding="{Binding Height_m, Converter={StaticResource StringFormatConverter}, ConverterParameter='{}{0:N0}'}" />
                 <table:TableViewTextColumn Header="Range"
                                            Binding="{Binding Range}" />
                 <table:TableViewTextColumn Header="Parent Mountain"

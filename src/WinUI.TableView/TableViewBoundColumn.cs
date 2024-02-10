@@ -26,5 +26,12 @@ public abstract class TableViewBoundColumn : TableViewColumn
         set => SetValue(CanSortProperty, value);
     }
 
+    public bool CanFilter
+    {
+        get => (bool)GetValue(CanFilterProperty);
+        set => SetValue(CanFilterProperty, value);
+    }
+
     public static readonly DependencyProperty CanSortProperty = DependencyProperty.Register(nameof(CanSort), typeof(bool), typeof(TableViewBoundColumn), new PropertyMetadata(true));
+    public static readonly DependencyProperty CanFilterProperty = DependencyProperty.Register(nameof(CanFilter), typeof(bool), typeof(TableViewBoundColumn), new PropertyMetadata(true));
 }

@@ -304,7 +304,6 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
     /// </summary>
     public object CurrentItem
     {
-
         get => CurrentPosition > -1 && CurrentPosition < _view.Count ? _view[CurrentPosition] : null!;
         set => MoveCurrentTo(value);
     }
@@ -402,19 +401,15 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
             object? cx;
             object? cy;
 
-            if (!string.IsNullOrEmpty(sd.PropertyName) && _sortProperties.TryGetValue(sd.PropertyName, out (PropertyInfo, object?)[]? pis))
-            {
-                cx = x.GetValue(pis);
-                cy = y.GetValue(pis);
-            }
-            else
+            if (!_sortProperties.TryGetValue(sd.PropertyName, out (PropertyInfo, object?)[]? pis))
             {
                 var type = _source?.GetType() is { } listType && listType.IsGenericType ? listType.GetGenericArguments()[0] : x?.GetType();
-                cx = x.GetValue(type, sd.PropertyName, out pis);
-                cy = y.GetValue(pis);
-
+                pis = type!.GetPropertyInfos(sd.PropertyName);
                 _sortProperties.Add(sd.PropertyName, pis);
             }
+
+            cx = x.GetValue(pis);
+            cy = y.GetValue(pis);
 
             var cmp = sd.Comparer.Compare(cx, cy);
 
@@ -542,7 +537,16 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
     private void HandleSortChanged()
     {
         _sortProperties.Clear();
-        _view.Sort(this);
+
+        if (_sortDescriptions.Count > 0)
+        {
+            _view.Sort(this);
+        }
+        else
+        {
+            HandleSourceChanged();
+        }
+
         _sortProperties.Clear();
 
         OnVectorChanged(new VectorChangedEventArgs(CollectionChange.Reset));
@@ -693,7 +697,7 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
             }
             else
             {
-                newViewIndex = _view.Select(x => _source.IndexOf(x))
+                newViewIndex = _view.Select((x, index) => index)
                                     .Concat(new int[] { newStartingIndex }) // Add index of item that need to be inserted in view
                                     .OrderBy(x => x)
                                     .ToList()

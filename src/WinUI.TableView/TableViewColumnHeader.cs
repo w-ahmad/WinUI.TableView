@@ -3,10 +3,16 @@ using CommunityToolkit.WinUI.Collections;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
 using Windows.System;
 using Windows.UI.Core;
+using WinUI.TableView.Extensions;
 using SD = CommunityToolkit.WinUI.Collections.SortDirection;
 
 namespace WinUI.TableView;
@@ -19,27 +25,33 @@ namespace WinUI.TableView;
 [TemplateVisualState(Name = VisualStates.StateUnsorted, GroupName = VisualStates.GroupSort)]
 [TemplateVisualState(Name = VisualStates.StateSortAscending, GroupName = VisualStates.GroupSort)]
 [TemplateVisualState(Name = VisualStates.StateSortDescending, GroupName = VisualStates.GroupSort)]
-public class TableViewColumnHeader : ContentControl
+[TemplateVisualState(Name = VisualStates.StateFiltered, GroupName = VisualStates.GroupFilter)]
+[TemplateVisualState(Name = VisualStates.StateUnfiltered, GroupName = VisualStates.GroupFilter)]
+public partial class TableViewColumnHeader : ContentControl
 {
     private bool _canSort;
+    private bool _canFilter;
     private TableViewColumn? _column;
     private TableView? _tableView;
     private Button? _optionsButton;
+    private MenuFlyout? _optionsFlyout;
+    private CheckBox? _selectAllCheckBox;
+    private OptionsFlyoutViewModel _optionsFlyoutViewModel = default!;
+    private string _propertyPath = default!;
+    private (PropertyInfo, object?)[] _propertyInfos = default!;
+    private SD? sortDirection;
+    private bool isFiltered;
 
     public TableViewColumnHeader()
     {
         DefaultStyleKey = typeof(TableViewColumnHeader);
     }
 
-    protected override void OnTapped(TappedRoutedEventArgs e)
+    private void DoSort(SD direction, bool singleSorting = true)
     {
-        if (_canSort && _tableView is not null && _column is TableViewBoundColumn column)
+        if (_canSort && _tableView is not null)
         {
-            var isShiftButtonDown = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control) is
-                CoreVirtualKeyStates.Down or (CoreVirtualKeyStates.Down | CoreVirtualKeyStates.Locked);
-            var path = column.Binding.Path.Path;
-
-            if (!isShiftButtonDown)
+            if (singleSorting)
             {
                 _tableView.CollectionView.SortDescriptions.Clear();
 
@@ -52,13 +64,75 @@ public class TableViewColumnHeader : ContentControl
                 }
             }
 
-            if (_tableView.CollectionView.SortDescriptions.FirstOrDefault(x => x.PropertyName == path) is { } description)
+            if (_tableView.CollectionView.SortDescriptions.FirstOrDefault(x => x.PropertyName == _propertyPath) is { } description)
             {
                 _tableView.CollectionView.SortDescriptions.Remove(description);
             }
 
-            SortDirection = SortDirection == SD.Ascending ? SD.Descending : SD.Ascending;
-            _tableView.CollectionView.SortDescriptions.Add(new SortDescription(path, SortDirection.Value));
+            SortDirection = direction;
+            _tableView.CollectionView.SortDescriptions.Add(new SortDescription(_propertyPath, SortDirection.Value));
+        }
+    }
+
+    private void ClearSorting()
+    {
+        if (_canSort && _tableView is not null && SortDirection is not null)
+        {
+            SortDirection = null;
+
+            if (_tableView.CollectionView.SortDescriptions.FirstOrDefault(x => x.PropertyName == _propertyPath) is { } description)
+            {
+                _tableView.CollectionView.SortDescriptions.Remove(description);
+            }
+        }
+    }
+
+    private void ClearFilter()
+    {
+        if (_tableView?.ActiveFilters.ContainsKey(_propertyPath) == true)
+        {
+            _tableView.ActiveFilters.Remove(_propertyPath);
+        }
+
+        IsFiltered = false;
+        _optionsFlyoutViewModel.FilterItems.Clear();
+        _tableView?.CollectionView.RefreshFilter();
+    }
+
+    private void ApplyFilter()
+    {
+        if (_tableView is null)
+        {
+            return;
+        }
+
+        _optionsFlyout?.Hide();
+        _tableView.ActiveFilters[_propertyPath] = Filter;
+        _tableView.CollectionView.RefreshFilter();
+        IsFiltered = true;
+    }
+
+    private bool Filter(object item)
+    {
+        if (_propertyInfos is null)
+        {
+            var type = _tableView!.ItemsSource?.GetType() is { } listType && listType.IsGenericType ? listType.GetGenericArguments()[0] : item?.GetType();
+            _propertyInfos = type!.GetPropertyInfos(_propertyPath);
+        }
+
+        var value = item.GetValue(_propertyInfos);
+        value = string.IsNullOrWhiteSpace(value?.ToString()) ? "(Blank)" : value;
+        return _optionsFlyoutViewModel.SelectedValues.Contains(value);
+    }
+
+    protected override void OnTapped(TappedRoutedEventArgs e)
+    {
+        if (_canSort && _tableView is not null)
+        {
+            var isCtrlButtonDown = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control) is
+                CoreVirtualKeyStates.Down or (CoreVirtualKeyStates.Down | CoreVirtualKeyStates.Locked);
+
+            DoSort(SortDirection == SD.Ascending ? SD.Descending : SD.Ascending, !isCtrlButtonDown);
         }
 
         base.OnTapped(e);
@@ -69,15 +143,114 @@ public class TableViewColumnHeader : ContentControl
         base.OnApplyTemplate();
 
         _tableView = this.FindAscendant<TableView>();
-        _optionsButton = GetTemplateChild("PART_OptionsButton") as Button;
+        _optionsButton = GetTemplateChild("OptionsButton") as Button;
+        _optionsFlyout = GetTemplateChild("OptionsFlyout") as MenuFlyout;
         _column = (TableViewColumn)DataContext;
         _column.HeaderControl = this;
-        _canSort = _column is TableViewBoundColumn { CanSort: true, Binding.Path.Path.Length: > 0 };
 
-        if (_optionsButton is not null && _column is TableViewBoundColumn)
+        if (GetTemplateChild("HeaderSizer") is UIElement sizer)
         {
-            _optionsButton.Visibility = Visibility.Visible;
+            sizer.Tapped += (_, e) => e.Handled = true;
+        }
+
+        if (_tableView is null || _optionsButton is null || _optionsFlyout is null)
+        {
+            return;
+        }
+
+        if (_column is TableViewBoundColumn column && column.Binding.Path.Path is { Length: > 0 } path)
+        {
+            _propertyPath = path;
+            _canSort = column.CanSort;
+            _canFilter = column.CanFilter;
+            _optionsButton.Visibility = _canFilter ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        if (_canFilter)
+        {
+            _optionsFlyout.Opening += OnOptionsFlyoutOpening;
             _optionsButton.Tapped += OnOptionsButtonTaped;
+            _optionsButton.DataContext = _optionsFlyoutViewModel = new OptionsFlyoutViewModel(_tableView, this);
+
+            var menuItem = _optionsFlyout.Items.FirstOrDefault(x => x.Name == "ItemsCheckFlyoutItem");
+            menuItem?.ApplyTemplate();
+            _selectAllCheckBox = menuItem?.FindDescendant<CheckBox>(x => x.Name == "SelectAllCheckBox");
+
+            if (_selectAllCheckBox is not null)
+            {
+                _selectAllCheckBox.Tapped += OnSelectAllCheckBox_Tapped;
+            }
+
+            if (menuItem?.FindDescendant<AutoSuggestBox>(x => x.Name == "SearchBox") is { } searchBox)
+            {
+                searchBox.PreviewKeyDown += OnSearchBoxKeyDown;
+            }
+        }
+    }
+
+    private void OnSearchBoxKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key == VirtualKey.Enter && _optionsFlyoutViewModel is { FilterText.Length: > 0 })
+        {
+            _optionsFlyoutViewModel.OkCommand.Execute(null);
+
+            e.Handled = true;
+        }
+    }
+
+    private async void OnSelectAllCheckBox_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        var checkBox = (CheckBox)sender;
+
+        if (checkBox.IsChecked is null)
+        {
+            await Task.Delay(5);
+            checkBox.IsChecked = false;
+        }
+
+        _optionsFlyoutViewModel.SetFilterItemsState(checkBox.IsChecked == true);
+    }
+
+    private void OnOptionsFlyoutOpening(object? sender, object e)
+    {
+        _optionsFlyoutViewModel.FilterText = null;
+    }
+
+    private void PrepareFilterItems(string? _filterText)
+    {
+        if (_tableView is { ItemsSource: { } } && _column is TableViewBoundColumn column)
+        {
+            var collectionView = new AdvancedCollectionView(_tableView.ItemsSource)
+            {
+                Filter = o => _tableView.ActiveFilters.Where(x => x.Key != _propertyPath)
+                                                      .All(x => x.Value(o))
+            };
+
+            var isFiltered = _tableView.ActiveFilters.ContainsKey(_propertyPath);
+
+            _optionsFlyoutViewModel.FilterItems = collectionView.Select(item =>
+            {
+                if (_propertyInfos is null)
+                {
+                    var type = _tableView.ItemsSource?.GetType() is { } listType && listType.IsGenericType ? listType.GetGenericArguments()[0] : item?.GetType();
+                    _propertyInfos = type!.GetPropertyInfos(_propertyPath);
+                }
+
+                var value = item.GetValue(_propertyInfos);
+                value = string.IsNullOrWhiteSpace(value?.ToString()) ? "(Blank)" : value;
+                var isSelected = !string.IsNullOrEmpty(_filterText) ||
+                  (isFiltered && _optionsFlyoutViewModel.SelectedValues.Contains(value));
+
+
+                return string.IsNullOrEmpty(_filterText)
+                      || value?.ToString()?.StartsWith(_filterText, StringComparison.OrdinalIgnoreCase) == true
+                      ? new FilterItem(isSelected, value, _optionsFlyoutViewModel)
+                      : null;
+
+            }).OfType<FilterItem>()
+              .OrderBy(x => x.Value)
+              .DistinctBy(x => x.Value)
+              .ToList();
         }
     }
 
@@ -86,37 +259,51 @@ public class TableViewColumnHeader : ContentControl
         e.Handled = true;
     }
 
-    private static void OnSortDirectionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private void OnSortDirectionChanged()
     {
-        if (d is TableViewColumnHeader header)
+        if (SortDirection == SD.Ascending)
         {
-            if (header.SortDirection == SD.Ascending)
-            {
-                VisualStates.GoToState(header, false, VisualStates.StateSortAscending);
-            }
-            else if (header.SortDirection == SD.Descending)
-            {
-                VisualStates.GoToState(header, false, VisualStates.StateSortDescending);
-            }
-            else
-            {
-                VisualStates.GoToState(header, false, VisualStates.StateUnsorted);
-            }
+            VisualStates.GoToState(this, false, VisualStates.StateSortAscending);
+        }
+        else if (SortDirection == SD.Descending)
+        {
+            VisualStates.GoToState(this, false, VisualStates.StateSortDescending);
+        }
+        else
+        {
+            VisualStates.GoToState(this, false, VisualStates.StateUnsorted);
         }
     }
 
-    public bool CanResize
+    private void OnIsFilteredChanged()
     {
-        get => (bool)GetValue(CanResizeProperty);
-        set => SetValue(CanResizeProperty, value);
+        if (IsFiltered)
+        {
+            VisualStates.GoToState(this, false, VisualStates.StateFiltered);
+        }
+        else
+        {
+            VisualStates.GoToState(this, false, VisualStates.StateUnfiltered);
+        }
     }
 
     public SD? SortDirection
     {
-        get => (SD?)GetValue(SortDirectionProperty);
-        private set => SetValue(SortDirectionProperty, value);
+        get => sortDirection;
+        internal set
+        {
+            sortDirection = value;
+            OnSortDirectionChanged();
+        }
     }
 
-    public static readonly DependencyProperty SortDirectionProperty = DependencyProperty.Register(nameof(SortDirection), typeof(SD?), typeof(TableViewColumnHeader), new PropertyMetadata(default, OnSortDirectionChanged));
-    public static readonly DependencyProperty CanResizeProperty = DependencyProperty.Register(nameof(CanResize), typeof(bool), typeof(TableViewColumnHeader), new PropertyMetadata(true));
+    public bool IsFiltered
+    {
+        get => isFiltered;
+        internal set
+        {
+            isFiltered = value;
+            OnIsFilteredChanged();
+        }
+    }
 }

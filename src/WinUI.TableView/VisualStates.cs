@@ -165,6 +165,21 @@ internal static class VisualStates
     /// </summary>
     public const string GroupSort = "SortStates";
 
+    /// <summary>
+    /// Unfiltered state
+    /// </summary>
+    public const string StateUnfiltered = "Unfiltered";
+
+    /// <summary>
+    /// Filtered state
+    /// </summary>
+    public const string StateFiltered = "Filtered";
+
+    /// <summary>
+    /// Filter state group
+    /// </summary>
+    public const string GroupFilter = "FilterStates";
+
     // GroupValidation
 
     /// <summary>
