@@ -139,14 +139,14 @@ public class TableViewHeaderRow : ItemsControl
             });
             CopyWithHeadersCommand.ExecuteRequested += delegate { TableView.CopyToClipboard(true); };
 
-            ClearSortingsCommand.ExecuteRequested += delegate { ClearSortings(); };
-            ClearSortingsCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.CollectionView.SortDescriptions.Count > 0;
+            ClearSortingCommand.ExecuteRequested += delegate { ClearSorting(); };
+            ClearSortingCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.CollectionView.SortDescriptions.Count > 0;
 
-            ClearFiltersCommand.ExecuteRequested += delegate { ClearFilters(); };
-            ClearFiltersCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.ActiveFilters.Count > 0;
+            ClearFilterCommand.ExecuteRequested += delegate { ClearFilters(); };
+            ClearFilterCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.ActiveFilters.Count > 0;
         }
 
-        private void ClearSortings()
+        private void ClearSorting()
         {
             TableView.CollectionView.SortDescriptions.Clear();
 
@@ -177,8 +177,8 @@ public class TableViewHeaderRow : ItemsControl
         public StandardUICommand DeselectAllCommand { get; } = new() { Label = "Deselect All" };
         public StandardUICommand CopyCommand { get; } = new(StandardUICommandKind.Copy);
         public StandardUICommand CopyWithHeadersCommand { get; } = new() { Label = "Copy with Headers" };
-        public StandardUICommand ClearSortingsCommand { get; } = new() { Label = "Clear Sortigns" };
-        public StandardUICommand ClearFiltersCommand { get; } = new() { Label = "Clear Filters" };
+        public StandardUICommand ClearSortingCommand { get; } = new() { Label = "Clear Sorting" };
+        public StandardUICommand ClearFilterCommand { get; } = new() { Label = "Clear Filter" };
         public TableView TableView { get; }
     }
 }

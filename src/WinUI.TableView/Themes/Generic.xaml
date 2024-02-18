@@ -315,8 +315,8 @@
                                         <MenuFlyoutItem Command="{Binding CopyCommand}" />
                                         <MenuFlyoutItem Command="{Binding CopyWithHeadersCommand}" />
                                         <MenuFlyoutSeparator />
-                                        <MenuFlyoutItem Command="{Binding ClearSortingsCommand}" />
-                                        <MenuFlyoutItem Command="{Binding ClearFiltersCommand}" />
+                                        <MenuFlyoutItem Command="{Binding ClearSortingCommand}" />
+                                        <MenuFlyoutItem Command="{Binding ClearFilterCommand}" />
                                     </MenuFlyout>
                                 </Button.Flyout>
                             </Button>
