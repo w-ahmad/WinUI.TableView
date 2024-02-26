@@ -1,15 +1,15 @@
 ﻿using CommunityToolkit.WinUI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using System.Linq;
 using Windows.System;
 
 namespace WinUI.TableView;
 
-public class TableViewHeaderRow : ItemsControl
+public class TableViewHeaderRow : Control
 {
-    private TableView? _tableView;
     private Button? _optionsButton;
     private CheckBox? _selectAllCheckBox;
 
@@ -22,21 +22,20 @@ public class TableViewHeaderRow : ItemsControl
     {
         base.OnApplyTemplate();
 
-        _tableView = this.FindAscendant<TableView>();
         _optionsButton = GetTemplateChild("OptionsButton") as Button;
         _selectAllCheckBox = GetTemplateChild("SelectAllCheckBox") as CheckBox;
-        _tableView?.RegisterPropertyChangedCallback(ListViewBase.SelectionModeProperty, delegate { OnTableViewSelectionModeChanged(); });
-        _tableView?.RegisterPropertyChangedCallback(TableView.ItemsSourceProperty, delegate { OnTableViewSelectionChanged(); });
+        TableView?.RegisterPropertyChangedCallback(ListViewBase.SelectionModeProperty, delegate { OnTableViewSelectionModeChanged(); });
+        TableView?.RegisterPropertyChangedCallback(TableView.ItemsSourceProperty, delegate { OnTableViewSelectionChanged(); });
 
-        if (_tableView is not null)
-        {
-            _tableView.SelectionChanged += delegate { OnTableViewSelectionChanged(); };
-            _tableView.Items.VectorChanged += delegate { OnTableViewSelectionChanged(); };
-        }
+        if (TableView is null)
+            return;
 
-        if (_optionsButton is not null && _tableView is not null)
+        TableView.SelectionChanged += delegate { OnTableViewSelectionChanged(); };
+        TableView.Items.VectorChanged += delegate { OnTableViewSelectionChanged(); };
+
+        if (_optionsButton is not null)
         {
-            _optionsButton.DataContext = new OptionsFlyoutViewModel(_tableView);
+            _optionsButton.DataContext = new OptionsFlyoutViewModel(TableView);
         }
 
         if (_selectAllCheckBox is not null)
@@ -44,24 +43,42 @@ public class TableViewHeaderRow : ItemsControl
             _selectAllCheckBox.Tapped += OnSelectAllCheckBoxTapped;
         }
 
+        if (GetTemplateChild("HeadersStackPanel") is StackPanel stackPanel && TableView.Columns?.Count > 0)
+        {
+            foreach (var column in TableView.Columns)
+            {
+                var header = new TableViewColumnHeader { DataContext = column};
+                stackPanel.Children.Add(header);
+
+                header.SetBinding(ContentControl.ContentProperty,
+                                  new Binding { Path = new PropertyPath(nameof(TableViewColumn.Header)) });
+                header.SetBinding(WidthProperty,
+                                  new Binding { Path = new PropertyPath(nameof(TableViewColumn.Width)), Mode = BindingMode.TwoWay });
+                header.SetBinding(MinWidthProperty,
+                                  new Binding { Path = new PropertyPath(nameof(TableViewColumn.MinWidth)) });
+                header.SetBinding(MaxWidthProperty,
+                                  new Binding { Path = new PropertyPath(nameof(TableViewColumn.MaxWidth)) });
+            }
+        }
+
         OnTableViewSelectionModeChanged();
     }
 
     private void OnTableViewSelectionChanged()
     {
-        if (_tableView is not null && _selectAllCheckBox is not null)
+        if (TableView is not null && _selectAllCheckBox is not null)
         {
-            if (_tableView.Items.Count == 0)
+            if (TableView.Items.Count == 0)
             {
                 _selectAllCheckBox.IsChecked = null;
                 _selectAllCheckBox.IsEnabled = false;
             }
-            else if (_tableView.SelectedItems.Count == _tableView.Items.Count)
+            else if (TableView.SelectedItems.Count == TableView.Items.Count)
             {
                 _selectAllCheckBox.IsChecked = true;
                 _selectAllCheckBox.IsEnabled = true;
             }
-            else if (_tableView.SelectedItems.Count > 0)
+            else if (TableView.SelectedItems.Count > 0)
             {
                 _selectAllCheckBox.IsChecked = null;
                 _selectAllCheckBox.IsEnabled = true;
@@ -78,14 +95,14 @@ public class TableViewHeaderRow : ItemsControl
     {
         if (_optionsButton is not null)
         {
-            _optionsButton.Visibility = _tableView?.SelectionMode == ListViewSelectionMode.Multiple &&
-                _tableView?.IsMultiSelectCheckBoxEnabled == true ? Visibility.Collapsed : Visibility.Visible;
+            _optionsButton.Visibility = TableView?.SelectionMode == ListViewSelectionMode.Multiple &&
+                TableView?.IsMultiSelectCheckBoxEnabled == true ? Visibility.Collapsed : Visibility.Visible;
         }
 
         if (_selectAllCheckBox is not null)
         {
-            _selectAllCheckBox.Visibility = _tableView?.SelectionMode == ListViewSelectionMode.Multiple &&
-                _tableView?.IsMultiSelectCheckBoxEnabled == true ? Visibility.Visible : Visibility.Collapsed;
+            _selectAllCheckBox.Visibility = TableView?.SelectionMode == ListViewSelectionMode.Multiple &&
+                TableView?.IsMultiSelectCheckBoxEnabled == true ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 
@@ -95,14 +112,22 @@ public class TableViewHeaderRow : ItemsControl
 
         if (checkBox.IsChecked == true)
         {
-            _tableView?.SelectAllSafe();
+            TableView?.SelectAllSafe();
         }
         else
         {
             checkBox.IsChecked = false;
-            _tableView?.DeselectAll();
+            TableView?.DeselectAll();
         }
     }
+
+    public TableView TableView
+    {
+        get { return (TableView)GetValue(TableViewProperty); }
+        set { SetValue(TableViewProperty, value); }
+    }
+
+    public static readonly DependencyProperty TableViewProperty = DependencyProperty.Register(nameof(TableView), typeof(TableView), typeof(TableViewHeaderRow), new PropertyMetadata(null));
 
     private class OptionsFlyoutViewModel
     {

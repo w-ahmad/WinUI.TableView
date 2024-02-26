@@ -1,7 +1,9 @@
 ﻿using CommunityToolkit.WinUI;
+using CommunityToolkit.WinUI.Animations.Expressions;
 using CommunityToolkit.WinUI.Collections;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Input;
 using System;
 using System.Collections;
@@ -24,6 +26,27 @@ public class TableView : ListView
         Columns = new();
         CollectionView.Filter = Filter;
         base.ItemsSource = CollectionView;
+
+        Loaded += OnLoaded;
+    }
+
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        if (GetTemplateChild("ScrollViewer") is not ScrollViewer scrollViewer)
+            return;
+
+        Canvas.SetZIndex(ItemsPanelRoot, -1);
+
+        var scrollProperties = ElementCompositionPreview.GetScrollViewerManipulationPropertySet(scrollViewer);
+        var compositor = scrollProperties.Compositor;
+        var scrollPropSet = scrollProperties.GetSpecializedReference<ManipulationPropertySetReferenceNode>();
+        var itemsPanelVisual = ElementCompositionPreview.GetElementVisual(ItemsPanelRoot);
+        var contentClip = compositor.CreateInsetClip();
+        var expressionClipAnimation = ExpressionFunctions.Max(-scrollPropSet.Translation.Y, 0);
+
+        itemsPanelVisual.Clip = contentClip;
+        contentClip.TopInset = (float)Math.Max(-scrollViewer.VerticalOffset, 0);
+        contentClip.StartAnimation("TopInset", expressionClipAnimation);
     }
 
     private bool Filter(object obj)

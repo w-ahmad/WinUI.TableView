@@ -2,7 +2,9 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
                     xmlns:converters="using:CommunityToolkit.WinUI.Converters"
-                    xmlns:local="using:WinUI.TableView">
+                    xmlns:local="using:WinUI.TableView"
+                    xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
+                    xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors">
 
     <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
 
@@ -268,13 +270,6 @@
                 Value="32" />
         <Setter Property="Background"
                 Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
-        <Setter Property="ItemsPanel">
-            <Setter.Value>
-                <ItemsPanelTemplate>
-                    <ItemsStackPanel Orientation="Horizontal" />
-                </ItemsPanelTemplate>
-            </Setter.Value>
-        </Setter>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:TableViewHeaderRow">
@@ -327,7 +322,9 @@
                                       IsThreeState="True"
                                       Visibility="Collapsed" />
 
-                            <ItemsPresenter Grid.Column="1" />
+                            <StackPanel x:Name="HeadersStackPanel"
+                                        Grid.Column="1"
+                                        Orientation="Horizontal" />
 
                             <Border Grid.Column="1"
                                     BorderThickness="0,0,0,1"
@@ -404,56 +401,29 @@
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="{TemplateBinding CornerRadius}">
-
-                        <ScrollViewer Margin="-4,0"
+                        <ScrollViewer x:Name="ScrollViewer"
                                       TabNavigation="{TemplateBinding TabNavigation}"
                                       HorizontalScrollMode="{TemplateBinding ScrollViewer.HorizontalScrollMode}"
                                       HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
                                       IsHorizontalScrollChainingEnabled="{TemplateBinding ScrollViewer.IsHorizontalScrollChainingEnabled}"
-                                      VerticalScrollMode="Disabled"
-                                      VerticalScrollBarVisibility="Disabled"
-                                      IsVerticalScrollChainingEnabled="False"
-                                      IsHorizontalRailEnabled="{TemplateBinding ScrollViewer.IsHorizontalRailEnabled}"
-                                      IsVerticalRailEnabled="False"
-                                      ZoomMode="{TemplateBinding ScrollViewer.ZoomMode}"
-                                      IsDeferredScrollingEnabled="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}"
-                                      BringIntoViewOnFocusChange="{TemplateBinding ScrollViewer.BringIntoViewOnFocusChange}"
-                                      AutomationProperties.AccessibilityView="Raw">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="*" />
-                                </Grid.RowDefinitions>
-
-                                <local:TableViewHeaderRow x:Name="HeaderPresenter"
-                                                          ItemsSource="{TemplateBinding Columns}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <local:TableViewColumnHeader Content="{Binding Header}"
-                                                                         Width="{Binding Width, Mode=TwoWay}"
-                                                                         MinWidth="{Binding MinWidth}"
-                                                                         MaxWidth="{Binding MaxWidth}" />
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </local:TableViewHeaderRow>
-                                <ScrollViewer x:Name="ScrollViewer"
-                                              Grid.Row="1"
-                                              TabNavigation="{TemplateBinding TabNavigation}"
-                                              HorizontalScrollMode="Disabled"
-                                              HorizontalScrollBarVisibility="Disabled"
-                                              IsHorizontalScrollChainingEnabled="False"
                                               VerticalScrollMode="{TemplateBinding ScrollViewer.VerticalScrollMode}"
                                               VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}"
                                               IsVerticalScrollChainingEnabled="{TemplateBinding ScrollViewer.IsVerticalScrollChainingEnabled}"
-                                              IsHorizontalRailEnabled="False"
+                                      IsHorizontalRailEnabled="{TemplateBinding ScrollViewer.IsHorizontalRailEnabled}"
                                               IsVerticalRailEnabled="{TemplateBinding ScrollViewer.IsVerticalRailEnabled}"
                                               ZoomMode="{TemplateBinding ScrollViewer.ZoomMode}"
                                               IsDeferredScrollingEnabled="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}"
                                               BringIntoViewOnFocusChange="{TemplateBinding ScrollViewer.BringIntoViewOnFocusChange}"
                                               AutomationProperties.AccessibilityView="Raw">
-                                    <ItemsPresenter Padding="{TemplateBinding Padding}" />
-                                </ScrollViewer>
-                            </Grid>
+                            <ItemsPresenter Padding="{TemplateBinding Padding}">
+                                <ItemsPresenter.Header>
+                                    <local:TableViewHeaderRow TableView="{Binding RelativeSource={RelativeSource TemplatedParent}}">
+                                        <interactivity:Interaction.Behaviors>
+                                            <behaviors:StickyHeaderBehavior />
+                                        </interactivity:Interaction.Behaviors>
+                                    </local:TableViewHeaderRow>
+                                </ItemsPresenter.Header>
+                            </ItemsPresenter>
                         </ScrollViewer>
                     </Border>
                 </ControlTemplate>
