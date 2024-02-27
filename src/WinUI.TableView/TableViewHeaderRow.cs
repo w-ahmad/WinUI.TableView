@@ -144,7 +144,6 @@ public class TableViewHeaderRow : Control
             SelectAllCommand.Description = "Select all rows.";
             SelectAllCommand.ExecuteRequested += delegate { TableView.SelectAllSafe(); };
 
-            DeselectAllCommand.IconSource = new SymbolIconSource { Symbol = Symbol.ClearSelection };
             DeselectAllCommand.Description = "Deselect all rows.";
             DeselectAllCommand.KeyboardAccelerators.Add(new KeyboardAccelerator
             {

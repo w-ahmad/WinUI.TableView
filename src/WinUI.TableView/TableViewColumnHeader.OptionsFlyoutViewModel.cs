@@ -1,5 +1,4 @@
-﻿using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Input;
+﻿using Microsoft.UI.Xaml.Input;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -26,11 +25,9 @@ public partial class TableViewColumnHeader
 
         private void InitializeCommands()
         {
-            SortAscendingCommand.IconSource = new FontIconSource { Glyph = "\uf0ad" };
             SortAscendingCommand.ExecuteRequested += delegate { ColumnHeader.DoSort(SD.Ascending); };
             SortAscendingCommand.CanExecuteRequested += (_, e) => e.CanExecute = ColumnHeader._canSort && ColumnHeader.SortDirection != SD.Ascending;
 
-            SortDescendingCommand.IconSource = new FontIconSource { Glyph = "\uf0ae" };
             SortDescendingCommand.ExecuteRequested += delegate { ColumnHeader.DoSort(SD.Descending); };
             SortDescendingCommand.CanExecuteRequested += (_, e) => e.CanExecute = ColumnHeader._canSort && ColumnHeader.SortDirection != SD.Descending;
 

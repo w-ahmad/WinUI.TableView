@@ -141,8 +141,16 @@
                                 <Button.Flyout>
                                     <MenuFlyout x:Name="OptionsFlyout"
                                                 Placement="Bottom">
-                                        <MenuFlyoutItem Command="{Binding SortAscendingCommand}" />
-                                        <MenuFlyoutItem Command="{Binding SortDescendingCommand}" />
+                                        <MenuFlyoutItem Command="{Binding SortAscendingCommand}">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xf0ad;" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                        <MenuFlyoutItem Command="{Binding SortDescendingCommand}">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xf0ae;" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
                                         <MenuFlyoutItem Command="{Binding ClearSortingCommand}" />
                                         <MenuFlyoutSeparator />
                                         <MenuFlyoutItem Command="{Binding ClearFilterCommand}" />
@@ -305,7 +313,8 @@
                                 <Button.Flyout>
                                     <MenuFlyout Placement="BottomEdgeAlignedLeft">
                                         <MenuFlyoutItem Command="{Binding SelectAllCommand}" />
-                                        <MenuFlyoutItem Command="{Binding DeselectAllCommand}" />
+                                        <MenuFlyoutItem Command="{Binding DeselectAllCommand}"
+                                                        Icon="ClearSelection" />
                                         <MenuFlyoutSeparator />
                                         <MenuFlyoutItem Command="{Binding CopyCommand}" />
                                         <MenuFlyoutItem Command="{Binding CopyWithHeadersCommand}" />
