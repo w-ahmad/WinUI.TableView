@@ -321,6 +321,17 @@
                                         <MenuFlyoutSeparator />
                                         <MenuFlyoutItem Command="{Binding ClearSortingCommand}" />
                                         <MenuFlyoutItem Command="{Binding ClearFilterCommand}" />
+                                        <MenuFlyoutSeparator />
+                                        <MenuFlyoutItem Command="{Binding ExportAllToCSVCommand}">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xede1;" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                        <MenuFlyoutItem Command="{Binding ExportSelectedToCSVCommand}">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xede1;" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
                                     </MenuFlyout>
                                 </Button.Flyout>
                             </Button>

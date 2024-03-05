@@ -73,21 +73,31 @@ public class TableView : ListView
     internal void CopyToClipboard(bool includeHeaders)
     {
         var package = new DataPackage();
-        package.SetText(GetClipboardContent(includeHeaders));
+        package.SetText(GetSelectedRowsContent(includeHeaders));
         Clipboard.SetContent(package);
     }
 
-    private string GetClipboardContent(bool includeHeaders)
+    internal string GetSelectedRowsContent(bool includeHeaders, char separator = '\t')
+    {
+        return GetRowsContent(SelectedItems, includeHeaders, separator);
+    }
+
+    internal string GetAllRowsContent(bool includeHeaders, char separator = '\t')
+    {
+        return GetRowsContent(Items, includeHeaders, separator);
+    }
+
+    private string GetRowsContent(IList<object> items, bool includeHeaders, char separator)
     {
         var stringBuilder = new StringBuilder();
         var properties = new Dictionary<string, (PropertyInfo, object?)[]>();
 
         if (includeHeaders)
         {
-            stringBuilder.AppendLine(string.Join('\t', Columns.OfType<TableViewBoundColumn>().Select(x => x.Header)));
+            stringBuilder.AppendLine(GetHeadersContent(separator));
         }
 
-        foreach (var item in SelectedItems)
+        foreach (var item in items)
         {
             var type = ItemsSource?.GetType() is { } listType && listType.IsGenericType ? listType.GetGenericArguments()[0] : item?.GetType();
             foreach (var column in Columns.OfType<TableViewBoundColumn>())
@@ -95,19 +105,25 @@ public class TableView : ListView
                 var property = column.Binding.Path.Path;
                 if (!properties.TryGetValue(property, out (PropertyInfo, object?)[]? pis))
                 {
-                    stringBuilder.Append($"{item.GetValue(type, property, out pis)}\t");
+                    stringBuilder.Append($"{item.GetValue(type, property, out pis)}{separator}");
                     properties.Add(property, pis);
                 }
                 else
                 {
-                    stringBuilder.Append($"{item.GetValue(pis)}\t");
+                    stringBuilder.Append($"{item.GetValue(pis)}{separator}");
                 }
             }
 
+            stringBuilder.Remove(stringBuilder.Length - 1, 1);
             stringBuilder.Append('\n');
         }
 
         return stringBuilder.ToString();
+    }
+
+    private string GetHeadersContent(char separator)
+    {
+        return string.Join(separator, Columns.OfType<TableViewBoundColumn>().Select(x => x.Header));
     }
 
     internal async void SelectNextRow()
