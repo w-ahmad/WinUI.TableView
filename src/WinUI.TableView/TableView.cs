@@ -95,11 +95,13 @@ public class TableView : ListView
                 var property = column.Binding.Path.Path;
                 if (!properties.TryGetValue(property, out (PropertyInfo, object?)[]? pis))
                 {
-                    pis = type!.GetPropertyInfos(property);
+                    stringBuilder.Append($"{item.GetValue(type, property, out pis)}\t");
                     properties.Add(property, pis);
                 }
-
-                stringBuilder.Append($"{item.GetValue(pis)}\t");
+                else
+                {
+                    stringBuilder.Append($"{item.GetValue(pis)}\t");
+                }
             }
 
             stringBuilder.Append('\n');

@@ -401,15 +401,20 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
             object? cx;
             object? cy;
 
-            if (!_sortProperties.TryGetValue(sd.PropertyName, out (PropertyInfo, object?)[]? pis))
+            if (!string.IsNullOrEmpty(sd.PropertyName) && 
+                _sortProperties.TryGetValue(sd.PropertyName, out (PropertyInfo, object?)[]? pis))
+            {
+                cx = x.GetValue(pis);
+                cy = y.GetValue(pis);
+            }
+            else
             {
                 var type = _source?.GetType() is { } listType && listType.IsGenericType ? listType.GetGenericArguments()[0] : x?.GetType();
-                pis = type!.GetPropertyInfos(sd.PropertyName);
+                cx = x.GetValue(type, sd.PropertyName, out pis);
+                cy = y.GetValue(pis);
+
                 _sortProperties.Add(sd.PropertyName, pis);
             }
-
-            cx = x.GetValue(pis);
-            cy = y.GetValue(pis);
 
             var cmp = sd.Comparer.Compare(cx, cy);
 

@@ -20,10 +20,10 @@ internal static class ObjectExtensions
         return obj;
     }
 
-    internal static (PropertyInfo pi, object? index)[] GetPropertyInfos(this Type type, string path)
+    internal static object? GetValue(this object? obj, Type? type, string path, out (PropertyInfo pi, object? index)[] pis)
     {
         var parts = path.Split('.');
-        var pis = new (PropertyInfo, object?)[parts.Length];
+        pis = new (PropertyInfo, object?)[parts.Length];
         for (int i = 0; i < parts.Length; i++)
         {
             var part = parts[i];
@@ -38,10 +38,15 @@ internal static class ObjectExtensions
             if (pi is not null)
             {
                 pis[i] = (pi, index);
-                type = pi.PropertyType;
+                obj = index is not null ? pi?.GetValue(obj, new[] { index }) : pi?.GetValue(obj);
+                type = obj?.GetType();
+            }
+            else
+            {
+                return obj;
             }
         }
 
-        return pis;
+        return obj;
     }
 }

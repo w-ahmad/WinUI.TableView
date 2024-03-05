@@ -3,10 +3,8 @@ using CommunityToolkit.WinUI.Collections;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -114,13 +112,7 @@ public partial class TableViewColumnHeader : ContentControl
 
     private bool Filter(object item)
     {
-        if (_propertyInfos is null)
-        {
-            var type = _tableView!.ItemsSource?.GetType() is { } listType && listType.IsGenericType ? listType.GetGenericArguments()[0] : item?.GetType();
-            _propertyInfos = type!.GetPropertyInfos(_propertyPath);
-        }
-
-        var value = item.GetValue(_propertyInfos);
+        var value = GetValue(item);
         value = string.IsNullOrWhiteSpace(value?.ToString()) ? "(Blank)" : value;
         return _optionsFlyoutViewModel.SelectedValues.Contains(value);
     }
@@ -230,13 +222,7 @@ public partial class TableViewColumnHeader : ContentControl
 
             _optionsFlyoutViewModel.FilterItems = collectionView.Select(item =>
             {
-                if (_propertyInfos is null)
-                {
-                    var type = _tableView.ItemsSource?.GetType() is { } listType && listType.IsGenericType ? listType.GetGenericArguments()[0] : item?.GetType();
-                    _propertyInfos = type!.GetPropertyInfos(_propertyPath);
-                }
-
-                var value = item.GetValue(_propertyInfos);
+                var value = GetValue(item);
                 value = string.IsNullOrWhiteSpace(value?.ToString()) ? "(Blank)" : value;
                 var isSelected = !string.IsNullOrEmpty(_filterText) ||
                   (isFiltered && _optionsFlyoutViewModel.SelectedValues.Contains(value));
@@ -252,6 +238,17 @@ public partial class TableViewColumnHeader : ContentControl
               .DistinctBy(x => x.Value)
               .ToList();
         }
+    }
+
+    private object? GetValue(object item)
+    {
+        if (_propertyInfos is null)
+        {
+            var type = _tableView!.ItemsSource?.GetType() is { } listType && listType.IsGenericType ? listType.GetGenericArguments()[0] : item?.GetType();
+            item.GetValue(type, _propertyPath, out _propertyInfos);
+        }
+
+        return item.GetValue(_propertyInfos);
     }
 
     private void OnOptionsButtonTaped(object sender, TappedRoutedEventArgs e)
