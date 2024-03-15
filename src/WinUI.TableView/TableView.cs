@@ -13,7 +13,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
-using Windows.System;
 using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView;
@@ -61,12 +60,12 @@ public class TableView : ListView
         Clipboard.SetContent(package);
     }
 
-    internal string GetSelectedRowsContent(bool includeHeaders, char separator = '\t')
+    public string GetSelectedRowsContent(bool includeHeaders, char separator = '\t')
     {
         return GetRowsContent(SelectedItems, includeHeaders, separator);
     }
 
-    internal string GetAllRowsContent(bool includeHeaders, char separator = '\t')
+    public string GetAllRowsContent(bool includeHeaders, char separator = '\t')
     {
         return GetRowsContent(Items, includeHeaders, separator);
     }
@@ -198,8 +197,15 @@ public class TableView : ListView
         set => SetValue(ItemsSourceProperty, value);
     }
 
+    public bool ShowExportOptions
+    {
+        get => (bool)GetValue(ShowExportOptionsProperty);
+        set => SetValue(ShowExportOptionsProperty, value);
+    }
+
     public static readonly new DependencyProperty ItemsSourceProperty = DependencyProperty.Register(nameof(ItemsSource), typeof(IList), typeof(TableView), new PropertyMetadata(null, OnItemsSourceChanged));
     public static readonly DependencyProperty ColumnsProperty = DependencyProperty.Register(nameof(Columns), typeof(TableViewColumnsColection), typeof(TableView), new PropertyMetadata(null));
     public static readonly DependencyProperty RowHeightProperty = DependencyProperty.Register(nameof(RowHeight), typeof(double), typeof(TableView), new PropertyMetadata(40d));
     public static readonly DependencyProperty RowMaxHeightProperty = DependencyProperty.Register(nameof(RowMaxHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.PositiveInfinity));
+    public static readonly DependencyProperty ShowExportOptionsProperty = DependencyProperty.Register(nameof(ShowExportOptions), typeof(bool), typeof(TableView), new PropertyMetadata(false));
 }

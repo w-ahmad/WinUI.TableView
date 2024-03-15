@@ -50,25 +50,50 @@ public partial class TableViewHeaderRow : Control
             _selectAllCheckBox.Tapped += OnSelectAllCheckBoxTapped;
         }
 
-        if (GetTemplateChild("HeadersStackPanel") is StackPanel stackPanel && TableView.Columns?.Count > 0)
-        {
-            foreach (var column in TableView.Columns)
-            {
-                var header = new TableViewColumnHeader { DataContext = column};
-                stackPanel.Children.Add(header);
+        AddHeaders();
+        SetExportOptionsVisibility();
+        OnTableViewSelectionModeChanged();
 
-                header.SetBinding(ContentControl.ContentProperty,
-                                  new Binding { Path = new PropertyPath(nameof(TableViewColumn.Header)) });
-                header.SetBinding(WidthProperty,
-                                  new Binding { Path = new PropertyPath(nameof(TableViewColumn.Width)), Mode = BindingMode.TwoWay });
-                header.SetBinding(MinWidthProperty,
-                                  new Binding { Path = new PropertyPath(nameof(TableViewColumn.MinWidth)) });
-                header.SetBinding(MaxWidthProperty,
-                                  new Binding { Path = new PropertyPath(nameof(TableViewColumn.MaxWidth)) });
+        void AddHeaders()
+        {
+            if (GetTemplateChild("HeadersStackPanel") is StackPanel stackPanel && TableView.Columns?.Count > 0)
+            {
+                foreach (var column in TableView.Columns)
+                {
+                    var header = new TableViewColumnHeader { DataContext = column };
+                    stackPanel.Children.Add(header);
+
+                    header.SetBinding(ContentControl.ContentProperty,
+                                      new Binding { Path = new PropertyPath(nameof(TableViewColumn.Header)) });
+                    header.SetBinding(WidthProperty,
+                                      new Binding { Path = new PropertyPath(nameof(TableViewColumn.Width)), Mode = BindingMode.TwoWay });
+                    header.SetBinding(MinWidthProperty,
+                                      new Binding { Path = new PropertyPath(nameof(TableViewColumn.MinWidth)) });
+                    header.SetBinding(MaxWidthProperty,
+                                      new Binding { Path = new PropertyPath(nameof(TableViewColumn.MaxWidth)) });
+                }
             }
         }
+    }
 
-        OnTableViewSelectionModeChanged();
+    private void SetExportOptionsVisibility()
+    {
+        var binding = new Binding
+        {
+            Path = new PropertyPath(nameof(TableView.ShowExportOptions)),
+            Source = TableView,
+            Converter = new CommunityToolkit.WinUI.Converters.BoolToVisibilityConverter()
+        };
+
+        if (GetTemplateChild("ExportAllMenuItem") is MenuFlyoutItem exportAll)
+        {
+            exportAll.SetBinding(VisibilityProperty, binding);
+        }
+
+        if (GetTemplateChild("ExportSelectedMenuItem") is MenuFlyoutItem exportSelected)
+        {
+            exportSelected.SetBinding(VisibilityProperty, binding);
+        }
     }
 
     private void OnTableViewSelectionChanged()
