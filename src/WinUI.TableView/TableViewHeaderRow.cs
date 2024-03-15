@@ -2,6 +2,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
+using System.Threading.Tasks;
 
 namespace WinUI.TableView;
 
@@ -33,6 +34,15 @@ public partial class TableViewHeaderRow : Control
         if (_optionsButton is not null)
         {
             _optionsButton.DataContext = new OptionsFlyoutViewModel(TableView);
+
+            // Hack: this will allow keyboard accelerators to get work
+            ShowAndHidOptionsFlyout();
+            async void ShowAndHidOptionsFlyout()
+            {
+                _optionsButton.Flyout.ShowAt(_optionsButton);
+                await Task.Delay(5);
+                _optionsButton.Flyout.Hide();
+            }
         }
 
         if (_selectAllCheckBox is not null)

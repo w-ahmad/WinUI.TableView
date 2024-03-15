@@ -312,22 +312,49 @@
                                 </FontIcon>
                                 <Button.Flyout>
                                     <MenuFlyout Placement="BottomEdgeAlignedLeft">
-                                        <MenuFlyoutItem Command="{Binding SelectAllCommand}" />
+                                        <MenuFlyoutItem Command="{Binding SelectAllCommand}">
+                                            <MenuFlyoutItem.KeyboardAccelerators>
+                                                <KeyboardAccelerator Key="A"
+                                                                     Modifiers="Control"
+                                                                     ScopeOwner="{TemplateBinding TableView}" />
+                                            </MenuFlyoutItem.KeyboardAccelerators>
+                                        </MenuFlyoutItem>
                                         <MenuFlyoutItem Command="{Binding DeselectAllCommand}"
-                                                        Icon="ClearSelection" />
+                                                        Icon="ClearSelection">
+                                            <MenuFlyoutItem.KeyboardAccelerators>
+                                                <KeyboardAccelerator Key="A"
+                                                                     Modifiers="Control,Shift"
+                                                                     ScopeOwner="{TemplateBinding TableView}" />
+                                            </MenuFlyoutItem.KeyboardAccelerators>
+                                        </MenuFlyoutItem>
                                         <MenuFlyoutSeparator />
-                                        <MenuFlyoutItem Command="{Binding CopyCommand}" />
-                                        <MenuFlyoutItem Command="{Binding CopyWithHeadersCommand}" />
+                                        <MenuFlyoutItem Command="{Binding CopyCommand}" Icon="Copy">
+                                            <MenuFlyoutItem.KeyboardAccelerators>
+                                                <KeyboardAccelerator Key="C"
+                                                                     Modifiers="Control"
+                                                                     ScopeOwner="{TemplateBinding TableView}" />
+                                            </MenuFlyoutItem.KeyboardAccelerators>
+                                        </MenuFlyoutItem>
+                                        <MenuFlyoutItem Command="{Binding CopyWithHeadersCommand}"
+                                                        KeyboardAcceleratorPlacementTarget="{TemplateBinding TableView}">
+                                            <MenuFlyoutItem.KeyboardAccelerators>
+                                                <KeyboardAccelerator Key="C"
+                                                                     Modifiers="Control,Shift"
+                                                                     ScopeOwner="{TemplateBinding TableView}" />
+                                            </MenuFlyoutItem.KeyboardAccelerators>
+                                        </MenuFlyoutItem>
                                         <MenuFlyoutSeparator />
                                         <MenuFlyoutItem Command="{Binding ClearSortingCommand}" />
                                         <MenuFlyoutItem Command="{Binding ClearFilterCommand}" />
                                         <MenuFlyoutSeparator />
-                                        <MenuFlyoutItem Command="{Binding ExportAllToCSVCommand}">
+                                        <MenuFlyoutItem x:Name="ExportAllMenuItem"
+                                                        Command="{Binding ExportAllToCSVCommand}">
                                             <MenuFlyoutItem.Icon>
                                                 <FontIcon Glyph="&#xede1;" />
                                             </MenuFlyoutItem.Icon>
                                         </MenuFlyoutItem>
-                                        <MenuFlyoutItem Command="{Binding ExportSelectedToCSVCommand}">
+                                        <MenuFlyoutItem x:Name="ExportSelectedMenuItem"
+                                                        Command="{Binding ExportSelectedToCSVCommand}">
                                             <MenuFlyoutItem.Icon>
                                                 <FontIcon Glyph="&#xede1;" />
                                             </MenuFlyoutItem.Icon>
@@ -426,15 +453,15 @@
                                       HorizontalScrollMode="{TemplateBinding ScrollViewer.HorizontalScrollMode}"
                                       HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
                                       IsHorizontalScrollChainingEnabled="{TemplateBinding ScrollViewer.IsHorizontalScrollChainingEnabled}"
-                                              VerticalScrollMode="{TemplateBinding ScrollViewer.VerticalScrollMode}"
-                                              VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}"
-                                              IsVerticalScrollChainingEnabled="{TemplateBinding ScrollViewer.IsVerticalScrollChainingEnabled}"
+                                      VerticalScrollMode="{TemplateBinding ScrollViewer.VerticalScrollMode}"
+                                      VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}"
+                                      IsVerticalScrollChainingEnabled="{TemplateBinding ScrollViewer.IsVerticalScrollChainingEnabled}"
                                       IsHorizontalRailEnabled="{TemplateBinding ScrollViewer.IsHorizontalRailEnabled}"
-                                              IsVerticalRailEnabled="{TemplateBinding ScrollViewer.IsVerticalRailEnabled}"
-                                              ZoomMode="{TemplateBinding ScrollViewer.ZoomMode}"
-                                              IsDeferredScrollingEnabled="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}"
-                                              BringIntoViewOnFocusChange="{TemplateBinding ScrollViewer.BringIntoViewOnFocusChange}"
-                                              AutomationProperties.AccessibilityView="Raw">
+                                      IsVerticalRailEnabled="{TemplateBinding ScrollViewer.IsVerticalRailEnabled}"
+                                      ZoomMode="{TemplateBinding ScrollViewer.ZoomMode}"
+                                      IsDeferredScrollingEnabled="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}"
+                                      BringIntoViewOnFocusChange="{TemplateBinding ScrollViewer.BringIntoViewOnFocusChange}"
+                                      AutomationProperties.AccessibilityView="Raw">
                             <ItemsPresenter Padding="{TemplateBinding Padding}">
                                 <ItemsPresenter.Header>
                                     <local:TableViewHeaderRow TableView="{Binding RelativeSource={RelativeSource TemplatedParent}}">

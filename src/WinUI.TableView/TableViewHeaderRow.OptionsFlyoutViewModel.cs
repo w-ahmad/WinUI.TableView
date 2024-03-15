@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.WinUI;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using System;
 using System.Collections.Generic;
@@ -9,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Windows.Storage;
 using Windows.Storage.Pickers;
-using Windows.System;
 using WinRT.Interop;
 using WinUIEx;
 
@@ -19,10 +17,8 @@ public partial class TableViewHeaderRow
 {
     private class OptionsFlyoutViewModel
     {
-
         public OptionsFlyoutViewModel(TableView _tableView)
         {
-
             InitializeCommands();
             TableView = _tableView;
         }
@@ -33,22 +29,21 @@ public partial class TableViewHeaderRow
             SelectAllCommand.ExecuteRequested += delegate { TableView.SelectAllSafe(); };
 
             DeselectAllCommand.Description = "Deselect all rows.";
-            DeselectAllCommand.KeyboardAccelerators.Add(new KeyboardAccelerator
-            {
-                Key = VirtualKey.A,
-                Modifiers = VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift
-            });
             DeselectAllCommand.ExecuteRequested += delegate { TableView.DeselectAll(); };
 
             CopyCommand.Description = "Copy the selected row's content to clipboard.";
-            CopyCommand.ExecuteRequested += delegate { TableView.CopyToClipboard(false); };
+            CopyCommand.ExecuteRequested += delegate
+            {
+                var focusedElement = FocusManager.GetFocusedElement(TableView.XamlRoot);
+                if(focusedElement is FrameworkElement { Parent: TableViewCell })
+                {
+                    return;
+                }
+
+                TableView.CopyToClipboard(false);
+            };
 
             CopyWithHeadersCommand.Description = "Copy the selected row's content including column headers to clipboard.";
-            CopyWithHeadersCommand.KeyboardAccelerators.Add(new KeyboardAccelerator
-            {
-                Key = VirtualKey.C,
-                Modifiers = VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift
-            });
             CopyWithHeadersCommand.ExecuteRequested += delegate { TableView.CopyToClipboard(true); };
 
             ClearSortingCommand.ExecuteRequested += delegate { ClearSorting(); };

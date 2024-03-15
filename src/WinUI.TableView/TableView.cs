@@ -54,22 +54,6 @@ public class TableView : ListView
         return ActiveFilters.All(item => item.Value(obj));
     }
 
-    protected override void OnProcessKeyboardAccelerators(ProcessKeyboardAcceleratorEventArgs args)
-    {
-        base.OnProcessKeyboardAccelerators(args);
-
-        if (args.Key == VirtualKey.C && args.Modifiers is VirtualKeyModifiers.Control or (VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift))
-        {
-            CopyToClipboard(args.Modifiers is (VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift));
-            args.Handled = true;
-        }
-        else if (args.Key == VirtualKey.A && args.Modifiers == (VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift))
-        {
-            this.DeselectAll();
-            args.Handled = true;
-        }
-    }
-
     internal void CopyToClipboard(bool includeHeaders)
     {
         var package = new DataPackage();
