@@ -44,6 +44,8 @@
                 Value="Center" />
         <Setter Property="HorizontalContentAlignment"
                 Value="Left" />
+        <Setter Property="IsTabStop"
+                Value="False" />
         <Setter Property="Background">
             <Setter.Value>
                 <SolidColorBrush Opacity="0" />
@@ -118,6 +120,7 @@
                             <Button x:Name="OptionsButton"
                                     Grid.Column="1"
                                     Padding="4"
+                                    IsTabStop="False"
                                     BorderThickness="0"
                                     Visibility="Collapsed"
                                     Background="Transparent"
@@ -214,7 +217,7 @@
                         </Grid>
 
                         <toolkit:ContentSizer x:Name="HeaderSizer"
-                                              Margin="0,0,-4,0"
+                                              IsTabStop="False"
                                               IsThumbVisible="False"
                                               HorizontalAlignment="Right"
                                               TargetControl="{Binding RelativeSource={RelativeSource TemplatedParent}}"
@@ -297,6 +300,7 @@
                                     CornerRadius="4,0,0,0"
                                     Width="16"
                                     Visibility="Visible"
+                                    IsTabStop="False"
                                     BorderBrush="{ThemeResource TableViewGridLinesBrush}">
                                 <FontIcon Grid.Row="1"
                                           FontSize="12"
@@ -328,7 +332,8 @@
                                             </MenuFlyoutItem.KeyboardAccelerators>
                                         </MenuFlyoutItem>
                                         <MenuFlyoutSeparator />
-                                        <MenuFlyoutItem Command="{Binding CopyCommand}" Icon="Copy">
+                                        <MenuFlyoutItem Command="{Binding CopyCommand}"
+                                                        Icon="Copy">
                                             <MenuFlyoutItem.KeyboardAccelerators>
                                                 <KeyboardAccelerator Key="C"
                                                                      Modifiers="Control"
@@ -366,6 +371,7 @@
                             <CheckBox x:Name="SelectAllCheckBox"
                                       Margin="14,0,2,0"
                                       MinWidth="0"
+                                      IsTabStop="False"
                                       IsThreeState="True"
                                       Visibility="Collapsed" />
 
@@ -437,7 +443,7 @@
         <Setter Property="ItemTemplate">
             <Setter.Value>
                 <DataTemplate>
-                    <local:TableViewRow />
+                    <local:TableViewRow IsTabStop="False" />
                 </DataTemplate>
             </Setter.Value>
         </Setter>
@@ -464,7 +470,8 @@
                                       AutomationProperties.AccessibilityView="Raw">
                             <ItemsPresenter Padding="{TemplateBinding Padding}">
                                 <ItemsPresenter.Header>
-                                    <local:TableViewHeaderRow TableView="{Binding RelativeSource={RelativeSource TemplatedParent}}">
+                                    <local:TableViewHeaderRow IsTabStop="False"
+                                                              TableView="{Binding RelativeSource={RelativeSource TemplatedParent}}">
                                         <interactivity:Interaction.Behaviors>
                                             <behaviors:StickyHeaderBehavior />
                                         </interactivity:Interaction.Behaviors>
