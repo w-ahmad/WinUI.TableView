@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.WinUI;
 using Microsoft.UI.Xaml.Controls;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace WinUI.TableView;
 public class TableViewRow : Control
 {
     private TableView? _tableView;
-    private StackPanel? _stackPanel;
+    private StackPanel? _cellsStackPanel;
 
     public TableViewRow()
     {
@@ -21,39 +22,65 @@ public class TableViewRow : Control
         base.OnApplyTemplate();
 
         _tableView = this.FindAscendant<TableView>();
-        _stackPanel = GetTemplateChild("PART_StackPanel") as StackPanel;
+        _cellsStackPanel = GetTemplateChild("PART_StackPanel") as StackPanel;
 
         if (_tableView is not null)
         {
             _tableView.Columns.CollectionChanged += OnColumnsCollectionChanged;
+            GenerateCells(_tableView.Columns);
         }
-
-        GenerateCells();
     }
 
     private void OnColumnsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        GenerateCells();
-    }
-
-    private void GenerateCells()
-    {
-        if (_tableView is null || _stackPanel is null)
+        if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems?.OfType<TableViewColumn>() is IEnumerable<TableViewColumn> newItems)
         {
-            return;
+            GenerateCells(newItems, e.NewStartingIndex);
         }
-
-        _stackPanel.Children.Clear();
-
-        foreach (var column in _tableView.Columns)
+        else if (e.Action == NotifyCollectionChangedAction.Remove && e.OldItems?.OfType<TableViewColumn>() is IEnumerable<TableViewColumn> oldItems)
         {
-            _stackPanel.Children.Add(new TableViewCell { Column = column });
+            RemoveCells(oldItems);
+        }
+        else if (e.Action == NotifyCollectionChangedAction.Reset && _cellsStackPanel is not null)
+        {
+            _cellsStackPanel.Children.Clear();
         }
     }
 
-    public IEnumerable<TableViewCell> GetCells()
+    private void RemoveCells(IEnumerable<TableViewColumn> columns)
     {
-        return _stackPanel?.Children.OfType<TableViewCell>() ?? Enumerable.Empty<TableViewCell>();
+        if (_cellsStackPanel is not null)
+        {
+            foreach (TableViewColumn column in columns)
+            {
+                var cell = _cellsStackPanel.Children.OfType<TableViewCell>().FirstOrDefault(x => x.Column == column);
+                if (cell is not null)
+                {
+                    _cellsStackPanel.Children.Remove(cell);
+                }
+            }
+        }
+    }
+
+    private void GenerateCells(IEnumerable<TableViewColumn> columns, int index = -1)
+    {
+        if (_cellsStackPanel is not null)
+        {
+            foreach (TableViewColumn column in columns)
+            {
+                var cell = new TableViewCell { Column = column, IsTabStop = false, };
+                if (index < 0)
+                {
+                    _cellsStackPanel.Children.Add(cell);
+                }
+                else
+                {
+                    index = Math.Min(index, _cellsStackPanel.Children.Count);
+                    _cellsStackPanel.Children.Insert(index, cell);
+                    index++;
+                }
+            }
+        }
     }
 
     internal void SelectNextCell(TableViewCell? currentCell)
@@ -62,11 +89,10 @@ public class TableViewRow : Control
 
         if (_tableView is not null)
         {
-            var cells = GetCells().ToList();
-            var nextCellIndex = currentCell is null ? 0 : cells.IndexOf(currentCell) + 1;
-            if (nextCellIndex < cells.Count)
+            var nextCellIndex = currentCell is null ? 0 : Cells.IndexOf(currentCell) + 1;
+            if (nextCellIndex < Cells.Count)
             {
-                var nextCell = cells[nextCellIndex];
+                var nextCell = Cells[nextCellIndex];
                 if (nextCell.IsReadOnly)
                 {
                     SelectNextCell(nextCell);
@@ -89,11 +115,10 @@ public class TableViewRow : Control
 
         if (_tableView is not null)
         {
-            var cells = GetCells().ToList();
-            var previousCellIndex = currentCell is null ? cells.Count - 1 : cells.IndexOf(currentCell) - 1;
+            var previousCellIndex = currentCell is null ? Cells.Count - 1 : Cells.IndexOf(currentCell) - 1;
             if (previousCellIndex >= 0)
             {
-                var previousCell = cells[previousCellIndex];
+                var previousCell = Cells[previousCellIndex];
                 if (previousCell.IsReadOnly)
                 {
                     SelectPreviousCell(previousCell);
@@ -106,4 +131,6 @@ public class TableViewRow : Control
             }
         }
     }
+
+    public IList<TableViewCell> Cells => (_cellsStackPanel?.Children.OfType<TableViewCell>() ?? Enumerable.Empty<TableViewCell>()).ToList();
 }

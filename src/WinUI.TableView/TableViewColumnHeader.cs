@@ -29,7 +29,6 @@ public partial class TableViewColumnHeader : ContentControl
 {
     private bool _canSort;
     private bool _canFilter;
-    private TableViewColumn? _column;
     private TableView? _tableView;
     private Button? _optionsButton;
     private MenuFlyout? _optionsFlyout;
@@ -137,8 +136,6 @@ public partial class TableViewColumnHeader : ContentControl
         _tableView = this.FindAscendant<TableView>();
         _optionsButton = GetTemplateChild("OptionsButton") as Button;
         _optionsFlyout = GetTemplateChild("OptionsFlyout") as MenuFlyout;
-        _column = (TableViewColumn)DataContext;
-        _column.HeaderControl = this;
 
         if (GetTemplateChild("HeaderSizer") is UIElement sizer)
         {
@@ -150,7 +147,7 @@ public partial class TableViewColumnHeader : ContentControl
             return;
         }
 
-        if (_column is TableViewBoundColumn column && column.Binding.Path.Path is { Length: > 0 } path)
+        if (Column is TableViewBoundColumn column && column.Binding.Path.Path is { Length: > 0 } path)
         {
             _propertyPath = path;
             _canSort = column.CanSort;
@@ -210,7 +207,7 @@ public partial class TableViewColumnHeader : ContentControl
 
     private void PrepareFilterItems(string? _filterText)
     {
-        if (_tableView is { ItemsSource: { } } && _column is TableViewBoundColumn column)
+        if (_tableView is { ItemsSource: { } } && Column is TableViewBoundColumn column)
         {
             var collectionView = new AdvancedCollectionView(_tableView.ItemsSource)
             {
@@ -303,4 +300,6 @@ public partial class TableViewColumnHeader : ContentControl
             OnIsFilteredChanged();
         }
     }
+
+    public TableViewColumn? Column { get; internal set; }
 }

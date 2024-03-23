@@ -401,7 +401,7 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
             object? cx;
             object? cy;
 
-            if (!string.IsNullOrEmpty(sd.PropertyName) && 
+            if (!string.IsNullOrEmpty(sd.PropertyName) &&
                 _sortProperties.TryGetValue(sd.PropertyName, out (PropertyInfo, object?)[]? pis))
             {
                 cx = x.GetValue(pis);
@@ -597,26 +597,30 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
         _sortProperties.Clear();
         var currentItem = CurrentItem;
         _view.Clear();
-        foreach (var item in Source)
-        {
-            if (_filter != null && !_filter(item))
-            {
-                continue;
-            }
 
-            if (_sortDescriptions.Any())
+        if (Source is not null)
+        {
+            foreach (var item in Source)
             {
-                var targetIndex = _view.BinarySearch(item, this);
-                if (targetIndex < 0)
+                if (_filter != null && !_filter(item))
                 {
-                    targetIndex = ~targetIndex;
+                    continue;
                 }
 
-                _view.Insert(targetIndex, item);
-            }
-            else
-            {
-                _view.Add(item);
+                if (_sortDescriptions.Any())
+                {
+                    var targetIndex = _view.BinarySearch(item, this);
+                    if (targetIndex < 0)
+                    {
+                        targetIndex = ~targetIndex;
+                    }
+
+                    _view.Insert(targetIndex, item);
+                }
+                else
+                {
+                    _view.Add(item);
+                }
             }
         }
 

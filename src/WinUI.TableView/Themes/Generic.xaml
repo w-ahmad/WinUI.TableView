@@ -16,6 +16,9 @@
     <x:String x:Key="FilterIcon">&#xe71c;</x:String>
     <x:String x:Key="OptionsButtonIcon">&#xe712;</x:String>
 
+    <!--Hack for auto generated resize issue-->
+    <local:TableViewTextColumn x:Key="ThisNeedsToBeHere" />
+
     <Style x:Key="DefaultTableViewColumnHeaderStyle"
            TargetType="local:TableViewColumnHeader">
         <Setter Property="FontWeight"
