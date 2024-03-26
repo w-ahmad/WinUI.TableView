@@ -2,8 +2,8 @@
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -38,7 +38,9 @@ public class TableViewCell : ContentControl
 
         _tableViewRow ??= this.FindAscendant<TableViewRow>();
 
-        if (e.Key is VirtualKey.Tab or VirtualKey.Enter && _tableViewRow is not null && !IsAnyPopupOrFlyoutOpen(this))
+        if (e.Key is VirtualKey.Tab or VirtualKey.Enter &&
+            _tableViewRow is not null &&
+            !VisualTreeHelper.GetOpenPopupsForXamlRoot(XamlRoot).Any())
         {
             var shiftKey = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Shift);
             var isShiftKeyDown = shiftKey is CoreVirtualKeyStates.Down or (CoreVirtualKeyStates.Down | CoreVirtualKeyStates.Locked);
@@ -54,7 +56,10 @@ public class TableViewCell : ContentControl
         }
         else if (e.Key == VirtualKey.Escape)
         {
-            OnEdititingElementLostFocus(Content ?? ContentTemplateRoot, default!);
+            if (!VisualTreeHelper.GetOpenPopupsForXamlRoot(XamlRoot).Any())
+            {
+                SetElement();
+            }
         }
     }
 
@@ -67,45 +72,21 @@ public class TableViewCell : ContentControl
         if ((Content ?? ContentTemplateRoot) is UIElement editingElement)
         {
             editingElement.Focus(FocusState.Programmatic);
-            editingElement.LostFocus += OnEdititingElementLostFocus;
         }
     }
 
-    private async void OnEdititingElementLostFocus(object sender, RoutedEventArgs e)
+    protected override async void OnLostFocus(RoutedEventArgs e)
     {
+        base.OnLostFocus(e);
+
         await Task.Delay(20);
 
-        if (sender is FrameworkElement element && IsAnyPopupOrFlyoutOpen(element))
+        if (VisualTreeHelper.GetOpenPopupsForXamlRoot(XamlRoot).Any())
         {
             return;
         }
 
         SetElement();
-
-        ((UIElement)sender).LostFocus -= OnEdititingElementLostFocus;
-    }
-
-    private static bool IsAnyPopupOrFlyoutOpen(FrameworkElement element)
-    {
-        if (element.FindDescendant<Popup>() is { IsOpen: true })
-        {
-            return true;
-        }
-
-        if (FlyoutBase.GetAttachedFlyout(element) is { IsOpen: true })
-        {
-            return true;
-        }
-
-        foreach (var child in element.FindDescendants().OfType<FrameworkElement>())
-        {
-            if (FlyoutBase.GetAttachedFlyout(child) is { IsOpen: true })
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private void SetElement()
