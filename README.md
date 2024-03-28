@@ -5,38 +5,20 @@ WinUI.TableView is a lightweight and fast data grid control made for WinUI apps.
 [![nuget](https://img.shields.io/nuget/v/WinUI.TableView)](https://www.nuget.org/packages/WinUI.TableView/)
 
 ### Features
-- __Sorting:__ Easily sort data by clicking on column headers or from column options menu.
 - __Auto-generating Columns:__ Automatically generate columns based on the data source.
+- __Copy row content:__ TableView allows you to copy row content, with the option to include or exclude column headers.
 - __Editing:__ Modify cell content directly within the TableView by duble tapping on a cell.
-- __Copy:__ Copy row content, with the option to include or exclude column headers.
+![image](https://raw.githubusercontent.com/w-ahmad/WinUI.TableView/main/screenshots/Editing1.png)
+![image](https://raw.githubusercontent.com/w-ahmad/WinUI.TableView/main/screenshots/Editing2.png)
+- __Sorting__
+![image](https://raw.githubusercontent.com/w-ahmad/WinUI.TableView/main/screenshots/Sorting.png)
 - __Excel-like Column Filter:__ A key feature that allows users to filter data within columns, enhancing data exploration and analysis.
+![image](https://raw.githubusercontent.com/w-ahmad/WinUI.TableView/main/screenshots/Filter.png)
 - __Export fuctionality:__ Built-in export functionality to export data to CSV format. This feature can be enabled by setting the `ShowExportOptions = true`. 				
+![image](https://raw.githubusercontent.com/w-ahmad/WinUI.TableView/main/screenshots/Options.png)
 Developers also have the flexibility to implement their own export functionality using two public methods provided:	
 	- `GetRowsContent(bool includeHeaders, char separator)`: Retrieves the content of all rows in the table.
 	- `GetSelectedRowsContent(bool includeHeaders, char separator)`: Retrieves the content of selected rows in the table.
-- __Control-wide Option Button:__ Provides quick access to various control-wide actions such as:	
-  - Select All
-  - Deselect All
-  - Copy <sub>(Copy selected rows content to clipboard)</sub>
-  - Copy with Headers <sub>(Copy selected rows content including headers to clipboard)</sub>
-  - Clear sorting <sub>(Enabled only when any column is sorted)</sub>
-  - Clear filtering <sub>(Enabled only when any column is filterd)</sub>
-  - Export All to CSV <sub>(Visible only if enabled)</sub>
-  - Export Selected to CSV	<sub>(Visible only if enabled)</sub>
-
-### Examples
-- Editing
-![image](https://raw.githubusercontent.com/w-ahmad/WinUI.TableView/main/screenshots/Editing1.png)
-![image](https://raw.githubusercontent.com/w-ahmad/WinUI.TableView/main/screenshots/Editing2.png)
-
-- Sorting
-![image](https://raw.githubusercontent.com/w-ahmad/WinUI.TableView/main/screenshots/Sorting.png)
-
-- Excel like column Filter
-![image](https://raw.githubusercontent.com/w-ahmad/WinUI.TableView/main/screenshots/Filter.png)
-
-- Options button with Export options enabled
-![image](https://raw.githubusercontent.com/w-ahmad/WinUI.TableView/main/screenshots/Options.png)
 
 ### Available Column Types
 1. TableViewTextColumn
