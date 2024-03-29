@@ -10,12 +10,17 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
+using Windows.Storage;
+using Windows.Storage.Pickers;
+using WinRT.Interop;
 using WinUI.TableView.Extensions;
+using WinUIEx;
 
 namespace WinUI.TableView;
 public class TableView : ListView
@@ -55,11 +60,24 @@ public class TableView : ListView
         return ActiveFilters.All(item => item.Value(obj));
     }
 
-    internal void CopyToClipboard(bool includeHeaders)
+    internal void CopyToClipboardInternal(bool includeHeaders)
     {
+        var args = new TableViewCopyToClipboardEventArgs(includeHeaders);
+        OnCopyToClipboard(args);
+
+        if (args.Handled)
+        {
+            return;
+        }
+
         var package = new DataPackage();
         package.SetText(GetSelectedRowsContent(includeHeaders));
         Clipboard.SetContent(package);
+    }
+
+    protected virtual void OnCopyToClipboard(TableViewCopyToClipboardEventArgs args)
+    {
+        CopyToClipboard?.Invoke(this, args);
     }
 
     public string GetSelectedRowsContent(bool includeHeaders, char separator = '\t')
@@ -240,6 +258,81 @@ public class TableView : ListView
         }
     }
 
+    internal async void ExportSelectedToCSV()
+    {
+        var args = new TableViewExportRowsContentEventArgs();
+        OnExportSelectedRowsContent(args);
+
+        if (args.Handled)
+        {
+            return;
+        }
+
+        try
+        {
+            var hWnd = HwndExtensions.GetActiveWindow();
+            if (await GetStorageFile(hWnd) is not { } file)
+            {
+                return;
+            }
+
+            var content = GetSelectedRowsContent(true, ',');
+            using var stream = await file.OpenStreamForWriteAsync();
+            stream.SetLength(0);
+
+            using var tw = new StreamWriter(stream);
+            await tw.WriteAsync(content);
+        }
+        catch { }
+    }
+
+    protected virtual void OnExportSelectedRowsContent(TableViewExportRowsContentEventArgs args)
+    {
+        ExportSelectedRowsContent?.Invoke(this, args);
+    }
+
+    internal async void ExportAllToCSV()
+    {
+        var args = new TableViewExportRowsContentEventArgs();
+        OnExportAllRowsContent(args);
+
+        if (args.Handled)
+        {
+            return;
+        }
+
+        try
+        {
+            var hWnd = HwndExtensions.GetActiveWindow();
+            if (await GetStorageFile(hWnd) is not { } file)
+            {
+                return;
+            }
+
+            var content = GetAllRowsContent(true, ',');
+            using var stream = await file.OpenStreamForWriteAsync();
+            stream.SetLength(0);
+
+            using var tw = new StreamWriter(stream);
+            await tw.WriteAsync(content);
+        }
+        catch { }
+    }
+
+    protected virtual void OnExportAllRowsContent(TableViewExportRowsContentEventArgs args)
+    {
+        ExportAllRowsContent?.Invoke(this, args);
+    }
+
+    private static async Task<StorageFile> GetStorageFile(IntPtr hWnd)
+    {
+        var savePicker = new FileSavePicker();
+        InitializeWithWindow.Initialize(savePicker, hWnd);
+        savePicker.FileTypeChoices.Add("CSV (Comma delimited)", new List<string>() { ".csv" });
+
+        return await savePicker.PickSaveFileAsync();
+    }
+
     private static void OnItemsSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is TableView tableView)
@@ -297,4 +390,7 @@ public class TableView : ListView
     public static readonly DependencyProperty AutoGenerateColumnsProperty = DependencyProperty.Register(nameof(AutoGenerateColumns), typeof(bool), typeof(TableView), new PropertyMetadata(true));
     
     public event EventHandler<TableViewAutoGeneratingColumnEventArgs>? AutoGeneratingColumn;
+    public event EventHandler<TableViewExportRowsContentEventArgs>? ExportAllRowsContent;
+    public event EventHandler<TableViewExportRowsContentEventArgs>? ExportSelectedRowsContent;
+    public event EventHandler<TableViewCopyToClipboardEventArgs>? CopyToClipboard;
 }

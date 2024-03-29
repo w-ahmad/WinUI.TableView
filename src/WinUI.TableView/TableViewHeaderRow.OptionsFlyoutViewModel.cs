@@ -1,15 +1,7 @@
 ﻿using CommunityToolkit.WinUI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Input;
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-using Windows.Storage;
-using Windows.Storage.Pickers;
-using WinRT.Interop;
-using WinUIEx;
 
 namespace WinUI.TableView;
 
@@ -35,16 +27,16 @@ public partial class TableViewHeaderRow
             CopyCommand.ExecuteRequested += delegate
             {
                 var focusedElement = FocusManager.GetFocusedElement(TableView.XamlRoot);
-                if(focusedElement is FrameworkElement { Parent: TableViewCell })
+                if (focusedElement is FrameworkElement { Parent: TableViewCell })
                 {
                     return;
                 }
 
-                TableView.CopyToClipboard(false);
+                TableView.CopyToClipboardInternal(false);
             };
 
             CopyWithHeadersCommand.Description = "Copy the selected row's content including column headers to clipboard.";
-            CopyWithHeadersCommand.ExecuteRequested += delegate { TableView.CopyToClipboard(true); };
+            CopyWithHeadersCommand.ExecuteRequested += delegate { TableView.CopyToClipboardInternal(true); };
 
             ClearSortingCommand.ExecuteRequested += delegate { ClearSorting(); };
             ClearSortingCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.CollectionView.SortDescriptions.Count > 0;
@@ -52,59 +44,10 @@ public partial class TableViewHeaderRow
             ClearFilterCommand.ExecuteRequested += delegate { ClearFilters(); };
             ClearFilterCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.ActiveFilters.Count > 0;
 
-            ExportAllToCSVCommand.ExecuteRequested += delegate { ExportAllToCSV(); };
+            ExportAllToCSVCommand.ExecuteRequested += delegate { TableView.ExportAllToCSV(); };
 
-            ExportSelectedToCSVCommand.ExecuteRequested += delegate { ExportSelectedToCSV(); };
+            ExportSelectedToCSVCommand.ExecuteRequested += delegate { TableView.ExportSelectedToCSV(); };
             ExportSelectedToCSVCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.SelectedItems.Count > 0;
-        }
-
-        private async void ExportSelectedToCSV()
-        {
-            try
-            {
-                var hWnd = HwndExtensions.GetActiveWindow();
-                if (await GetStorageFile(hWnd) is not { } file)
-                {
-                    return;
-                }
-
-                var content = TableView.GetSelectedRowsContent(true, ',');
-                using var stream = await file.OpenStreamForWriteAsync();
-                stream.SetLength(0);
-
-                using var tw = new StreamWriter(stream);
-                await tw.WriteAsync(content);
-            }
-            catch { }
-        }
-
-        private async void ExportAllToCSV()
-        {
-            try
-            {
-                var hWnd = HwndExtensions.GetActiveWindow();
-                if (await GetStorageFile(hWnd) is not { } file)
-                {
-                    return;
-                }
-
-                var content = TableView.GetAllRowsContent(true, ',');
-                using var stream = await file.OpenStreamForWriteAsync();
-                stream.SetLength(0);
-
-                using var tw = new StreamWriter(stream);
-                await tw.WriteAsync(content);
-            }
-            catch { }
-        }
-
-        private static async Task<StorageFile> GetStorageFile(IntPtr hWnd)
-        {
-            var savePicker = new FileSavePicker();
-            InitializeWithWindow.Initialize(savePicker, hWnd);
-            savePicker.FileTypeChoices.Add("CSV (Comma delimited)", new List<string>() { ".csv" });
-
-            return await savePicker.PickSaveFileAsync();
         }
 
         private void ClearSorting()
