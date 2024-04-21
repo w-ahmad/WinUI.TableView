@@ -183,8 +183,9 @@
                                                                       IsThreeState="True"
                                                                       Content="(Select All)" />
                                                         </Border>
-                                                        <ScrollView Grid.Row="2"
-                                                                    Padding="12,0">
+                                                        <ScrollViewer Grid.Row="2"
+                                                                      Padding="12,0"
+                                                                      VerticalScrollMode="Enabled">
                                                             <ItemsControl ItemsSource="{Binding FilterItems}">
                                                                 <ItemsControl.ItemTemplate>
                                                                     <DataTemplate>
@@ -195,7 +196,7 @@
                                                                     </DataTemplate>
                                                                 </ItemsControl.ItemTemplate>
                                                             </ItemsControl>
-                                                        </ScrollView>
+                                                        </ScrollViewer>
                                                     </Grid>
                                                 </ControlTemplate>
                                             </MenuFlyoutItem.Template>
