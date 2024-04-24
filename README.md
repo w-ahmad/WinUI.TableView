@@ -38,7 +38,6 @@ Developers also have the flexibility to implement their own export functionality
 - [CommunityToolkit.WinUI.Converters](https://www.nuget.org/packages/CommunityToolkit.WinUI.Converters/)
 - [CommunityToolkit.WinUI.Helpers](https://www.nuget.org/packages/CommunityToolkit.WinUI.Helpers/)
 - [Microsoft.WindowsAppSDK](https://www.nuget.org/packages/Microsoft.WindowsAppSDK/)
-- [WinUIEx](https://www.nuget.org/packages/WinUIEx/)
 
 ### Contributing
 We welcome contributions from the community! If you find any issues or have suggestions for improvements, please submit them through the GitHub issue tracker or consider making a pull request.

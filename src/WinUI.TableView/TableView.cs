@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.WinUI;
 using CommunityToolkit.WinUI.Animations.Expressions;
 using CommunityToolkit.WinUI.Collections;
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
@@ -20,7 +21,6 @@ using Windows.Storage;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
 using WinUI.TableView.Extensions;
-using WinUIEx;
 
 namespace WinUI.TableView;
 public class TableView : ListView
@@ -270,7 +270,7 @@ public class TableView : ListView
 
         try
         {
-            var hWnd = HwndExtensions.GetActiveWindow();
+            var hWnd = Win32Interop.GetWindowFromWindowId(XamlRoot.ContentIslandEnvironment.AppWindowId);
             if (await GetStorageFile(hWnd) is not { } file)
             {
                 return;
@@ -303,7 +303,7 @@ public class TableView : ListView
 
         try
         {
-            var hWnd = HwndExtensions.GetActiveWindow();
+            var hWnd = Win32Interop.GetWindowFromWindowId(XamlRoot.ContentIslandEnvironment.AppWindowId);
             if (await GetStorageFile(hWnd) is not { } file)
             {
                 return;
