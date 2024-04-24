@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using CommunityToolkit.WinUI.Helpers;
-using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using System;
 using System.Collections;
@@ -706,11 +705,7 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
             }
             else
             {
-                newViewIndex = _view.Select((x, index) => index)
-                                    .Concat(new int[] { newStartingIndex }) // Add index of item that need to be inserted in view
-                                    .OrderBy(x => x)
-                                    .ToList()
-                                    .IndexOf(newStartingIndex); // Get the index for new item in view
+                newViewIndex = _view.Take(newStartingIndex).Count();
             }
         }
         else
