@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using CommunityToolkit.WinUI.Helpers;
 using Microsoft.UI.Xaml.Data;
 using System;
 using System.Collections;
@@ -32,7 +31,7 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
     private IList _source = new List<object>(0);
     private Predicate<object> _filter = default!;
     private int _deferCounter;
-    private WeakEventListener<AdvancedCollectionView, object?, NotifyCollectionChangedEventArgs>? _sourceWeakEventListener;
+    private CollectionChangedListener? _collectionChangedListener;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AdvancedCollectionView"/> class.
@@ -76,20 +75,11 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
             _source = value;
             AttachPropertyChangedHandler(_source);
 
-            _sourceWeakEventListener?.Detach();
+            _collectionChangedListener?.Detach();
 
             if (_source is INotifyCollectionChanged sourceNcc)
             {
-                _sourceWeakEventListener =
-                    new WeakEventListener<AdvancedCollectionView, object?, NotifyCollectionChangedEventArgs>(this)
-                    {
-                        // Call the actual collection changed event
-                        OnEventAction = (source, changed, arg3) => SourceNcc_CollectionChanged(source, arg3),
-
-                        // The source doesn't exist anymore
-                        OnDetachAction = (listener) => sourceNcc.CollectionChanged -= _sourceWeakEventListener!.OnEvent
-                    };
-                sourceNcc.CollectionChanged += _sourceWeakEventListener.OnEvent;
+                _collectionChangedListener = new (this, sourceNcc, SourceNcc_CollectionChanged);
             }
 
             HandleSourceChanged();
@@ -628,7 +618,7 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
         MoveCurrentTo(currentItem);
     }
 
-    private void SourceNcc_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+    private void SourceNcc_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         switch (e.Action)
         {
