@@ -35,7 +35,6 @@ Developers also have the flexibility to implement their own export functionality
 ### Dependencies
 - [CommunityToolkit.WinUI.Behaviors](https://www.nuget.org/packages/CommunityToolkit.WinUI.Behaviors/)
 - [CommunityToolkit.WinUI.Controls.Sizers](https://www.nuget.org/packages/CommunityToolkit.WinUI.Controls.Sizers/)
-- [CommunityToolkit.WinUI.Converters](https://www.nuget.org/packages/CommunityToolkit.WinUI.Converters/)
 - [Microsoft.WindowsAppSDK](https://www.nuget.org/packages/Microsoft.WindowsAppSDK/)
 
 ### Contributing

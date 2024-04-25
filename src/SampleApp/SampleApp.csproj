@@ -7,8 +7,13 @@
     <SelfContained>true</SelfContained>
     <WindowsPackageType>None</WindowsPackageType>
   </PropertyGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\WinUI.TableView\WinUI.TableView.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.WinUI.Converters" Version="8.0.240109" />
   </ItemGroup>
 
   <ItemGroup>
