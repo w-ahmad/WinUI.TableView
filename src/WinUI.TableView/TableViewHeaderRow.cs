@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
+using WinUI.TableView.Converters;
 
 namespace WinUI.TableView;
 
@@ -136,7 +137,7 @@ public partial class TableViewHeaderRow : Control
         {
             Path = new PropertyPath(nameof(TableView.ShowExportOptions)),
             Source = TableView,
-            Converter = new CommunityToolkit.WinUI.Converters.BoolToVisibilityConverter()
+            Converter = new BoolToVisibilityConverter()
         };
 
         if (GetTemplateChild("ExportAllMenuItem") is MenuFlyoutItem exportAll)
