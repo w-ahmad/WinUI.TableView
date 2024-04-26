@@ -38,10 +38,12 @@ public partial class TableViewColumnHeader : ContentControl
     private (PropertyInfo, object?)[] _propertyInfos = default!;
     private SD? sortDirection;
     private bool isFiltered;
+    private bool _resizeStarted;
 
     public TableViewColumnHeader()
     {
         DefaultStyleKey = typeof(TableViewColumnHeader);
+        ManipulationMode = ManipulationModes.TranslateX;
     }
 
     private void DoSort(SD direction, bool singleSorting = true)
@@ -136,11 +138,6 @@ public partial class TableViewColumnHeader : ContentControl
         _tableView = this.FindAscendant<TableView>();
         _optionsButton = GetTemplateChild("OptionsButton") as Button;
         _optionsFlyout = GetTemplateChild("OptionsFlyout") as MenuFlyout;
-
-        if (GetTemplateChild("HeaderSizer") is UIElement sizer)
-        {
-            sizer.Tapped += (_, e) => e.Handled = true;
-        }
 
         if (_tableView is null || _optionsButton is null || _optionsFlyout is null)
         {
@@ -281,6 +278,42 @@ public partial class TableViewColumnHeader : ContentControl
         }
     }
 
+    protected override void OnPointerMoved(PointerRoutedEventArgs e)
+    {
+        base.OnPointerMoved(e);
+
+        if (CanResize)
+        {
+            var point = e.GetCurrentPoint(this);
+            var nearRightEdge = ActualWidth - point.Position.X <= 4 && point.Position.Y < ActualHeight;
+            ProtectedCursor = nearRightEdge ? InputSystemCursor.Create(InputSystemCursorShape.SizeWestEast) : null;
+        }
+    }
+
+    protected override void OnManipulationStarted(ManipulationStartedRoutedEventArgs e)
+    {
+        base.OnManipulationStarted(e);
+
+        _resizeStarted = CanResize && ActualWidth - e.Position.X <= 4 && e.Position.Y < ActualHeight;
+    }
+
+    protected override void OnManipulationDelta(ManipulationDeltaRoutedEventArgs e)
+    {
+        base.OnManipulationDelta(e);
+
+        if (_resizeStarted)
+        {
+            Width = Math.Clamp(e.Position.X, MinWidth, MaxWidth);
+        }
+    }
+
+    protected override void OnManipulationCompleted(ManipulationCompletedRoutedEventArgs e)
+    {
+        base.OnManipulationCompleted(e);
+
+        _resizeStarted = false;
+    }
+
     public SD? SortDirection
     {
         get => sortDirection;
@@ -302,4 +335,6 @@ public partial class TableViewColumnHeader : ContentControl
     }
 
     public TableViewColumn? Column { get; internal set; }
+
+    public bool CanResize => Column?.CanResize == true;
 }
