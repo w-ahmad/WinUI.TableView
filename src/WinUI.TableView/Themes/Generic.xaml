@@ -244,8 +244,7 @@
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="{TemplateBinding CornerRadius}"
-                            Width="{Binding Column.Width, RelativeSource={RelativeSource TemplatedParent}}">
+                            CornerRadius="{TemplateBinding CornerRadius}">
                         <ContentPresenter Grid.Column="1"
                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                           HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />

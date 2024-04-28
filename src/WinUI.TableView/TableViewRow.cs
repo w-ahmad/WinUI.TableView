@@ -1,5 +1,7 @@
 ﻿using CommunityToolkit.WinUI;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Data;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -79,6 +81,22 @@ public class TableViewRow : Control
                     _cellsStackPanel.Children.Insert(index, cell);
                     index++;
                 }
+
+                cell.SetBinding(WidthProperty, new Binding
+                {
+                    Path = new PropertyPath($"{nameof(TableViewCell.Column)}.{nameof(TableViewColumn.Width)}"),
+                    RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
+                });
+                cell.SetBinding(MinWidthProperty, new Binding
+                {
+                    Path = new PropertyPath($"{nameof(TableViewCell.Column)}.{nameof(TableViewColumn.MinWidth)}"),
+                    RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
+                });
+                cell.SetBinding(MaxWidthProperty, new Binding
+                {
+                    Path = new PropertyPath($"{nameof(TableViewCell.Column)}.{nameof(TableViewColumn.MaxWidth)}"),
+                    RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
+                });
             }
         }
     }
