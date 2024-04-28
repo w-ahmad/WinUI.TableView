@@ -53,7 +53,7 @@ public class TableViewRow : Control
     {
         if (_cellsStackPanel is not null)
         {
-            foreach (TableViewColumn column in columns)
+            foreach (var column in columns)
             {
                 var cell = _cellsStackPanel.Children.OfType<TableViewCell>().FirstOrDefault(x => x.Column == column);
                 if (cell is not null)
@@ -68,9 +68,9 @@ public class TableViewRow : Control
     {
         if (_cellsStackPanel is not null)
         {
-            foreach (TableViewColumn column in columns)
+            foreach (var column in columns)
             {
-                var cell = new TableViewCell { Column = column, IsTabStop = false, };
+                var cell = new TableViewCell { Column = column, Row = this, TableView = _tableView!, IsTabStop = false, };
                 if (index < 0)
                 {
                     _cellsStackPanel.Children.Add(cell);
