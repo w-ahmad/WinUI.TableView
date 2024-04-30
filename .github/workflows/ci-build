@@ -1,0 +1,28 @@
+name: ci-build
+
+on:
+  push:
+    branches: main
+  pull_request:
+    branches: main
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4.1.4
+    
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Build
+      run: |
+        msbuild /restore /t:Build,Pack src/WinUI.TableView/WinUI.TableView.csproj /p:Configuration=Release /p:PackageVersion=1.0.${{ github.run_number }}
+        msbuild /restore src/SampleApp/SampleApp.csproj /p:Configuration=Release
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: NuGet Packages
+        path: artifacts/NuGet/Release
