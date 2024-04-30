@@ -226,7 +226,7 @@ public partial class TableViewColumnHeader : ContentControl
 
 
                 return string.IsNullOrEmpty(_filterText)
-                      || value?.ToString()?.StartsWith(_filterText, StringComparison.OrdinalIgnoreCase) == true
+                      || value?.ToString()?.Contains(_filterText, StringComparison.OrdinalIgnoreCase) == true
                       ? new FilterItem(isSelected, value, _optionsFlyoutViewModel)
                       : null;
 
