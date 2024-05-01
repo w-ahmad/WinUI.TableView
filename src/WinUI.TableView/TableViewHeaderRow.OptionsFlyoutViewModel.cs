@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.WinUI;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using System.Linq;
 
@@ -19,9 +20,11 @@ public partial class TableViewHeaderRow
         {
             SelectAllCommand.Description = "Select all rows.";
             SelectAllCommand.ExecuteRequested += delegate { TableView.SelectAllSafe(); };
+            SelectAllCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended;
 
             DeselectAllCommand.Description = "Deselect all rows.";
             DeselectAllCommand.ExecuteRequested += delegate { TableView.DeselectAll(); };
+            DeselectAllCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.SelectedItems.Count > 0;
 
             CopyCommand.Description = "Copy the selected row's content to clipboard.";
             CopyCommand.ExecuteRequested += delegate
