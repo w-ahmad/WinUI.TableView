@@ -82,7 +82,8 @@ public class TableView : ListView
 
     public string GetSelectedRowsContent(bool includeHeaders, char separator = '\t')
     {
-        return GetRowsContent(SelectedItems, includeHeaders, separator);
+        var items = SelectedItems.OrderBy(item2 => Items.IndexOf(item2));
+        return GetRowsContent(items, includeHeaders, separator);
     }
 
     public string GetAllRowsContent(bool includeHeaders, char separator = '\t')
@@ -90,7 +91,7 @@ public class TableView : ListView
         return GetRowsContent(Items, includeHeaders, separator);
     }
 
-    private string GetRowsContent(IList<object> items, bool includeHeaders, char separator)
+    private string GetRowsContent(IEnumerable<object> items, bool includeHeaders, char separator)
     {
         var stringBuilder = new StringBuilder();
         var properties = new Dictionary<string, (PropertyInfo, object?)[]>();
