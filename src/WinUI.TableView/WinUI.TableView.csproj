@@ -4,7 +4,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <Description>TableView for WinUI.</Description>
-    <PackageTags>WinUI, WinAppSDK, Windows, XAML, WinUI TableView</PackageTags>
+    <PackageTags>WinUI, WinAppSDK, Windows, XAML, TableView</PackageTags>
     <PackageId>WinUI.TableView</PackageId>
     <Product>WinUI TableView</Product>
     <RepositoryUrl>https://github.com/w-ahmad/WinUI3.TableView</RepositoryUrl>

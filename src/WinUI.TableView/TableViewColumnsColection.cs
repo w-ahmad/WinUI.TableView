@@ -2,4 +2,4 @@
 
 namespace WinUI.TableView;
 
-public class TableViewColumnsColection : ObservableCollection<TableViewColumn> { }
+public class TableViewColumnsCollection : ObservableCollection<TableViewColumn> { }

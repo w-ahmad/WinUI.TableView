@@ -39,7 +39,9 @@ public class TableView : ListView
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         if (GetTemplateChild("ScrollViewer") is not ScrollViewer scrollViewer)
+        {
             return;
+        }
 
         Canvas.SetZIndex(ItemsPanelRoot, -1);
 
@@ -107,7 +109,7 @@ public class TableView : ListView
             foreach (var column in Columns.OfType<TableViewBoundColumn>())
             {
                 var property = column.Binding.Path.Path;
-                if (!properties.TryGetValue(property, out (PropertyInfo, object?)[]? pis))
+                if (!properties.TryGetValue(property, out var pis))
                 {
                     stringBuilder.Append($"{item.GetValue(type, property, out pis)}{separator}");
                     properties.Add(property, pis);
@@ -361,9 +363,9 @@ public class TableView : ListView
 
     internal IDictionary<string, Predicate<object>> ActiveFilters { get; } = new Dictionary<string, Predicate<object>>();
 
-    public TableViewColumnsColection Columns
+    public TableViewColumnsCollection Columns
     {
-        get => (TableViewColumnsColection)GetValue(ColumnsProperty);
+        get => (TableViewColumnsCollection)GetValue(ColumnsProperty);
         private set => SetValue(ColumnsProperty, value);
     }
 
@@ -404,7 +406,7 @@ public class TableView : ListView
     }
 
     public static readonly new DependencyProperty ItemsSourceProperty = DependencyProperty.Register(nameof(ItemsSource), typeof(IList), typeof(TableView), new PropertyMetadata(null, OnItemsSourceChanged));
-    public static readonly DependencyProperty ColumnsProperty = DependencyProperty.Register(nameof(Columns), typeof(TableViewColumnsColection), typeof(TableView), new PropertyMetadata(null));
+    public static readonly DependencyProperty ColumnsProperty = DependencyProperty.Register(nameof(Columns), typeof(TableViewColumnsCollection), typeof(TableView), new PropertyMetadata(null));
     public static readonly DependencyProperty RowHeightProperty = DependencyProperty.Register(nameof(RowHeight), typeof(double), typeof(TableView), new PropertyMetadata(40d));
     public static readonly DependencyProperty RowMaxHeightProperty = DependencyProperty.Register(nameof(RowMaxHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.PositiveInfinity));
     public static readonly DependencyProperty ShowExportOptionsProperty = DependencyProperty.Register(nameof(ShowExportOptions), typeof(bool), typeof(TableView), new PropertyMetadata(false));

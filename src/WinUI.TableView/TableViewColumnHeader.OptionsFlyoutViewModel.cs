@@ -50,12 +50,12 @@ public partial class TableViewColumnHeader
         public TableViewColumnHeader ColumnHeader { get; }
         public string? FilterText
         {
-            get { return _filterText; }
+            get => _filterText;
             set
             {
                 _filterText = value;
                 ColumnHeader.PrepareFilterItems(_filterText);
-                OnPropertyChagned();
+                OnPropertyChanged();
             }
         }
 
@@ -66,7 +66,7 @@ public partial class TableViewColumnHeader
             {
                 _filterItems = value;
                 SetSelectAllCheckBoxState();
-                OnPropertyChagned();
+                OnPropertyChanged();
             }
         }
 
@@ -93,7 +93,7 @@ public partial class TableViewColumnHeader
             _canSetState = true;
         }
 
-        private void OnPropertyChagned([CallerMemberName] string? propertyName = default)
+        private void OnPropertyChanged([CallerMemberName] string? propertyName = default)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }

@@ -38,14 +38,14 @@ public class TableViewComboBoxColumn : TableViewBoundColumn
 
     public string DisplayMemberPath
     {
-        get { return (string)GetValue(DisplayMemberPathProperty); }
-        set { SetValue(DisplayMemberPathProperty, value); }
+        get => (string)GetValue(DisplayMemberPathProperty);
+        set => SetValue(DisplayMemberPathProperty, value);
     }
 
     public string SelectedValuePath
     {
-        get { return (string)GetValue(SelectedValuePathProperty); }
-        set { SetValue(SelectedValuePathProperty, value); }
+        get => (string)GetValue(SelectedValuePathProperty);
+        set => SetValue(SelectedValuePathProperty, value);
     }
 
     public static readonly DependencyProperty SelectedValuePathProperty = DependencyProperty.Register(nameof(SelectedValuePath), typeof(string), typeof(TableViewComboBoxColumn), new PropertyMetadata(default));
