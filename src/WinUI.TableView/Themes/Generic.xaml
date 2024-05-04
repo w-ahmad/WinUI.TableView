@@ -31,7 +31,7 @@
         <Setter Property="BorderThickness"
                 Value="0,0,1,0" />
         <Setter Property="Padding"
-                Value="12,0,0,0" />
+                Value="12,0" />
         <Setter Property="UseSystemFocusVisuals"
                 Value="{StaticResource UseSystemFocusVisuals}" />
         <Setter Property="FocusVisualMargin"
@@ -56,7 +56,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:TableViewColumnHeader">
-                    <Grid>
+                    <Grid x:Name="rootGrid">
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CommonStates">
                                 <VisualState x:Name="Normal" />
@@ -96,128 +96,124 @@
                                 </VisualState>
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
-                        <Grid Padding="{TemplateBinding Padding}"
-                              Background="{TemplateBinding Background}"
+                        <Grid Background="{TemplateBinding Background}"
                               BorderBrush="{TemplateBinding BorderBrush}"
                               BorderThickness="{TemplateBinding BorderThickness}"
                               BackgroundSizing="{TemplateBinding BackgroundSizing}"
                               VerticalAlignment="{TemplateBinding VerticalAlignment}"
                               HorizontalAlignment="{TemplateBinding HorizontalAlignment}">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <ContentPresenter Foreground="{TemplateBinding Foreground}"
+                            <ContentPresenter Margin="{TemplateBinding Padding}"
+                                              Foreground="{TemplateBinding Foreground}"
                                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                               HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
 
-                            <FontIcon x:Name="SortIcon"
-                                      Grid.Column="1"
-                                      FontSize="10"
-                                      Margin="0,2,0,0"
-                                      Visibility="Collapsed"
-                                      VerticalAlignment="Top"
-                                      Glyph="{ThemeResource SortIconAscending}" />
+                            <Grid HorizontalAlignment="Right">
+                                <FontIcon x:Name="SortIcon"
+                                          FontSize="10"
+                                          Margin="0,2,0,0"
+                                          Visibility="Collapsed"
+                                          VerticalAlignment="Top"
+                                          HorizontalAlignment="Center"
+                                          Glyph="{ThemeResource SortIconAscending}" />
 
-                            <Button x:Name="OptionsButton"
-                                    Grid.Column="1"
-                                    Padding="4"
-                                    Margin="0,0,4,0"
-                                    IsTabStop="False"
-                                    BorderThickness="0"
-                                    Visibility="Collapsed"
-                                    Background="Transparent"
-                                    VerticalAlignment="Bottom">
+                                <Button x:Name="OptionsButton"
+                                        Padding="4"
+                                        IsTabStop="False"
+                                        BorderThickness="0"
+                                        Visibility="Collapsed"
+                                        Background="Transparent"
+                                        VerticalAlignment="Bottom">
 
-                                <Grid>
-                                    <FontIcon x:Name="OptionsIcon"
-                                              FontSize="11"
-                                              VerticalAlignment="Center"
-                                              HorizontalAlignment="Right"
-                                              Glyph="{ThemeResource OptionsButtonIcon}" />
+                                    <Grid>
+                                        <FontIcon x:Name="OptionsIcon"
+                                                  FontSize="11"
+                                                  VerticalAlignment="Center"
+                                                  HorizontalAlignment="Right"
+                                                  Glyph="{ThemeResource OptionsButtonIcon}" />
 
-                                    <FontIcon x:Name="FilterIcon"
-                                              FontSize="11"
-                                              Visibility="Collapsed"
-                                              VerticalAlignment="Center"
-                                              HorizontalAlignment="Right"
-                                              Glyph="{ThemeResource FilterIcon}" />
-                                </Grid>
+                                        <FontIcon x:Name="FilterIcon"
+                                                  FontSize="11"
+                                                  Visibility="Collapsed"
+                                                  VerticalAlignment="Center"
+                                                  HorizontalAlignment="Right"
+                                                  Glyph="{ThemeResource FilterIcon}" />
+                                    </Grid>
 
-                                <Button.Flyout>
-                                    <MenuFlyout x:Name="OptionsFlyout"
-                                                Placement="Bottom">
-                                        <MenuFlyoutItem Command="{Binding SortAscendingCommand}">
-                                            <MenuFlyoutItem.Icon>
-                                                <FontIcon Glyph="&#xf0ad;" />
-                                            </MenuFlyoutItem.Icon>
-                                        </MenuFlyoutItem>
-                                        <MenuFlyoutItem Command="{Binding SortDescendingCommand}">
-                                            <MenuFlyoutItem.Icon>
-                                                <FontIcon Glyph="&#xf0ae;" />
-                                            </MenuFlyoutItem.Icon>
-                                        </MenuFlyoutItem>
-                                        <MenuFlyoutItem Command="{Binding ClearSortingCommand}" />
-                                        <MenuFlyoutSeparator />
-                                        <MenuFlyoutItem Command="{Binding ClearFilterCommand}" />
-                                        <MenuFlyoutItem x:Name="ItemsCheckFlyoutItem">
-                                            <MenuFlyoutItem.Template>
-                                                <ControlTemplate TargetType="MenuFlyoutItem">
-                                                    <Grid Margin="8,4"
-                                                          Width="220"
-                                                          Height="300">
-                                                        <Grid.RowDefinitions>
-                                                            <RowDefinition Height="Auto" />
-                                                            <RowDefinition Height="Auto" />
-                                                            <RowDefinition Height="*" />
-                                                        </Grid.RowDefinitions>
-                                                        <AutoSuggestBox x:Name="SearchBox"
-                                                                        QueryIcon="Find"
-                                                                        PlaceholderText="Search..."
-                                                                        Text="{Binding FilterText, Mode=TwoWay}" />
-                                                        <Border Grid.Row="1"
-                                                                BorderThickness="0,0,0,1"
-                                                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
-                                                            <CheckBox x:Name="SelectAllCheckBox"
-                                                                      Margin="12,8,12,0"
-                                                                      IsThreeState="True"
-                                                                      Content="(Select All)" />
-                                                        </Border>
-                                                        <ScrollViewer Grid.Row="2"
-                                                                      Padding="12,0"
-                                                                      VerticalScrollMode="Enabled">
-                                                            <ItemsControl ItemsSource="{Binding FilterItems}">
-                                                                <ItemsControl.ItemTemplate>
-                                                                    <DataTemplate>
-                                                                        <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}">
-                                                                            <TextBlock Text="{Binding Value}"
-                                                                                       TextWrapping="NoWrap" />
-                                                                        </CheckBox>
-                                                                    </DataTemplate>
-                                                                </ItemsControl.ItemTemplate>
-                                                            </ItemsControl>
-                                                        </ScrollViewer>
-                                                    </Grid>
-                                                </ControlTemplate>
-                                            </MenuFlyoutItem.Template>
-                                        </MenuFlyoutItem>
-                                        <MenuFlyoutSeparator />
-                                        <MenuFlyoutItem>
-                                            <MenuFlyoutItem.Template>
-                                                <ControlTemplate TargetType="MenuFlyoutItem">
-                                                    <StackPanel Margin="8,4"
-                                                                Spacing="16"
-                                                                HorizontalAlignment="Right"
-                                                                Orientation="Horizontal">
-                                                        <Button Command="{Binding OkCommand}" />
-                                                        <Button Command="{Binding CancelCommand}" />
-                                                    </StackPanel>
-                                                </ControlTemplate>
-                                            </MenuFlyoutItem.Template>
-                                        </MenuFlyoutItem>
-                                    </MenuFlyout>
-                                </Button.Flyout>
-                            </Button>
+                                    <Button.Flyout>
+                                        <MenuFlyout x:Name="OptionsFlyout"
+                                                    Placement="Bottom">
+                                            <MenuFlyoutItem Command="{Binding SortAscendingCommand}">
+                                                <MenuFlyoutItem.Icon>
+                                                    <FontIcon Glyph="&#xf0ad;" />
+                                                </MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                            <MenuFlyoutItem Command="{Binding SortDescendingCommand}">
+                                                <MenuFlyoutItem.Icon>
+                                                    <FontIcon Glyph="&#xf0ae;" />
+                                                </MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                            <MenuFlyoutItem Command="{Binding ClearSortingCommand}" />
+                                            <MenuFlyoutSeparator />
+                                            <MenuFlyoutItem Command="{Binding ClearFilterCommand}" />
+                                            <MenuFlyoutItem x:Name="ItemsCheckFlyoutItem">
+                                                <MenuFlyoutItem.Template>
+                                                    <ControlTemplate TargetType="MenuFlyoutItem">
+                                                        <Grid Margin="8,4"
+                                                              Width="220"
+                                                              Height="300">
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition Height="Auto" />
+                                                                <RowDefinition Height="Auto" />
+                                                                <RowDefinition Height="*" />
+                                                            </Grid.RowDefinitions>
+                                                            <AutoSuggestBox x:Name="SearchBox"
+                                                                            QueryIcon="Find"
+                                                                            PlaceholderText="Search..."
+                                                                            Text="{Binding FilterText, Mode=TwoWay}" />
+                                                            <Border Grid.Row="1"
+                                                                    BorderThickness="0,0,0,1"
+                                                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                                                                <CheckBox x:Name="SelectAllCheckBox"
+                                                                          Margin="12,8,12,0"
+                                                                          IsThreeState="True"
+                                                                          Content="(Select All)" />
+                                                            </Border>
+                                                            <ScrollViewer Grid.Row="2"
+                                                                          Padding="12,0"
+                                                                          VerticalScrollMode="Enabled">
+                                                                <ItemsControl ItemsSource="{Binding FilterItems}">
+                                                                    <ItemsControl.ItemTemplate>
+                                                                        <DataTemplate>
+                                                                            <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}">
+                                                                                <TextBlock Text="{Binding Value}"
+                                                                                           TextWrapping="NoWrap" />
+                                                                            </CheckBox>
+                                                                        </DataTemplate>
+                                                                    </ItemsControl.ItemTemplate>
+                                                                </ItemsControl>
+                                                            </ScrollViewer>
+                                                        </Grid>
+                                                    </ControlTemplate>
+                                                </MenuFlyoutItem.Template>
+                                            </MenuFlyoutItem>
+                                            <MenuFlyoutSeparator />
+                                            <MenuFlyoutItem>
+                                                <MenuFlyoutItem.Template>
+                                                    <ControlTemplate TargetType="MenuFlyoutItem">
+                                                        <StackPanel Margin="8,4"
+                                                                    Spacing="16"
+                                                                    HorizontalAlignment="Right"
+                                                                    Orientation="Horizontal">
+                                                            <Button Command="{Binding OkCommand}" />
+                                                            <Button Command="{Binding CancelCommand}" />
+                                                        </StackPanel>
+                                                    </ControlTemplate>
+                                                </MenuFlyoutItem.Template>
+                                            </MenuFlyoutItem>
+                                        </MenuFlyout>
+                                    </Button.Flyout>
+                                </Button>
+                            </Grid>
                         </Grid>
                     </Grid>
                 </ControlTemplate>

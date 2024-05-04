@@ -32,7 +32,9 @@ public partial class TableViewHeaderRow : Control
         TableView?.RegisterPropertyChangedCallback(TableView.ItemsSourceProperty, delegate { OnTableViewSelectionChanged(); });
 
         if (TableView is null)
+        {
             return;
+        }
 
         TableView.SelectionChanged += delegate { OnTableViewSelectionChanged(); };
         TableView.Items.VectorChanged += delegate { OnTableViewSelectionChanged(); };
@@ -208,10 +210,18 @@ public partial class TableViewHeaderRow : Control
         }
     }
 
+    private IList<TableViewColumnHeader> Headers => _headersStackPanel!.Children.OfType<TableViewColumnHeader>().ToList();
+
+    internal TableViewColumnHeader? GetPreviousHeader(TableViewColumnHeader? currentHeader)
+    {
+        var previousCellIndex = currentHeader is null ? Headers.Count - 1 : Headers.IndexOf(currentHeader) - 1;
+        return previousCellIndex >= 0 ? Headers[previousCellIndex] : default;
+    }
+
     public TableView TableView
     {
-        get { return (TableView)GetValue(TableViewProperty); }
-        set { SetValue(TableViewProperty, value); }
+        get => (TableView)GetValue(TableViewProperty);
+        set => SetValue(TableViewProperty, value);
     }
 
     public static readonly DependencyProperty TableViewProperty = DependencyProperty.Register(nameof(TableView), typeof(TableView), typeof(TableViewHeaderRow), new PropertyMetadata(null));
