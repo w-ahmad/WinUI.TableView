@@ -266,6 +266,28 @@ internal static class VisualStates
     /// </summary>
     public const string GroupScrollBars = "ScrollBarsStates";
 
+    // GroupSelectAllButton
+
+    /// <summary>
+    /// Select all button state
+    /// </summary>
+    public const string StateSelectAllButton = "SelectAllButton";
+
+    /// <summary>
+    /// Select all checkbox state
+    /// </summary>
+    public const string StateSelectAllCheckBox = "SelectAllCheckBox";
+
+    /// <summary>
+    /// Options button state
+    /// </summary>
+    public const string StateOptionsButton = "OptionsButton";
+
+    /// <summary>
+    /// Select all button state group
+    /// </summary>
+    public const string GroupSelectAllButton = "SelectAllButtonStates";
+
     /// <summary>
     /// Use VisualStateManager to change the visual state of the control.
     /// </summary>

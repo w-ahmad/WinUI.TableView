@@ -6,6 +6,7 @@
                     ResourceKey="ControlStrokeColorDefaultBrush" />
 
     <x:String x:Key="OptionsButtonIcon">&#xe712;</x:String>
+    <x:String x:Key="SelectAllButtonIcon">&#xE936;</x:String>
 
     <Style x:Key="DefaultTableViewHeaderRowStyle"
            TargetType="local:TableViewHeaderRow">
@@ -16,16 +17,44 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:TableViewHeaderRow">
-                    <Border Background="{TemplateBinding Background}">
-                        <Grid>
+                    <Grid>
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+                            </VisualStateGroup>
+                            <VisualStateGroup x:Name="SelectAllButtonStates">
+                                <VisualState x:Name="SelectAllButton" />
+                                <VisualState x:Name="OptionsButton">
+                                    <VisualState.Setters>
+                                        <Setter Target="optionsButton.Visibility"
+                                                Value="Visible" />
+                                        <Setter Target="selectAllButton.Visibility"
+                                                Value="Collapsed" />
+                                        <Setter Target="selectAllCheckBox.Visibility"
+                                                Value="Collapsed" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="SelectAllCheckBox">
+                                    <VisualState.Setters>
+                                        <Setter Target="selectAllCheckBox.Visibility"
+                                                Value="Visible" />
+                                        <Setter Target="selectAllButton.Visibility"
+                                                Value="Collapsed" />
+                                        <Setter Target="optionsButton.Visibility"
+                                                Value="Collapsed" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+
+                        <Grid Background="{TemplateBinding Background}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
-                            <Button x:Name="OptionsButton"
+                            <Button x:Name="selectAllButton"
                                     VerticalAlignment="Stretch"
-                                    HorizontalAlignment="Stretch"
                                     BorderThickness="0,0,1,1"
                                     Background="Transparent"
                                     Padding="0"
@@ -34,10 +63,29 @@
                                     Visibility="Visible"
                                     IsTabStop="False"
                                     BorderBrush="{ThemeResource TableViewGridLinesBrush}">
-                                <FontIcon Grid.Row="1"
-                                          FontSize="12"
+                                <FontIcon FontSize="12"
+                                          Margin="6,20,0,0"
+                                          Opacity="0.5"
+                                          Glyph="{ThemeResource SelectAllButtonIcon}"
+                                          RenderTransformOrigin="0.5,0.5">
+                                    <FontIcon.RenderTransform>
+                                        <RotateTransform Angle="-45" />
+                                    </FontIcon.RenderTransform>
+                                </FontIcon>
+                            </Button>
+
+                            <Button x:Name="optionsButton"
+                                    VerticalAlignment="Stretch"
+                                    BorderThickness="0,0,1,1"
+                                    Background="Transparent"
+                                    Padding="0"
+                                    CornerRadius="4,0,0,0"
+                                    Width="16"
+                                    Visibility="Collapsed"
+                                    IsTabStop="False"
+                                    BorderBrush="{ThemeResource TableViewGridLinesBrush}">
+                                <FontIcon FontSize="12"
                                           Margin="4,0,0,0"
-                                          Grid.ColumnSpan="2"
                                           VerticalAlignment="Center"
                                           HorizontalAlignment="Center"
                                           Glyph="{ThemeResource OptionsButtonIcon}"
@@ -100,7 +148,7 @@
                                 </Button.Flyout>
                             </Button>
 
-                            <CheckBox x:Name="SelectAllCheckBox"
+                            <CheckBox x:Name="selectAllCheckBox"
                                       Margin="14,0,2,0"
                                       MinWidth="0"
                                       IsTabStop="False"
@@ -115,10 +163,10 @@
                                     BorderThickness="0,0,0,1"
                                     BorderBrush="{ThemeResource TableViewGridLinesBrush}" />
                         </Grid>
-                    </Border>
+                    </Grid>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
-    
+
 </ResourceDictionary>
