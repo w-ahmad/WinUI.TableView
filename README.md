@@ -7,14 +7,14 @@ WinUI.TableView is a lightweight and fast data grid control made for WinUI apps.
 ### Features
 - __Auto-generating Columns:__ Automatically generate columns based on the data source.
 - __Copy row content:__ TableView allows you to copy row content, with the option to include or exclude column headers.
-- __Editing:__ Modify cell content directly within the TableView by duble tapping on a cell.
+- __Editing:__ Modify cell content directly within the TableView by double tapping on a cell.
 ![image](https://raw.githubusercontent.com/w-ahmad/WinUI.TableView/main/screenshots/Editing1.png)
 ![image](https://raw.githubusercontent.com/w-ahmad/WinUI.TableView/main/screenshots/Editing2.png)
 - __Sorting__
 ![image](https://raw.githubusercontent.com/w-ahmad/WinUI.TableView/main/screenshots/Sorting.png)
 - __Excel-like Column Filter:__ A key feature that allows users to filter data within columns, enhancing data exploration and analysis.
 ![image](https://raw.githubusercontent.com/w-ahmad/WinUI.TableView/main/screenshots/Filter.png)
-- __Export fuctionality:__ Built-in export functionality to export data to CSV format. This feature can be enabled by setting the `ShowExportOptions = true`. 				
+- __Export functionality:__ Built-in export functionality to export data to CSV format. This feature can be enabled by setting the `ShowExportOptions = true`. 				
 ![image](https://raw.githubusercontent.com/w-ahmad/WinUI.TableView/main/screenshots/Options.png)
 Developers also have the flexibility to implement their own export functionality using two public methods provided:	
 	- `GetRowsContent(bool includeHeaders, char separator)`: Retrieves the content of all rows in the table.
@@ -29,7 +29,7 @@ Developers also have the flexibility to implement their own export functionality
 1. TableViewTemplateColumn
 
 ### Limitations
-- Data Source Limitation: WinUI.TableView only accepts data sources that implement `System.Collections.IList`. This is because WinUI.TableView internally uses own implementaion of [AdvancedCollectionView](https://www.nuget.org/packages/CommunityToolkit.WinUI.Collections) from the [CommunityToolkit](https://github.com/CommunityToolkit/Windows), which relies on IList-based collections.
+- Data Source Limitation: WinUI.TableView only accepts data sources that implements `System.Collections.IList`. This is because WinUI.TableView internally uses its own implementation of [AdvancedCollectionView](https://www.nuget.org/packages/CommunityToolkit.WinUI.Collections) from the [CommunityToolkit](https://github.com/CommunityToolkit/Windows), which relies on IList-based collections.
 - Cell Selection: Cell selection is not currently supported but it's planned for the future release.
 
 ### Dependencies

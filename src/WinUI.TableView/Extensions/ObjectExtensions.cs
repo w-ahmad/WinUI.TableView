@@ -24,7 +24,7 @@ internal static class ObjectExtensions
     {
         var parts = path.Split('.');
         pis = new (PropertyInfo, object?)[parts.Length];
-        for (int i = 0; i < parts.Length; i++)
+        for (var i = 0; i < parts.Length; i++)
         {
             var part = parts[i];
             var index = default(object?);

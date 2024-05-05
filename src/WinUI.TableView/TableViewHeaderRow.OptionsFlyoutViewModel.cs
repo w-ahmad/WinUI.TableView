@@ -41,10 +41,10 @@ public partial class TableViewHeaderRow
             CopyWithHeadersCommand.Description = "Copy the selected row's content including column headers to clipboard.";
             CopyWithHeadersCommand.ExecuteRequested += delegate { TableView.CopyToClipboardInternal(true); };
 
-            ClearSortingCommand.ExecuteRequested += delegate { ClearSorting(); };
+            ClearSortingCommand.ExecuteRequested += delegate { TableView.ClearSorting(); };
             ClearSortingCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.CollectionView.SortDescriptions.Count > 0;
 
-            ClearFilterCommand.ExecuteRequested += delegate { ClearFilters(); };
+            ClearFilterCommand.ExecuteRequested += delegate { TableView.ClearFilters(); };
             ClearFilterCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.ActiveFilters.Count > 0;
 
             ExportAllToCSVCommand.ExecuteRequested += delegate { TableView.ExportAllToCSV(); };
@@ -53,32 +53,7 @@ public partial class TableViewHeaderRow
             ExportSelectedToCSVCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.SelectedItems.Count > 0;
         }
 
-        private void ClearSorting()
-        {
-            TableView.CollectionView.SortDescriptions.Clear();
 
-            foreach (var header in TableView.Columns.Select(x => x.HeaderControl))
-            {
-                if (header is not null)
-                {
-                    header.SortDirection = null;
-                }
-            }
-        }
-
-        private void ClearFilters()
-        {
-            TableView.ActiveFilters.Clear();
-            TableView.CollectionView.RefreshFilter();
-
-            foreach (var header in TableView.Columns.Select(x => x.HeaderControl))
-            {
-                if (header is not null)
-                {
-                    header.IsFiltered = false;
-                }
-            }
-        }
 
         public StandardUICommand SelectAllCommand { get; } = new(StandardUICommandKind.SelectAll);
         public StandardUICommand DeselectAllCommand { get; } = new() { Label = "Deselect All" };

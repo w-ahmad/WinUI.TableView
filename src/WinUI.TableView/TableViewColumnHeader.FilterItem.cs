@@ -7,7 +7,8 @@ public partial class TableViewColumnHeader
     private class FilterItem : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
-        private bool isSelected;
+
+        private bool _isSelected;
         private readonly OptionsFlyoutViewModel _optionsFlyoutViewModel;
 
         public FilterItem(bool isSelected, object value, OptionsFlyoutViewModel optionsFlyoutViewModel)
@@ -20,10 +21,10 @@ public partial class TableViewColumnHeader
 
         public bool IsSelected
         {
-            get => isSelected;
+            get => _isSelected;
             set
             {
-                isSelected = value;
+                _isSelected = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelected)));
 
                 _optionsFlyoutViewModel?.SetSelectAllCheckBoxState();

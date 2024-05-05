@@ -79,7 +79,7 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
 
             if (_source is INotifyCollectionChanged sourceNcc)
             {
-                _collectionChangedListener = new (this, sourceNcc, SourceNcc_CollectionChanged);
+                _collectionChangedListener = new(this, sourceNcc, SourceNcc_CollectionChanged);
             }
 
             HandleSourceChanged();
@@ -391,7 +391,7 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
             object? cy;
 
             if (!string.IsNullOrEmpty(sd.PropertyName) &&
-                _sortProperties.TryGetValue(sd.PropertyName, out (PropertyInfo, object?)[]? pis))
+                _sortProperties.TryGetValue(sd.PropertyName, out var pis))
             {
                 cx = x.GetValue(pis);
                 cy = y.GetValue(pis);
@@ -671,7 +671,7 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
             return false;
         }
 
-        var newViewIndex = _view.Count;
+        var newViewIndex = newStartingIndex;
 
         if (_sortDescriptions.Any())
         {
@@ -689,18 +689,7 @@ public partial class AdvancedCollectionView : IAdvancedCollectionView, INotifyPr
                 HandleSourceChanged();
                 return false;
             }
-            if (viewIndex.HasValue)
-            {
-                newViewIndex = viewIndex.Value;
-            }
-            else
-            {
-                newViewIndex = _view.Take(newStartingIndex).Count();
-            }
-        }
-        else
-        {
-            newViewIndex = newStartingIndex;
+            newViewIndex = viewIndex ?? _view.Take(newStartingIndex).Count();
         }
 
         _view.Insert(newViewIndex, newItem!);

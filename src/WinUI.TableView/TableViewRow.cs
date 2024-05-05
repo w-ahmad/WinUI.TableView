@@ -1,5 +1,7 @@
 ﻿using CommunityToolkit.WinUI;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Data;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -51,7 +53,7 @@ public class TableViewRow : Control
     {
         if (_cellsStackPanel is not null)
         {
-            foreach (TableViewColumn column in columns)
+            foreach (var column in columns)
             {
                 var cell = _cellsStackPanel.Children.OfType<TableViewCell>().FirstOrDefault(x => x.Column == column);
                 if (cell is not null)
@@ -66,9 +68,9 @@ public class TableViewRow : Control
     {
         if (_cellsStackPanel is not null)
         {
-            foreach (TableViewColumn column in columns)
+            foreach (var column in columns)
             {
-                var cell = new TableViewCell { Column = column, IsTabStop = false, };
+                var cell = new TableViewCell { Column = column, Row = this, TableView = _tableView!, IsTabStop = false, };
                 if (index < 0)
                 {
                     _cellsStackPanel.Children.Add(cell);
@@ -79,6 +81,22 @@ public class TableViewRow : Control
                     _cellsStackPanel.Children.Insert(index, cell);
                     index++;
                 }
+
+                cell.SetBinding(WidthProperty, new Binding
+                {
+                    Path = new PropertyPath($"{nameof(TableViewCell.Column)}.{nameof(TableViewColumn.Width)}"),
+                    RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
+                });
+                cell.SetBinding(MinWidthProperty, new Binding
+                {
+                    Path = new PropertyPath($"{nameof(TableViewCell.Column)}.{nameof(TableViewColumn.MinWidth)}"),
+                    RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
+                });
+                cell.SetBinding(MaxWidthProperty, new Binding
+                {
+                    Path = new PropertyPath($"{nameof(TableViewCell.Column)}.{nameof(TableViewColumn.MaxWidth)}"),
+                    RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
+                });
             }
         }
     }

@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Windows.Foundation;
 using Windows.System;
 using Windows.UI.Core;
 using WinUI.TableView.Extensions;
@@ -27,18 +28,18 @@ namespace WinUI.TableView;
 [TemplateVisualState(Name = VisualStates.StateUnfiltered, GroupName = VisualStates.GroupFilter)]
 public partial class TableViewColumnHeader : ContentControl
 {
-    private bool _canSort;
-    private bool _canFilter;
     private TableView? _tableView;
+    private TableViewHeaderRow? _headerRow;
     private Button? _optionsButton;
     private MenuFlyout? _optionsFlyout;
     private CheckBox? _selectAllCheckBox;
     private OptionsFlyoutViewModel _optionsFlyoutViewModel = default!;
     private string _propertyPath = default!;
-    private (PropertyInfo, object?)[] _propertyInfos = default!;
-    private SD? sortDirection;
-    private bool isFiltered;
+    private (PropertyInfo, object?)[] _propertyInfo = default!;
+    private SD? _sortDirection;
+    private bool _isFiltered;
     private bool _resizeStarted;
+    private bool _resizePreviousStarted;
 
     public TableViewColumnHeader()
     {
@@ -48,7 +49,7 @@ public partial class TableViewColumnHeader : ContentControl
 
     private void DoSort(SD direction, bool singleSorting = true)
     {
-        if (_canSort && _tableView is not null)
+        if (CanSort && _tableView is not null)
         {
             if (singleSorting)
             {
@@ -75,7 +76,7 @@ public partial class TableViewColumnHeader : ContentControl
 
     private void ClearSorting()
     {
-        if (_canSort && _tableView is not null && SortDirection is not null)
+        if (CanSort && _tableView is not null && SortDirection is not null)
         {
             SortDirection = null;
 
@@ -120,7 +121,7 @@ public partial class TableViewColumnHeader : ContentControl
 
     protected override void OnTapped(TappedRoutedEventArgs e)
     {
-        if (_canSort && _tableView is not null)
+        if (CanSort && _tableView is not null && !IsSizingCursor)
         {
             var isCtrlButtonDown = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control) is
                 CoreVirtualKeyStates.Down or (CoreVirtualKeyStates.Down | CoreVirtualKeyStates.Locked);
@@ -136,6 +137,8 @@ public partial class TableViewColumnHeader : ContentControl
         base.OnApplyTemplate();
 
         _tableView = this.FindAscendant<TableView>();
+        _tableView?.RegisterPropertyChangedCallback(TableView.CanFilterColumnsProperty, delegate { SetFilterButtonVisibility(); });
+        _headerRow = this.FindAscendant<TableViewHeaderRow>();
         _optionsButton = GetTemplateChild("OptionsButton") as Button;
         _optionsFlyout = GetTemplateChild("OptionsFlyout") as MenuFlyout;
 
@@ -147,12 +150,10 @@ public partial class TableViewColumnHeader : ContentControl
         if (Column is TableViewBoundColumn column && column.Binding.Path.Path is { Length: > 0 } path)
         {
             _propertyPath = path;
-            _canSort = column.CanSort;
-            _canFilter = column.CanFilter;
-            _optionsButton.Visibility = _canFilter ? Visibility.Visible : Visibility.Collapsed;
+            column?.RegisterPropertyChangedCallback(TableViewBoundColumn.CanFilterProperty, delegate { SetFilterButtonVisibility(); });
         }
 
-        if (_canFilter)
+        if (_optionsButton is not null && _optionsFlyout is not null)
         {
             _optionsFlyout.Opening += OnOptionsFlyoutOpening;
             _optionsButton.Tapped += OnOptionsButtonTaped;
@@ -172,6 +173,8 @@ public partial class TableViewColumnHeader : ContentControl
                 searchBox.PreviewKeyDown += OnSearchBoxKeyDown;
             }
         }
+
+        SetFilterButtonVisibility();
     }
 
     private void OnSearchBoxKeyDown(object sender, KeyRoutedEventArgs e)
@@ -236,13 +239,13 @@ public partial class TableViewColumnHeader : ContentControl
 
     private object? GetValue(object item)
     {
-        if (_propertyInfos is null)
+        if (_propertyInfo is null)
         {
             var type = _tableView!.ItemsSource?.GetType() is { } listType && listType.IsGenericType ? listType.GetGenericArguments()[0] : item?.GetType();
-            item.GetValue(type, _propertyPath, out _propertyInfos);
+            item.GetValue(type, _propertyPath, out _propertyInfo);
         }
 
-        return item.GetValue(_propertyInfos);
+        return item.GetValue(_propertyInfo);
     }
 
     private void OnOptionsButtonTaped(object sender, TappedRoutedEventArgs e)
@@ -278,23 +281,60 @@ public partial class TableViewColumnHeader : ContentControl
         }
     }
 
+    private void SetFilterButtonVisibility()
+    {
+        if (_optionsButton is not null)
+        {
+            _optionsButton.Visibility = CanFilter ? Visibility.Visible : Visibility.Collapsed;
+        }
+    }
+
+    private bool IsCursorInRightResizeArea(PointerRoutedEventArgs args)
+    {
+        var resizeArea = args.Pointer.PointerDeviceType == PointerDeviceType.Touch ? 8 : 4;
+        var point = args.GetCurrentPoint(this);
+        return ActualWidth - point.Position.X <= resizeArea && point.Position.Y < ActualHeight - (_optionsButton?.ActualHeight ?? 0);
+    }
+
+    private bool IsCursorInLeftResizeArea(PointerRoutedEventArgs args)
+    {
+        var resizeArea = args.Pointer.PointerDeviceType == PointerDeviceType.Touch ? 8 : 4;
+        var point = args.GetCurrentPoint(this);
+        return point.Position.X <= resizeArea && point.Position.Y < ActualHeight;
+    }
+
     protected override void OnPointerMoved(PointerRoutedEventArgs e)
     {
         base.OnPointerMoved(e);
 
-        if (CanResize)
+        if (CanResize && IsCursorInRightResizeArea(e))
         {
-            var point = e.GetCurrentPoint(this);
-            var nearRightEdge = ActualWidth - point.Position.X <= 4 && point.Position.Y < ActualHeight;
-            ProtectedCursor = nearRightEdge ? InputSystemCursor.Create(InputSystemCursorShape.SizeWestEast) : null;
+            ProtectedCursor = InputSystemCursor.Create(InputSystemCursorShape.SizeWestEast);
+        }
+        else if (CanResizePrevious && IsCursorInLeftResizeArea(e))
+        {
+            ProtectedCursor = InputSystemCursor.Create(InputSystemCursorShape.SizeWestEast);
+        }
+        else if (!_resizeStarted && !_resizePreviousStarted)
+        {
+            ProtectedCursor = null;
         }
     }
 
-    protected override void OnManipulationStarted(ManipulationStartedRoutedEventArgs e)
+    protected override void OnPointerPressed(PointerRoutedEventArgs e)
     {
-        base.OnManipulationStarted(e);
+        base.OnPointerPressed(e);
 
-        _resizeStarted = CanResize && ActualWidth - e.Position.X <= 4 && e.Position.Y < ActualHeight;
+        if (IsSizingCursor && CanResize && IsCursorInRightResizeArea(e))
+        {
+            _resizeStarted = true;
+            CapturePointer(e.Pointer);
+        }
+        else if (IsSizingCursor && IsCursorInLeftResizeArea(e))
+        {
+            _resizePreviousStarted = true;
+            CapturePointer(e.Pointer);
+        }
     }
 
     protected override void OnManipulationDelta(ManipulationDeltaRoutedEventArgs e)
@@ -304,6 +344,12 @@ public partial class TableViewColumnHeader : ContentControl
         if (_resizeStarted)
         {
             Width = Math.Clamp(e.Position.X, MinWidth, MaxWidth);
+            Measure(new Size(Width, ActualHeight));
+        }
+        else if (_resizePreviousStarted && _headerRow?.GetPreviousHeader(this) is { } header)
+        {
+            header.Width = Math.Clamp(header.ActualWidth + e.Position.X, MinWidth, MaxWidth);
+            header.Measure(new Size(header.Width, ActualHeight));
         }
     }
 
@@ -312,29 +358,43 @@ public partial class TableViewColumnHeader : ContentControl
         base.OnManipulationCompleted(e);
 
         _resizeStarted = false;
+        _resizePreviousStarted = false;
+    }
+
+    protected override void OnPointerReleased(PointerRoutedEventArgs e)
+    {
+        base.OnPointerReleased(e);
+
+        _resizeStarted = false;
+        _resizePreviousStarted = false;
+        ReleasePointerCaptures();
     }
 
     public SD? SortDirection
     {
-        get => sortDirection;
+        get => _sortDirection;
         internal set
         {
-            sortDirection = value;
+            _sortDirection = value;
             OnSortDirectionChanged();
         }
     }
 
     public bool IsFiltered
     {
-        get => isFiltered;
+        get => _isFiltered;
         internal set
         {
-            isFiltered = value;
+            _isFiltered = value;
             OnIsFilteredChanged();
         }
     }
 
     public TableViewColumn? Column { get; internal set; }
 
-    public bool CanResize => Column?.CanResize == true;
+    private bool CanResize => _tableView?.CanResizeColumns == true && Column?.CanResize == true;
+    private bool CanSort => _tableView?.CanSortColumns == true && Column is TableViewBoundColumn { CanSort: true };
+    private bool CanFilter => _tableView?.CanFilterColumns == true && Column is TableViewBoundColumn { CanFilter: true };
+    private bool CanResizePrevious => _headerRow?.GetPreviousHeader(this)?.CanResize == true;
+    private bool IsSizingCursor => ProtectedCursor is InputSystemCursor { CursorShape: InputSystemCursorShape.SizeWestEast };
 }

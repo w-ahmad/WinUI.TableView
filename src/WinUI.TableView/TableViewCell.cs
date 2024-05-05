@@ -14,8 +14,6 @@ namespace WinUI.TableView;
 
 public class TableViewCell : ContentControl
 {
-    private TableViewRow? _tableViewRow;
-    private TableViewColumn? _column;
     private Lazy<FrameworkElement> _element = null!;
     private Lazy<FrameworkElement> _editingElement = null!;
 
@@ -26,7 +24,7 @@ public class TableViewCell : ContentControl
 
     protected override void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
     {
-        if (_column is { IsReadOnly: false })
+        if (!IsReadOnly)
         {
             PrepareForEdit();
         }
@@ -36,10 +34,8 @@ public class TableViewCell : ContentControl
     {
         base.OnKeyDown(e);
 
-        _tableViewRow ??= this.FindAscendant<TableViewRow>();
-
         if (e.Key is VirtualKey.Tab or VirtualKey.Enter &&
-            _tableViewRow is not null &&
+            Row is not null &&
             !VisualTreeHelper.GetOpenPopupsForXamlRoot(XamlRoot).Any())
         {
             var shiftKey = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Shift);
@@ -47,11 +43,11 @@ public class TableViewCell : ContentControl
 
             if (isShiftKeyDown)
             {
-                _tableViewRow.SelectPreviousCell(this);
+                Row.SelectPreviousCell(this);
             }
             else
             {
-                _tableViewRow.SelectNextCell(this);
+                Row.SelectNextCell(this);
             }
         }
         else if (e.Key == VirtualKey.Escape)
@@ -91,7 +87,7 @@ public class TableViewCell : ContentControl
 
     private void SetElement()
     {
-        if (_column is TableViewTemplateColumn templateColumn)
+        if (Column is TableViewTemplateColumn templateColumn)
         {
             ContentTemplate = templateColumn.CellTemplate;
         }
@@ -103,11 +99,11 @@ public class TableViewCell : ContentControl
 
     private void SetEditingElement()
     {
-        if (_column is TableViewTemplateColumn templateColumn)
+        if (Column is TableViewTemplateColumn templateColumn)
         {
             ContentTemplate = templateColumn.EditingTemplate ?? templateColumn.CellTemplate;
         }
-        else if (_column is not null)
+        else if (Column is not null)
         {
             Content = _editingElement.Value;
         }
@@ -117,20 +113,33 @@ public class TableViewCell : ContentControl
     {
         if (d is TableViewCell cell && e.NewValue is TableViewColumn column)
         {
-            cell._column = column;
             cell._element = new Lazy<FrameworkElement>(column.GenerateElement());
             cell._editingElement = new Lazy<FrameworkElement>(column.GenerateEditingElement());
             cell.SetElement();
         }
     }
 
-    public bool IsReadOnly => _column is TableViewTemplateColumn { EditingTemplate: null } || _column is { IsReadOnly: true };
+    public bool IsReadOnly => TableView.IsReadOnly || Column is TableViewTemplateColumn { EditingTemplate: null } or { IsReadOnly: true };
 
     public TableViewColumn Column
     {
-        get { return (TableViewColumn)GetValue(ColumnProperty); }
-        set { SetValue(ColumnProperty, value); }
+        get => (TableViewColumn)GetValue(ColumnProperty);
+        set => SetValue(ColumnProperty, value);
+    }
+
+    public TableViewRow Row
+    {
+        get => (TableViewRow)GetValue(TableViewRowProperty);
+        set => SetValue(TableViewRowProperty, value);
+    }
+
+    public TableView TableView
+    {
+        get => (TableView)GetValue(TableViewProperty);
+        set => SetValue(TableViewProperty, value);
     }
 
     public static readonly DependencyProperty ColumnProperty = DependencyProperty.Register(nameof(Column), typeof(TableViewColumn), typeof(TableViewCell), new PropertyMetadata(default, OnColumnChanged));
+    public static readonly DependencyProperty TableViewRowProperty = DependencyProperty.Register(nameof(Row), typeof(TableViewRow), typeof(TableViewCell), new PropertyMetadata(default));
+    public static readonly DependencyProperty TableViewProperty = DependencyProperty.Register(nameof(TableView), typeof(TableView), typeof(TableViewCell), new PropertyMetadata(default));
 }

@@ -11,6 +11,10 @@ using WinUI.TableView.Converters;
 
 namespace WinUI.TableView;
 
+[TemplateVisualState(Name = VisualStates.StateNormal, GroupName = VisualStates.GroupCommon)]
+[TemplateVisualState(Name = VisualStates.StateSelectAllButton, GroupName = VisualStates.GroupSelectAllButton)]
+[TemplateVisualState(Name = VisualStates.StateSelectAllCheckBox, GroupName = VisualStates.GroupSelectAllButton)]
+[TemplateVisualState(Name = VisualStates.StateOptionsButton, GroupName = VisualStates.GroupSelectAllButton)]
 public partial class TableViewHeaderRow : Control
 {
     private Button? _optionsButton;
@@ -26,13 +30,16 @@ public partial class TableViewHeaderRow : Control
     {
         base.OnApplyTemplate();
 
-        _optionsButton = GetTemplateChild("OptionsButton") as Button;
-        _selectAllCheckBox = GetTemplateChild("SelectAllCheckBox") as CheckBox;
-        TableView?.RegisterPropertyChangedCallback(ListViewBase.SelectionModeProperty, delegate { OnTableViewSelectionModeChanged(); });
+        _optionsButton = GetTemplateChild("optionsButton") as Button;
+        _selectAllCheckBox = GetTemplateChild("selectAllCheckBox") as CheckBox;
+        TableView?.RegisterPropertyChangedCallback(ListViewBase.SelectionModeProperty, delegate { SetSelectAllButtonState(); });
+        TableView?.RegisterPropertyChangedCallback(TableView.ShowOptionsButtonProperty, delegate { SetSelectAllButtonState(); });
         TableView?.RegisterPropertyChangedCallback(TableView.ItemsSourceProperty, delegate { OnTableViewSelectionChanged(); });
 
         if (TableView is null)
+        {
             return;
+        }
 
         TableView.SelectionChanged += delegate { OnTableViewSelectionChanged(); };
         TableView.Items.VectorChanged += delegate { OnTableViewSelectionChanged(); };
@@ -45,10 +52,18 @@ public partial class TableViewHeaderRow : Control
             ShowAndHidOptionsFlyout();
             async void ShowAndHidOptionsFlyout()
             {
-                _optionsButton.Flyout.ShowAt(_optionsButton);
-                await Task.Delay(5);
-                _optionsButton.Flyout.Hide();
+                if (_optionsButton.Visibility == Visibility.Visible)
+                {
+                    _optionsButton.Flyout.ShowAt(_optionsButton);
+                    await Task.Delay(5);
+                    _optionsButton.Flyout.Hide();
+                }
             }
+        }
+
+        if (GetTemplateChild("selectAllButton") is Button selectAllButton)
+        {
+            selectAllButton.Tapped += delegate { TableView.SelectAllSafe(); };
         }
 
         if (_selectAllCheckBox is not null)
@@ -64,8 +79,7 @@ public partial class TableViewHeaderRow : Control
         }
 
         SetExportOptionsVisibility();
-        OnTableViewSelectionModeChanged();
-
+        SetSelectAllButtonState();
     }
 
     private void OnTableViewColumnsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -178,18 +192,19 @@ public partial class TableViewHeaderRow : Control
         }
     }
 
-    private void OnTableViewSelectionModeChanged()
+    private void SetSelectAllButtonState()
     {
-        if (_optionsButton is not null)
+        if (TableView.SelectionMode == ListViewSelectionMode.Multiple)
         {
-            _optionsButton.Visibility = TableView?.SelectionMode == ListViewSelectionMode.Multiple &&
-                TableView?.IsMultiSelectCheckBoxEnabled == true ? Visibility.Collapsed : Visibility.Visible;
+            VisualStates.GoToState(this, false, VisualStates.StateSelectAllCheckBox);
         }
-
-        if (_selectAllCheckBox is not null)
+        else if (TableView.ShowOptionsButton)
         {
-            _selectAllCheckBox.Visibility = TableView?.SelectionMode == ListViewSelectionMode.Multiple &&
-                TableView?.IsMultiSelectCheckBoxEnabled == true ? Visibility.Visible : Visibility.Collapsed;
+            VisualStates.GoToState(this, false, VisualStates.StateOptionsButton);
+        }
+        else
+        {
+            VisualStates.GoToState(this, false, VisualStates.StateSelectAllButton);
         }
     }
 
@@ -208,10 +223,18 @@ public partial class TableViewHeaderRow : Control
         }
     }
 
+    private IList<TableViewColumnHeader> Headers => _headersStackPanel!.Children.OfType<TableViewColumnHeader>().ToList();
+
+    internal TableViewColumnHeader? GetPreviousHeader(TableViewColumnHeader? currentHeader)
+    {
+        var previousCellIndex = currentHeader is null ? Headers.Count - 1 : Headers.IndexOf(currentHeader) - 1;
+        return previousCellIndex >= 0 ? Headers[previousCellIndex] : default;
+    }
+
     public TableView TableView
     {
-        get { return (TableView)GetValue(TableViewProperty); }
-        set { SetValue(TableViewProperty, value); }
+        get => (TableView)GetValue(TableViewProperty);
+        set => SetValue(TableViewProperty, value);
     }
 
     public static readonly DependencyProperty TableViewProperty = DependencyProperty.Register(nameof(TableView), typeof(TableView), typeof(TableViewHeaderRow), new PropertyMetadata(null));
