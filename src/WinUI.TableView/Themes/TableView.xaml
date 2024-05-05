@@ -89,6 +89,7 @@
                             <ItemsPresenter Padding="{TemplateBinding Padding}">
                                 <ItemsPresenter.Header>
                                     <local:TableViewHeaderRow IsTabStop="False"
+                                                              Height="{TemplateBinding HeaderRowHeight}"
                                                               TableView="{Binding RelativeSource={RelativeSource TemplatedParent}}">
                                         <interactivity:Interaction.Behaviors>
                                             <behaviors:StickyHeaderBehavior />

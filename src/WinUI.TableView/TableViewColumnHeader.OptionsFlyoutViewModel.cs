@@ -26,13 +26,13 @@ public partial class TableViewColumnHeader
         private void InitializeCommands()
         {
             SortAscendingCommand.ExecuteRequested += delegate { ColumnHeader.DoSort(SD.Ascending); };
-            SortAscendingCommand.CanExecuteRequested += (_, e) => e.CanExecute = ColumnHeader._canSort && ColumnHeader.SortDirection != SD.Ascending;
+            SortAscendingCommand.CanExecuteRequested += (_, e) => e.CanExecute = ColumnHeader.CanSort && ColumnHeader.SortDirection != SD.Ascending;
 
             SortDescendingCommand.ExecuteRequested += delegate { ColumnHeader.DoSort(SD.Descending); };
-            SortDescendingCommand.CanExecuteRequested += (_, e) => e.CanExecute = ColumnHeader._canSort && ColumnHeader.SortDirection != SD.Descending;
+            SortDescendingCommand.CanExecuteRequested += (_, e) => e.CanExecute = ColumnHeader.CanSort && ColumnHeader.SortDirection != SD.Descending;
 
             ClearSortingCommand.ExecuteRequested += delegate { ColumnHeader.ClearSorting(); };
-            ClearSortingCommand.CanExecuteRequested += (_, e) => e.CanExecute = ColumnHeader._canSort && ColumnHeader.SortDirection is not null;
+            ClearSortingCommand.CanExecuteRequested += (_, e) => e.CanExecute = ColumnHeader.SortDirection is not null;
 
             ClearFilterCommand.ExecuteRequested += delegate { ColumnHeader.ClearFilter(); };
             ClearFilterCommand.CanExecuteRequested += (_, e) => e.CanExecute = ColumnHeader.IsFiltered;

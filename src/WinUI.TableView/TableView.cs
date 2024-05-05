@@ -359,6 +359,49 @@ public class TableView : ListView
         }
     }
 
+    private static void OnCanSortColumnsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView && e.NewValue is false)
+        {
+            tableView.ClearSorting();
+        }
+    }
+
+    private static void OnCanFilterColumnsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView && e.NewValue is false)
+        {
+            tableView.ClearFilters();
+        }
+    }
+
+    internal void ClearSorting()
+    {
+        CollectionView.SortDescriptions.Clear();
+
+        foreach (var header in Columns.Select(x => x.HeaderControl))
+        {
+            if (header is not null)
+            {
+                header.SortDirection = null;
+            }
+        }
+    }
+
+    internal void ClearFilters()
+    {
+        ActiveFilters.Clear();
+        CollectionView.RefreshFilter();
+
+        foreach (var header in Columns.Select(x => x.HeaderControl))
+        {
+            if (header is not null)
+            {
+                header.IsFiltered = false;
+            }
+        }
+    }
+
     public IAdvancedCollectionView CollectionView { get; private set; } = new AdvancedCollectionView();
 
     internal IDictionary<string, Predicate<object>> ActiveFilters { get; } = new Dictionary<string, Predicate<object>>();
@@ -367,6 +410,12 @@ public class TableView : ListView
     {
         get => (TableViewColumnsCollection)GetValue(ColumnsProperty);
         private set => SetValue(ColumnsProperty, value);
+    }
+
+    public double HeaderRowHeight
+    {
+        get => (double)GetValue(HeaderRowHeightProperty);
+        set => SetValue(HeaderRowHeightProperty, value);
     }
 
     public double RowHeight
@@ -411,14 +460,36 @@ public class TableView : ListView
         set => SetValue(ShowOptionsButtonProperty, value);
     }
 
+    public bool CanResizeColumns
+    {
+        get => (bool)GetValue(CanResizeColumnsProperty);
+        set => SetValue(CanResizeColumnsProperty, value);
+    }
+
+    public bool CanSortColumns
+    {
+        get => (bool)GetValue(CanSortColumnsProperty);
+        set => SetValue(CanSortColumnsProperty, value);
+    }
+
+    public bool CanFilterColumns
+    {
+        get => (bool)GetValue(CanFilterColumnsProperty);
+        set => SetValue(CanFilterColumnsProperty, value);
+    }
+
     public static readonly new DependencyProperty ItemsSourceProperty = DependencyProperty.Register(nameof(ItemsSource), typeof(IList), typeof(TableView), new PropertyMetadata(null, OnItemsSourceChanged));
     public static readonly DependencyProperty ColumnsProperty = DependencyProperty.Register(nameof(Columns), typeof(TableViewColumnsCollection), typeof(TableView), new PropertyMetadata(null));
+    public static readonly DependencyProperty HeaderRowHeightProperty = DependencyProperty.Register(nameof(HeaderRowHeight), typeof(double), typeof(TableView), new PropertyMetadata(48d));
     public static readonly DependencyProperty RowHeightProperty = DependencyProperty.Register(nameof(RowHeight), typeof(double), typeof(TableView), new PropertyMetadata(40d));
     public static readonly DependencyProperty RowMaxHeightProperty = DependencyProperty.Register(nameof(RowMaxHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.PositiveInfinity));
     public static readonly DependencyProperty ShowExportOptionsProperty = DependencyProperty.Register(nameof(ShowExportOptions), typeof(bool), typeof(TableView), new PropertyMetadata(false));
     public static readonly DependencyProperty AutoGenerateColumnsProperty = DependencyProperty.Register(nameof(AutoGenerateColumns), typeof(bool), typeof(TableView), new PropertyMetadata(true, OnAutoGenerateColumnsChanged));
     public static readonly DependencyProperty IsReadOnlyProperty = DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(TableView), new PropertyMetadata(false));
     public static readonly DependencyProperty ShowOptionsButtonProperty = DependencyProperty.Register(nameof(ShowOptionsButton), typeof(bool), typeof(TableView), new PropertyMetadata(true));
+    public static readonly DependencyProperty CanResizeColumnsProperty = DependencyProperty.Register(nameof(CanResizeColumns), typeof(bool), typeof(TableView), new PropertyMetadata(true));
+    public static readonly DependencyProperty CanSortColumnsProperty = DependencyProperty.Register(nameof(CanSortColumns), typeof(bool), typeof(TableView), new PropertyMetadata(true, OnCanSortColumnsChanged));
+    public static readonly DependencyProperty CanFilterColumnsProperty = DependencyProperty.Register(nameof(CanFilterColumns), typeof(bool), typeof(TableView), new PropertyMetadata(true, OnCanFilterColumnsChanged));
 
     public event EventHandler<TableViewAutoGeneratingColumnEventArgs>? AutoGeneratingColumn;
     public event EventHandler<TableViewExportRowsContentEventArgs>? ExportAllRowsContent;

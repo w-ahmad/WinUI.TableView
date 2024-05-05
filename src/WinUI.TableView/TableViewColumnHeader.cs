@@ -28,8 +28,6 @@ namespace WinUI.TableView;
 [TemplateVisualState(Name = VisualStates.StateUnfiltered, GroupName = VisualStates.GroupFilter)]
 public partial class TableViewColumnHeader : ContentControl
 {
-    private bool _canSort;
-    private bool _canFilter;
     private TableView? _tableView;
     private TableViewHeaderRow? _headerRow;
     private Button? _optionsButton;
@@ -51,7 +49,7 @@ public partial class TableViewColumnHeader : ContentControl
 
     private void DoSort(SD direction, bool singleSorting = true)
     {
-        if (_canSort && _tableView is not null)
+        if (CanSort && _tableView is not null)
         {
             if (singleSorting)
             {
@@ -78,7 +76,7 @@ public partial class TableViewColumnHeader : ContentControl
 
     private void ClearSorting()
     {
-        if (_canSort && _tableView is not null && SortDirection is not null)
+        if (CanSort && _tableView is not null && SortDirection is not null)
         {
             SortDirection = null;
 
@@ -123,7 +121,7 @@ public partial class TableViewColumnHeader : ContentControl
 
     protected override void OnTapped(TappedRoutedEventArgs e)
     {
-        if (_canSort && _tableView is not null && !IsSizingCursor)
+        if (CanSort && _tableView is not null && !IsSizingCursor)
         {
             var isCtrlButtonDown = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control) is
                 CoreVirtualKeyStates.Down or (CoreVirtualKeyStates.Down | CoreVirtualKeyStates.Locked);
@@ -139,6 +137,7 @@ public partial class TableViewColumnHeader : ContentControl
         base.OnApplyTemplate();
 
         _tableView = this.FindAscendant<TableView>();
+        _tableView?.RegisterPropertyChangedCallback(TableView.CanFilterColumnsProperty, delegate { SetFilterButtonVisibility(); });
         _headerRow = this.FindAscendant<TableViewHeaderRow>();
         _optionsButton = GetTemplateChild("OptionsButton") as Button;
         _optionsFlyout = GetTemplateChild("OptionsFlyout") as MenuFlyout;
@@ -151,12 +150,10 @@ public partial class TableViewColumnHeader : ContentControl
         if (Column is TableViewBoundColumn column && column.Binding.Path.Path is { Length: > 0 } path)
         {
             _propertyPath = path;
-            _canSort = column.CanSort;
-            _canFilter = column.CanFilter;
-            _optionsButton.Visibility = _canFilter ? Visibility.Visible : Visibility.Collapsed;
+            column?.RegisterPropertyChangedCallback(TableViewBoundColumn.CanFilterProperty, delegate { SetFilterButtonVisibility(); });
         }
 
-        if (_canFilter)
+        if (_optionsButton is not null && _optionsFlyout is not null)
         {
             _optionsFlyout.Opening += OnOptionsFlyoutOpening;
             _optionsButton.Tapped += OnOptionsButtonTaped;
@@ -176,6 +173,8 @@ public partial class TableViewColumnHeader : ContentControl
                 searchBox.PreviewKeyDown += OnSearchBoxKeyDown;
             }
         }
+
+        SetFilterButtonVisibility();
     }
 
     private void OnSearchBoxKeyDown(object sender, KeyRoutedEventArgs e)
@@ -282,6 +281,14 @@ public partial class TableViewColumnHeader : ContentControl
         }
     }
 
+    private void SetFilterButtonVisibility()
+    {
+        if (_optionsButton is not null)
+        {
+            _optionsButton.Visibility = CanFilter ? Visibility.Visible : Visibility.Collapsed;
+        }
+    }
+
     private bool IsCursorInRightResizeArea(PointerRoutedEventArgs args)
     {
         var resizeArea = args.Pointer.PointerDeviceType == PointerDeviceType.Touch ? 8 : 4;
@@ -385,10 +392,9 @@ public partial class TableViewColumnHeader : ContentControl
 
     public TableViewColumn? Column { get; internal set; }
 
-    private bool CanResize => Column?.CanResize == true;
-
+    private bool CanResize => _tableView?.CanResizeColumns == true && Column?.CanResize == true;
+    private bool CanSort => _tableView?.CanSortColumns == true && Column is TableViewBoundColumn { CanSort: true };
+    private bool CanFilter => _tableView?.CanFilterColumns == true && Column is TableViewBoundColumn { CanFilter: true };
     private bool CanResizePrevious => _headerRow?.GetPreviousHeader(this)?.CanResize == true;
-
     private bool IsSizingCursor => ProtectedCursor is InputSystemCursor { CursorShape: InputSystemCursorShape.SizeWestEast };
-
 }
