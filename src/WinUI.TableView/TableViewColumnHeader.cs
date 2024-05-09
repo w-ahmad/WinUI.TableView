@@ -106,10 +106,14 @@ public partial class TableViewColumnHeader : ContentControl
             return;
         }
 
-        _optionsFlyout?.Hide();
         _tableView.ActiveFilters[_propertyPath] = Filter;
         _tableView.CollectionView.RefreshFilter();
         IsFiltered = true;
+    }
+
+    private void HideFlyout()
+    {
+        _optionsFlyout?.Hide();
     }
 
     private bool Filter(object item)
@@ -221,9 +225,8 @@ public partial class TableViewColumnHeader : ContentControl
             {
                 var value = GetValue(item);
                 value = string.IsNullOrWhiteSpace(value?.ToString()) ? "(Blank)" : value;
-                var isSelected = !string.IsNullOrEmpty(_filterText) ||
+                var isSelected = !isFiltered || !string.IsNullOrEmpty(_filterText) ||
                   (isFiltered && _optionsFlyoutViewModel.SelectedValues.Contains(value));
-
 
                 return string.IsNullOrEmpty(_filterText)
                       || value?.ToString()?.Contains(_filterText, StringComparison.OrdinalIgnoreCase) == true

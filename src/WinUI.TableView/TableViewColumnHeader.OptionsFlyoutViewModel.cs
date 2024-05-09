@@ -39,11 +39,20 @@ public partial class TableViewColumnHeader
 
             OkCommand.ExecuteRequested += delegate
             {
-                SelectedValues = FilterItems.Where(x => x.IsSelected).Select(x => x.Value).ToList();
-                ColumnHeader.ApplyFilter();
+                ColumnHeader.HideFlyout();
+
+                if (ColumnHeader!._selectAllCheckBox!.IsChecked is true)
+                {
+                    ColumnHeader.ClearFilter();
+                }
+                else
+                {
+                    SelectedValues = FilterItems.Where(x => x.IsSelected).Select(x => x.Value).ToList();
+                    ColumnHeader.ApplyFilter();
+                }
             };
 
-            CancelCommand.ExecuteRequested += delegate { ColumnHeader._optionsFlyout?.Hide(); };
+            CancelCommand.ExecuteRequested += delegate { ColumnHeader.HideFlyout(); };
         }
 
         public TableView TableView { get; }
