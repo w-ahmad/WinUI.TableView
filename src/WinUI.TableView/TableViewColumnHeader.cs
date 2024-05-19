@@ -352,7 +352,7 @@ public partial class TableViewColumnHeader : ContentControl
         }
         else if (_resizePreviousStarted && _headerRow?.GetPreviousHeader(this) is { } header)
         {
-            header.Width = Math.Clamp(header.ActualWidth + e.Position.X, MinWidth, MaxWidth);
+            header.Width = Math.Clamp(header.ActualWidth + e.Position.X, header.MinWidth, header.MaxWidth);
             header.Measure(new Size(header.Width, ActualHeight));
         }
     }
