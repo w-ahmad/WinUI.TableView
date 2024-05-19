@@ -4,6 +4,7 @@ using CommunityToolkit.WinUI.Collections;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Input;
@@ -55,6 +56,8 @@ public class TableView : ListView
         itemsPanelVisual.Clip = contentClip;
         contentClip.TopInset = (float)Math.Max(-scrollViewer.VerticalOffset, 0);
         contentClip.StartAnimation("TopInset", expressionClipAnimation);
+
+        UpdateVerticalScrollBarMargin();
     }
 
     private bool Filter(object obj)
@@ -344,6 +347,11 @@ public class TableView : ListView
         }
     }
 
+    private static void OnHeaderRowHeightChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        (d as TableView)?.UpdateVerticalScrollBarMargin();
+    }
+
     private static void OnAutoGenerateColumnsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is TableView tableView)
@@ -372,6 +380,18 @@ public class TableView : ListView
         if (d is TableView tableView && e.NewValue is false)
         {
             tableView.ClearFilters();
+        }
+    }
+
+    private void UpdateVerticalScrollBarMargin()
+    {
+        if (GetTemplateChild("ScrollViewer") is ScrollViewer scrollViewer)
+        {
+            var verticalScrollBar = scrollViewer.FindDescendant<ScrollBar>(x => x.Name == "VerticalScrollBar");
+            if (verticalScrollBar is not null)
+            {
+                verticalScrollBar.Margin = new Thickness(0, HeaderRowHeight, 0, 0);
+            }
         }
     }
 
@@ -480,7 +500,7 @@ public class TableView : ListView
 
     public static readonly new DependencyProperty ItemsSourceProperty = DependencyProperty.Register(nameof(ItemsSource), typeof(IList), typeof(TableView), new PropertyMetadata(null, OnItemsSourceChanged));
     public static readonly DependencyProperty ColumnsProperty = DependencyProperty.Register(nameof(Columns), typeof(TableViewColumnsCollection), typeof(TableView), new PropertyMetadata(null));
-    public static readonly DependencyProperty HeaderRowHeightProperty = DependencyProperty.Register(nameof(HeaderRowHeight), typeof(double), typeof(TableView), new PropertyMetadata(32d));
+    public static readonly DependencyProperty HeaderRowHeightProperty = DependencyProperty.Register(nameof(HeaderRowHeight), typeof(double), typeof(TableView), new PropertyMetadata(32d, OnHeaderRowHeightChanged));
     public static readonly DependencyProperty RowHeightProperty = DependencyProperty.Register(nameof(RowHeight), typeof(double), typeof(TableView), new PropertyMetadata(40d));
     public static readonly DependencyProperty RowMaxHeightProperty = DependencyProperty.Register(nameof(RowMaxHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.PositiveInfinity));
     public static readonly DependencyProperty ShowExportOptionsProperty = DependencyProperty.Register(nameof(ShowExportOptions), typeof(bool), typeof(TableView), new PropertyMetadata(false));
