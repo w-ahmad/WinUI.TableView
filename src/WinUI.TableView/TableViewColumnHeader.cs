@@ -307,6 +307,29 @@ public partial class TableViewColumnHeader : ContentControl
         return point.Position.X <= resizeArea && point.Position.Y < ActualHeight;
     }
 
+    protected override void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
+    {
+        base.OnDoubleTapped(e);
+
+        if (IsSizingCursor && Column is not null)
+        {
+            var position = e.GetPosition(this);
+
+            if (position.X <= 8 && _headerRow?.GetPreviousHeader(this) is { Column: { } } header)
+            {
+                var width = Math.Clamp(header.Column.DesiredWidth, header.MinWidth, header.MaxWidth);
+                header.Width = width;
+                header.Measure(new Size(Width, ActualHeight));
+            }
+            else
+            {
+                var width = Math.Clamp(Column.DesiredWidth, MinWidth, MaxWidth);
+                Width = width;
+                Measure(new Size(Width, ActualHeight));
+            }
+        }
+    }
+
     protected override void OnPointerMoved(PointerRoutedEventArgs e)
     {
         base.OnPointerMoved(e);
