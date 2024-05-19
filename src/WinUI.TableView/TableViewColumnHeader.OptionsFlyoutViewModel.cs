@@ -41,7 +41,7 @@ public partial class TableViewColumnHeader
             {
                 ColumnHeader.HideFlyout();
 
-                if (ColumnHeader!._selectAllCheckBox!.IsChecked is true)
+                if (ColumnHeader!._selectAllCheckBox!.IsChecked is true && string.IsNullOrEmpty(FilterText))
                 {
                     ColumnHeader.ClearFilter();
                 }
