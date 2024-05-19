@@ -1,5 +1,4 @@
-﻿using CommunityToolkit.WinUI;
-using Microsoft.UI.Input;
+﻿using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -7,6 +6,7 @@ using Microsoft.UI.Xaml.Media;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.Foundation;
 using Windows.System;
 using Windows.UI.Core;
 
@@ -20,6 +20,13 @@ public class TableViewCell : ContentControl
     public TableViewCell()
     {
         DefaultStyleKey = typeof(TableViewCell);
+    }
+
+    protected override Size MeasureOverride(Size availableSize)
+    {
+        var size = base.MeasureOverride(availableSize);
+        Column.DesiredWidth = Math.Max(Column.DesiredWidth, size.Width);
+        return size;
     }
 
     protected override void OnDoubleTapped(DoubleTappedRoutedEventArgs e)

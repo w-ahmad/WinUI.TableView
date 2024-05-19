@@ -72,6 +72,8 @@ public abstract class TableViewColumn : DependencyObject
         }
     }
 
+    internal double DesiredWidth { get; set; }
+
     public static readonly DependencyProperty HeaderStyleProperty = DependencyProperty.Register(nameof(HeaderStyle), typeof(Style), typeof(TableViewColumn), new PropertyMetadata(null, (d, _) => ((TableViewColumn)d).EnsureHeaderStyle()));
     public static readonly DependencyProperty HeaderProperty = DependencyProperty.Register(nameof(Header), typeof(object), typeof(TableViewColumn), new PropertyMetadata(null));
     public static readonly DependencyProperty WidthProperty = DependencyProperty.Register(nameof(Width), typeof(double), typeof(TableViewColumn), new PropertyMetadata(200d));

@@ -195,13 +195,15 @@
                                             <MenuFlyoutItem>
                                                 <MenuFlyoutItem.Template>
                                                     <ControlTemplate TargetType="MenuFlyoutItem">
-                                                        <StackPanel Margin="8,4"
-                                                                    Spacing="16"
-                                                                    HorizontalAlignment="Right"
-                                                                    Orientation="Horizontal">
-                                                            <Button Command="{Binding OkCommand}" />
-                                                            <Button Command="{Binding CancelCommand}" />
-                                                        </StackPanel>
+                                                        <Grid Margin="12,4" 
+                                                              ColumnSpacing="16">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="*" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <Button Command="{Binding OkCommand}" HorizontalAlignment="Stretch" Style="{StaticResource AccentButtonStyle}" />
+                                                            <Button Command="{Binding CancelCommand}" Grid.Column="1" HorizontalAlignment="Stretch" />
+                                                        </Grid>
                                                     </ControlTemplate>
                                                 </MenuFlyoutItem.Template>
                                             </MenuFlyoutItem>

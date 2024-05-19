@@ -106,10 +106,14 @@ public partial class TableViewColumnHeader : ContentControl
             return;
         }
 
-        _optionsFlyout?.Hide();
         _tableView.ActiveFilters[_propertyPath] = Filter;
         _tableView.CollectionView.RefreshFilter();
         IsFiltered = true;
+    }
+
+    private void HideFlyout()
+    {
+        _optionsFlyout?.Hide();
     }
 
     private bool Filter(object item)
@@ -221,9 +225,8 @@ public partial class TableViewColumnHeader : ContentControl
             {
                 var value = GetValue(item);
                 value = string.IsNullOrWhiteSpace(value?.ToString()) ? "(Blank)" : value;
-                var isSelected = !string.IsNullOrEmpty(_filterText) ||
+                var isSelected = !isFiltered || !string.IsNullOrEmpty(_filterText) ||
                   (isFiltered && _optionsFlyoutViewModel.SelectedValues.Contains(value));
-
 
                 return string.IsNullOrEmpty(_filterText)
                       || value?.ToString()?.Contains(_filterText, StringComparison.OrdinalIgnoreCase) == true
@@ -291,9 +294,10 @@ public partial class TableViewColumnHeader : ContentControl
 
     private bool IsCursorInRightResizeArea(PointerRoutedEventArgs args)
     {
-        var resizeArea = args.Pointer.PointerDeviceType == PointerDeviceType.Touch ? 8 : 4;
+        var resizeWidth = args.Pointer.PointerDeviceType == PointerDeviceType.Touch ? 8 : 4;
         var point = args.GetCurrentPoint(this);
-        return ActualWidth - point.Position.X <= resizeArea && point.Position.Y < ActualHeight - (_optionsButton?.ActualHeight ?? 0);
+        var resizeHeight = ActualHeight - (CanFilter ? _optionsButton?.ActualHeight ?? 0 : 0);
+        return ActualWidth - point.Position.X <= resizeWidth && point.Position.Y < resizeHeight;
     }
 
     private bool IsCursorInLeftResizeArea(PointerRoutedEventArgs args)
@@ -301,6 +305,29 @@ public partial class TableViewColumnHeader : ContentControl
         var resizeArea = args.Pointer.PointerDeviceType == PointerDeviceType.Touch ? 8 : 4;
         var point = args.GetCurrentPoint(this);
         return point.Position.X <= resizeArea && point.Position.Y < ActualHeight;
+    }
+
+    protected override void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
+    {
+        base.OnDoubleTapped(e);
+
+        if (IsSizingCursor && Column is not null)
+        {
+            var position = e.GetPosition(this);
+
+            if (position.X <= 8 && _headerRow?.GetPreviousHeader(this) is { Column: { } } header)
+            {
+                var width = Math.Clamp(header.Column.DesiredWidth, header.MinWidth, header.MaxWidth);
+                header.Width = width;
+                header.Measure(new Size(Width, ActualHeight));
+            }
+            else
+            {
+                var width = Math.Clamp(Column.DesiredWidth, MinWidth, MaxWidth);
+                Width = width;
+                Measure(new Size(Width, ActualHeight));
+            }
+        }
     }
 
     protected override void OnPointerMoved(PointerRoutedEventArgs e)
@@ -348,7 +375,7 @@ public partial class TableViewColumnHeader : ContentControl
         }
         else if (_resizePreviousStarted && _headerRow?.GetPreviousHeader(this) is { } header)
         {
-            header.Width = Math.Clamp(header.ActualWidth + e.Position.X, MinWidth, MaxWidth);
+            header.Width = Math.Clamp(header.ActualWidth + e.Position.X, header.MinWidth, header.MaxWidth);
             header.Measure(new Size(header.Width, ActualHeight));
         }
     }
