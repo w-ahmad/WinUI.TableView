@@ -13,6 +13,7 @@ public class TableViewCheckBoxColumn : TableViewBoundColumn
             MinWidth = 20,
             MaxWidth = 20,
             IsEnabled = !IsReadOnly,
+            Margin = new Thickness(12, 0, 12, 0),
             HorizontalAlignment = HorizontalAlignment.Center
         };
 

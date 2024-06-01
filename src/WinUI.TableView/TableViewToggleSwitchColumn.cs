@@ -12,7 +12,7 @@ public class TableViewToggleSwitchColumn : TableViewBoundColumn
             OnContent = OnContent,
             OffContent = OffContent,
             IsEnabled = !IsReadOnly,
-            Margin = new Thickness(11, 0, 0, 0)
+            Margin = new Thickness(12, 0, 12, 0)
         };
 
         toggleSwitch.SetBinding(ToggleSwitch.IsOnProperty, Binding);

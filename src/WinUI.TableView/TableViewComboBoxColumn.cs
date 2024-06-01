@@ -11,11 +11,10 @@ public class TableViewComboBoxColumn : TableViewBoundColumn
     {
         var textBlock = new TextBlock
         {
-            Margin = new Thickness(12, 0, 0, 0)
+            Margin = new Thickness(12, 0, 12, 0),
+            TextTrimming = TextTrimming.Clip
         };
-
         textBlock.SetBinding(TextBlock.TextProperty, Binding);
-
         return textBlock;
     }
 
