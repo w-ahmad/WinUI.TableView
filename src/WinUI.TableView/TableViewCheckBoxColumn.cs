@@ -6,7 +6,7 @@ namespace WinUI.TableView;
 
 public class TableViewCheckBoxColumn : TableViewBoundColumn
 {
-    internal override FrameworkElement GenerateElement()
+    public override FrameworkElement GenerateElement()
     {
         var checkBox = new CheckBox
         {
@@ -21,7 +21,7 @@ public class TableViewCheckBoxColumn : TableViewBoundColumn
         return checkBox;
     }
 
-    internal override FrameworkElement GenerateEditingElement()
+    public override FrameworkElement GenerateEditingElement()
     {
         return GenerateElement();
     }

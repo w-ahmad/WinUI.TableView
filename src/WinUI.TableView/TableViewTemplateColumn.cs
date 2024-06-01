@@ -4,12 +4,12 @@ namespace WinUI.TableView;
 
 public class TableViewTemplateColumn : TableViewColumn
 {
-    internal override FrameworkElement GenerateElement()
+    public override FrameworkElement GenerateElement()
     {
         return (FrameworkElement)CellTemplate.LoadContent();
     }
 
-    internal override FrameworkElement GenerateEditingElement()
+    public override FrameworkElement GenerateEditingElement()
     {
         return EditingTemplate is not null ? (FrameworkElement)EditingTemplate.LoadContent() : (FrameworkElement)CellTemplate.LoadContent();
     }

@@ -5,7 +5,7 @@ namespace WinUI.TableView;
 
 public class TableViewToggleSwitchColumn : TableViewBoundColumn
 {
-    internal override FrameworkElement GenerateElement()
+    public override FrameworkElement GenerateElement()
     {
         var toggleSwitch = new ToggleSwitch
         {
@@ -20,7 +20,7 @@ public class TableViewToggleSwitchColumn : TableViewBoundColumn
         return toggleSwitch;
     }
 
-    internal override FrameworkElement GenerateEditingElement()
+    public override FrameworkElement GenerateEditingElement()
     {
         return GenerateElement();
     }

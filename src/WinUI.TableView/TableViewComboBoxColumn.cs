@@ -7,7 +7,7 @@ namespace WinUI.TableView;
 
 public class TableViewComboBoxColumn : TableViewBoundColumn
 {
-    internal override FrameworkElement GenerateElement()
+    public override FrameworkElement GenerateElement()
     {
         var textBlock = new TextBlock
         {
@@ -19,7 +19,7 @@ public class TableViewComboBoxColumn : TableViewBoundColumn
         return textBlock;
     }
 
-    internal override FrameworkElement GenerateEditingElement()
+    public override FrameworkElement GenerateEditingElement()
     {
         var comboBox = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch };
         comboBox.SetBinding(ItemsControl.ItemsSourceProperty, new Binding { Source = this, Path = new PropertyPath(nameof(ItemsSource)) });
