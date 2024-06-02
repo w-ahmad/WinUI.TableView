@@ -5,14 +5,14 @@ namespace WinUI.TableView;
 
 public class TableViewToggleSwitchColumn : TableViewBoundColumn
 {
-    internal override FrameworkElement GenerateElement()
+    public override FrameworkElement GenerateElement()
     {
         var toggleSwitch = new ToggleSwitch
         {
             OnContent = OnContent,
             OffContent = OffContent,
             IsEnabled = !IsReadOnly,
-            Margin = new Thickness(11, 0, 0, 0)
+            Margin = new Thickness(12, 0, 12, 0)
         };
 
         toggleSwitch.SetBinding(ToggleSwitch.IsOnProperty, Binding);
@@ -20,7 +20,7 @@ public class TableViewToggleSwitchColumn : TableViewBoundColumn
         return toggleSwitch;
     }
 
-    internal override FrameworkElement GenerateEditingElement()
+    public override FrameworkElement GenerateEditingElement()
     {
         return GenerateElement();
     }

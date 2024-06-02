@@ -7,8 +7,8 @@ public abstract class TableViewColumn : DependencyObject
 {
     private TableViewColumnHeader? _headerControl;
 
-    internal abstract FrameworkElement GenerateElement();
-    internal abstract FrameworkElement GenerateEditingElement();
+    public abstract FrameworkElement GenerateElement();
+    public abstract FrameworkElement GenerateEditingElement();
 
     public object Header
     {
