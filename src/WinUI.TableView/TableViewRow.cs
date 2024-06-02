@@ -97,6 +97,11 @@ public class TableViewRow : Control
                     Path = new PropertyPath($"{nameof(TableViewCell.Column)}.{nameof(TableViewColumn.MaxWidth)}"),
                     RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
                 });
+                cell.SetBinding(VisibilityProperty, new Binding
+                {
+                    Path = new PropertyPath($"{nameof(TableViewCell.Column)}.{nameof(TableViewColumn.Visibility)}"),
+                    RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
+                });
             }
         }
     }

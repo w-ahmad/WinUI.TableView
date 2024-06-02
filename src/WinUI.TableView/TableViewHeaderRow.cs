@@ -141,6 +141,8 @@ public partial class TableViewHeaderRow : Control
                                   new Binding { Path = new PropertyPath(nameof(TableViewColumn.MinWidth)) });
                 header.SetBinding(MaxWidthProperty,
                                   new Binding { Path = new PropertyPath(nameof(TableViewColumn.MaxWidth)) });
+                header.SetBinding(VisibilityProperty,
+                                  new Binding { Path = new PropertyPath(nameof(TableViewColumn.Visibility)) });
             }
         }
     }
