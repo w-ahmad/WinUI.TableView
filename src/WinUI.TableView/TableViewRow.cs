@@ -28,8 +28,10 @@ public class TableViewRow : Control
 
         if (_tableView is not null)
         {
+            AddCells(_tableView.Columns.VisibleColumns);
+           
             _tableView.Columns.CollectionChanged += OnColumnsCollectionChanged;
-            GenerateCells(_tableView.Columns);
+            _tableView.Columns.ColumnVisibilityChanged += OnColumnVisibilityChanged;
         }
     }
 
@@ -37,7 +39,7 @@ public class TableViewRow : Control
     {
         if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems?.OfType<TableViewColumn>() is IEnumerable<TableViewColumn> newItems)
         {
-            GenerateCells(newItems, e.NewStartingIndex);
+            AddCells(newItems.Where(x => x.Visibility == Visibility.Visible), e.NewStartingIndex);
         }
         else if (e.Action == NotifyCollectionChangedAction.Remove && e.OldItems?.OfType<TableViewColumn>() is IEnumerable<TableViewColumn> oldItems)
         {
@@ -46,6 +48,18 @@ public class TableViewRow : Control
         else if (e.Action == NotifyCollectionChangedAction.Reset && _cellsStackPanel is not null)
         {
             _cellsStackPanel.Children.Clear();
+        }
+    }
+
+    private void OnColumnVisibilityChanged(object? sender, TableViewColumnVisibilityChanged e)
+    {
+        if (e.Column.Visibility == Visibility.Visible)
+        {
+            AddCells(new[] { e.Column }, e.Index);
+        }
+        else
+        {
+            RemoveCells(new[] { e.Column });
         }
     }
 
@@ -64,7 +78,7 @@ public class TableViewRow : Control
         }
     }
 
-    private void GenerateCells(IEnumerable<TableViewColumn> columns, int index = -1)
+    private void AddCells(IEnumerable<TableViewColumn> columns, int index = -1)
     {
         if (_cellsStackPanel is not null)
         {
@@ -95,11 +109,6 @@ public class TableViewRow : Control
                 cell.SetBinding(MaxWidthProperty, new Binding
                 {
                     Path = new PropertyPath($"{nameof(TableViewCell.Column)}.{nameof(TableViewColumn.MaxWidth)}"),
-                    RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
-                });
-                cell.SetBinding(VisibilityProperty, new Binding
-                {
-                    Path = new PropertyPath($"{nameof(TableViewCell.Column)}.{nameof(TableViewColumn.Visibility)}"),
                     RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
                 });
             }

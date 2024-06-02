@@ -30,7 +30,6 @@ public class TableView : ListView
     {
         DefaultStyleKey = typeof(TableView);
 
-        Columns = new();
         CollectionView.Filter = Filter;
         base.ItemsSource = CollectionView;
 
@@ -109,7 +108,7 @@ public class TableView : ListView
         foreach (var item in items)
         {
             var type = ItemsSource?.GetType() is { } listType && listType.IsGenericType ? listType.GetGenericArguments()[0] : item?.GetType();
-            foreach (var column in Columns.OfType<TableViewBoundColumn>())
+            foreach (var column in Columns.VisibleColumns.OfType<TableViewBoundColumn>())
             {
                 var property = column.Binding.Path.Path;
                 if (!properties.TryGetValue(property, out var pis))
@@ -132,7 +131,7 @@ public class TableView : ListView
 
     private string GetHeadersContent(char separator)
     {
-        return string.Join(separator, Columns.OfType<TableViewBoundColumn>().Select(x => x.Header));
+        return string.Join(separator, Columns.VisibleColumns.OfType<TableViewBoundColumn>().Select(x => x.Header));
     }
 
     internal async void SelectNextRow()
@@ -422,15 +421,11 @@ public class TableView : ListView
         }
     }
 
-    public IAdvancedCollectionView CollectionView { get; private set; } = new AdvancedCollectionView();
+    public IAdvancedCollectionView CollectionView { get; } = new AdvancedCollectionView();
 
     internal IDictionary<string, Predicate<object>> ActiveFilters { get; } = new Dictionary<string, Predicate<object>>();
 
-    public TableViewColumnsCollection Columns
-    {
-        get => (TableViewColumnsCollection)GetValue(ColumnsProperty);
-        private set => SetValue(ColumnsProperty, value);
-    }
+    public TableViewColumnsCollection Columns { get; } = new();
 
     public double HeaderRowHeight
     {
@@ -499,7 +494,6 @@ public class TableView : ListView
     }
 
     public static readonly new DependencyProperty ItemsSourceProperty = DependencyProperty.Register(nameof(ItemsSource), typeof(IList), typeof(TableView), new PropertyMetadata(null, OnItemsSourceChanged));
-    public static readonly DependencyProperty ColumnsProperty = DependencyProperty.Register(nameof(Columns), typeof(TableViewColumnsCollection), typeof(TableView), new PropertyMetadata(null));
     public static readonly DependencyProperty HeaderRowHeightProperty = DependencyProperty.Register(nameof(HeaderRowHeight), typeof(double), typeof(TableView), new PropertyMetadata(32d, OnHeaderRowHeightChanged));
     public static readonly DependencyProperty RowHeightProperty = DependencyProperty.Register(nameof(RowHeight), typeof(double), typeof(TableView), new PropertyMetadata(40d));
     public static readonly DependencyProperty RowMaxHeightProperty = DependencyProperty.Register(nameof(RowMaxHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.PositiveInfinity));
