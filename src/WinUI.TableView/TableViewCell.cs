@@ -9,14 +9,12 @@ using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.System;
 using Windows.UI.Core;
+using CommunityToolkit.WinUI;
 
 namespace WinUI.TableView;
 
 public class TableViewCell : ContentControl
 {
-    private Lazy<FrameworkElement> _element = null!;
-    private Lazy<FrameworkElement> _editingElement = null!;
-
     public TableViewCell()
     {
         DefaultStyleKey = typeof(TableViewCell);
@@ -84,6 +82,12 @@ public class TableViewCell : ContentControl
 
         await Task.Delay(20);
 
+        var focusedElement = FocusManager.GetFocusedElement(XamlRoot) as FrameworkElement;
+        if (focusedElement?.FindAscendantOrSelf<TableViewCell>() == this)
+        {
+            return;
+        }
+
         if (VisualTreeHelper.GetOpenPopupsForXamlRoot(XamlRoot).Any())
         {
             return;
@@ -100,7 +104,7 @@ public class TableViewCell : ContentControl
         }
         else
         {
-            Content = _element.Value;
+            Content = Column.GenerateElement();
         }
     }
 
@@ -112,7 +116,7 @@ public class TableViewCell : ContentControl
         }
         else if (Column is not null)
         {
-            Content = _editingElement.Value;
+            Content = Column.GenerateEditingElement();
         }
     }
 
@@ -120,8 +124,6 @@ public class TableViewCell : ContentControl
     {
         if (d is TableViewCell cell && e.NewValue is TableViewColumn column)
         {
-            cell._element = new Lazy<FrameworkElement>(column.GenerateElement());
-            cell._editingElement = new Lazy<FrameworkElement>(column.GenerateEditingElement());
             cell.SetElement();
         }
     }
