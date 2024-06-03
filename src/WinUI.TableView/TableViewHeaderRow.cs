@@ -74,8 +74,10 @@ public partial class TableViewHeaderRow : Control
         if (TableView.Columns is not null && GetTemplateChild("HeadersStackPanel") is StackPanel stackPanel)
         {
             _headersStackPanel = stackPanel;
-            AddHeaders(TableView.Columns);
+            AddHeaders(TableView.Columns.VisibleColumns);
+            
             TableView.Columns.CollectionChanged += OnTableViewColumnsCollectionChanged;
+            TableView.Columns.ColumnVisibilityChanged += OnColumnVisibilityChanged;
         }
 
         SetExportOptionsVisibility();
@@ -86,7 +88,7 @@ public partial class TableViewHeaderRow : Control
     {
         if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems?.OfType<TableViewColumn>() is IEnumerable<TableViewColumn> newItems)
         {
-            AddHeaders(newItems, e.NewStartingIndex);
+            AddHeaders(newItems.Where(x => x.Visibility == Visibility.Visible), e.NewStartingIndex);
         }
         else if (e.Action == NotifyCollectionChangedAction.Remove && e.OldItems?.OfType<TableViewColumn>() is IEnumerable<TableViewColumn> oldItems)
         {
@@ -95,6 +97,18 @@ public partial class TableViewHeaderRow : Control
         else if (e.Action == NotifyCollectionChangedAction.Reset && _headersStackPanel is not null)
         {
             _headersStackPanel.Children.Clear();
+        }
+    }
+
+    private void OnColumnVisibilityChanged(object? sender, TableViewColumnVisibilityChanged e)
+    {
+        if (e.Column.Visibility == Visibility.Visible)
+        {
+            AddHeaders(new[] { e.Column }, e.Index);
+        }
+        else
+        {
+            RemoveHeaders(new[] { e.Column });
         }
     }
 
