@@ -30,15 +30,15 @@ public abstract class TableViewColumn : DependencyObject
         set => SetValue(WidthProperty, value);
     }
 
-    public double MinWidth
+    public double? MinWidth
     {
-        get => (double)GetValue(MinWidthProperty);
+        get => (double?)GetValue(MinWidthProperty);
         set => SetValue(MinWidthProperty, value);
     }
 
-    public double MaxWidth
+    public double? MaxWidth
     {
-        get => (double)GetValue(MaxWidthProperty);
+        get => (double?)GetValue(MaxWidthProperty);
         set => SetValue(MaxWidthProperty, value);
     }
 
@@ -149,8 +149,8 @@ public abstract class TableViewColumn : DependencyObject
     public static readonly DependencyProperty HeaderStyleProperty = DependencyProperty.Register(nameof(HeaderStyle), typeof(Style), typeof(TableViewColumn), new PropertyMetadata(null, (d, _) => ((TableViewColumn)d).EnsureHeaderStyle()));
     public static readonly DependencyProperty HeaderProperty = DependencyProperty.Register(nameof(Header), typeof(object), typeof(TableViewColumn), new PropertyMetadata(null));
     public static readonly DependencyProperty WidthProperty = DependencyProperty.Register(nameof(Width), typeof(GridLength), typeof(TableViewColumn), new PropertyMetadata(GridLength.Auto, OnWidthChanged));
-    public static readonly DependencyProperty MinWidthProperty = DependencyProperty.Register(nameof(MinWidth), typeof(double), typeof(TableViewColumn), new PropertyMetadata(50d, OnMinWidthChanged));
-    public static readonly DependencyProperty MaxWidthProperty = DependencyProperty.Register(nameof(MaxWidth), typeof(double), typeof(TableViewColumn), new PropertyMetadata(double.PositiveInfinity, OnMaxWidthChanged));
+    public static readonly DependencyProperty MinWidthProperty = DependencyProperty.Register(nameof(MinWidth), typeof(double?), typeof(TableViewColumn), new PropertyMetadata(default, OnMinWidthChanged));
+    public static readonly DependencyProperty MaxWidthProperty = DependencyProperty.Register(nameof(MaxWidth), typeof(double?), typeof(TableViewColumn), new PropertyMetadata(default, OnMaxWidthChanged));
     public static readonly DependencyProperty ActualWidthProperty = DependencyProperty.Register(nameof(ActualWidth), typeof(double), typeof(TableViewColumn), new PropertyMetadata(0d, OnActualWidthChanged));
     public static readonly DependencyProperty CanResizeProperty = DependencyProperty.Register(nameof(CanResize), typeof(bool), typeof(TableViewColumn), new PropertyMetadata(true));
     public static readonly DependencyProperty IsReadOnlyProperty = DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(TableViewColumn), new PropertyMetadata(false));

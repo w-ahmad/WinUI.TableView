@@ -327,20 +327,22 @@ public partial class TableViewColumnHeader : ContentControl
     {
         base.OnDoubleTapped(e);
 
-        if (IsSizingCursor)
+        if (!IsSizingCursor || _tableView is null)
         {
-            var position = e.GetPosition(this);
+            return;
+        }
 
-            if (position.X <= 8 && _headerRow?.GetPreviousHeader(this) is { Column: { } } header)
-            {
-                var width = Math.Clamp(header.Column.DesiredWidth, header.Column.MinWidth, header.Column.MaxWidth);
-                header.Column.Width = new GridLength(width, GridUnitType.Pixel);
-            }
-            else if (Column is not null)
-            {
-                var width = Math.Clamp(Column.DesiredWidth, Column.MinWidth, Column.MaxWidth);
-                Column.Width = new GridLength(width, GridUnitType.Pixel);
-            }
+        var position = e.GetPosition(this);
+
+        if (position.X <= 8 && _headerRow?.GetPreviousHeader(this) is { Column: { } } header)
+        {
+            var width = Math.Clamp(header.Column.DesiredWidth, header.Column.MinWidth ?? _tableView.MinColumnWidth, header.Column.MaxWidth ?? _tableView.MaxColumnWidth);
+            header.Column.Width = new GridLength(width, GridUnitType.Pixel);
+        }
+        else if (Column is not null)
+        {
+            var width = Math.Clamp(Column.DesiredWidth, Column.MinWidth ?? _tableView.MinColumnWidth, Column.MaxWidth ?? _tableView.MaxColumnWidth);
+            Column.Width = new GridLength(width, GridUnitType.Pixel);
         }
     }
 
@@ -382,19 +384,19 @@ public partial class TableViewColumnHeader : ContentControl
     {
         base.OnManipulationDelta(e);
 
-        if (Column is null)
+        if (Column is null || _tableView is null)
         {
             return;
         }
 
         if (_resizeStarted)
         {
-            var width = Math.Clamp(e.Position.X, Column.MinWidth, Column.MaxWidth);
+            var width = Math.Clamp(e.Position.X, Column.MinWidth ?? _tableView.MinColumnWidth, Column.MaxWidth ?? _tableView.MaxColumnWidth);
             Column.Width = new GridLength(width, GridUnitType.Pixel);
         }
         else if (_resizePreviousStarted && _headerRow?.GetPreviousHeader(this) is { Column: { } } header)
         {
-            var width = Math.Clamp(header.Column.ActualWidth + e.Position.X, header.Column.MinWidth, header.Column.MaxWidth);
+            var width = Math.Clamp(header.Column.ActualWidth + e.Position.X, header.Column.MinWidth ?? _tableView.MinColumnWidth, header.Column.MaxWidth ?? _tableView.MaxColumnWidth);
             header.Column.Width = new GridLength(width, GridUnitType.Pixel);
         }
     }

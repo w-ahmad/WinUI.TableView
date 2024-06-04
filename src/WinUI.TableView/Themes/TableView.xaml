@@ -88,7 +88,8 @@
                                       AutomationProperties.AccessibilityView="Raw">
                             <ItemsPresenter Padding="{TemplateBinding Padding}">
                                 <ItemsPresenter.Header>
-                                    <local:TableViewHeaderRow IsTabStop="False"
+                                    <local:TableViewHeaderRow x:Name="HeaderRow" 
+                                                              IsTabStop="False"
                                                               Height="{TemplateBinding HeaderRowHeight}"
                                                               TableView="{Binding RelativeSource={RelativeSource TemplatedParent}}">
                                         <interactivity:Interaction.Behaviors>

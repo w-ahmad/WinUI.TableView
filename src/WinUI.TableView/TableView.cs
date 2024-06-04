@@ -26,6 +26,8 @@ using WinUI.TableView.Extensions;
 namespace WinUI.TableView;
 public class TableView : ListView
 {
+    private TableViewHeaderRow? _headerRow;
+
     public TableView()
     {
         DefaultStyleKey = typeof(TableView);
@@ -34,6 +36,13 @@ public class TableView : ListView
         base.ItemsSource = CollectionView;
 
         Loaded += OnLoaded;
+    }
+
+    protected override void OnApplyTemplate()
+    {
+        base.OnApplyTemplate();
+
+        _headerRow = GetTemplateChild("HeaderRow") as TableViewHeaderRow;
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
@@ -382,6 +391,22 @@ public class TableView : ListView
         }
     }
 
+    private static void OnMinColumnWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView table && table._headerRow is not null)
+        {
+            table._headerRow.CalculateHeaderWidths();
+        }
+    }
+
+    private static void OnMaxColumnWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView table && table._headerRow is not null)
+        {
+            table._headerRow.CalculateHeaderWidths();
+        }
+    }
+
     private void UpdateVerticalScrollBarMargin()
     {
         if (GetTemplateChild("ScrollViewer") is ScrollViewer scrollViewer)
@@ -493,6 +518,18 @@ public class TableView : ListView
         set => SetValue(CanFilterColumnsProperty, value);
     }
 
+    public double MinColumnWidth
+    {
+        get => (double)GetValue(MinColumnWidthProperty);
+        set => SetValue(MinColumnWidthProperty, value);
+    }
+
+    public double MaxColumnWidth
+    {
+        get => (double)GetValue(MaxColumnWidthProperty);
+        set => SetValue(MaxColumnWidthProperty, value);
+    }
+
     public static readonly new DependencyProperty ItemsSourceProperty = DependencyProperty.Register(nameof(ItemsSource), typeof(IList), typeof(TableView), new PropertyMetadata(null, OnItemsSourceChanged));
     public static readonly DependencyProperty HeaderRowHeightProperty = DependencyProperty.Register(nameof(HeaderRowHeight), typeof(double), typeof(TableView), new PropertyMetadata(32d, OnHeaderRowHeightChanged));
     public static readonly DependencyProperty RowHeightProperty = DependencyProperty.Register(nameof(RowHeight), typeof(double), typeof(TableView), new PropertyMetadata(40d));
@@ -504,6 +541,8 @@ public class TableView : ListView
     public static readonly DependencyProperty CanResizeColumnsProperty = DependencyProperty.Register(nameof(CanResizeColumns), typeof(bool), typeof(TableView), new PropertyMetadata(true));
     public static readonly DependencyProperty CanSortColumnsProperty = DependencyProperty.Register(nameof(CanSortColumns), typeof(bool), typeof(TableView), new PropertyMetadata(true, OnCanSortColumnsChanged));
     public static readonly DependencyProperty CanFilterColumnsProperty = DependencyProperty.Register(nameof(CanFilterColumns), typeof(bool), typeof(TableView), new PropertyMetadata(true, OnCanFilterColumnsChanged));
+    public static readonly DependencyProperty MinColumnWidthProperty = DependencyProperty.Register(nameof(MinColumnWidth), typeof(double), typeof(TableView), new PropertyMetadata(50d, OnMinColumnWidthChanged));
+    public static readonly DependencyProperty MaxColumnWidthProperty = DependencyProperty.Register(nameof(MaxColumnWidth), typeof(double), typeof(TableView), new PropertyMetadata(double.PositiveInfinity, OnMaxColumnWidthChanged));
 
     public event EventHandler<TableViewAutoGeneratingColumnEventArgs>? AutoGeneratingColumn;
     public event EventHandler<TableViewExportRowsContentEventArgs>? ExportAllRowsContent;
