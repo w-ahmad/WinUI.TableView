@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.WinUI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Data;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -29,9 +28,9 @@ public class TableViewRow : Control
         if (_tableView is not null)
         {
             AddCells(_tableView.Columns.VisibleColumns);
-           
+
             _tableView.Columns.CollectionChanged += OnColumnsCollectionChanged;
-            _tableView.Columns.ColumnVisibilityChanged += OnColumnVisibilityChanged;
+            _tableView.Columns.ColumnPropertyChanged += OnColumnPropertyChanged;
         }
     }
 
@@ -51,15 +50,25 @@ public class TableViewRow : Control
         }
     }
 
-    private void OnColumnVisibilityChanged(object? sender, TableViewColumnVisibilityChanged e)
+    private void OnColumnPropertyChanged(object? sender, TableViewColumnPropertyChanged e)
     {
-        if (e.Column.Visibility == Visibility.Visible)
+        if (e.PropertyName is nameof(TableViewColumn.Visibility))
         {
-            AddCells(new[] { e.Column }, e.Index);
+            if (e.Column.Visibility == Visibility.Visible)
+            {
+                AddCells(new[] { e.Column }, e.Index);
+            }
+            else
+            {
+                RemoveCells(new[] { e.Column });
+            }
         }
-        else
+        else if (e.PropertyName is nameof(TableViewColumn.ActualWidth))
         {
-            RemoveCells(new[] { e.Column });
+            if (Cells.FirstOrDefault(x => x.Column == e.Column) is { } cell)
+            {
+                cell.Width = e.Column.ActualWidth;
+            }
         }
     }
 
@@ -84,7 +93,7 @@ public class TableViewRow : Control
         {
             foreach (var column in columns)
             {
-                var cell = new TableViewCell { Column = column, Row = this, TableView = _tableView!, IsTabStop = false, };
+                var cell = new TableViewCell { Column = column, Row = this, TableView = _tableView!, IsTabStop = false, Width = column.ActualWidth };
                 if (index < 0)
                 {
                     _cellsStackPanel.Children.Add(cell);
@@ -95,22 +104,6 @@ public class TableViewRow : Control
                     _cellsStackPanel.Children.Insert(index, cell);
                     index++;
                 }
-
-                cell.SetBinding(WidthProperty, new Binding
-                {
-                    Path = new PropertyPath($"{nameof(TableViewCell.Column)}.{nameof(TableViewColumn.Width)}"),
-                    RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
-                });
-                cell.SetBinding(MinWidthProperty, new Binding
-                {
-                    Path = new PropertyPath($"{nameof(TableViewCell.Column)}.{nameof(TableViewColumn.MinWidth)}"),
-                    RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
-                });
-                cell.SetBinding(MaxWidthProperty, new Binding
-                {
-                    Path = new PropertyPath($"{nameof(TableViewCell.Column)}.{nameof(TableViewColumn.MaxWidth)}"),
-                    RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
-                });
             }
         }
     }
@@ -160,7 +153,7 @@ public class TableViewRow : Control
             else
             {
                 _tableView.SelectPreviousRow();
-            }
+        }
         }
     }
 

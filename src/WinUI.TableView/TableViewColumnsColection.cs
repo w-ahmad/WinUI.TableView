@@ -9,8 +9,7 @@ namespace WinUI.TableView;
 
 public class TableViewColumnsCollection : ObservableCollection<TableViewColumn>
 {
-    private readonly Dictionary<TableViewColumn, long> _callbackMap = new();
-    internal event EventHandler<TableViewColumnVisibilityChanged>? ColumnVisibilityChanged;
+    internal event EventHandler<TableViewColumnPropertyChanged>? ColumnPropertyChanged;
     internal IList<TableViewColumn> VisibleColumns => Items.Where(x => x.Visibility == Visibility.Visible).ToList();
 
     protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
@@ -19,13 +18,9 @@ public class TableViewColumnsCollection : ObservableCollection<TableViewColumn>
 
         if (e.NewItems != null)
         {
-            var index = e.NewStartingIndex;
-
             foreach (var column in e.NewItems.OfType<TableViewColumn>())
             {
-                var token = column.RegisterPropertyChangedCallback(TableViewColumn.VisibilityProperty, OnColumnVisibilityChanged);
-                _callbackMap.Remove(column);
-                _callbackMap.Add(column, token);
+                column.SetOwingCollection(this);
             }
         }
 
@@ -33,30 +28,31 @@ public class TableViewColumnsCollection : ObservableCollection<TableViewColumn>
         {
             foreach (var column in e.OldItems.OfType<TableViewColumn>())
             {
-                var token = _callbackMap[column];
-                column.UnregisterPropertyChangedCallback(TableViewColumn.VisibilityProperty, token);
+                column.SetOwingCollection(null!);
             }
         }
     }
 
-    private void OnColumnVisibilityChanged(DependencyObject sender, DependencyProperty dp)
+    internal void HandleColumnPropertyChanged(TableViewColumn column, string propertyName)
     {
-        if (sender is TableViewColumn column)
+        if (Items.Contains(column))
         {
             var index = IndexOf(column);
-            ColumnVisibilityChanged?.Invoke(this, new TableViewColumnVisibilityChanged(column, index));
+            ColumnPropertyChanged?.Invoke(this, new TableViewColumnPropertyChanged(column, propertyName, index));
         }
     }
 }
 
-internal class TableViewColumnVisibilityChanged : EventArgs
+internal class TableViewColumnPropertyChanged : EventArgs
 {
-    public TableViewColumnVisibilityChanged(TableViewColumn column, int index)
+    public TableViewColumnPropertyChanged(TableViewColumn column, string propertyName, int index)
     {
         Column = column;
+        PropertyName = propertyName;
         Index = index;
     }
 
     public TableViewColumn Column { get; }
+    public string PropertyName { get; }
     public int Index { get; }
 }

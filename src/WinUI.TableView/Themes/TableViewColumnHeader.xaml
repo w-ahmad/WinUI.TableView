@@ -97,7 +97,8 @@
                               BackgroundSizing="{TemplateBinding BackgroundSizing}"
                               VerticalAlignment="{TemplateBinding VerticalAlignment}"
                               HorizontalAlignment="{TemplateBinding HorizontalAlignment}">
-                            <ContentPresenter Margin="{TemplateBinding Padding}"
+                            <ContentPresenter x:Name="ContentPresenter"
+                                              Padding="{TemplateBinding Padding}"
                                               Foreground="{TemplateBinding Foreground}"
                                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                               HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />

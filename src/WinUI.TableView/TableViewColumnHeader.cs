@@ -32,6 +32,7 @@ public partial class TableViewColumnHeader : ContentControl
     private TableViewHeaderRow? _headerRow;
     private Button? _optionsButton;
     private MenuFlyout? _optionsFlyout;
+    private ContentPresenter? _contentPresenter;
     private CheckBox? _selectAllCheckBox;
     private OptionsFlyoutViewModel _optionsFlyoutViewModel = default!;
     private string _propertyPath = default!;
@@ -45,6 +46,15 @@ public partial class TableViewColumnHeader : ContentControl
     {
         DefaultStyleKey = typeof(TableViewColumnHeader);
         ManipulationMode = ManipulationModes.TranslateX;
+        RegisterPropertyChangedCallback(WidthProperty, OnWidthChanged);
+    }
+
+    private void OnWidthChanged(DependencyObject sender, DependencyProperty dp)
+    {
+        if (Column is not null)
+        {
+            Column.ActualWidth = Width;
+        }
     }
 
     private void DoSort(SD direction, bool singleSorting = true)
@@ -145,6 +155,7 @@ public partial class TableViewColumnHeader : ContentControl
         _headerRow = this.FindAscendant<TableViewHeaderRow>();
         _optionsButton = GetTemplateChild("OptionsButton") as Button;
         _optionsFlyout = GetTemplateChild("OptionsFlyout") as MenuFlyout;
+        _contentPresenter = GetTemplateChild("ContentPresenter") as ContentPresenter;
 
         if (_tableView is null || _optionsButton is null || _optionsFlyout is null)
         {
@@ -290,6 +301,11 @@ public partial class TableViewColumnHeader : ContentControl
         {
             _optionsButton.Visibility = CanFilter ? Visibility.Visible : Visibility.Collapsed;
         }
+
+        if (_contentPresenter is not null)
+        {
+            _contentPresenter.Margin = CanFilter ? new Thickness(0, 0, 8, 0) : new Thickness(0);
+        }
     }
 
     private bool IsCursorInRightResizeArea(PointerRoutedEventArgs args)
@@ -311,21 +327,19 @@ public partial class TableViewColumnHeader : ContentControl
     {
         base.OnDoubleTapped(e);
 
-        if (IsSizingCursor && Column is not null)
+        if (IsSizingCursor)
         {
             var position = e.GetPosition(this);
 
             if (position.X <= 8 && _headerRow?.GetPreviousHeader(this) is { Column: { } } header)
             {
-                var width = Math.Clamp(header.Column.DesiredWidth, header.MinWidth, header.MaxWidth);
-                header.Width = width;
-                header.Measure(new Size(Width, ActualHeight));
+                var width = Math.Clamp(header.Column.DesiredWidth, header.Column.MinWidth, header.Column.MaxWidth);
+                header.Column.Width = new GridLength(width, GridUnitType.Pixel);
             }
-            else
+            else if (Column is not null)
             {
-                var width = Math.Clamp(Column.DesiredWidth, MinWidth, MaxWidth);
-                Width = width;
-                Measure(new Size(Width, ActualHeight));
+                var width = Math.Clamp(Column.DesiredWidth, Column.MinWidth, Column.MaxWidth);
+                Column.Width = new GridLength(width, GridUnitType.Pixel);
             }
         }
     }
@@ -368,15 +382,20 @@ public partial class TableViewColumnHeader : ContentControl
     {
         base.OnManipulationDelta(e);
 
+        if (Column is null)
+        {
+            return;
+        }
+
         if (_resizeStarted)
         {
-            Width = Math.Clamp(e.Position.X, MinWidth, MaxWidth);
-            Measure(new Size(Width, ActualHeight));
+            var width = Math.Clamp(e.Position.X, Column.MinWidth, Column.MaxWidth);
+            Column.Width = new GridLength(width, GridUnitType.Pixel);
         }
-        else if (_resizePreviousStarted && _headerRow?.GetPreviousHeader(this) is { } header)
+        else if (_resizePreviousStarted && _headerRow?.GetPreviousHeader(this) is { Column: { } } header)
         {
-            header.Width = Math.Clamp(header.ActualWidth + e.Position.X, header.MinWidth, header.MaxWidth);
-            header.Measure(new Size(header.Width, ActualHeight));
+            var width = Math.Clamp(header.Column.ActualWidth + e.Position.X, header.Column.MinWidth, header.Column.MaxWidth);
+            header.Column.Width = new GridLength(width, GridUnitType.Pixel);
         }
     }
 
