@@ -3,10 +3,10 @@
                     xmlns:local="using:WinUI.TableView"
                     xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
                     xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors">
-    
+
     <StaticResource x:Key="TableViewGridLinesBrush"
                     ResourceKey="ControlStrokeColorDefaultBrush" />
-    
+
     <Style x:Key="DefaultTableViewStyle"
            TargetType="local:TableView">
         <Setter Property="IsTabStop"
@@ -32,7 +32,7 @@
         <Setter Property="ScrollViewer.IsDeferredScrollingEnabled"
                 Value="False" />
         <Setter Property="ScrollViewer.BringIntoViewOnFocusChange"
-                Value="True" />
+                Value="False" />
         <Setter Property="UseSystemFocusVisuals"
                 Value="{StaticResource UseSystemFocusVisuals}" />
         <Setter Property="CornerRadius"
@@ -61,7 +61,7 @@
         <Setter Property="ItemTemplate">
             <Setter.Value>
                 <DataTemplate>
-                    <local:TableViewRow IsTabStop="False" />
+                    <local:TableViewCellPresenter IsTabStop="False"/>
                 </DataTemplate>
             </Setter.Value>
         </Setter>

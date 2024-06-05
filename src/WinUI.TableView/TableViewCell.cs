@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Input;
+﻿using CommunityToolkit.WinUI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -7,17 +7,26 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
-using Windows.System;
-using Windows.UI.Core;
-using CommunityToolkit.WinUI;
 
 namespace WinUI.TableView;
 
+[TemplateVisualState(Name = VisualStates.StateNormal, GroupName = VisualStates.GroupCommon)]
+[TemplateVisualState(Name = VisualStates.StatePointerOver, GroupName = VisualStates.GroupCommon)]
+[TemplateVisualState(Name = VisualStates.StateRegular, GroupName = VisualStates.GroupCurrent)]
+[TemplateVisualState(Name = VisualStates.StateCurrent, GroupName = VisualStates.GroupCurrent)]
+[TemplateVisualState(Name = VisualStates.StateSelected, GroupName = VisualStates.GroupSelection)]
+[TemplateVisualState(Name = VisualStates.StateUnselected, GroupName = VisualStates.GroupSelection)]
 public class TableViewCell : ContentControl
 {
     public TableViewCell()
     {
         DefaultStyleKey = typeof(TableViewCell);
+        Loaded += OnLoaded;
+    }
+
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        ApplySelectionState();
     }
 
     protected override Size MeasureOverride(Size availableSize)
@@ -32,40 +41,80 @@ public class TableViewCell : ContentControl
         return size;
     }
 
+    protected override void OnPointerEntered(PointerRoutedEventArgs e)
+    {
+        base.OnPointerEntered(e);
+
+        VisualStates.GoToState(this, false, VisualStates.StatePointerOver);
+    }
+
+    protected override void OnPointerExited(PointerRoutedEventArgs e)
+    {
+        base.OnPointerEntered(e);
+
+        VisualStates.GoToState(this, false, VisualStates.StateNormal);
+    }
+
+    protected override void OnTapped(TappedRoutedEventArgs e)
+    {
+        base.OnTapped(e);
+
+        var shiftKey = KeyBoardHelper.IsShiftKeyDown();
+        var ctrlKey = KeyBoardHelper.IsCtrlKeyDown();
+
+        if (IsSelected && (ctrlKey || TableView.SelectionMode is ListViewSelectionMode.Multiple) && !shiftKey)
+        {
+            TableView.DeselectCell(this);
+        }
+        else
+        {
+            TableView.SelectCells(Slot, shiftKey, ctrlKey);
+        }
+
+        //Focus(FocusState.Programmatic);
+    }
+
+    protected override void OnPointerPressed(PointerRoutedEventArgs e)
+    {
+        base.OnPointerPressed(e);
+
+        if (!KeyBoardHelper.IsShiftKeyDown())
+        {
+            TableView.SelectionStartCell = this;
+        }
+
+        e.Handled = TableView.SelectionUnit != TableViewSelectionUnit.Row;
+    }
+
+    protected override void OnPointerReleased(PointerRoutedEventArgs e)
+    {
+        base.OnPointerReleased(e);
+
+        if (!KeyBoardHelper.IsShiftKeyDown())
+        {
+            TableView.SelectionStartCell = null;
+        }
+    }
+
+    protected override void OnPointerMoved(PointerRoutedEventArgs e)
+    {
+        base.OnPointerMoved(e);
+
+        var point = e.GetCurrentPoint(this);
+
+        if (point.Properties.IsLeftButtonPressed && !TableView.IsEditing)
+        {
+            var ctrlKey = KeyBoardHelper.IsCtrlKeyDown();
+
+            TableView.SelectCells(Slot, true, ctrlKey);
+        }
+    }
+
     protected override void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
     {
         if (!IsReadOnly)
         {
             PrepareForEdit();
-        }
-    }
-
-    protected override void OnKeyDown(KeyRoutedEventArgs e)
-    {
-        base.OnKeyDown(e);
-
-        if (e.Key is VirtualKey.Tab or VirtualKey.Enter &&
-            Row is not null &&
-            !VisualTreeHelper.GetOpenPopupsForXamlRoot(XamlRoot).Any())
-        {
-            var shiftKey = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Shift);
-            var isShiftKeyDown = shiftKey is CoreVirtualKeyStates.Down or (CoreVirtualKeyStates.Down | CoreVirtualKeyStates.Locked);
-
-            if (isShiftKeyDown)
-            {
-                Row.SelectPreviousCell(this);
-            }
-            else
-            {
-                Row.SelectNextCell(this);
-            }
-        }
-        else if (e.Key == VirtualKey.Escape)
-        {
-            if (!VisualTreeHelper.GetOpenPopupsForXamlRoot(XamlRoot).Any())
-            {
-                SetElement();
-            }
         }
     }
 
@@ -101,7 +150,7 @@ public class TableViewCell : ContentControl
         SetElement();
     }
 
-    private void SetElement()
+    internal void SetElement()
     {
         if (Column is TableViewTemplateColumn templateColumn)
         {
@@ -111,6 +160,8 @@ public class TableViewCell : ContentControl
         {
             Content = Column.GenerateElement();
         }
+
+        IsEditing = false;
     }
 
     private void SetEditingElement()
@@ -123,6 +174,20 @@ public class TableViewCell : ContentControl
         {
             Content = Column.GenerateEditingElement();
         }
+
+        IsEditing = true;
+    }
+
+    internal void ApplySelectionState()
+    {
+        var stateName = IsSelected ? VisualStates.StateSelected : VisualStates.StateUnselected;
+        VisualStates.GoToState(this, false, stateName);
+    }
+
+    internal void ApplyCurrentCellState(bool isCurrent)
+    {
+        var stateName = isCurrent ? VisualStates.StateCurrent : VisualStates.StateRegular;
+        VisualStates.GoToState(this, false, stateName);
     }
 
     private static void OnColumnChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -134,6 +199,13 @@ public class TableViewCell : ContentControl
     }
 
     public bool IsReadOnly => TableView.IsReadOnly || Column is TableViewTemplateColumn { EditingTemplate: null } or { IsReadOnly: true };
+
+    internal TableViewCellSlot Slot => new(Row.Index, Index);
+
+    internal int Index { get; set; }
+
+    public bool IsSelected => TableView.SelectedCells.Contains(Slot);
+    public bool IsEditing { get; private set; }
 
     public TableViewColumn Column
     {
