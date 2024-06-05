@@ -23,7 +23,12 @@ public class TableViewCell : ContentControl
     protected override Size MeasureOverride(Size availableSize)
     {
         var size = base.MeasureOverride(availableSize);
-        Column.DesiredWidth = Math.Max(Column.DesiredWidth, size.Width);
+
+        if (Column is not null)
+        {
+            Column.DesiredWidth = Math.Max(Column.DesiredWidth, size.Width);
+        }
+
         return size;
     }
 

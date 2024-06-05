@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.Foundation;
 using WinUI.TableView.Converters;
 
 namespace WinUI.TableView;
@@ -20,6 +21,8 @@ public partial class TableViewHeaderRow : Control
     private Button? _optionsButton;
     private CheckBox? _selectAllCheckBox;
     private StackPanel? _headersStackPanel;
+    private bool _calculatingHeaderWidths;
+    private DispatcherTimer? _timer;
 
     public TableViewHeaderRow()
     {
@@ -75,9 +78,9 @@ public partial class TableViewHeaderRow : Control
         {
             _headersStackPanel = stackPanel;
             AddHeaders(TableView.Columns.VisibleColumns);
-            
+
             TableView.Columns.CollectionChanged += OnTableViewColumnsCollectionChanged;
-            TableView.Columns.ColumnVisibilityChanged += OnColumnVisibilityChanged;
+            TableView.Columns.ColumnPropertyChanged += OnColumnPropertyChanged;
         }
 
         SetExportOptionsVisibility();
@@ -100,15 +103,53 @@ public partial class TableViewHeaderRow : Control
         }
     }
 
-    private void OnColumnVisibilityChanged(object? sender, TableViewColumnVisibilityChanged e)
+    private void OnColumnPropertyChanged(object? sender, TableViewColumnPropertyChanged e)
     {
-        if (e.Column.Visibility == Visibility.Visible)
+        if (e.PropertyName is nameof(TableViewColumn.Visibility))
         {
-            AddHeaders(new[] { e.Column }, e.Index);
+            if (e.Column.Visibility == Visibility.Visible)
+            {
+                AddHeaders(new[] { e.Column }, e.Index);
+            }
+            else
+            {
+                RemoveHeaders(new[] { e.Column });
+            }
         }
-        else
+        else if (e.PropertyName is nameof(TableViewColumn.Width) or
+                                   nameof(TableViewColumn.MinWidth) or
+                                   nameof(TableViewColumn.MaxWidth))
         {
-            RemoveHeaders(new[] { e.Column });
+            if (!_calculatingHeaderWidths)
+            {
+                CalculateHeaderWidths();
+            }
+        }
+        else if (e.PropertyName is nameof(TableViewColumn.DesiredWidth))
+        {
+            if (_timer is null)
+            {
+                _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
+                _timer.Tick += OnTimerTick;
+            }
+
+            _timer.Stop();
+            _timer.Start();
+        }
+    }
+
+    private void OnTimerTick(object? sender, object e)
+    {
+        if (!_calculatingHeaderWidths)
+        {
+            CalculateHeaderWidths();
+        }
+
+        if (_timer is not null)
+        {
+            _timer.Stop();
+            _timer.Tick -= OnTimerTick;
+            _timer = null;
         }
     }
 
@@ -149,13 +190,83 @@ public partial class TableViewHeaderRow : Control
 
                 header.SetBinding(ContentControl.ContentProperty,
                                   new Binding { Path = new PropertyPath(nameof(TableViewColumn.Header)) });
-                header.SetBinding(WidthProperty,
-                                  new Binding { Path = new PropertyPath(nameof(TableViewColumn.Width)), Mode = BindingMode.TwoWay });
-                header.SetBinding(MinWidthProperty,
-                                  new Binding { Path = new PropertyPath(nameof(TableViewColumn.MinWidth)) });
-                header.SetBinding(MaxWidthProperty,
-                                  new Binding { Path = new PropertyPath(nameof(TableViewColumn.MaxWidth)) });
             }
+
+            CalculateHeaderWidths();
+        }
+    }
+
+    internal void CalculateHeaderWidths()
+    {
+        if (TableView?.ActualWidth > 0)
+        {
+            _calculatingHeaderWidths = true;
+
+            var allColumns = TableView.Columns.VisibleColumns.ToList();
+            var starColumns = allColumns.Where(x => x.Width.IsStar).ToList();
+            var autoColumns = allColumns.Where(x => x.Width.IsAuto).ToList();
+            var absoluteColumns = allColumns.Where(x => x.Width.IsAbsolute).ToList();
+
+            var height = TableView.HeaderRowHeight;
+            var availableWidth = TableView.ActualWidth - 32;
+            var starUnitWeight = starColumns.Select(x => x.Width.Value).Sum();
+            var fixedWidth = autoColumns.Select(x =>
+            {
+                if (x.HeaderControl is { } header)
+                {
+                    header.Measure(new Size(double.PositiveInfinity, height));
+                    return Math.Max(x.DesiredWidth, header.DesiredSize.Width);
+                }
+
+                return x.DesiredWidth;
+            }).Sum();
+            fixedWidth += absoluteColumns.Select(x => x.Width.Value).Sum();
+
+            availableWidth -= fixedWidth;
+            var starUnitWidth = starUnitWeight > 0 ? availableWidth / starUnitWeight : 0;
+
+            var starWidthAdjusted = false;
+            var startColumnsToAdjust = starColumns.ToList();
+            do
+            {
+                starWidthAdjusted = false;
+
+                foreach (var column in startColumnsToAdjust)
+                {
+                    if (column.HeaderControl is { } header)
+                    {
+                        var width = starUnitWidth * column.Width.Value;
+                        width = Math.Clamp(width, column.MinWidth?? TableView.MinColumnWidth, column.MaxWidth ?? TableView.MaxColumnWidth);
+
+                        if (width != starUnitWidth * column.Width.Value)
+                        {
+                            availableWidth -= width;
+                            starUnitWeight -= column.Width.Value;
+                            starUnitWidth = starUnitWeight > 0 ? availableWidth / starUnitWeight : 0;
+                            startColumnsToAdjust.Remove(column);
+                            starWidthAdjusted = true;
+                            break;
+                        }
+                    }
+                }
+
+            } while (starWidthAdjusted);
+
+
+            foreach (var column in allColumns)
+            {
+                if (column.HeaderControl is { } header)
+                {
+                    var width = column.Width.IsStar
+                                ? starUnitWidth * column.Width.Value
+                                : column.Width.IsAbsolute ? column.Width.Value
+                                : Math.Max(header.DesiredSize.Width, column.DesiredWidth);
+                    header.Width = Math.Clamp(width, column.MinWidth ?? TableView.MinColumnWidth, column.MaxWidth ?? TableView.MaxColumnWidth);
+                    header.Measure(new Size(header.Width, TableView.HeaderRowHeight));
+                }
+            }
+
+            _calculatingHeaderWidths = false;
         }
     }
 
@@ -245,11 +356,32 @@ public partial class TableViewHeaderRow : Control
         return previousCellIndex >= 0 ? Headers[previousCellIndex] : default;
     }
 
+    private void OnTableViewSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        CalculateHeaderWidths();
+    }
+
+    private static void OnTableViewChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableViewHeaderRow headerRow)
+        {
+            if (e.OldValue is TableView oldTableView)
+            {
+                oldTableView.SizeChanged -= headerRow.OnTableViewSizeChanged;
+            }
+
+            if (e.NewValue is TableView newTableView)
+            {
+                newTableView.SizeChanged += headerRow.OnTableViewSizeChanged;
+            }
+        }
+    }
+
     public TableView TableView
     {
         get => (TableView)GetValue(TableViewProperty);
         set => SetValue(TableViewProperty, value);
     }
 
-    public static readonly DependencyProperty TableViewProperty = DependencyProperty.Register(nameof(TableView), typeof(TableView), typeof(TableViewHeaderRow), new PropertyMetadata(null));
+    public static readonly DependencyProperty TableViewProperty = DependencyProperty.Register(nameof(TableView), typeof(TableView), typeof(TableViewHeaderRow), new PropertyMetadata(null, OnTableViewChanged));
 }
