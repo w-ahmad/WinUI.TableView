@@ -64,14 +64,14 @@ public class TableViewCell : ContentControl
 
         if (IsSelected && (ctrlKey || TableView.SelectionMode is ListViewSelectionMode.Multiple) && !shiftKey)
         {
-            TableView.DeselectCell(this);
+            TableView.DeselectCell(Slot);
         }
         else
         {
             TableView.SelectCells(Slot, shiftKey, ctrlKey);
         }
 
-        //Focus(FocusState.Programmatic);
+        Focus(FocusState.Programmatic);
     }
 
     protected override void OnPointerPressed(PointerRoutedEventArgs e)
@@ -80,7 +80,7 @@ public class TableViewCell : ContentControl
 
         if (!KeyBoardHelper.IsShiftKeyDown())
         {
-            TableView.SelectionStartCell = this;
+            TableView.SelectionStartCellSlot = Slot;
         }
 
         e.Handled = TableView.SelectionUnit != TableViewSelectionUnit.Row;
@@ -92,7 +92,7 @@ public class TableViewCell : ContentControl
 
         if (!KeyBoardHelper.IsShiftKeyDown())
         {
-            TableView.SelectionStartCell = null;
+            TableView.SelectionStartCellSlot = null;
         }
     }
 
@@ -115,6 +115,8 @@ public class TableViewCell : ContentControl
         if (!IsReadOnly)
         {
             PrepareForEdit();
+
+            TableView.IsEditing = true;
         }
     }
 
@@ -130,26 +132,6 @@ public class TableViewCell : ContentControl
         }
     }
 
-    protected override async void OnLostFocus(RoutedEventArgs e)
-    {
-        base.OnLostFocus(e);
-
-        await Task.Delay(20);
-
-        var focusedElement = FocusManager.GetFocusedElement(XamlRoot) as FrameworkElement;
-        if (focusedElement?.FindAscendantOrSelf<TableViewCell>() == this)
-        {
-            return;
-        }
-
-        if (VisualTreeHelper.GetOpenPopupsForXamlRoot(XamlRoot).Any())
-        {
-            return;
-        }
-
-        SetElement();
-    }
-
     internal void SetElement()
     {
         if (Column is TableViewTemplateColumn templateColumn)
@@ -160,8 +142,6 @@ public class TableViewCell : ContentControl
         {
             Content = Column.GenerateElement();
         }
-
-        IsEditing = false;
     }
 
     private void SetEditingElement()
@@ -175,7 +155,10 @@ public class TableViewCell : ContentControl
             Content = Column.GenerateEditingElement();
         }
 
-        IsEditing = true;
+        if (TableView is not null)
+        {
+            TableView.IsEditing = true;
+        }
     }
 
     internal void ApplySelectionState()
@@ -184,9 +167,9 @@ public class TableViewCell : ContentControl
         VisualStates.GoToState(this, false, stateName);
     }
 
-    internal void ApplyCurrentCellState(bool isCurrent)
+    internal void ApplyCurrentCellState()
     {
-        var stateName = isCurrent ? VisualStates.StateCurrent : VisualStates.StateRegular;
+        var stateName = IsCurrent ? VisualStates.StateCurrent : VisualStates.StateRegular;
         VisualStates.GoToState(this, false, stateName);
     }
 
@@ -194,7 +177,14 @@ public class TableViewCell : ContentControl
     {
         if (d is TableViewCell cell && e.NewValue is TableViewColumn column)
         {
-            cell.SetElement();
+            if (cell.TableView?.IsEditing == true)
+            {
+                cell.SetEditingElement();
+            }
+            else
+            {
+                cell.SetElement();
+            }
         }
     }
 
@@ -205,7 +195,7 @@ public class TableViewCell : ContentControl
     internal int Index { get; set; }
 
     public bool IsSelected => TableView.SelectedCells.Contains(Slot);
-    public bool IsEditing { get; private set; }
+    public bool IsCurrent => TableView.CurrentCellSlot == Slot;
 
     public TableViewColumn Column
     {

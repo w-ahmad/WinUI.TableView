@@ -28,11 +28,11 @@ public partial class TableView
 
     public IAdvancedCollectionView CollectionView { get; private set; } = new AdvancedCollectionView();
     internal IDictionary<string, Predicate<object>> ActiveFilters { get; } = new Dictionary<string, Predicate<object>>();
-    internal TableViewCell? CurrentCell { get; set; }
-    internal TableViewCell? SelectionStartCell { get; set; }
+    internal TableViewCellSlot? CurrentCellSlot { get; set; }
+    internal TableViewCellSlot? SelectionStartCellSlot { get; set; }
     internal HashSet<TableViewCellSlot> SelectedCells { get; set; } = new HashSet<TableViewCellSlot>();
     internal HashSet<HashSet<TableViewCellSlot>> SelectedCellRanges { get; } = new HashSet<HashSet<TableViewCellSlot>>();
-    internal bool IsEditing => CurrentCell?.IsEditing == true;
+    internal bool IsEditing { get; set; }
     public TableViewColumnsCollection Columns { get; } = new();
 
     public double HeaderRowHeight
@@ -141,13 +141,13 @@ public partial class TableView
         {
             if (tableView.SelectionMode is ListViewSelectionMode.Single or ListViewSelectionMode.None)
             {
-                tableView.CurrentCell?.ApplyCurrentCellState(false);
-                tableView.CurrentCell = null;
+                var currentCell = tableView.CurrentCellSlot.HasValue ? tableView.GetCellFromSlot(tableView.CurrentCellSlot.Value) : default;
+                currentCell?.ApplyCurrentCellState();
                 tableView.SelectedCellRanges.Clear();
 
-                if (tableView.SelectionMode is ListViewSelectionMode.Single && tableView.CurrentCell is not null)
+                if (tableView.SelectionMode is ListViewSelectionMode.Single && tableView.CurrentCellSlot.HasValue)
                 {
-                    tableView.SelectedCellRanges.Add(new() { tableView.CurrentCell.Slot });
+                    tableView.SelectedCellRanges.Add(new() { tableView.CurrentCellSlot.Value });
                 }
 
                 tableView.OnCellSelectionChanged();

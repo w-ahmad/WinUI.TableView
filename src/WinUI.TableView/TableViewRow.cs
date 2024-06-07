@@ -1,13 +1,9 @@
-﻿using CommunityToolkit.WinUI;
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.Linq;
 
 namespace WinUI.TableView;
@@ -19,6 +15,7 @@ public class TableViewRow : ListViewItem
     public TableViewRow()
     {
         DefaultStyleKey = typeof(TableViewRow);
+        SizeChanged += OnSizeChanged;
     }
 
     protected override void OnApplyTemplate()
@@ -41,8 +38,16 @@ public class TableViewRow : ListViewItem
             if (_cellPresenter is not null)
             {
                 _cellPresenter.Children.Clear();
-                AddCells(TableView.Columns);
+                AddCells(TableView.Columns.VisibleColumns);
             }
+        }
+    }
+
+    private async void OnSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (TableView.CurrentCellSlot?.Row == Index)
+        {
+            _ = await TableView.ScrollCellIntoView(TableView.CurrentCellSlot.Value);
         }
     }
 
@@ -105,7 +110,15 @@ public class TableViewRow : ListViewItem
         {
             foreach (var column in columns)
             {
-                var cell = new TableViewCell { Column = column, Row = this, TableView = TableView!, Index = TableView.Columns.IndexOf(column), Width = column.ActualWidth };
+                var cell = new TableViewCell
+                {
+                    Row = this,
+                    Column = column,
+                    TableView = TableView!,
+                    Index = TableView.Columns.VisibleColumns.IndexOf(column),
+                    Width = column.ActualWidth
+                };
+
                 if (index < 0)
                 {
                     _cellPresenter.Children.Add(cell);
@@ -116,51 +129,6 @@ public class TableViewRow : ListViewItem
                     _cellPresenter.Children.Insert(index, cell);
                     index++;
                 }
-            }
-        }
-    }
-
-    internal void SelectNextCell(TableViewCell? currentCell)
-    {
-        if (TableView is not null)
-        {
-            var nextCellIndex = currentCell is null ? 0 : Cells.IndexOf(currentCell) + 1;
-            if (nextCellIndex < Cells.Count)
-            {
-                var nextCell = Cells[nextCellIndex];
-                if (nextCell.IsReadOnly)
-                {
-                    SelectNextCell(nextCell);
-                }
-                else
-                {
-                    nextCell.PrepareForEdit();
-                }
-            }
-            else
-            {
-                TableView.SelectNextRow();
-            }
-        }
-    }
-
-    internal void SelectPreviousCell(TableViewCell? currentCell)
-    {
-        if (TableView is not null)
-        {
-            var previousCellIndex = currentCell is null ? Cells.Count - 1 : Cells.IndexOf(currentCell) - 1;
-            if (previousCellIndex >= 0)
-            {
-                var previousCell = Cells[previousCellIndex];
-                if (previousCell.IsReadOnly)
-                {
-                    SelectPreviousCell(previousCell);
-                }
-                previousCell.PrepareForEdit();
-            }
-            else
-            {
-                TableView.SelectPreviousRow();
             }
         }
     }
@@ -177,6 +145,7 @@ public class TableViewRow : ListViewItem
             newTableView.Columns.CollectionChanged += row.OnColumnsCollectionChanged;
             newTableView.Columns.ColumnPropertyChanged += row.OnColumnPropertyChanged;
             newTableView.SelectedCellsChanged += row.OnCellSelectionChanged;
+            newTableView.CurrentCellChanged += row.OnCurrentCellChanged;
         }
 
         if (e.OldValue is TableView oldTableView && oldTableView.Columns is not null)
@@ -184,6 +153,7 @@ public class TableViewRow : ListViewItem
             oldTableView.Columns.CollectionChanged -= row.OnColumnsCollectionChanged;
             oldTableView.Columns.ColumnPropertyChanged -= row.OnColumnPropertyChanged;
             oldTableView.SelectedCellsChanged -= row.OnCellSelectionChanged;
+            oldTableView.CurrentCellChanged -= row.OnCurrentCellChanged;
         }
     }
 
@@ -192,12 +162,34 @@ public class TableViewRow : ListViewItem
         (d as TableViewRow)?.ApplyCellsSelectionState();
     }
 
-    private void OnCellSelectionChanged(object? sender, CellSelectionChangedEvenArgs e)
+    private void OnCellSelectionChanged(object? sender, TableViewCellSelectionChangedEvenArgs e)
     {
         if (e.OldSelection.Any(x => x.Row == Index) ||
-           e.NewSelection.Any(x => x.Row == Index))
+            e.NewSelection.Any(x => x.Row == Index))
         {
             ApplyCellsSelectionState();
+        }
+    }
+
+    private void OnCurrentCellChanged(object? sender, TableViewCurrentCellChangedEventArgs e)
+    {
+        if (e.OldSlot?.Row == Index)
+        {
+            ApplyCurrentCellState(e.OldSlot.Value);
+        }
+
+        if (e.NewSlot?.Row == Index)
+        {
+            ApplyCurrentCellState(e.NewSlot.Value);
+        }
+    }
+
+    internal void ApplyCurrentCellState(TableViewCellSlot slot)
+    {
+        if (slot.Column >= 0 && slot.Column < Cells.Count)
+        {
+            var cell = Cells[slot.Column];
+            cell.ApplyCurrentCellState();
         }
     }
 

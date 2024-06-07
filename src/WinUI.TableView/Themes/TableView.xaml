@@ -32,7 +32,7 @@
         <Setter Property="ScrollViewer.IsDeferredScrollingEnabled"
                 Value="False" />
         <Setter Property="ScrollViewer.BringIntoViewOnFocusChange"
-                Value="False" />
+                Value="True" />
         <Setter Property="UseSystemFocusVisuals"
                 Value="{StaticResource UseSystemFocusVisuals}" />
         <Setter Property="CornerRadius"
