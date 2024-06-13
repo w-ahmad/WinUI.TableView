@@ -35,9 +35,11 @@ public partial class TableViewHeaderRow
 
                 TableView.CopyToClipboardInternal(false);
             };
+            CopyCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.SelectedItems.Count > 0 || TableView.SelectedCells.Count > 0 || TableView.CurrentCellSlot.HasValue;
 
             CopyWithHeadersCommand.Description = "Copy the selected row's content including column headers to clipboard.";
             CopyWithHeadersCommand.ExecuteRequested += delegate { TableView.CopyToClipboardInternal(true); };
+            CopyWithHeadersCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.SelectedItems.Count > 0 || TableView.SelectedCells.Count > 0 || TableView.CurrentCellSlot.HasValue;
 
             ClearSortingCommand.ExecuteRequested += delegate { TableView.ClearSorting(); };
             ClearSortingCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.CollectionView.SortDescriptions.Count > 0;
@@ -48,10 +50,8 @@ public partial class TableViewHeaderRow
             ExportAllToCSVCommand.ExecuteRequested += delegate { TableView.ExportAllToCSV(); };
 
             ExportSelectedToCSVCommand.ExecuteRequested += delegate { TableView.ExportSelectedToCSV(); };
-            ExportSelectedToCSVCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.SelectedItems.Count > 0;
+            ExportSelectedToCSVCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.SelectedItems.Count > 0 || TableView.SelectedCells.Count > 0 || TableView.CurrentCellSlot.HasValue;
         }
-
-
 
         public StandardUICommand SelectAllCommand { get; } = new(StandardUICommandKind.SelectAll);
         public StandardUICommand DeselectAllCommand { get; } = new() { Label = "Deselect All" };

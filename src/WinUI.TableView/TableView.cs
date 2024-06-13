@@ -244,7 +244,7 @@ public partial class TableView : ListView
         }
 
         var package = new DataPackage();
-        package.SetText(GetSelectedRowsContent(includeHeaders));
+        package.SetText(GetSelectedContent(includeHeaders));
         Clipboard.SetContent(package);
     }
 
@@ -253,32 +253,67 @@ public partial class TableView : ListView
         CopyToClipboard?.Invoke(this, args);
     }
 
-    public string GetSelectedRowsContent(bool includeHeaders, char separator = '\t')
+    public string GetSelectedContent(bool includeHeaders, char separator = '\t')
     {
-        var items = SelectedItems.OrderBy(item2 => Items.IndexOf(item2));
-        return GetRowsContent(items, includeHeaders, separator);
+        var slots = Enumerable.Empty<TableViewCellSlot>();
+
+        if (SelectedItems.Any() || SelectedCells.Any())
+        {
+            slots = SelectedRanges.SelectMany(x => Enumerable.Range(x.FirstIndex, (int)x.Length))
+                                  .SelectMany(r => Enumerable.Range(0, Columns.VisibleColumns.Count)
+                                                                     .Select(c => new TableViewCellSlot(r, c)))
+                                  .OrderBy(x => x.Row)
+                                  .ThenByDescending(x => x.Column);
+        }
+        else if (CurrentCellSlot.HasValue)
+        {
+            slots = new[] { CurrentCellSlot.Value };
+        }
+
+        return GetCellsContent(slots, includeHeaders, separator);
     }
 
-    public string GetAllRowsContent(bool includeHeaders, char separator = '\t')
+    public string GetAllContent(bool includeHeaders, char separator = '\t')
     {
-        return GetRowsContent(Items, includeHeaders, separator);
+        var slots = Enumerable.Range(0, Items.Count)
+                              .SelectMany(r => Enumerable.Range(0, Columns.VisibleColumns.Count)
+                                                                 .Select(c => new TableViewCellSlot(r, c)))
+                              .Concat(SelectedCells)
+                              .OrderBy(x => x.Row)
+                              .ThenByDescending(x => x.Column);
+
+        return GetCellsContent(slots, includeHeaders, separator);
     }
 
-    private string GetRowsContent(IEnumerable<object> items, bool includeHeaders, char separator)
+    private string GetCellsContent(IEnumerable<TableViewCellSlot> slots, bool includeHeaders, char separator)
     {
+        var minRow = slots.Select(x => x.Row).Min();
+        var maxRow = slots.Select(x => x.Row).Max();
+        var minColumn = slots.Select(x => x.Column).Min();
+        var maxColumn = slots.Select(x => x.Column).Max();
+
         var stringBuilder = new StringBuilder();
         var properties = new Dictionary<string, (PropertyInfo, object?)[]>();
 
         if (includeHeaders)
         {
-            stringBuilder.AppendLine(GetHeadersContent(separator));
+            stringBuilder.AppendLine(GetHeadersContent(separator, minColumn, maxColumn));
         }
 
-        foreach (var item in items)
+        for (var row = minRow; row <= maxRow; row++)
         {
+            var item = Items[row];
             var type = ItemsSource?.GetType() is { } listType && listType.IsGenericType ? listType.GetGenericArguments()[0] : item?.GetType();
-            foreach (var column in Columns.VisibleColumns.OfType<TableViewBoundColumn>())
+
+            for (var col = minColumn; col <= maxColumn; col++)
             {
+                if (Columns.VisibleColumns[col] is not TableViewBoundColumn column ||
+                   !slots.Contains(new TableViewCellSlot(row, col)))
+                {
+                    stringBuilder.Append('\t');
+                    continue;
+                }
+
                 var property = column.Binding.Path.Path;
                 if (!properties.TryGetValue(property, out var pis))
                 {
@@ -298,9 +333,16 @@ public partial class TableView : ListView
         return stringBuilder.ToString();
     }
 
-    private string GetHeadersContent(char separator)
+    private string GetHeadersContent(char separator, int minColumn, int maxColumn)
     {
-        return string.Join(separator, Columns.VisibleColumns.OfType<TableViewBoundColumn>().Select(x => x.Header));
+        var stringBuilder = new StringBuilder();
+        for (var col = minColumn; col <= maxColumn; col++)
+        {
+            var column = Columns.VisibleColumns[col];
+            stringBuilder.Append($"{column.Header}{separator}");
+        }
+
+        return stringBuilder.ToString();
     }
 
     private void GenerateColumns()
@@ -391,7 +433,7 @@ public partial class TableView : ListView
     internal async void ExportSelectedToCSV()
     {
         var args = new TableViewExportRowsContentEventArgs();
-        OnExportSelectedRowsContent(args);
+        OnExportSelectedContent(args);
 
         if (args.Handled)
         {
@@ -406,7 +448,7 @@ public partial class TableView : ListView
                 return;
             }
 
-            var content = GetSelectedRowsContent(true, ',');
+            var content = GetSelectedContent(true, ',');
             using var stream = await file.OpenStreamForWriteAsync();
             stream.SetLength(0);
 
@@ -416,7 +458,7 @@ public partial class TableView : ListView
         catch { }
     }
 
-    protected virtual void OnExportSelectedRowsContent(TableViewExportRowsContentEventArgs args)
+    protected virtual void OnExportSelectedContent(TableViewExportRowsContentEventArgs args)
     {
         ExportSelectedRowsContent?.Invoke(this, args);
     }
@@ -424,7 +466,7 @@ public partial class TableView : ListView
     internal async void ExportAllToCSV()
     {
         var args = new TableViewExportRowsContentEventArgs();
-        OnExportAllRowsContent(args);
+        OnExportAllContent(args);
 
         if (args.Handled)
         {
@@ -439,7 +481,7 @@ public partial class TableView : ListView
                 return;
             }
 
-            var content = GetAllRowsContent(true, ',');
+            var content = GetAllContent(true, ',');
             using var stream = await file.OpenStreamForWriteAsync();
             stream.SetLength(0);
 
@@ -449,7 +491,7 @@ public partial class TableView : ListView
         catch { }
     }
 
-    protected virtual void OnExportAllRowsContent(TableViewExportRowsContentEventArgs args)
+    protected virtual void OnExportAllContent(TableViewExportRowsContentEventArgs args)
     {
         ExportAllRowsContent?.Invoke(this, args);
     }
