@@ -519,6 +519,7 @@ public partial class TableView : ListView
 
     internal void ClearSorting()
     {
+        DeselectAll();
         CollectionView.SortDescriptions.Clear();
 
         foreach (var header in Columns.Select(x => x.HeaderControl))
@@ -532,6 +533,7 @@ public partial class TableView : ListView
 
     internal void ClearFilters()
     {
+        DeselectAll();
         ActiveFilters.Clear();
         CollectionView.RefreshFilter();
 
@@ -626,6 +628,7 @@ public partial class TableView : ListView
     {
         SelectedCellRanges.Clear();
         OnCellSelectionChanged();
+        SetCurrentCell(null);
     }
 
     internal async void SelectCells(TableViewCellSlot slot, bool shiftKey, bool ctrlKey = false)
