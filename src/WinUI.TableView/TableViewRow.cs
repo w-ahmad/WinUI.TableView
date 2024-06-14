@@ -1,36 +1,53 @@
-﻿using CommunityToolkit.WinUI;
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 
 namespace WinUI.TableView;
-
-public class TableViewRow : Control
+public class TableViewRow : ListViewItem
 {
-    private TableView? _tableView;
-    private StackPanel? _cellsStackPanel;
+    private TableViewCellPresenter? _cellPresenter;
+    private ListViewItemPresenter _itemPresenter = null!;
 
     public TableViewRow()
     {
         DefaultStyleKey = typeof(TableViewRow);
+        SizeChanged += OnSizeChanged;
     }
 
     protected override void OnApplyTemplate()
     {
         base.OnApplyTemplate();
 
-        _tableView = this.FindAscendant<TableView>();
-        _cellsStackPanel = GetTemplateChild("PART_StackPanel") as StackPanel;
+        _itemPresenter = (ListViewItemPresenter)GetTemplateChild("Root");
+    }
 
-        if (_tableView is not null)
+    protected override void OnContentChanged(object oldContent, object newContent)
+    {
+        if (TableView is null)
         {
-            AddCells(_tableView.Columns.VisibleColumns);
+            return;
+        }
 
-            _tableView.Columns.CollectionChanged += OnColumnsCollectionChanged;
-            _tableView.Columns.ColumnPropertyChanged += OnColumnPropertyChanged;
+        if (_cellPresenter is null)
+        {
+            _cellPresenter = ContentTemplateRoot as TableViewCellPresenter;
+            if (_cellPresenter is not null)
+            {
+                _cellPresenter.Children.Clear();
+                AddCells(TableView.Columns.VisibleColumns);
+            }
+        }
+    }
+
+    private async void OnSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (TableView.CurrentCellSlot?.Row == Index)
+        {
+            _ = await TableView.ScrollCellIntoView(TableView.CurrentCellSlot.Value);
         }
     }
 
@@ -44,9 +61,9 @@ public class TableViewRow : Control
         {
             RemoveCells(oldItems);
         }
-        else if (e.Action == NotifyCollectionChangedAction.Reset && _cellsStackPanel is not null)
+        else if (e.Action == NotifyCollectionChangedAction.Reset && _cellPresenter is not null)
         {
-            _cellsStackPanel.Children.Clear();
+            _cellPresenter.Children.Clear();
         }
     }
 
@@ -74,14 +91,14 @@ public class TableViewRow : Control
 
     private void RemoveCells(IEnumerable<TableViewColumn> columns)
     {
-        if (_cellsStackPanel is not null)
+        if (_cellPresenter is not null)
         {
             foreach (var column in columns)
             {
-                var cell = _cellsStackPanel.Children.OfType<TableViewCell>().FirstOrDefault(x => x.Column == column);
+                var cell = _cellPresenter.Children.OfType<TableViewCell>().FirstOrDefault(x => x.Column == column);
                 if (cell is not null)
                 {
-                    _cellsStackPanel.Children.Remove(cell);
+                    _cellPresenter.Children.Remove(cell);
                 }
             }
         }
@@ -89,73 +106,121 @@ public class TableViewRow : Control
 
     private void AddCells(IEnumerable<TableViewColumn> columns, int index = -1)
     {
-        if (_cellsStackPanel is not null)
+        if (_cellPresenter is not null)
         {
             foreach (var column in columns)
             {
-                var cell = new TableViewCell { Column = column, Row = this, TableView = _tableView!, IsTabStop = false, Width = column.ActualWidth };
+                var cell = new TableViewCell
+                {
+                    Row = this,
+                    Column = column,
+                    TableView = TableView!,
+                    Index = TableView.Columns.VisibleColumns.IndexOf(column),
+                    Width = column.ActualWidth
+                };
+
                 if (index < 0)
                 {
-                    _cellsStackPanel.Children.Add(cell);
+                    _cellPresenter.Children.Add(cell);
                 }
                 else
                 {
-                    index = Math.Min(index, _cellsStackPanel.Children.Count);
-                    _cellsStackPanel.Children.Insert(index, cell);
+                    index = Math.Min(index, _cellPresenter.Children.Count);
+                    _cellPresenter.Children.Insert(index, cell);
                     index++;
                 }
             }
         }
     }
 
-    internal void SelectNextCell(TableViewCell? currentCell)
+    private static void OnTableViewChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        _tableView ??= this.FindAscendant<TableView>();
-
-        if (_tableView is not null)
+        if (d is not TableViewRow row)
         {
-            var nextCellIndex = currentCell is null ? 0 : Cells.IndexOf(currentCell) + 1;
-            if (nextCellIndex < Cells.Count)
-            {
-                var nextCell = Cells[nextCellIndex];
-                if (nextCell.IsReadOnly)
-                {
-                    SelectNextCell(nextCell);
-                }
-                else
-                {
-                    nextCell.PrepareForEdit();
-                }
-            }
-            else
-            {
-                _tableView.SelectNextRow();
-            }
+            return;
+        }
+
+        if (e.NewValue is TableView newTableView && newTableView.Columns is not null)
+        {
+            newTableView.Columns.CollectionChanged += row.OnColumnsCollectionChanged;
+            newTableView.Columns.ColumnPropertyChanged += row.OnColumnPropertyChanged;
+            newTableView.SelectedCellsChanged += row.OnCellSelectionChanged;
+            newTableView.CurrentCellChanged += row.OnCurrentCellChanged;
+        }
+
+        if (e.OldValue is TableView oldTableView && oldTableView.Columns is not null)
+        {
+            oldTableView.Columns.CollectionChanged -= row.OnColumnsCollectionChanged;
+            oldTableView.Columns.ColumnPropertyChanged -= row.OnColumnPropertyChanged;
+            oldTableView.SelectedCellsChanged -= row.OnCellSelectionChanged;
+            oldTableView.CurrentCellChanged -= row.OnCurrentCellChanged;
         }
     }
 
-    internal void SelectPreviousCell(TableViewCell? currentCell)
+    private static void OnIndexChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        _tableView ??= this.FindAscendant<TableView>();
+        (d as TableViewRow)?.ApplyCellsSelectionState();
+    }
 
-        if (_tableView is not null)
+    private void OnCellSelectionChanged(object? sender, TableViewCellSelectionChangedEvenArgs e)
+    {
+        if (e.OldSelection.Any(x => x.Row == Index) ||
+            e.NewSelection.Any(x => x.Row == Index))
         {
-            var previousCellIndex = currentCell is null ? Cells.Count - 1 : Cells.IndexOf(currentCell) - 1;
-            if (previousCellIndex >= 0)
-            {
-                var previousCell = Cells[previousCellIndex];
-                if (previousCell.IsReadOnly)
-                {
-                    SelectPreviousCell(previousCell);
-                }
-                previousCell.PrepareForEdit();
-            }
-            else
-            {
-                _tableView.SelectPreviousRow();
-        }
+            ApplyCellsSelectionState();
         }
     }
 
-    public IList<TableViewCell> Cells => (_cellsStackPanel?.Children.OfType<TableViewCell>() ?? Enumerable.Empty<TableViewCell>()).ToList();
+    private void OnCurrentCellChanged(object? sender, TableViewCurrentCellChangedEventArgs e)
+    {
+        if (e.OldSlot?.Row == Index)
+        {
+            ApplyCurrentCellState(e.OldSlot.Value);
+        }
+
+        if (e.NewSlot?.Row == Index)
+        {
+            ApplyCurrentCellState(e.NewSlot.Value);
+        }
+    }
+
+    internal void ApplyCurrentCellState(TableViewCellSlot slot)
+    {
+        if (slot.Column >= 0 && slot.Column < Cells.Count)
+        {
+            var cell = Cells[slot.Column];
+            cell.ApplyCurrentCellState();
+        }
+    }
+
+    internal void ApplyCellsSelectionState()
+    {
+        foreach (var cell in Cells)
+        {
+            cell.ApplySelectionState();
+        }
+    }
+
+    internal IList<TableViewCell> Cells => _cellPresenter?.Cells ?? new List<TableViewCell>();
+
+    public int Index => (int)GetValue(IndexProperty);
+
+    public TableView TableView
+    {
+        get => (TableView)GetValue(TableViewProperty);
+        set => SetValue(TableViewProperty, value);
+    }
+
+    public static readonly DependencyProperty IndexProperty = DependencyProperty.Register(nameof(Index), typeof(int), typeof(TableViewRow), new PropertyMetadata(-1, OnIndexChanged));
+    public static readonly DependencyProperty TableViewProperty = DependencyProperty.Register(nameof(TableView), typeof(TableView), typeof(TableViewRow), new PropertyMetadata(default, OnTableViewChanged));
+}
+
+public class TableViewCellPresenter : StackPanel
+{
+    public TableViewCellPresenter()
+    {
+        Orientation = Orientation.Horizontal;
+    }
+
+    public IList<TableViewCell> Cells => Children.OfType<TableViewCell>().ToList().AsReadOnly();
 }

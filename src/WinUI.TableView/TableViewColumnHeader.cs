@@ -74,6 +74,8 @@ public partial class TableViewColumnHeader : ContentControl
                 }
             }
 
+            _tableView.DeselectAll();
+
             if (_tableView.CollectionView.SortDescriptions.FirstOrDefault(x => x.PropertyName == _propertyPath) is { } description)
             {
                 _tableView.CollectionView.SortDescriptions.Remove(description);
@@ -88,6 +90,7 @@ public partial class TableViewColumnHeader : ContentControl
     {
         if (CanSort && _tableView is not null && SortDirection is not null)
         {
+            _tableView.DeselectAll();
             SortDirection = null;
 
             if (_tableView.CollectionView.SortDescriptions.FirstOrDefault(x => x.PropertyName == _propertyPath) is { } description)
@@ -102,6 +105,7 @@ public partial class TableViewColumnHeader : ContentControl
         if (_tableView?.ActiveFilters.ContainsKey(_propertyPath) == true)
         {
             _tableView.ActiveFilters.Remove(_propertyPath);
+            _tableView.DeselectAll();
         }
 
         IsFiltered = false;
@@ -116,6 +120,7 @@ public partial class TableViewColumnHeader : ContentControl
             return;
         }
 
+        _tableView.DeselectAll();
         _tableView.ActiveFilters[_propertyPath] = Filter;
         _tableView.CollectionView.RefreshFilter();
         IsFiltered = true;

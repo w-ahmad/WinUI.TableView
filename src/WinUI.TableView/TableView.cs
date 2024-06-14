@@ -18,15 +18,19 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
+using Windows.Foundation;
 using Windows.Storage;
 using Windows.Storage.Pickers;
+using Windows.System;
 using WinRT.Interop;
 using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView;
-public class TableView : ListView
+public partial class TableView : ListView
 {
     private TableViewHeaderRow? _headerRow;
+    private ScrollViewer _scrollViewer = null!;
+    private bool _shouldThrowSelectionModeChangedException;
 
     public TableView()
     {
@@ -34,8 +38,122 @@ public class TableView : ListView
 
         CollectionView.Filter = Filter;
         base.ItemsSource = CollectionView;
-
+        base.SelectionMode = ListViewSelectionMode.Extended;
+        RegisterPropertyChangedCallback(ItemsControl.ItemsSourceProperty, OnBaseItemsSourceChanged);
+        RegisterPropertyChangedCallback(ListViewBase.SelectionModeProperty, OnBaseSelectionModeChanged);
         Loaded += OnLoaded;
+        SelectionChanged += TableView_SelectionChanged;
+    }
+
+    private void TableView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!KeyBoardHelper.IsCtrlKeyDown())
+        {
+            SelectedCellRanges.Clear();
+        }
+        else
+        {
+            SelectedCellRanges.RemoveWhere(slots =>
+            {
+                slots.RemoveWhere(slot => SelectedRanges.Any(range => range.IsInRange(slot.Row)));
+                return slots.Count == 0;
+            });
+        }
+
+        SetCurrentCell(null);
+        OnCellSelectionChanged();
+    }
+
+    protected override void PrepareContainerForItemOverride(DependencyObject element, object item)
+    {
+        base.PrepareContainerForItemOverride(element, item);
+
+        if (element is TableViewRow row)
+        {
+            var index = IndexFromContainer(element);
+            row.SetValue(TableViewRow.IndexProperty, index);
+            row.ApplyCellsSelectionState();
+
+            if (CurrentCellSlot.HasValue)
+            {
+                row.ApplyCurrentCellState(CurrentCellSlot.Value);
+            }
+        }
+    }
+
+    protected override DependencyObject GetContainerForItemOverride()
+    {
+        return new TableViewRow { TableView = this };
+    }
+
+    protected override void OnPreviewKeyDown(KeyRoutedEventArgs e)
+    {
+        base.OnPreviewKeyDown(e);
+
+        var shiftKey = KeyBoardHelper.IsShiftKeyDown();
+        var ctrlKey = KeyBoardHelper.IsCtrlKeyDown();
+        var currentCell = CurrentCellSlot.HasValue ? GetCellFromSlot(CurrentCellSlot.Value) : default;
+
+        if (e.Key is VirtualKey.F2 && currentCell is not null && !IsEditing)
+        {
+            currentCell.PrepareForEdit();
+            IsEditing = true;
+            e.Handled = true;
+        }
+        else if (e.Key is VirtualKey.Escape && currentCell is not null && IsEditing)
+        {
+            currentCell?.SetElement();
+            IsEditing = false;
+            e.Handled = true;
+        }
+        else if (e.Key is VirtualKey.Space && currentCell is not null && CurrentCellSlot.HasValue && !IsEditing)
+        {
+            if (!currentCell.IsSelected)
+            {
+                SelectCells(CurrentCellSlot.Value, shiftKey, ctrlKey);
+            }
+            else
+            {
+                DeselectCell(CurrentCellSlot.Value);
+            }
+        }
+        // Handle navigation keys
+        else if (e.Key is VirtualKey.Tab or VirtualKey.Enter)
+        {
+            var isEditing = IsEditing;
+            var newSlot = GetNextSlot(CurrentCellSlot, shiftKey, e.Key is VirtualKey.Enter);
+
+            SelectCells(newSlot, false);
+
+            if (isEditing && currentCell is not null)
+            {
+                currentCell.SetElement();
+                currentCell = GetCellFromSlot(newSlot);
+                currentCell.PrepareForEdit();
+            }
+
+            e.Handled = true;
+        }
+        else if ((e.Key is VirtualKey.Left or VirtualKey.Right or VirtualKey.Up or VirtualKey.Down)
+                 && SelectionUnit is not TableViewSelectionUnit.Row
+                 && !IsEditing)
+        {
+            var row = CurrentCellSlot?.Row ?? 0;
+            var column = CurrentCellSlot?.Column ?? 0;
+
+            if (e.Key is VirtualKey.Left or VirtualKey.Right)
+            {
+                column = e.Key is VirtualKey.Left ? ctrlKey ? 0 : column - 1 : ctrlKey ? Columns.VisibleColumns.Count - 1 : column + 1;
+            }
+            else
+            {
+                row = e.Key == VirtualKey.Up ? ctrlKey ? 0 : row - 1 : ctrlKey ? Items.Count - 1 : row + 1;
+            }
+
+            var newSlot = new TableViewCellSlot(row, column);
+            SelectCells(newSlot, shiftKey);
+            e.Handled = true;
+        }
     }
 
     protected override void OnApplyTemplate()
@@ -52,6 +170,7 @@ public class TableView : ListView
             return;
         }
 
+        _scrollViewer = scrollViewer;
         Canvas.SetZIndex(ItemsPanelRoot, -1);
 
         var scrollProperties = ElementCompositionPreview.GetScrollViewerManipulationPropertySet(scrollViewer);
@@ -66,6 +185,47 @@ public class TableView : ListView
         contentClip.StartAnimation("TopInset", expressionClipAnimation);
 
         UpdateVerticalScrollBarMargin();
+    }
+
+    private TableViewCellSlot GetNextSlot(TableViewCellSlot? currentSlot, bool isShiftKeyDown, bool isEnterKey)
+    {
+        var rows = Items.Count;
+        var columns = Columns.VisibleColumns.Count;
+        var currentRow = currentSlot?.Row ?? 0;
+        var currentColumn = currentSlot?.Column ?? 0;
+        var nextRow = currentRow;
+        var nextColumn = currentColumn;
+
+        if (isEnterKey)
+        {
+            nextRow += isShiftKeyDown ? -1 : 1;
+            if (nextRow < 0)
+            {
+                nextRow = rows - 1;
+                nextColumn = (nextColumn - 1 + columns) % columns;
+            }
+            else if (nextRow >= rows)
+            {
+                nextRow = 0;
+                nextColumn = (nextColumn + 1) % columns;
+            }
+        }
+        else
+        {
+            nextColumn += isShiftKeyDown ? -1 : 1;
+            if (nextColumn < 0)
+            {
+                nextColumn = columns - 1;
+                nextRow = (nextRow - 1 + rows) % rows;
+            }
+            else if (nextColumn >= columns)
+            {
+                nextColumn = 0;
+                nextRow = (nextRow + 1) % rows;
+            }
+        }
+
+        return new TableViewCellSlot(nextRow, nextColumn);
     }
 
     private bool Filter(object obj)
@@ -84,7 +244,7 @@ public class TableView : ListView
         }
 
         var package = new DataPackage();
-        package.SetText(GetSelectedRowsContent(includeHeaders));
+        package.SetText(GetSelectedContent(includeHeaders));
         Clipboard.SetContent(package);
     }
 
@@ -93,32 +253,67 @@ public class TableView : ListView
         CopyToClipboard?.Invoke(this, args);
     }
 
-    public string GetSelectedRowsContent(bool includeHeaders, char separator = '\t')
+    public string GetSelectedContent(bool includeHeaders, char separator = '\t')
     {
-        var items = SelectedItems.OrderBy(item2 => Items.IndexOf(item2));
-        return GetRowsContent(items, includeHeaders, separator);
+        var slots = Enumerable.Empty<TableViewCellSlot>();
+
+        if (SelectedItems.Any() || SelectedCells.Any())
+        {
+            slots = SelectedRanges.SelectMany(x => Enumerable.Range(x.FirstIndex, (int)x.Length))
+                                  .SelectMany(r => Enumerable.Range(0, Columns.VisibleColumns.Count)
+                                                                     .Select(c => new TableViewCellSlot(r, c)))
+                                  .OrderBy(x => x.Row)
+                                  .ThenByDescending(x => x.Column);
+        }
+        else if (CurrentCellSlot.HasValue)
+        {
+            slots = new[] { CurrentCellSlot.Value };
+        }
+
+        return GetCellsContent(slots, includeHeaders, separator);
     }
 
-    public string GetAllRowsContent(bool includeHeaders, char separator = '\t')
+    public string GetAllContent(bool includeHeaders, char separator = '\t')
     {
-        return GetRowsContent(Items, includeHeaders, separator);
+        var slots = Enumerable.Range(0, Items.Count)
+                              .SelectMany(r => Enumerable.Range(0, Columns.VisibleColumns.Count)
+                                                                 .Select(c => new TableViewCellSlot(r, c)))
+                              .Concat(SelectedCells)
+                              .OrderBy(x => x.Row)
+                              .ThenByDescending(x => x.Column);
+
+        return GetCellsContent(slots, includeHeaders, separator);
     }
 
-    private string GetRowsContent(IEnumerable<object> items, bool includeHeaders, char separator)
+    private string GetCellsContent(IEnumerable<TableViewCellSlot> slots, bool includeHeaders, char separator)
     {
+        var minRow = slots.Select(x => x.Row).Min();
+        var maxRow = slots.Select(x => x.Row).Max();
+        var minColumn = slots.Select(x => x.Column).Min();
+        var maxColumn = slots.Select(x => x.Column).Max();
+
         var stringBuilder = new StringBuilder();
         var properties = new Dictionary<string, (PropertyInfo, object?)[]>();
 
         if (includeHeaders)
         {
-            stringBuilder.AppendLine(GetHeadersContent(separator));
+            stringBuilder.AppendLine(GetHeadersContent(separator, minColumn, maxColumn));
         }
 
-        foreach (var item in items)
+        for (var row = minRow; row <= maxRow; row++)
         {
+            var item = Items[row];
             var type = ItemsSource?.GetType() is { } listType && listType.IsGenericType ? listType.GetGenericArguments()[0] : item?.GetType();
-            foreach (var column in Columns.VisibleColumns.OfType<TableViewBoundColumn>())
+
+            for (var col = minColumn; col <= maxColumn; col++)
             {
+                if (Columns.VisibleColumns[col] is not TableViewBoundColumn column ||
+                   !slots.Contains(new TableViewCellSlot(row, col)))
+                {
+                    stringBuilder.Append('\t');
+                    continue;
+                }
+
                 var property = column.Binding.Path.Path;
                 if (!properties.TryGetValue(property, out var pis))
                 {
@@ -138,53 +333,16 @@ public class TableView : ListView
         return stringBuilder.ToString();
     }
 
-    private string GetHeadersContent(char separator)
+    private string GetHeadersContent(char separator, int minColumn, int maxColumn)
     {
-        return string.Join(separator, Columns.VisibleColumns.OfType<TableViewBoundColumn>().Select(x => x.Header));
-    }
-
-    internal async void SelectNextRow()
-    {
-        var nextIndex = SelectedIndex + 1;
-        if (nextIndex < Items.Count)
+        var stringBuilder = new StringBuilder();
+        for (var col = minColumn; col <= maxColumn; col++)
         {
-            SelectedIndex = nextIndex;
-        }
-        else if (TabNavigation == KeyboardNavigationMode.Cycle)
-        {
-            SelectedIndex = 0;
-        }
-        else
-        {
-            return;
+            var column = Columns.VisibleColumns[col];
+            stringBuilder.Append($"{column.Header}{separator}");
         }
 
-        await Task.Delay(5);
-        var listViewItem = ContainerFromItem(SelectedItem) as ListViewItem;
-        var row = listViewItem?.FindDescendant<TableViewRow>();
-        row?.SelectNextCell(null);
-    }
-
-    internal async void SelectPreviousRow()
-    {
-        var previousIndex = SelectedIndex - 1;
-        if (previousIndex >= 0)
-        {
-            SelectedIndex = previousIndex;
-        }
-        else if (TabNavigation == KeyboardNavigationMode.Cycle)
-        {
-            SelectedIndex = Items.Count - 1;
-        }
-        else
-        {
-            return;
-        }
-
-        await Task.Delay(5);
-        var listViewItem = ContainerFromItem(SelectedItem) as ListViewItem;
-        var row = listViewItem?.FindDescendant<TableViewRow>();
-        row?.SelectPreviousCell(null);
+        return stringBuilder.ToString();
     }
 
     private void GenerateColumns()
@@ -275,7 +433,7 @@ public class TableView : ListView
     internal async void ExportSelectedToCSV()
     {
         var args = new TableViewExportRowsContentEventArgs();
-        OnExportSelectedRowsContent(args);
+        OnExportSelectedContent(args);
 
         if (args.Handled)
         {
@@ -290,7 +448,7 @@ public class TableView : ListView
                 return;
             }
 
-            var content = GetSelectedRowsContent(true, ',');
+            var content = GetSelectedContent(true, ',');
             using var stream = await file.OpenStreamForWriteAsync();
             stream.SetLength(0);
 
@@ -300,7 +458,7 @@ public class TableView : ListView
         catch { }
     }
 
-    protected virtual void OnExportSelectedRowsContent(TableViewExportRowsContentEventArgs args)
+    protected virtual void OnExportSelectedContent(TableViewExportRowsContentEventArgs args)
     {
         ExportSelectedRowsContent?.Invoke(this, args);
     }
@@ -308,7 +466,7 @@ public class TableView : ListView
     internal async void ExportAllToCSV()
     {
         var args = new TableViewExportRowsContentEventArgs();
-        OnExportAllRowsContent(args);
+        OnExportAllContent(args);
 
         if (args.Handled)
         {
@@ -323,7 +481,7 @@ public class TableView : ListView
                 return;
             }
 
-            var content = GetAllRowsContent(true, ',');
+            var content = GetAllContent(true, ',');
             using var stream = await file.OpenStreamForWriteAsync();
             stream.SetLength(0);
 
@@ -333,7 +491,7 @@ public class TableView : ListView
         catch { }
     }
 
-    protected virtual void OnExportAllRowsContent(TableViewExportRowsContentEventArgs args)
+    protected virtual void OnExportAllContent(TableViewExportRowsContentEventArgs args)
     {
         ExportAllRowsContent?.Invoke(this, args);
     }
@@ -345,66 +503,6 @@ public class TableView : ListView
         savePicker.FileTypeChoices.Add("CSV (Comma delimited)", new List<string>() { ".csv" });
 
         return await savePicker.PickSaveFileAsync();
-    }
-
-    private static void OnItemsSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is TableView tableView)
-        {
-            tableView.OnItemsSourceChanged(e);
-        }
-    }
-
-    private static void OnHeaderRowHeightChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        (d as TableView)?.UpdateVerticalScrollBarMargin();
-    }
-
-    private static void OnAutoGenerateColumnsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is TableView tableView)
-        {
-            if (tableView.AutoGenerateColumns)
-            {
-                tableView.GenerateColumns();
-            }
-            else
-            {
-                tableView.RemoveAutoGeneratedColumns();
-            }
-        }
-    }
-
-    private static void OnCanSortColumnsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is TableView tableView && e.NewValue is false)
-        {
-            tableView.ClearSorting();
-        }
-    }
-
-    private static void OnCanFilterColumnsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is TableView tableView && e.NewValue is false)
-        {
-            tableView.ClearFilters();
-        }
-    }
-
-    private static void OnMinColumnWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is TableView table && table._headerRow is not null)
-        {
-            table._headerRow.CalculateHeaderWidths();
-        }
-    }
-
-    private static void OnMaxColumnWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is TableView table && table._headerRow is not null)
-        {
-            table._headerRow.CalculateHeaderWidths();
-        }
     }
 
     private void UpdateVerticalScrollBarMargin()
@@ -421,6 +519,7 @@ public class TableView : ListView
 
     internal void ClearSorting()
     {
+        DeselectAll();
         CollectionView.SortDescriptions.Clear();
 
         foreach (var header in Columns.Select(x => x.HeaderControl))
@@ -434,6 +533,7 @@ public class TableView : ListView
 
     internal void ClearFilters()
     {
+        DeselectAll();
         ActiveFilters.Clear();
         CollectionView.RefreshFilter();
 
@@ -446,106 +546,328 @@ public class TableView : ListView
         }
     }
 
-    public IAdvancedCollectionView CollectionView { get; } = new AdvancedCollectionView();
-
-    internal IDictionary<string, Predicate<object>> ActiveFilters { get; } = new Dictionary<string, Predicate<object>>();
-
-    public TableViewColumnsCollection Columns { get; } = new();
-
-    public double HeaderRowHeight
+    private bool IsValidSlot(TableViewCellSlot slot)
     {
-        get => (double)GetValue(HeaderRowHeightProperty);
-        set => SetValue(HeaderRowHeightProperty, value);
+        return slot.Row >= 0 && slot.Column >= 0 && slot.Row < Items.Count && slot.Column < Columns.VisibleColumns.Count;
     }
 
-    public double RowHeight
+    internal new void SelectAll()
     {
-        get => (double)GetValue(RowHeightProperty);
-        set => SetValue(RowHeightProperty, value);
+        if (IsEditing)
+        {
+            return;
+        }
+
+        if (SelectionUnit is TableViewSelectionUnit.Cell)
+        {
+            SelectAllCells();
+            SetCurrentCell(null);
+        }
+        else
+        {
+            switch (SelectionMode)
+            {
+                case ListViewSelectionMode.Single:
+                    SelectedItem = Items.FirstOrDefault();
+                    break;
+                case ListViewSelectionMode.Multiple:
+                case ListViewSelectionMode.Extended:
+                    SelectRange(new ItemIndexRange(0, (uint)Items.Count));
+                    break;
+            }
+        }
     }
 
-    public double RowMaxHeight
+    private void SelectAllCells()
     {
-        get => (double)GetValue(RowMaxHeightProperty);
-        set => SetValue(RowMaxHeightProperty, value);
+        switch (SelectionMode)
+        {
+            case ListViewSelectionMode.Single:
+                if (Items.Count > 0 && Columns.VisibleColumns.Count > 0)
+                {
+                    SelectedCellRanges.Clear();
+                    SelectedCellRanges.Add(new() { new TableViewCellSlot(0, 0) });
+                }
+                break;
+            case ListViewSelectionMode.Multiple:
+            case ListViewSelectionMode.Extended:
+                SelectedCellRanges.Clear();
+                var selectionRange = new HashSet<TableViewCellSlot>();
+
+                for (var row = 0; row < Items.Count; row++)
+                {
+                    for (var column = 0; column < Columns.VisibleColumns.Count; column++)
+                    {
+                        selectionRange.Add(new TableViewCellSlot(row, column));
+                    }
+                }
+                SelectedCellRanges.Add(selectionRange);
+                break;
+        }
+
+        OnCellSelectionChanged();
     }
 
-    public new IList ItemsSource
+    internal void DeselectAll()
     {
-        get => (IList)GetValue(ItemsSourceProperty);
-        set => SetValue(ItemsSourceProperty, value);
+        switch (SelectionMode)
+        {
+            case ListViewSelectionMode.Single:
+                SelectedItem = null;
+                break;
+            case ListViewSelectionMode.Multiple:
+            case ListViewSelectionMode.Extended:
+                DeselectRange(new ItemIndexRange(0, (uint)Items.Count));
+                break;
+        }
+
+        DeselectAllCells();
     }
 
-    public bool ShowExportOptions
+    private void DeselectAllCells()
     {
-        get => (bool)GetValue(ShowExportOptionsProperty);
-        set => SetValue(ShowExportOptionsProperty, value);
+        SelectedCellRanges.Clear();
+        OnCellSelectionChanged();
+        SetCurrentCell(null);
     }
 
-    public bool AutoGenerateColumns
+    internal async void SelectCells(TableViewCellSlot slot, bool shiftKey, bool ctrlKey = false)
     {
-        get => (bool)GetValue(AutoGenerateColumnsProperty);
-        set => SetValue(AutoGenerateColumnsProperty, value);
+        if (!IsValidSlot(slot))
+        {
+            return;
+        }
+
+        if (SelectionMode != ListViewSelectionMode.None && SelectionUnit != TableViewSelectionUnit.Row)
+        {
+            ctrlKey = ctrlKey || SelectionMode is ListViewSelectionMode.Multiple;
+            if (!ctrlKey || !(SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended))
+            {
+                DeselectAll();
+            }
+
+            var selectionRange = (SelectionStartCellSlot is null ? null : SelectedCellRanges.LastOrDefault(x => SelectionStartCellSlot.HasValue && x.Contains(SelectionStartCellSlot.Value))) ?? new HashSet<TableViewCellSlot>();
+            SelectedCellRanges.Remove(selectionRange);
+            selectionRange.Clear();
+            SelectionStartCellSlot ??= CurrentCellSlot;
+            if (shiftKey && SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended)
+            {
+                var currentSlot = SelectionStartCellSlot ?? slot;
+                var startRow = Math.Min(slot.Row, currentSlot.Row);
+                var endRow = Math.Max(slot.Row, currentSlot.Row);
+                var startCol = Math.Min(slot.Column, currentSlot.Column);
+                var endCol = Math.Max(slot.Column, currentSlot.Column);
+                for (var row = startRow; row <= endRow; row++)
+                {
+                    for (var column = startCol; column <= endCol; column++)
+                    {
+                        var nextSlot = new TableViewCellSlot(row, column);
+                        selectionRange.Add(nextSlot);
+                        if (SelectedCellRanges.LastOrDefault(x => x.Contains(nextSlot)) is { } range)
+                        {
+                            range.Remove(nextSlot);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                SelectionStartCellSlot = null;
+                selectionRange.Add(slot);
+
+                if (SelectedCellRanges.LastOrDefault(x => x.Contains(slot)) is { } range)
+                {
+                    range.Remove(slot);
+                }
+            }
+
+            SetCurrentCell((await ScrollCellIntoView(slot)).Slot);
+            SelectedCellRanges.Add(selectionRange);
+            OnCellSelectionChanged();
+        }
+        else
+        {
+            SetCurrentCell((await ScrollCellIntoView(slot)).Slot);
+        }
     }
 
-    public bool IsReadOnly
+    internal void DeselectCell(TableViewCellSlot slot)
     {
-        get => (bool)GetValue(IsReadOnlyProperty);
-        set => SetValue(IsReadOnlyProperty, value);
+        var selectionRange = SelectedCellRanges.LastOrDefault(x => x.Contains(slot));
+        selectionRange?.Remove(slot);
+
+        if (selectionRange?.Count == 0)
+        {
+            SelectedCellRanges.Remove(selectionRange);
+        }
+
+        SetCurrentCell(slot);
+        OnCellSelectionChanged();
     }
 
-    public bool ShowOptionsButton
+    internal void SetCurrentCell(TableViewCellSlot? slot)
     {
-        get => (bool)GetValue(ShowOptionsButtonProperty);
-        set => SetValue(ShowOptionsButtonProperty, value);
+        var oldSlot = CurrentCellSlot;
+        CurrentCellSlot = slot;
+        CurrentCellChanged?.Invoke(this, new TableViewCurrentCellChangedEventArgs(oldSlot, slot));
     }
 
-    public bool CanResizeColumns
+    private void OnCellSelectionChanged()
     {
-        get => (bool)GetValue(CanResizeColumnsProperty);
-        set => SetValue(CanResizeColumnsProperty, value);
+        var oldSelection = SelectedCells;
+        SelectedCells = new HashSet<TableViewCellSlot>(SelectedCellRanges.SelectMany(x => x));
+        SelectedCellsChanged?.Invoke(this, new TableViewCellSelectionChangedEvenArgs(oldSelection, SelectedCells));
     }
 
-    public bool CanSortColumns
+    internal async Task<TableViewCell> ScrollCellIntoView(TableViewCellSlot slot)
     {
-        get => (bool)GetValue(CanSortColumnsProperty);
-        set => SetValue(CanSortColumnsProperty, value);
+        var row = await ScrollRowIntoView(slot.Row);
+        var (start, end) = GetColumnsInDisplay();
+        var xOffset = 0d;
+        var yOffset = _scrollViewer.VerticalOffset;
+
+        if (slot.Column < start)
+        {
+            for (var i = 0; i < slot.Column; i++)
+            {
+                xOffset += Columns.VisibleColumns[i].ActualWidth;
+            }
+        }
+        else if (slot.Column > end)
+        {
+            for (var i = 0; i <= slot.Column; i++)
+            {
+                xOffset += Columns.VisibleColumns[i].ActualWidth;
+            }
+
+            var change = xOffset - _scrollViewer.HorizontalOffset - (_scrollViewer.ViewportWidth - 16);
+            xOffset = _scrollViewer.HorizontalOffset + change;
+        }
+        else if (row is not null)
+        {
+            return row.Cells.ElementAt(slot.Column);
+        }
+
+        var tcs = new TaskCompletionSource<object?>();
+
+        void ViewChanged(object? _, ScrollViewerViewChangedEventArgs e)
+        {
+            if (e.IsIntermediate)
+            {
+                return;
+            }
+
+            tcs.TrySetResult(result: default);
+        }
+
+        try
+        {
+            _scrollViewer.ViewChanged += ViewChanged;
+            _scrollViewer.ChangeView(xOffset, yOffset, null, true);
+            _scrollViewer.ScrollToHorizontalOffset(xOffset);
+            await tcs.Task;
+        }
+        finally
+        {
+            _scrollViewer.ViewChanged -= ViewChanged;
+        }
+
+        return row?.Cells.ElementAt(slot.Column)!;
     }
 
-    public bool CanFilterColumns
+    private async Task<TableViewRow?> ScrollRowIntoView(int index)
     {
-        get => (bool)GetValue(CanFilterColumnsProperty);
-        set => SetValue(CanFilterColumnsProperty, value);
+        var item = Items[index];
+        index = Items.IndexOf(item); // if the ItemsSource has duplicate items in it. ScrollIntoView will only bring first index of item.
+        ScrollIntoView(item);
+
+        var tries = 0;
+        while (tries < 10)
+        {
+            if (ContainerFromIndex(index) is TableViewRow row)
+            {
+                var transform = row.TransformToVisual(_scrollViewer);
+                var positionInScrollViewer = transform.TransformPoint(new Point(0, 0));
+                if ((index == 0 && _scrollViewer.VerticalOffset > 0) || (index > 0 && positionInScrollViewer.Y <= row.ActualHeight))
+                {
+                    var xOffset = _scrollViewer.HorizontalOffset;
+                    var yOffset = index == 0 ? 0d : _scrollViewer.VerticalOffset - row.ActualHeight + positionInScrollViewer.Y + 8;
+                    var tcs = new TaskCompletionSource<object?>();
+
+                    try
+                    {
+                        _scrollViewer.ViewChanged += ViewChanged;
+                        _scrollViewer.ChangeView(xOffset, yOffset, null, true);
+                        await tcs.Task;
+                    }
+                    finally
+                    {
+                        _scrollViewer.ViewChanged -= ViewChanged;
+                    }
+
+                    void ViewChanged(object? _, ScrollViewerViewChangedEventArgs e)
+                    {
+                        if (e.IsIntermediate)
+                        {
+                            return;
+                        }
+
+                        tcs.TrySetResult(result: default);
+                    }
+                }
+
+                row.Focus(FocusState.Programmatic);
+                return row;
+            }
+
+            tries++;
+            await Task.Delay(1); // let the animation complete
+        }
+
+        return default;
     }
 
-    public double MinColumnWidth
+    private TableViewCell GetCellFromSlot(TableViewCellSlot slot)
     {
-        get => (double)GetValue(MinColumnWidthProperty);
-        set => SetValue(MinColumnWidthProperty, value);
+        return ContainerFromIndex(slot.Row) is TableViewRow row ? row.Cells[slot.Column] : default!;
     }
 
-    public double MaxColumnWidth
+    private (int start, int end) GetColumnsInDisplay()
     {
-        get => (double)GetValue(MaxColumnWidthProperty);
-        set => SetValue(MaxColumnWidthProperty, value);
+        var start = -1;
+        var end = -1;
+        var width = 0d;
+        foreach (var column in Columns.VisibleColumns)
+        {
+            if (width >= _scrollViewer.HorizontalOffset && width + column.ActualWidth <= _scrollViewer.HorizontalOffset + _scrollViewer.ViewportWidth)
+            {
+                if (start == -1)
+                {
+                    start = Columns.VisibleColumns.IndexOf(column);
+                }
+                else
+                {
+                    end = Columns.VisibleColumns.IndexOf(column);
+                }
+            }
+
+            width += column.ActualWidth;
+        }
+
+        return (start, end);
     }
 
-    public static readonly new DependencyProperty ItemsSourceProperty = DependencyProperty.Register(nameof(ItemsSource), typeof(IList), typeof(TableView), new PropertyMetadata(null, OnItemsSourceChanged));
-    public static readonly DependencyProperty HeaderRowHeightProperty = DependencyProperty.Register(nameof(HeaderRowHeight), typeof(double), typeof(TableView), new PropertyMetadata(32d, OnHeaderRowHeightChanged));
-    public static readonly DependencyProperty RowHeightProperty = DependencyProperty.Register(nameof(RowHeight), typeof(double), typeof(TableView), new PropertyMetadata(40d));
-    public static readonly DependencyProperty RowMaxHeightProperty = DependencyProperty.Register(nameof(RowMaxHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.PositiveInfinity));
-    public static readonly DependencyProperty ShowExportOptionsProperty = DependencyProperty.Register(nameof(ShowExportOptions), typeof(bool), typeof(TableView), new PropertyMetadata(false));
-    public static readonly DependencyProperty AutoGenerateColumnsProperty = DependencyProperty.Register(nameof(AutoGenerateColumns), typeof(bool), typeof(TableView), new PropertyMetadata(true, OnAutoGenerateColumnsChanged));
-    public static readonly DependencyProperty IsReadOnlyProperty = DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(TableView), new PropertyMetadata(false));
-    public static readonly DependencyProperty ShowOptionsButtonProperty = DependencyProperty.Register(nameof(ShowOptionsButton), typeof(bool), typeof(TableView), new PropertyMetadata(true));
-    public static readonly DependencyProperty CanResizeColumnsProperty = DependencyProperty.Register(nameof(CanResizeColumns), typeof(bool), typeof(TableView), new PropertyMetadata(true));
-    public static readonly DependencyProperty CanSortColumnsProperty = DependencyProperty.Register(nameof(CanSortColumns), typeof(bool), typeof(TableView), new PropertyMetadata(true, OnCanSortColumnsChanged));
-    public static readonly DependencyProperty CanFilterColumnsProperty = DependencyProperty.Register(nameof(CanFilterColumns), typeof(bool), typeof(TableView), new PropertyMetadata(true, OnCanFilterColumnsChanged));
-    public static readonly DependencyProperty MinColumnWidthProperty = DependencyProperty.Register(nameof(MinColumnWidth), typeof(double), typeof(TableView), new PropertyMetadata(50d, OnMinColumnWidthChanged));
-    public static readonly DependencyProperty MaxColumnWidthProperty = DependencyProperty.Register(nameof(MaxColumnWidth), typeof(double), typeof(TableView), new PropertyMetadata(double.PositiveInfinity, OnMaxColumnWidthChanged));
+    private void UpdateBaseSelectionMode()
+    {
+        _shouldThrowSelectionModeChangedException = true;
+        base.SelectionMode = SelectionUnit is TableViewSelectionUnit.Cell ? ListViewSelectionMode.None : SelectionMode;
+        _shouldThrowSelectionModeChangedException = false;
+    }
 
     public event EventHandler<TableViewAutoGeneratingColumnEventArgs>? AutoGeneratingColumn;
     public event EventHandler<TableViewExportRowsContentEventArgs>? ExportAllRowsContent;
     public event EventHandler<TableViewExportRowsContentEventArgs>? ExportSelectedRowsContent;
     public event EventHandler<TableViewCopyToClipboardEventArgs>? CopyToClipboard;
+    internal event EventHandler<TableViewCellSelectionChangedEvenArgs>? SelectedCellsChanged;
+    internal event EventHandler<TableViewCurrentCellChangedEventArgs>? CurrentCellChanged;
 }
