@@ -432,7 +432,7 @@ public partial class TableView : ListView
 
     internal async void ExportSelectedToCSV()
     {
-        var args = new TableViewExportRowsContentEventArgs();
+        var args = new TableViewExportContentEventArgs();
         OnExportSelectedContent(args);
 
         if (args.Handled)
@@ -458,14 +458,14 @@ public partial class TableView : ListView
         catch { }
     }
 
-    protected virtual void OnExportSelectedContent(TableViewExportRowsContentEventArgs args)
+    protected virtual void OnExportSelectedContent(TableViewExportContentEventArgs args)
     {
-        ExportSelectedRowsContent?.Invoke(this, args);
+        ExportSelectedContent?.Invoke(this, args);
     }
 
     internal async void ExportAllToCSV()
     {
-        var args = new TableViewExportRowsContentEventArgs();
+        var args = new TableViewExportContentEventArgs();
         OnExportAllContent(args);
 
         if (args.Handled)
@@ -491,9 +491,9 @@ public partial class TableView : ListView
         catch { }
     }
 
-    protected virtual void OnExportAllContent(TableViewExportRowsContentEventArgs args)
+    protected virtual void OnExportAllContent(TableViewExportContentEventArgs args)
     {
-        ExportAllRowsContent?.Invoke(this, args);
+        ExportAllContent?.Invoke(this, args);
     }
 
     private static async Task<StorageFile> GetStorageFile(IntPtr hWnd)
@@ -865,8 +865,8 @@ public partial class TableView : ListView
     }
 
     public event EventHandler<TableViewAutoGeneratingColumnEventArgs>? AutoGeneratingColumn;
-    public event EventHandler<TableViewExportRowsContentEventArgs>? ExportAllRowsContent;
-    public event EventHandler<TableViewExportRowsContentEventArgs>? ExportSelectedRowsContent;
+    public event EventHandler<TableViewExportContentEventArgs>? ExportAllContent;
+    public event EventHandler<TableViewExportContentEventArgs>? ExportSelectedContent;
     public event EventHandler<TableViewCopyToClipboardEventArgs>? CopyToClipboard;
     internal event EventHandler<TableViewCellSelectionChangedEvenArgs>? SelectedCellsChanged;
     internal event EventHandler<TableViewCurrentCellChangedEventArgs>? CurrentCellChanged;
