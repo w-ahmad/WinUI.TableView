@@ -262,6 +262,7 @@ public partial class TableView : ListView
             slots = SelectedRanges.SelectMany(x => Enumerable.Range(x.FirstIndex, (int)x.Length))
                                   .SelectMany(r => Enumerable.Range(0, Columns.VisibleColumns.Count)
                                                                      .Select(c => new TableViewCellSlot(r, c)))
+                                  .Concat(SelectedCells)
                                   .OrderBy(x => x.Row)
                                   .ThenByDescending(x => x.Column);
         }
@@ -278,7 +279,6 @@ public partial class TableView : ListView
         var slots = Enumerable.Range(0, Items.Count)
                               .SelectMany(r => Enumerable.Range(0, Columns.VisibleColumns.Count)
                                                                  .Select(c => new TableViewCellSlot(r, c)))
-                              .Concat(SelectedCells)
                               .OrderBy(x => x.Row)
                               .ThenByDescending(x => x.Column);
 
@@ -287,6 +287,11 @@ public partial class TableView : ListView
 
     private string GetCellsContent(IEnumerable<TableViewCellSlot> slots, bool includeHeaders, char separator)
     {
+        if (!slots.Any())
+        {
+            return string.Empty;
+        }
+
         var minRow = slots.Select(x => x.Row).Min();
         var maxRow = slots.Select(x => x.Row).Max();
         var minColumn = slots.Select(x => x.Column).Min();
