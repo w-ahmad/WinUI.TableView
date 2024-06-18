@@ -127,7 +127,6 @@ public partial class TableView : ListView
 
             if (isEditing && currentCell is not null)
             {
-                currentCell.SetElement();
                 currentCell = GetCellFromSlot(newSlot);
                 currentCell.PrepareForEdit();
             }
@@ -655,9 +654,10 @@ public partial class TableView : ListView
             SelectedCellRanges.Remove(selectionRange);
             selectionRange.Clear();
             SelectionStartCellSlot ??= CurrentCellSlot;
+            SelectionStartCellSlot ??= slot;
             if (shiftKey && SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended)
             {
-                var currentSlot = SelectionStartCellSlot ?? slot;
+                var currentSlot = SelectionStartCellSlot.Value;
                 var startRow = Math.Min(slot.Row, currentSlot.Row);
                 var endRow = Math.Max(slot.Row, currentSlot.Row);
                 var startCol = Math.Min(slot.Column, currentSlot.Column);
@@ -677,7 +677,7 @@ public partial class TableView : ListView
             }
             else
             {
-                SelectionStartCellSlot = null;
+                SelectionStartCellSlot = slot;
                 selectionRange.Add(slot);
 
                 if (SelectedCellRanges.LastOrDefault(x => x.Contains(slot)) is { } range)
@@ -713,6 +713,8 @@ public partial class TableView : ListView
     internal void SetCurrentCell(TableViewCellSlot? slot)
     {
         var oldSlot = CurrentCellSlot;
+        var currentCell = oldSlot.HasValue ? GetCellFromSlot(oldSlot.Value) : default;
+        currentCell?.SetElement();
         CurrentCellSlot = slot;
         CurrentCellChanged?.Invoke(this, new TableViewCurrentCellChangedEventArgs(oldSlot, slot));
     }
@@ -832,7 +834,7 @@ public partial class TableView : ListView
         return default;
     }
 
-    private TableViewCell GetCellFromSlot(TableViewCellSlot slot)
+    internal TableViewCell GetCellFromSlot(TableViewCellSlot slot)
     {
         return ContainerFromIndex(slot.Row) is TableViewRow row ? row.Cells[slot.Column] : default!;
     }

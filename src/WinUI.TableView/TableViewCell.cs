@@ -82,8 +82,6 @@ public class TableViewCell : ContentControl
         {
             TableView.SelectionStartCellSlot = Slot;
         }
-
-        e.Handled = TableView.SelectionUnit != TableViewSelectionUnit.Row;
     }
 
     protected override void OnPointerReleased(PointerRoutedEventArgs e)
@@ -94,6 +92,8 @@ public class TableViewCell : ContentControl
         {
             TableView.SelectionStartCellSlot = null;
         }
+
+        e.Handled = TableView.SelectionUnit != TableViewSelectionUnit.Row;
     }
 
     protected override void OnPointerMoved(PointerRoutedEventArgs e)

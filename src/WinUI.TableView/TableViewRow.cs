@@ -1,6 +1,5 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -10,19 +9,11 @@ namespace WinUI.TableView;
 public class TableViewRow : ListViewItem
 {
     private TableViewCellPresenter? _cellPresenter;
-    private ListViewItemPresenter _itemPresenter = null!;
 
     public TableViewRow()
     {
         DefaultStyleKey = typeof(TableViewRow);
         SizeChanged += OnSizeChanged;
-    }
-
-    protected override void OnApplyTemplate()
-    {
-        base.OnApplyTemplate();
-
-        _itemPresenter = (ListViewItemPresenter)GetTemplateChild("Root");
     }
 
     protected override void OnContentChanged(object oldContent, object newContent)

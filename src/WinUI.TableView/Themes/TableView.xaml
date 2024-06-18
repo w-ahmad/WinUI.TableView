@@ -41,6 +41,8 @@
                 Value="{ThemeResource TableViewGridLinesBrush}" />
         <Setter Property="BorderThickness"
                 Value="1" />
+        <Setter Property="SingleSelectionFollowsFocus"
+                Value="False" />
         <Setter Property="ItemContainerTransitions">
             <Setter.Value>
                 <TransitionCollection>
