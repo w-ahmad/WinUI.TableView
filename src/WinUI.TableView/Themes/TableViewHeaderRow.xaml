@@ -107,8 +107,7 @@
                                                         Icon="ClearSelection">
                                             <MenuFlyoutItem.KeyboardAccelerators>
                                                 <KeyboardAccelerator Key="A"
-                                                                     Modifiers="Control,Shift"
-                                                                     ScopeOwner="{TemplateBinding TableView}" />
+                                                                     Modifiers="Control,Shift" />
                                             </MenuFlyoutItem.KeyboardAccelerators>
                                         </MenuFlyoutItem>
                                         <MenuFlyoutSeparator />
@@ -120,12 +119,10 @@
                                                                      ScopeOwner="{TemplateBinding TableView}" />
                                             </MenuFlyoutItem.KeyboardAccelerators>
                                         </MenuFlyoutItem>
-                                        <MenuFlyoutItem Command="{Binding CopyWithHeadersCommand}"
-                                                        KeyboardAcceleratorPlacementTarget="{TemplateBinding TableView}">
+                                        <MenuFlyoutItem Command="{Binding CopyWithHeadersCommand}">
                                             <MenuFlyoutItem.KeyboardAccelerators>
                                                 <KeyboardAccelerator Key="C"
-                                                                     Modifiers="Control,Shift"
-                                                                     ScopeOwner="{TemplateBinding TableView}" />
+                                                                     Modifiers="Control,Shift" />
                                             </MenuFlyoutItem.KeyboardAccelerators>
                                         </MenuFlyoutItem>
                                         <MenuFlyoutSeparator />

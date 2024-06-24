@@ -94,6 +94,12 @@ public partial class TableView : ListView
         var ctrlKey = KeyBoardHelper.IsCtrlKeyDown();
         var currentCell = CurrentCellSlot.HasValue ? GetCellFromSlot(CurrentCellSlot.Value) : default;
 
+        if (HandleShortKeys(shiftKey, ctrlKey, e.Key))
+        {
+            e.Handled = true;
+            return;
+        }
+
         if (e.Key is VirtualKey.F2 && currentCell is not null && !IsEditing)
         {
             currentCell.PrepareForEdit();
@@ -153,6 +159,27 @@ public partial class TableView : ListView
             SelectCells(newSlot, shiftKey);
             e.Handled = true;
         }
+    }
+
+    private bool HandleShortKeys(bool shiftKey, bool ctrlKey, VirtualKey key)
+    {
+        if (key == VirtualKey.A && ctrlKey && !shiftKey)
+        {
+            SelectAll();
+            return true;
+        }
+        else if (key == VirtualKey.A && ctrlKey && shiftKey)
+        {
+            DeselectAll();
+            return true;
+        }
+        else if (key == VirtualKey.C && ctrlKey)
+        {
+            CopyToClipboardInternal(shiftKey);
+            return true;
+        }
+
+        return false;
     }
 
     protected override void OnApplyTemplate()

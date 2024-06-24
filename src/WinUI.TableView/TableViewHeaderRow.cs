@@ -50,18 +50,6 @@ public partial class TableViewHeaderRow : Control
         if (_optionsButton is not null)
         {
             _optionsButton.DataContext = new OptionsFlyoutViewModel(TableView);
-
-            // Hack: this will allow keyboard accelerators to get work
-            ShowAndHidOptionsFlyout();
-            async void ShowAndHidOptionsFlyout()
-            {
-                if (_optionsButton.Visibility == Visibility.Visible)
-                {
-                    _optionsButton.Flyout.ShowAt(_optionsButton);
-                    await Task.Delay(5);
-                    _optionsButton.Flyout.Hide();
-                }
-            }
         }
 
         if (GetTemplateChild("selectAllButton") is Button selectAllButton)
