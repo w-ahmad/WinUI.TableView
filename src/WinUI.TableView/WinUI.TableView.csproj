@@ -3,10 +3,10 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <Description>TableView for WinUI.</Description>
+    <Description>TableView control for WinUI.</Description>
     <PackageTags>WinUI, WinAppSDK, Windows, XAML, TableView</PackageTags>
     <PackageId>WinUI.TableView</PackageId>
-    <Product>WinUI TableView</Product>
+    <Product>WinUI TableView Control</Product>
     <RepositoryUrl>https://github.com/w-ahmad/WinUI3.TableView</RepositoryUrl>
     <PackageProjectUrl>https://github.com/w-ahmad/WinUI3.TableView</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
