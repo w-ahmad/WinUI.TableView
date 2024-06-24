@@ -128,7 +128,7 @@
                                         <MenuFlyoutSeparator />
                                         <MenuFlyoutItem Command="{Binding ClearSortingCommand}" />
                                         <MenuFlyoutItem Command="{Binding ClearFilterCommand}" />
-                                        <MenuFlyoutSeparator />
+                                        <MenuFlyoutSeparator Visibility="{Binding Visibility, ElementName=ExportAllMenuItem}"/>
                                         <MenuFlyoutItem x:Name="ExportAllMenuItem"
                                                         Command="{Binding ExportAllToCSVCommand}">
                                             <MenuFlyoutItem.Icon>
