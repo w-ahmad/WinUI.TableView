@@ -59,6 +59,11 @@ public class TableViewCell : ContentControl
     {
         base.OnTapped(e);
 
+        if (TableView.IsEditing && TableView.CurrentCellSlot == Slot)
+        {
+            return;
+        }
+
         var shiftKey = KeyBoardHelper.IsShiftKeyDown();
         var ctrlKey = KeyBoardHelper.IsCtrlKeyDown();
 
