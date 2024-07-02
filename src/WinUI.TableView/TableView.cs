@@ -70,8 +70,6 @@ public partial class TableView : ListView
 
         if (element is TableViewRow row)
         {
-            var index = IndexFromContainer(element);
-            row.SetValue(TableViewRow.IndexProperty, index);
             row.ApplyCellsSelectionState();
 
             if (CurrentCellSlot.HasValue)

@@ -148,11 +148,6 @@ public class TableViewRow : ListViewItem
         }
     }
 
-    private static void OnIndexChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        (d as TableViewRow)?.ApplyCellsSelectionState();
-    }
-
     private void OnCellSelectionChanged(object? sender, TableViewCellSelectionChangedEvenArgs e)
     {
         if (e.OldSelection.Any(x => x.Row == Index) ||
@@ -194,7 +189,7 @@ public class TableViewRow : ListViewItem
 
     internal IList<TableViewCell> Cells => _cellPresenter?.Cells ?? new List<TableViewCell>();
 
-    public int Index => (int)GetValue(IndexProperty);
+    public int Index => TableView.IndexFromContainer(this);
 
     public TableView TableView
     {
@@ -202,7 +197,6 @@ public class TableViewRow : ListViewItem
         set => SetValue(TableViewProperty, value);
     }
 
-    public static readonly DependencyProperty IndexProperty = DependencyProperty.Register(nameof(Index), typeof(int), typeof(TableViewRow), new PropertyMetadata(-1, OnIndexChanged));
     public static readonly DependencyProperty TableViewProperty = DependencyProperty.Register(nameof(TableView), typeof(TableView), typeof(TableViewRow), new PropertyMetadata(default, OnTableViewChanged));
 }
 
