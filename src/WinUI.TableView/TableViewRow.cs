@@ -1,11 +1,13 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Data;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 
 namespace WinUI.TableView;
+
 public class TableViewRow : ListViewItem
 {
     private TableViewCellPresenter? _cellPresenter;
@@ -71,13 +73,6 @@ public class TableViewRow : ListViewItem
                 RemoveCells(new[] { e.Column });
             }
         }
-        else if (e.PropertyName is nameof(TableViewColumn.ActualWidth))
-        {
-            if (Cells.FirstOrDefault(x => x.Column == e.Column) is { } cell)
-            {
-                cell.Width = e.Column.ActualWidth;
-            }
-        }
     }
 
     private void RemoveCells(IEnumerable<TableViewColumn> columns)
@@ -107,8 +102,14 @@ public class TableViewRow : ListViewItem
                     Column = column,
                     TableView = TableView!,
                     Index = TableView.Columns.VisibleColumns.IndexOf(column),
-                    Width = column.ActualWidth
                 };
+
+                cell.SetBinding(WidthProperty, new Binding
+                {
+                    Path = new PropertyPath(nameof(TableViewColumn.ActualWidth)),
+                    Source = column,
+                    Mode = BindingMode.OneWay
+                });
 
                 if (index < 0)
                 {

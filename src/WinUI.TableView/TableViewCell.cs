@@ -1,10 +1,7 @@
-﻿using CommunityToolkit.WinUI;
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
 
@@ -33,9 +30,28 @@ public class TableViewCell : ContentControl
     {
         var size = base.MeasureOverride(availableSize);
 
-        if (Column is not null)
+        if ((Content ?? ContentTemplateRoot) is FrameworkElement element)
         {
-            Column.DesiredWidth = Math.Max(Column.DesiredWidth, size.Width);
+            var contentWidth = Column.ActualWidth;
+            contentWidth -= element.Margin.Left;
+            contentWidth -= element.Margin.Right;
+            contentWidth -= Padding.Left;
+            contentWidth -= Padding.Right;
+            contentWidth -= BorderThickness.Left;
+            contentWidth -= BorderThickness.Right;
+
+            element.MaxWidth = contentWidth;
+
+            if (Column is not null)
+            {
+                var desiredWidth = element.DesiredSize.Width;
+                desiredWidth += Padding.Left;
+                desiredWidth += Padding.Right;
+                desiredWidth += BorderThickness.Left;
+                desiredWidth += BorderThickness.Right;
+
+                Column.DesiredWidth = Math.Max(Column.DesiredWidth, desiredWidth);
+            }
         }
 
         return size;
@@ -180,7 +196,7 @@ public class TableViewCell : ContentControl
 
     private static void OnColumnChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableViewCell cell && e.NewValue is TableViewColumn column)
+        if (d is TableViewCell cell)
         {
             if (cell.TableView?.IsEditing == true)
             {
