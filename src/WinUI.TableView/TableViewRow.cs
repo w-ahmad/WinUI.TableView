@@ -10,7 +10,7 @@ namespace WinUI.TableView;
 
 public class TableViewRow : ListViewItem
 {
-    private TableViewCellPresenter? _cellPresenter;
+    private TableViewCellsPresenter? _cellPresenter;
 
     public TableViewRow()
     {
@@ -27,7 +27,7 @@ public class TableViewRow : ListViewItem
 
         if (_cellPresenter is null)
         {
-            _cellPresenter = ContentTemplateRoot as TableViewCellPresenter;
+            _cellPresenter = ContentTemplateRoot as TableViewCellsPresenter;
             if (_cellPresenter is not null)
             {
                 _cellPresenter.Children.Clear();
@@ -199,14 +199,4 @@ public class TableViewRow : ListViewItem
     }
 
     public static readonly DependencyProperty TableViewProperty = DependencyProperty.Register(nameof(TableView), typeof(TableView), typeof(TableViewRow), new PropertyMetadata(default, OnTableViewChanged));
-}
-
-public class TableViewCellPresenter : StackPanel
-{
-    public TableViewCellPresenter()
-    {
-        Orientation = Orientation.Horizontal;
-    }
-
-    public IList<TableViewCell> Cells => Children.OfType<TableViewCell>().ToList().AsReadOnly();
 }
