@@ -38,7 +38,7 @@ public partial class TableView : ListView
 
         CollectionView.Filter = Filter;
         base.ItemsSource = CollectionView;
-        base.SelectionMode = ListViewSelectionMode.Extended;
+        base.SelectionMode = SelectionMode;
         RegisterPropertyChangedCallback(ItemsControl.ItemsSourceProperty, OnBaseItemsSourceChanged);
         RegisterPropertyChangedCallback(ListViewBase.SelectionModeProperty, OnBaseSelectionModeChanged);
         Loaded += OnLoaded;
@@ -875,7 +875,7 @@ public partial class TableView : ListView
             {
                 if (start == -1)
                 {
-                    start = Columns.VisibleColumns.IndexOf(column);
+                    start = end = Columns.VisibleColumns.IndexOf(column);
                 }
                 else
                 {
