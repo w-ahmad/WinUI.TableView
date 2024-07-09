@@ -1,4 +1,5 @@
 ﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 
 namespace WinUI.TableView;
 
@@ -6,12 +7,29 @@ public class TableViewTemplateColumn : TableViewColumn
 {
     public override FrameworkElement GenerateElement()
     {
-        return (FrameworkElement)CellTemplate.LoadContent();
+        var presenter = new ContentPresenter
+        {
+            ContentTemplate = CellTemplate,
+            ContentTemplateSelector = CellTemplateSelector
+        };
+
+        return presenter;
     }
 
     public override FrameworkElement GenerateEditingElement()
     {
-        return EditingTemplate is not null ? (FrameworkElement)EditingTemplate.LoadContent() : (FrameworkElement)CellTemplate.LoadContent();
+        if (EditingTemplate is not null || EditingTemplateSelector is not null)
+        {
+            var presenter = new ContentPresenter
+            {
+                ContentTemplate = EditingTemplate,
+                ContentTemplateSelector = EditingTemplateSelector
+            };
+
+            return presenter;
+        }
+
+        return GenerateElement();
     }
 
     public DataTemplate CellTemplate
@@ -20,12 +38,26 @@ public class TableViewTemplateColumn : TableViewColumn
         set => SetValue(CellTemplateProperty, value);
     }
 
+    public DataTemplateSelector CellTemplateSelector
+    {
+        get => (DataTemplateSelector)GetValue(CellTemplateSelectorProperty);
+        set => SetValue(CellTemplateSelectorProperty, value);
+    }
+
     public DataTemplate EditingTemplate
     {
         get => (DataTemplate)GetValue(EditingTemplateProperty);
         set => SetValue(EditingTemplateProperty, value);
     }
 
-    public static readonly DependencyProperty CellTemplateProperty = DependencyProperty.Register(nameof(CellTemplate), typeof(DataTemplate), typeof(TableViewTemplateColumn), new PropertyMetadata(null));
-    public static readonly DependencyProperty EditingTemplateProperty = DependencyProperty.Register(nameof(EditingTemplate), typeof(DataTemplate), typeof(TableViewTemplateColumn), new PropertyMetadata(null));
+    public DataTemplateSelector EditingTemplateSelector
+    {
+        get => (DataTemplateSelector)GetValue(EditingTemplateSelectorProperty);
+        set => SetValue(EditingTemplateSelectorProperty, value);
+    }
+
+    public static readonly DependencyProperty CellTemplateProperty = DependencyProperty.Register(nameof(CellTemplate), typeof(DataTemplate), typeof(TableViewTemplateColumn), new PropertyMetadata(default));
+    public static readonly DependencyProperty CellTemplateSelectorProperty = DependencyProperty.Register(nameof(CellTemplateSelector), typeof(DataTemplateSelector), typeof(TableViewTemplateColumn), new PropertyMetadata(default));
+    public static readonly DependencyProperty EditingTemplateProperty = DependencyProperty.Register(nameof(EditingTemplate), typeof(DataTemplate), typeof(TableViewTemplateColumn), new PropertyMetadata(default));
+    public static readonly DependencyProperty EditingTemplateSelectorProperty = DependencyProperty.Register(nameof(EditingTemplateSelector), typeof(DataTemplateSelector), typeof(TableViewTemplateColumn), new PropertyMetadata(default));
 }

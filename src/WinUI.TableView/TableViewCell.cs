@@ -155,27 +155,12 @@ public class TableViewCell : ContentControl
 
     internal void SetElement()
     {
-        if (Column is TableViewTemplateColumn templateColumn)
-        {
-            ContentTemplate = templateColumn.CellTemplate;
-        }
-        else
-        {
-            Content = Column.GenerateElement();
-        }
+        Content = Column.GenerateElement();
     }
 
     private void SetEditingElement()
     {
-        if (Column is TableViewTemplateColumn templateColumn)
-        {
-            ContentTemplate = templateColumn.EditingTemplate ?? templateColumn.CellTemplate;
-        }
-        else if (Column is not null)
-        {
-            Content = Column.GenerateEditingElement();
-        }
-
+        Content = Column.GenerateEditingElement();
         if (TableView is not null)
         {
             TableView.IsEditing = true;
