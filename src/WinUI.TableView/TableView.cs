@@ -138,7 +138,6 @@ public partial class TableView : ListView
             e.Handled = true;
         }
         else if ((e.Key is VirtualKey.Left or VirtualKey.Right or VirtualKey.Up or VirtualKey.Down)
-                 && SelectionUnit is not TableViewSelectionUnit.Row
                  && !IsEditing)
         {
             var row = CurrentCellSlot?.Row ?? 0;
@@ -639,6 +638,12 @@ public partial class TableView : ListView
 
     internal void DeselectAll()
     {
+        DeselectAllItems();
+        DeselectAllCells();
+    }
+
+    private void DeselectAllItems()
+    {
         switch (SelectionMode)
         {
             case ListViewSelectionMode.Single:
@@ -649,8 +654,6 @@ public partial class TableView : ListView
                 DeselectRange(new ItemIndexRange(0, (uint)Items.Count));
                 break;
         }
-
-        DeselectAllCells();
     }
 
     private void DeselectAllCells()
@@ -672,7 +675,15 @@ public partial class TableView : ListView
             ctrlKey = ctrlKey || SelectionMode is ListViewSelectionMode.Multiple;
             if (!ctrlKey || !(SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended))
             {
-                DeselectAll();
+                if(SelectedItems.Count > 0)
+                {
+                    DeselectAllItems();
+                }
+
+                if(SelectedCells.Count > 0)
+                {
+                    SelectedCellRanges.Clear();
+                }
             }
 
             var selectionRange = (SelectionStartCellSlot is null ? null : SelectedCellRanges.LastOrDefault(x => SelectionStartCellSlot.HasValue && x.Contains(SelectionStartCellSlot.Value))) ?? new HashSet<TableViewCellSlot>();
