@@ -396,12 +396,24 @@ public partial class TableViewColumnHeader : ContentControl
 
         if (_resizeStarted)
         {
-            var width = Math.Clamp(e.Position.X, Column.MinWidth ?? _tableView.MinColumnWidth, Column.MaxWidth ?? _tableView.MaxColumnWidth);
+            var width = e.Position.X;
+            var minWidth = Column.MinWidth ?? _tableView.MinColumnWidth;
+            var maxWidth = Column.MaxWidth ?? _tableView.MaxColumnWidth;
+
+            width = width < minWidth ? minWidth : width;
+            width = width > maxWidth ? maxWidth : width;
+
             Column.Width = new GridLength(width, GridUnitType.Pixel);
         }
         else if (_resizePreviousStarted && _headerRow?.GetPreviousHeader(this) is { Column: { } } header)
         {
-            var width = Math.Clamp(header.Column.ActualWidth + e.Position.X, header.Column.MinWidth ?? _tableView.MinColumnWidth, header.Column.MaxWidth ?? _tableView.MaxColumnWidth);
+            var minWidth = header.Column.MinWidth ?? _tableView.MinColumnWidth;
+            var maxWidth = header.Column.MaxWidth ?? _tableView.MaxColumnWidth;
+            var width = header.Column.ActualWidth + e.Position.X;
+
+            width = width < minWidth ? minWidth : width;
+            width = width > maxWidth ? maxWidth : width;
+
             header.Column.Width = new GridLength(width, GridUnitType.Pixel);
         }
     }

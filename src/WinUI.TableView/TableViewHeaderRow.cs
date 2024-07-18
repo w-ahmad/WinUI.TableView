@@ -224,7 +224,11 @@ public partial class TableViewHeaderRow : Control
                     if (column.HeaderControl is { } header)
                     {
                         var width = starUnitWidth * column.Width.Value;
-                        width = Math.Clamp(width, column.MinWidth?? TableView.MinColumnWidth, column.MaxWidth ?? TableView.MaxColumnWidth);
+                        var minWidth = column.MinWidth ?? TableView.MinColumnWidth;
+                        var maxWidth = column.MaxWidth ?? TableView.MaxColumnWidth;
+
+                        width = width < minWidth ? minWidth : width;
+                        width = width > maxWidth ? maxWidth : width;
 
                         if (width != starUnitWidth * column.Width.Value)
                         {
@@ -249,7 +253,14 @@ public partial class TableViewHeaderRow : Control
                                 ? starUnitWidth * column.Width.Value
                                 : column.Width.IsAbsolute ? column.Width.Value
                                 : Math.Max(header.DesiredSize.Width, column.DesiredWidth);
-                    header.Width = Math.Clamp(width, column.MinWidth ?? TableView.MinColumnWidth, column.MaxWidth ?? TableView.MaxColumnWidth);
+
+                    var minWidth = column.MinWidth ?? TableView.MinColumnWidth;
+                    var maxWidth = column.MaxWidth ?? TableView.MaxColumnWidth;
+
+                    width = width < minWidth ? minWidth : width;
+                    width = width > maxWidth ? maxWidth : width;
+                    header.Width = width;
+
                     header.Measure(new Size(header.Width, TableView.HeaderRowHeight));
                 }
             }
