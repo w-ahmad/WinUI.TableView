@@ -675,12 +675,12 @@ public partial class TableView : ListView
             ctrlKey = ctrlKey || SelectionMode is ListViewSelectionMode.Multiple;
             if (!ctrlKey || !(SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended))
             {
-                if(SelectedItems.Count > 0)
+                if (SelectedItems.Count > 0)
                 {
                     DeselectAllItems();
                 }
 
-                if(SelectedCells.Count > 0)
+                if (SelectedCells.Count > 0)
                 {
                     SelectedCellRanges.Clear();
                 }
@@ -748,6 +748,11 @@ public partial class TableView : ListView
 
     internal void SetCurrentCell(TableViewCellSlot? slot)
     {
+        if (slot == CurrentCellSlot)
+        {
+            return;
+        }
+
         var oldSlot = CurrentCellSlot;
         var currentCell = oldSlot.HasValue ? GetCellFromSlot(oldSlot.Value) : default;
         currentCell?.SetElement();

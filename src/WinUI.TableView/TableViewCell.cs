@@ -89,6 +89,7 @@ public class TableViewCell : ContentControl
         }
         else
         {
+            TableView.IsEditing = false;
             TableView.SelectCells(Slot, shiftKey, ctrlKey);
         }
 
