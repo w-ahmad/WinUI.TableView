@@ -656,7 +656,7 @@ public partial class TableView : ListView
         }
     }
 
-    private void DeselectAllCells()
+    void DeselectAllCells()
     {
         SelectedCellRanges.Clear();
         OnCellSelectionChanged();
@@ -760,7 +760,7 @@ public partial class TableView : ListView
         CurrentCellChanged?.Invoke(this, new TableViewCurrentCellChangedEventArgs(oldSlot, slot));
     }
 
-    private void OnCellSelectionChanged()
+    void OnCellSelectionChanged()
     {
         var oldSelection = SelectedCells;
         SelectedCells = new HashSet<TableViewCellSlot>(SelectedCellRanges.SelectMany(x => x));
@@ -823,7 +823,7 @@ public partial class TableView : ListView
         return row?.Cells.ElementAt(slot.Column)!;
     }
 
-    private async Task<TableViewRow?> ScrollRowIntoView(int index)
+    async Task<TableViewRow?> ScrollRowIntoView(int index)
     {
         var item = Items[index];
         index = Items.IndexOf(item); // if the ItemsSource has duplicate items in it. ScrollIntoView will only bring first index of item.
@@ -905,7 +905,7 @@ public partial class TableView : ListView
         return (start, end);
     }
 
-    private void UpdateBaseSelectionMode()
+    void UpdateBaseSelectionMode()
     {
         _shouldThrowSelectionModeChangedException = true;
         base.SelectionMode = SelectionUnit is TableViewSelectionUnit.Cell ? ListViewSelectionMode.None : SelectionMode;

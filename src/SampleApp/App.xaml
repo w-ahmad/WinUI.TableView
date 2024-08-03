@@ -1,16 +1,23 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Application
     x:Class="SampleApp.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:SampleApp">
+    xmlns:local="using:SampleApp"
+    RequestedTheme="Dark">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
-                <!-- Other merged dictionaries here -->
+                <!--  Other merged dictionaries here  -->
             </ResourceDictionary.MergedDictionaries>
-            <!-- Other app resources here -->
+
+            <!--  Other app resources here  -->
+            <Color x:Key="GC1">#20192E3D</Color>
+            <Color x:Key="GC2">#20335F7F</Color>
+            <Color x:Key="GC3">#204E91C4</Color>
+            <Color x:Key="GC4">#2066BCFF</Color>
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>

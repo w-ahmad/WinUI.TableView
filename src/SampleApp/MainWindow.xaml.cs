@@ -1,10 +1,12 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace SampleApp;
 
@@ -16,43 +18,123 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        this.ExtendsContentIntoTitleBar = true;
+        SetTitleBar(CustomTitleBar);
+        CreateGradientBackdrop(root, new System.Numerics.Vector2(0.9f, 1));
     }
 
-    private async void OnRootGridLoaded(object sender, RoutedEventArgs e)
+    async void OnRootGridLoaded(object sender, RoutedEventArgs e)
     {
-        var lines = await File.ReadAllLinesAsync("Assets\\mtns.csv");
-
-        foreach (var line in lines)
+        if (!File.Exists("Assets\\mtns.csv"))
         {
-            var values = line.Split(',');
-
-            _items.Add(
-                new DataGridDataItem()
-                {
-                    Rank = uint.Parse(values[0]),
-                    Mountain = values[1],
-                    Height_m = uint.Parse(values[2]),
-                    Range = values[3],
-                    Coordinates = values[4],
-                    Prominence = uint.Parse(values[5]),
-                    Parent_mountain = values[6],
-                    First_ascent = DateTimeOffset.Parse(values[7], CultureInfo.InvariantCulture.DateTimeFormat),
-                    Ascents = values[8],
-                });
-            _mountains.Add(values[1]);
+            await App.ShowDialogBox("Warning", $"The CSV data is missing from this location:{Environment.NewLine}{AppContext.BaseDirectory}", "OK", "", null, null, new Uri($"ms-appx:///Assets/Warning.png"));
+            return;
         }
 
-        tableView.ItemsSource = new ObservableCollection<DataGridDataItem>(_items);
+        #region [Load Data]
+        var lines = await File.ReadAllLinesAsync("Assets\\mtns.csv");
+        foreach (var line in lines)
+        {
+            try
+            {
+                var values = line.Split(',');
+                _items.Add(new DataGridDataItem()
+                    {
+                        Rank = uint.Parse(values[0]),
+                        Mountain = values[1],
+                        Height_m = uint.Parse(values[2]),
+                        Range = values[3],
+                        Coordinates = values[4],
+                        Prominence = uint.Parse(values[5]),
+                        Parent_mountain = values[6],
+                        First_ascent = DateTimeOffset.Parse(values[7], CultureInfo.InvariantCulture.DateTimeFormat),
+                        Ascents = values[8],
+                    });
+                _mountains.Add(values[1]);
+            }
+            catch (Exception) { }
+        }
+        #endregion
+
+        // Trying to prevent the stall on start-up by spinning this off on another thread.
+        _ = Task.Run(() =>
+        {
+            DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+            {
+                tableView.ItemsSource = null;
+                tableView.ItemsSource = new ObservableCollection<DataGridDataItem>(_items);
+            });
+        });
     }
 
-    private void OnLoadMoreButtonClick(object sender, RoutedEventArgs e)
+    void OnLoadMoreButtonClick(object sender, RoutedEventArgs e)
     {
         var collection = (ObservableCollection<DataGridDataItem>)tableView.ItemsSource;
         _items.ForEach(collection.Add);
     }
 
-    private void OnClearAndLoadButtonClick(object sender, RoutedEventArgs e)
+    void OnClearAndLoadButtonClick(object sender, RoutedEventArgs e)
     {
-        tableView.ItemsSource = new ObservableCollection<DataGridDataItem>(_items);
+        imgLogo.Opacity = 0.5d;
+        Task.Run(() => 
+        {
+            DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+            {
+                tableView.ItemsSource = null;
+                tableView.ItemsSource = new ObservableCollection<DataGridDataItem>(_items);
+                imgLogo.Opacity = 1d;
+            });
+        });
+    }
+
+    void CreateGradientBackdrop(FrameworkElement fe, System.Numerics.Vector2 endPoint)
+    {
+        // Get the FrameworkElement's compositor.
+        var compositor = ElementCompositionPreview.GetElementVisual(fe).Compositor;
+        if (compositor == null) { return; }
+        var gb = compositor.CreateLinearGradientBrush();
+
+        // Define gradient stops.
+        var gradientStops = gb.ColorStops;
+
+        // If we found our App.xaml brushes then use them.
+        if (App.Current.Resources.TryGetValue("GC1", out object clr1) &&
+            App.Current.Resources.TryGetValue("GC2", out object clr2) &&
+            App.Current.Resources.TryGetValue("GC3", out object clr3) &&
+            App.Current.Resources.TryGetValue("GC4", out object clr4))
+        {
+            gradientStops.Insert(0, compositor.CreateColorGradientStop(0.0f, (Windows.UI.Color)clr1));
+            gradientStops.Insert(1, compositor.CreateColorGradientStop(0.3f, (Windows.UI.Color)clr2));
+            gradientStops.Insert(2, compositor.CreateColorGradientStop(0.6f, (Windows.UI.Color)clr3));
+            gradientStops.Insert(3, compositor.CreateColorGradientStop(1.0f, (Windows.UI.Color)clr4));
+        }
+        else
+        {
+            gradientStops.Insert(0, compositor.CreateColorGradientStop(0.0f, Windows.UI.Color.FromArgb(55, 255, 0, 0)));   // Red
+            gradientStops.Insert(1, compositor.CreateColorGradientStop(0.3f, Windows.UI.Color.FromArgb(55, 255, 216, 0))); // Yellow
+            gradientStops.Insert(2, compositor.CreateColorGradientStop(0.6f, Windows.UI.Color.FromArgb(55, 0, 255, 0)));   // Green
+            gradientStops.Insert(3, compositor.CreateColorGradientStop(1.0f, Windows.UI.Color.FromArgb(55, 0, 0, 255)));   // Blue
+        }
+
+        // Set the direction of the gradient.
+        gb.StartPoint = new System.Numerics.Vector2(0, 0);
+        //gb.EndPoint = new System.Numerics.Vector2(1, 1);
+        gb.EndPoint = endPoint;
+
+        // Create a sprite visual and assign the gradient brush.
+        var spriteVisual = Compositor.CreateSpriteVisual();
+        spriteVisual.Brush = gb;
+
+        // Set the size of the sprite visual to cover the entire window.
+        spriteVisual.Size = new System.Numerics.Vector2((float)fe.ActualSize.X, (float)fe.ActualSize.Y);
+
+        // Handle the SizeChanged event to adjust the size of the sprite visual when the window is resized.
+        fe.SizeChanged += (s, e) =>
+        {
+            spriteVisual.Size = new System.Numerics.Vector2((float)fe.ActualWidth, (float)fe.ActualHeight);
+        };
+
+        // Set the sprite visual as the background of the FrameworkElement.
+        ElementCompositionPreview.SetElementChildVisual(fe, spriteVisual);
     }
 }
