@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,7 +16,7 @@ using Windows.UI.Popups;
 namespace SampleApp;
 
 /// <summary>
-/// https://github.com/w-ahmad/WinUI.TableView
+/// Forked from https://github.com/w-ahmad/WinUI.TableView
 /// </summary>
 public partial class App : Application
 {
@@ -446,22 +444,28 @@ public partial class App : Application
     }
 
     /// <summary>
-    /// Fetching framework version via primitive.
+    /// Returns the basic assemblies needed by the application.
     /// </summary>
-    public string ReflectPrimitive()
+    public static Dictionary<string, Version> GetReferencedAssemblies(bool addSelf = false)
     {
-        StringBuilder sb = new StringBuilder();
+        Dictionary<string, Version> values = new Dictionary<string, Version>();
         try
         {
-            Assembly info = typeof(int).Assembly;
-            var sig = info.Location;
-            string[] separators = { "\\", "/" };
-            var list = sig.Split(separators, StringSplitOptions.RemoveEmptyEntries).Skip(4);
-            sb.Append($"• ");
-            foreach (var str in list) { sb.Append($"{str} • "); }
+            var assem = Assembly.GetExecutingAssembly();
+            int idx = 0; // to prevent key collisions only
+            if (addSelf)
+                values.Add($"{++idx}: {assem.GetName().Name}", assem.GetName().Version ?? new Version()); // add self
+            IOrderedEnumerable<AssemblyName> names = assem.GetReferencedAssemblies().OrderBy(o => o.Name);
+            foreach (var sas in names)
+            {
+                values.Add($"{++idx}: {sas.Name}", sas.Version ?? new Version());
+            }
         }
-        catch (Exception) { }
-        return $"{sb}";
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[ERROR] GetReferencedAssemblies: {ex.Message}");
+        }
+        return values;
     }
 
     /// <summary>
@@ -491,31 +495,6 @@ public partial class App : Application
             Debug.WriteLine($"[ERROR] ProcessModuleCollection: {ex.Message}");
         }
         return result;
-    }
-
-    /// <summary>
-    /// Returns the basic assemblies needed by the application.
-    /// </summary>
-    public static Dictionary<string, Version> GetReferencedAssemblies(bool addSelf = false)
-    {
-        Dictionary<string, Version> values = new Dictionary<string, Version>();
-        try
-        {
-            var assem = Assembly.GetExecutingAssembly();
-            int idx = 0; // to prevent key collisions only
-            if (addSelf)
-                values.Add($"{++idx}: {assem.GetName().Name}", assem.GetName().Version ?? new Version()); // add self
-            IOrderedEnumerable<AssemblyName> names = assem.GetReferencedAssemblies().OrderBy(o => o.Name);
-            foreach (var sas in names)
-            {
-                values.Add($"{++idx}: {sas.Name}", sas.Version ?? new Version());
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[ERROR] GetReferencedAssemblies: {ex.Message}");
-        }
-        return values;
     }
     #endregion
 }

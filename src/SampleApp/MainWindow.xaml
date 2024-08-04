@@ -53,6 +53,14 @@
                 Margin="16"
                 Click="OnClearAndLoadButtonClick"
                 Content="Clear And Load" />
+            <ToggleSwitch
+                x:Name="SingleClickEditToggle"
+                Margin="16"
+                VerticalAlignment="Bottom"
+                IsOn="False"
+                OffContent="SingleClickEdit Disabled"
+                OnContent="SingleClickEdit Enabled"
+                Toggled="SingleClickEditOnToggled" />
             <Image
                 x:Name="imgLogo"
                 Width="45"
@@ -66,7 +74,11 @@
             Grid.Row="2"
             Margin="16"
             SelectionMode="Extended"
-            SingleClickEditing="True">
+            SingleClickEditing="{x:Bind SingleClickEditToggle.IsOn, Mode=OneWay}">
+            <!--
+                We could change the SingleClickEditing property to have to be set per
+                each TableViewBoundColumn type, but this is simpler for the user.
+            -->
             <table:TableView.Columns>
                 <table:TableViewTextColumn Binding="{Binding Rank}" Header="Rank" />
                 <table:TableViewComboBoxColumn

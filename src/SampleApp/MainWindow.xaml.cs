@@ -1,5 +1,3 @@
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -8,10 +6,14 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Hosting;
+
 namespace SampleApp;
 
 public sealed partial class MainWindow : Window
 {
+    static bool _loaded = false;
     private readonly List<DataGridDataItem> _items = new();
     private readonly ObservableCollection<string> _mountains = new();
 
@@ -64,6 +66,7 @@ public sealed partial class MainWindow : Window
                 tableView.ItemsSource = null;
                 tableView.ItemsSource = new ObservableCollection<DataGridDataItem>(_items);
             });
+            _loaded = true;
         });
     }
 
@@ -75,7 +78,7 @@ public sealed partial class MainWindow : Window
 
     void OnClearAndLoadButtonClick(object sender, RoutedEventArgs e)
     {
-        imgLogo.Opacity = 0.5d;
+        imgLogo.Opacity = 0.4d;
         Task.Run(() => 
         {
             DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
@@ -83,6 +86,24 @@ public sealed partial class MainWindow : Window
                 tableView.ItemsSource = null;
                 tableView.ItemsSource = new ObservableCollection<DataGridDataItem>(_items);
                 imgLogo.Opacity = 1d;
+            });
+        });
+    }
+
+    /// <summary>
+    /// We'll need to reload the <see cref="WinUI.TableView.TableViewCell"/>s to observe the toggle change.
+    /// </summary>
+    void SingleClickEditOnToggled(object sender, RoutedEventArgs e)
+    {
+        if (!_loaded)
+            return;
+
+        Task.Run(() =>
+        {
+            DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+            {
+                tableView.ItemsSource = null;
+                tableView.ItemsSource = new ObservableCollection<DataGridDataItem>(_items);
             });
         });
     }
