@@ -1,8 +1,10 @@
-﻿using Microsoft.UI.Xaml;
+﻿using System;
+using System.Threading.Tasks;
+
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using System;
-using System.Threading.Tasks;
+
 using Windows.Foundation;
 
 namespace WinUI.TableView;
@@ -16,7 +18,7 @@ namespace WinUI.TableView;
 public class TableViewCell : ContentControl
 {
     #region [My changes - Aug 3, 2024]
-    internal bool SingleClickEditing { get; set; } = false;
+    static bool SingleClickEditing { get; set; } = false;
     #endregion
 
     public TableViewCell()
