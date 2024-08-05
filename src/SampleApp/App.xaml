@@ -12,11 +12,11 @@
                 <!--  Other merged dictionaries here  -->
             </ResourceDictionary.MergedDictionaries>
 
-            <!--  Other app resources here  -->
-            <Color x:Key="GC1">#20192E3D</Color>
-            <Color x:Key="GC2">#20335F7F</Color>
-            <Color x:Key="GC3">#204E91C4</Color>
-            <Color x:Key="GC4">#2066BCFF</Color>
+            <!--  Gradient color resources  -->
+            <Color x:Key="GC1">#320C171E</Color>
+            <Color x:Key="GC2">#321D3849</Color>
+            <Color x:Key="GC3">#3224465B</Color>
+            <Color x:Key="GC4">#3233637F</Color>
 
         </ResourceDictionary>
     </Application.Resources>

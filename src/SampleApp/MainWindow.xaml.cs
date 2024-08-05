@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Hosting;
 
 namespace SampleApp;
@@ -14,8 +15,8 @@ namespace SampleApp;
 public sealed partial class MainWindow : Window
 {
     static bool _loaded = false;
-    private readonly List<DataGridDataItem> _items = new();
-    private readonly ObservableCollection<string> _mountains = new();
+    readonly List<DataGridDataItem> _items = new();
+    readonly ObservableCollection<string> _mountains = new();
 
     public MainWindow()
     {
@@ -33,7 +34,10 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        #region [Load Data]
+        if (App.AnimationsEffectsEnabled)
+            StoryboardSpinner.Begin();
+
+        #region [Load file data]
         var lines = await File.ReadAllLinesAsync("Assets\\mtns.csv");
         foreach (var line in lines)
         {
@@ -58,16 +62,7 @@ public sealed partial class MainWindow : Window
         }
         #endregion
 
-        // Trying to prevent the stall on start-up by spinning this off on another thread.
-        _ = Task.Run(() =>
-        {
-            DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
-            {
-                tableView.ItemsSource = null;
-                tableView.ItemsSource = new ObservableCollection<DataGridDataItem>(_items);
-            });
-            _loaded = true;
-        });
+        ReloadItems();
     }
 
     void OnLoadMoreButtonClick(object sender, RoutedEventArgs e)
@@ -78,16 +73,7 @@ public sealed partial class MainWindow : Window
 
     void OnClearAndLoadButtonClick(object sender, RoutedEventArgs e)
     {
-        imgLogo.Opacity = 0.4d;
-        Task.Run(() => 
-        {
-            DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
-            {
-                tableView.ItemsSource = null;
-                tableView.ItemsSource = new ObservableCollection<DataGridDataItem>(_items);
-                imgLogo.Opacity = 1d;
-            });
-        });
+        ReloadItems();
     }
 
     /// <summary>
@@ -98,13 +84,29 @@ public sealed partial class MainWindow : Window
         if (!_loaded)
             return;
 
-        Task.Run(() =>
+        ReloadItems();
+    }
+
+    void ReloadItems()
+    {
+        // Trying to prevent the stall by spinning this off on another thread.
+        Task.Run(async () =>
         {
-            DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+            await Task.Delay(20); // Allow button/toggle animation to finish.
+            DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.High, () => 
             {
-                tableView.ItemsSource = null;
-                tableView.ItemsSource = new ObservableCollection<DataGridDataItem>(_items);
+                imgSpinner.Visibility = Visibility.Visible;
             });
+        })
+        .ContinueWith((t) => 
+        { 
+            DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, async () =>
+            {
+                tableView.ItemsSource = new ObservableCollection<DataGridDataItem>(_items);
+                await Task.Delay(1500);
+                imgSpinner.Visibility = Visibility.Collapsed;
+            });
+            _loaded = true;
         });
     }
 
@@ -125,8 +127,8 @@ public sealed partial class MainWindow : Window
             App.Current.Resources.TryGetValue("GC4", out object clr4))
         {
             gradientStops.Insert(0, compositor.CreateColorGradientStop(0.0f, (Windows.UI.Color)clr1));
-            gradientStops.Insert(1, compositor.CreateColorGradientStop(0.3f, (Windows.UI.Color)clr2));
-            gradientStops.Insert(2, compositor.CreateColorGradientStop(0.6f, (Windows.UI.Color)clr3));
+            gradientStops.Insert(1, compositor.CreateColorGradientStop(0.5f, (Windows.UI.Color)clr2));
+            gradientStops.Insert(2, compositor.CreateColorGradientStop(0.75f, (Windows.UI.Color)clr3));
             gradientStops.Insert(3, compositor.CreateColorGradientStop(1.0f, (Windows.UI.Color)clr4));
         }
         else

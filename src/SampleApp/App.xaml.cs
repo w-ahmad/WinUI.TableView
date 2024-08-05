@@ -12,18 +12,46 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 using Windows.UI.Popups;
+using Windows.UI.ViewManagement;
 
 namespace SampleApp;
 
 /// <summary>
+/// I've modified the UX/UI and added the "SingleClickEdit" feature.
 /// Forked from https://github.com/w-ahmad/WinUI.TableView
 /// </summary>
 public partial class App : Application
 {
-    private Window m_window;
+    int m_width = 1300;
+    int m_height = 700;
+    Window m_window = null;
+    static UISettings m_UISettings = new UISettings();
     public static bool IsClosing { get; set; } = false;
     public static IntPtr WindowHandle { get; set; }
     public static FrameworkElement? MainRoot { get; set; }
+
+    // We won't configure backing fields for these as the user could adjust them during app lifetime.
+    public static bool TransparencyEffectsEnabled
+    {
+        get => m_UISettings.AdvancedEffectsEnabled;
+    }
+    public static bool AnimationsEffectsEnabled
+    {
+        get => m_UISettings.AnimationsEnabled;
+    }
+    public static double TextScaleFactor
+    {
+        get => m_UISettings.TextScaleFactor;
+    }
+    public static bool AutoHideScrollbars
+    {
+        get => m_UISettings.AutoHideScrollBars;
+    }
+
+    public static string TimeStamp
+    {
+        get => DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fff tt");
+    }
 
     /// <summary>
     /// Initializes the singleton application object.  This is the first line of authored code
@@ -31,7 +59,7 @@ public partial class App : Application
     /// </summary>
     public App()
     {
-        Debug.WriteLine($"[INFO] {System.Reflection.MethodBase.GetCurrentMethod()?.DeclaringType?.Name}__{System.Reflection.MethodBase.GetCurrentMethod()?.Name} [{DateTime.Now.ToString("hh:mm:ss.fff tt")}]");
+        Debug.WriteLine($"[INFO] {System.Reflection.MethodBase.GetCurrentMethod()?.DeclaringType?.Name}__{System.Reflection.MethodBase.GetCurrentMethod()?.Name} [{TimeStamp}]");
         
         App.Current.DebugSettings.FailFastOnErrors = false;
         
@@ -66,23 +94,35 @@ public partial class App : Application
             appWin.Closing += (s, e) =>
             {
                 App.IsClosing = true;
-                Debug.WriteLine($"[INFO] Application closing detected at {DateTime.Now.ToString("hh:mm:ss.fff tt")}");
+                Debug.WriteLine($"[INFO] Application closing detected at {TimeStamp}");
             };
 
             // Destroying is always called, but Closing is only called when the application is shutdown normally.
             appWin.Destroying += (s, e) =>
             {
-                Debug.WriteLine($"[INFO] Application destroying detected at {DateTime.Now.ToString("hh:mm:ss.fff tt")}");
+                Debug.WriteLine($"[INFO] Application destroying detected at {TimeStamp}");
             };
 
-            appWin?.SetIcon(System.IO.Path.Combine(AppContext.BaseDirectory, $"Assets/StoreLogoAlt.ico"));
+            // The changed event holds a bunch of juicy info that we can extrapolate.
+            appWin.Changed += (s, args) =>
+            {
+                if (args.DidSizeChange) 
+                { 
+                    Debug.WriteLine($"[INFO] Window size is now {s.Size.Width},{s.Size.Height}");
+                }
+                if (args.DidPositionChange)
+                {
+                    if (s.Presenter is Microsoft.UI.Windowing.OverlappedPresenter op && op.State != Microsoft.UI.Windowing.OverlappedPresenterState.Maximized)
+                        Debug.WriteLine($"[INFO] Window position is now {s.Position.X},{s.Position.Y}");
+                }
+            };
+            appWin.SetIcon(System.IO.Path.Combine(AppContext.BaseDirectory, $"Assets/StoreLogoAlt.ico"));
+            appWin.TitleBar.IconShowOptions = Microsoft.UI.Windowing.IconShowOptions.ShowIconAndSystemMenu;
+            appWin.Resize(new Windows.Graphics.SizeInt32(m_width, m_height));
         }
         
         m_window.Activate();
-        
-        // Save the FrameworkElement for any future content dialogs.
-        MainRoot = m_window.Content as FrameworkElement;
-
+        MainRoot = m_window.Content as FrameworkElement; // Save the FrameworkElement for any future content dialogs.
         CenterWindow(m_window);
     }
 
@@ -362,7 +402,7 @@ public partial class App : Application
         // https://docs.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.application.unhandledexception.
         Exception? ex = e.Exception;
         Debug.WriteLine($"[UnhandledException]: {ex?.Message}");
-        Debug.WriteLine($"Unhandled exception of type {ex?.GetType()}: {ex}");
+        Debug.WriteLine($"⇨ Unhandled exception of type {ex?.GetType()}: {ex}");
         DebugLog($"Unhandled Exception StackTrace: {Environment.StackTrace}");
         e.Handled = true;
     }
@@ -378,9 +418,9 @@ public partial class App : Application
         if (sender is AppDomain ad)
         {
             Debug.WriteLine($"[OnProcessExit]", $"{nameof(App)}");
-            Debug.WriteLine($"DomainID: {ad.Id}", $"{nameof(App)}");
-            Debug.WriteLine($"FriendlyName: {ad.FriendlyName}", $"{nameof(App)}");
-            Debug.WriteLine($"BaseDirectory: {ad.BaseDirectory}", $"{nameof(App)}");
+            Debug.WriteLine($"⇨ DomainID: {ad.Id}", $"{nameof(App)}");
+            Debug.WriteLine($"⇨ FriendlyName: {ad.FriendlyName}", $"{nameof(App)}");
+            Debug.WriteLine($"⇨ BaseDirectory: {ad.BaseDirectory}", $"{nameof(App)}");
         }
     }
 
@@ -389,7 +429,7 @@ public partial class App : Application
         Debug.WriteLine($"[ERROR] First chance exception from {sender?.GetType()}: {e.Exception.Message}");
         DebugLog($"First chance exception from {sender?.GetType()}: {e.Exception.Message}");
         if (e.Exception.InnerException != null)
-            DebugLog($"  ⇨ InnerException: {e.Exception.InnerException.Message}");
+            DebugLog($" - InnerException: {e.Exception.InnerException.Message}");
         DebugLog($"First chance exception StackTrace: {Environment.StackTrace}");
     }
 
@@ -435,11 +475,11 @@ public partial class App : Application
     {
         try
         {
-            System.IO.File.AppendAllText(System.IO.Path.Combine(System.AppContext.BaseDirectory, "Debug.log"), $"[{DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fff tt")}] {message}{Environment.NewLine}");
+            System.IO.File.AppendAllText(System.IO.Path.Combine(System.AppContext.BaseDirectory, "Debug.log"), $"[{TimeStamp}] {message}{Environment.NewLine}");
         }
         catch (Exception)
         {
-            Debug.WriteLine($"[{DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fff tt")}] {message}");
+            Debug.WriteLine($"[{TimeStamp}] {message}");
         }
     }
 
