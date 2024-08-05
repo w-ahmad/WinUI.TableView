@@ -284,7 +284,7 @@ public partial class TableView : ListView
         {
             slots = SelectedRanges.SelectMany(x => Enumerable.Range(x.FirstIndex, (int)x.Length))
                                   .SelectMany(r => Enumerable.Range(0, Columns.VisibleColumns.Count)
-                                                                     .Select(c => new TableViewCellSlot(r, c)))
+                                  .Select(c => new TableViewCellSlot(r, c)))
                                   .Concat(SelectedCells)
                                   .OrderBy(x => x.Row)
                                   .ThenByDescending(x => x.Column);
@@ -301,7 +301,7 @@ public partial class TableView : ListView
     {
         var slots = Enumerable.Range(0, Items.Count)
                               .SelectMany(r => Enumerable.Range(0, Columns.VisibleColumns.Count)
-                                                                 .Select(c => new TableViewCellSlot(r, c)))
+                              .Select(c => new TableViewCellSlot(r, c)))
                               .OrderBy(x => x.Row)
                               .ThenByDescending(x => x.Column);
 
@@ -515,6 +515,7 @@ public partial class TableView : ListView
 
             using var tw = new StreamWriter(stream);
             await tw.WriteAsync(content);
+            await tw.FlushAsync(); // needed?
         }
         catch { }
     }
@@ -529,7 +530,6 @@ public partial class TableView : ListView
         var savePicker = new FileSavePicker();
         InitializeWithWindow.Initialize(savePicker, hWnd);
         savePicker.FileTypeChoices.Add("CSV (Comma delimited)", new List<string>() { ".csv" });
-
         return await savePicker.PickSaveFileAsync();
     }
 
