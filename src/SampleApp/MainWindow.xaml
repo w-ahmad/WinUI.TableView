@@ -20,7 +20,7 @@
         <StackPanel Orientation="Horizontal"
                     HorizontalAlignment="Right">
             <Button Margin="16"
-                    Content="Laod More Items"
+                    Content="Load More Items"
                     Click="OnLoadMoreButtonClick" />
             <Button Margin="16"
                     Content="Clear And Load"
