@@ -836,7 +836,7 @@ public partial class TableView : ListView
             {
                 var transform = row.TransformToVisual(_scrollViewer);
                 var positionInScrollViewer = transform.TransformPoint(new Point(0, 0));
-                if ((index == 0 && _scrollViewer.VerticalOffset > 0) || (index > 0 && positionInScrollViewer.Y <= row.ActualHeight))
+                if ((index == 0 && _scrollViewer.VerticalOffset > 0) || (index > 0 && positionInScrollViewer.Y < HeaderRowHeight))
                 {
                     var xOffset = _scrollViewer.HorizontalOffset;
                     var yOffset = index == 0 ? 0d : _scrollViewer.VerticalOffset - row.ActualHeight + positionInScrollViewer.Y + 8;
