@@ -7,26 +7,26 @@ public class TableViewTemplateColumn : TableViewColumn
 {
     public override FrameworkElement GenerateElement()
     {
-        var presenter = new ContentPresenter
+        var contentControl = new ContentControl
         {
             ContentTemplate = CellTemplate,
             ContentTemplateSelector = CellTemplateSelector
         };
 
-        return presenter;
+        return contentControl;
     }
 
     public override FrameworkElement GenerateEditingElement()
     {
         if (EditingTemplate is not null || EditingTemplateSelector is not null)
         {
-            var presenter = new ContentPresenter
+            var contentControl = new ContentControl
             {
                 ContentTemplate = EditingTemplate,
                 ContentTemplateSelector = EditingTemplateSelector
             };
 
-            return presenter;
+            return contentControl;
         }
 
         return GenerateElement();

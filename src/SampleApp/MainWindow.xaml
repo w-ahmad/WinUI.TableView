@@ -48,7 +48,7 @@
                         <DataTemplate>
                             <TextBlock Text="{Binding First_ascent, Converter={StaticResource StringFormatConverter}, ConverterParameter='{}{0:MMM/dd/yyy}'}"
                                        VerticalAlignment="Center"
-                                       Margin="8,0,0,0" />
+                                       Margin="12,0" />
                         </DataTemplate>
                     </table:TableViewTemplateColumn.CellTemplate>
                     <table:TableViewTemplateColumn.EditingTemplate>

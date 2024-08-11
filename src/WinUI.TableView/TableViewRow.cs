@@ -11,6 +11,7 @@ namespace WinUI.TableView;
 public class TableViewRow : ListViewItem
 {
     private TableViewCellsPresenter? _cellPresenter;
+    private bool _ensureCells = true;
 
     public TableViewRow()
     {
@@ -20,20 +21,36 @@ public class TableViewRow : ListViewItem
 
     protected override void OnContentChanged(object oldContent, object newContent)
     {
+        base.OnContentChanged(oldContent, newContent);
+
+        if (_ensureCells)
+        {
+            EnsureCells();
+        }
+        else
+        {
+            foreach (var cell in Cells)
+            {
+                cell.SetElement();
+            }
+        }
+    }
+
+    private void EnsureCells()
+    {
         if (TableView is null)
         {
             return;
         }
 
-        if (_cellPresenter is null)
+        _cellPresenter = ContentTemplateRoot as TableViewCellsPresenter;
+        if (_cellPresenter is not null)
         {
-            _cellPresenter = ContentTemplateRoot as TableViewCellsPresenter;
-            if (_cellPresenter is not null)
-            {
-                _cellPresenter.Children.Clear();
-                AddCells(TableView.Columns.VisibleColumns);
-            }
+            _cellPresenter.Children.Clear();
+            AddCells(TableView.Columns.VisibleColumns);
         }
+
+        _ensureCells = false;
     }
 
     private async void OnSizeChanged(object sender, SizeChangedEventArgs e)

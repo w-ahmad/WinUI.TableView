@@ -15,6 +15,8 @@ namespace WinUI.TableView;
 [TemplateVisualState(Name = VisualStates.StateUnselected, GroupName = VisualStates.GroupSelection)]
 public class TableViewCell : ContentControl
 {
+    private ContentPresenter? _contentPresenter;
+
     public TableViewCell()
     {
         DefaultStyleKey = typeof(TableViewCell);
@@ -23,15 +25,30 @@ public class TableViewCell : ContentControl
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
+        InvalidateMeasure();
         ApplySelectionState();
     }
 
     protected override Size MeasureOverride(Size availableSize)
     {
-        var size = base.MeasureOverride(availableSize);
-
         if ((Content ?? ContentTemplateRoot) is FrameworkElement element)
         {
+            #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860
+            if (Column is TableViewTemplateColumn)
+            {
+                if (element is ContentControl contentControl &&
+                   (contentControl.Content ?? contentControl.ContentTemplateRoot) is FrameworkElement contentElement)
+                {
+                    element = contentElement;
+                }
+                else
+                {
+                    return base.MeasureOverride(availableSize);
+                }
+            }
+
+            _contentPresenter ??= (ContentPresenter)GetTemplateChild("Content");
+
             var contentWidth = Column.ActualWidth;
             contentWidth -= element.Margin.Left;
             contentWidth -= element.Margin.Right;
@@ -40,7 +57,9 @@ public class TableViewCell : ContentControl
             contentWidth -= BorderThickness.Left;
             contentWidth -= BorderThickness.Right;
 
-            element.MaxWidth = contentWidth;
+            element.MaxWidth = double.PositiveInfinity;
+            #endregion
+            element.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
 
             if (Column is not null)
             {
@@ -52,9 +71,21 @@ public class TableViewCell : ContentControl
 
                 Column.DesiredWidth = Math.Max(Column.DesiredWidth, desiredWidth);
             }
+
+            #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860
+            if (contentWidth < 0)
+            {
+                _contentPresenter.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                element.MaxWidth = contentWidth;
+                _contentPresenter.Visibility = Visibility.Visible;
+            }
+            #endregion
         }
 
-        return size;
+        return base.MeasureOverride(availableSize);
     }
 
     protected override void OnPointerEntered(PointerRoutedEventArgs e)
