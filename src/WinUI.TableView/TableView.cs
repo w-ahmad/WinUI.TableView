@@ -418,19 +418,25 @@ public partial class TableView : ListView
 
     private static TableViewBoundColumn GetTableViewColumnFromType(Type type)
     {
-        if (type == typeof(bool) || type == typeof(bool?))
+        switch (Type.GetTypeCode(type))
         {
-            return new TableViewCheckBoxColumn();
+            case TypeCode.Byte:
+            case TypeCode.SByte:
+            case TypeCode.UInt16:
+            case TypeCode.UInt32:
+            case TypeCode.UInt64:
+            case TypeCode.Int16:
+            case TypeCode.Int32:
+            case TypeCode.Int64:
+            case TypeCode.Single:
+            case TypeCode.Double:
+            case TypeCode.Decimal:
+                return new TableViewNumberColumn();
+            case TypeCode.Boolean:
+                return new TableViewCheckBoxColumn();
+            default:
+                return new TableViewTextColumn();
         }
-        else if (type == typeof(int) || type == typeof(int?) ||
-                 type == typeof(double) || type == typeof(double?) ||
-                 type == typeof(float) || type == typeof(float?) ||
-                 type == typeof(decimal) || type == typeof(decimal?))
-        {
-            return new TableViewNumberColumn();
-        }
-
-        return new TableViewTextColumn();
     }
 
     private void OnItemsSourceChanged(DependencyPropertyChangedEventArgs e)
