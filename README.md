@@ -182,4 +182,4 @@ Contributions are welcome from the community! If you find any issues or have sug
 
 ## License
 
-This project is licensed under the [MIT License](https://github.com/w-ahmad/WinUI.TableView?tab=readme-ov-file#).
+This project is licensed under the [MIT License](https://github.com/w-ahmad/WinUI.TableView?tab=MIT-1-ov-file).
