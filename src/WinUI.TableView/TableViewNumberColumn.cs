@@ -11,6 +11,7 @@ public class TableViewNumberColumn : TableViewBoundColumn
         {
             Margin = new Thickness(12, 0, 12, 0),
         };
+        textBlock.SetBinding(TextBlock.TextProperty, Binding);
 
         return textBlock;
     }
