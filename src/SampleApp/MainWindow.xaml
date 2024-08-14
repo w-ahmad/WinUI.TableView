@@ -30,7 +30,7 @@
         <table:TableView x:Name="tableView"
                          Grid.Row="1"
                          Margin="16"
-                         SelectionMode="Extended">
+                         ShowExportOptions="True">
             <table:TableView.Columns>
                 <table:TableViewTextColumn Header="Rank"
                                            Binding="{Binding Rank}" />

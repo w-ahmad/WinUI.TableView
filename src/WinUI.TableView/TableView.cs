@@ -315,8 +315,6 @@ public partial class TableView : ListView
             return string.Empty;
         }
 
-        var minRow = slots.Select(x => x.Row).Min();
-        var maxRow = slots.Select(x => x.Row).Max();
         var minColumn = slots.Select(x => x.Column).Min();
         var maxColumn = slots.Select(x => x.Column).Max();
 
@@ -328,7 +326,7 @@ public partial class TableView : ListView
             stringBuilder.AppendLine(GetHeadersContent(separator, minColumn, maxColumn));
         }
 
-        for (var row = minRow; row <= maxRow; row++)
+        foreach(var row in slots.Select(x => x.Row).Distinct())
         {
             var item = Items[row];
             var type = ItemsSource?.GetType() is { } listType && listType.IsGenericType ? listType.GetGenericArguments()[0] : item?.GetType();
@@ -338,7 +336,7 @@ public partial class TableView : ListView
                 if (Columns.VisibleColumns[col] is not TableViewBoundColumn column ||
                    !slots.Contains(new TableViewCellSlot(row, col)))
                 {
-                    stringBuilder.Append('\t');
+                    stringBuilder.Append(separator);
                     continue;
                 }
 
