@@ -29,7 +29,7 @@ namespace WinUI.TableView;
 public partial class TableView : ListView
 {
     private TableViewHeaderRow? _headerRow;
-    private ScrollViewer _scrollViewer = null!;
+    private ScrollViewer? _scrollViewer;
     private bool _shouldThrowSelectionModeChangedException;
 
     public TableView()
@@ -179,34 +179,25 @@ public partial class TableView : ListView
         return false;
     }
 
-    protected override void OnApplyTemplate()
+    protected async override void OnApplyTemplate()
     {
         base.OnApplyTemplate();
 
         _headerRow = GetTemplateChild("HeaderRow") as TableViewHeaderRow;
+        _scrollViewer = GetTemplateChild("ScrollViewer") as ScrollViewer;
+
+        if (IsLoaded)
+    {
+            while (ItemsPanelRoot is null) await Task.Delay(1);
+
+            ApplyItemsClip();
+            UpdateVerticalScrollBarMargin();
+        }
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        if (GetTemplateChild("ScrollViewer") is not ScrollViewer scrollViewer)
-        {
-            return;
-        }
-
-        _scrollViewer = scrollViewer;
-        Canvas.SetZIndex(ItemsPanelRoot, -1);
-
-        var scrollProperties = ElementCompositionPreview.GetScrollViewerManipulationPropertySet(scrollViewer);
-        var compositor = scrollProperties.Compositor;
-        var scrollPropSet = scrollProperties.GetSpecializedReference<ManipulationPropertySetReferenceNode>();
-        var itemsPanelVisual = ElementCompositionPreview.GetElementVisual(ItemsPanelRoot);
-        var contentClip = compositor.CreateInsetClip();
-        var expressionClipAnimation = ExpressionFunctions.Max(-scrollPropSet.Translation.Y, 0);
-
-        itemsPanelVisual.Clip = contentClip;
-        contentClip.TopInset = (float)Math.Max(-scrollViewer.VerticalOffset, 0);
-        contentClip.StartAnimation("TopInset", expressionClipAnimation);
-
+        ApplyItemsClip();
         UpdateVerticalScrollBarMargin();
     }
 
@@ -326,7 +317,7 @@ public partial class TableView : ListView
             stringBuilder.AppendLine(GetHeadersContent(separator, minColumn, maxColumn));
         }
 
-        foreach(var row in slots.Select(x => x.Row).Distinct())
+        foreach (var row in slots.Select(x => x.Row).Distinct())
         {
             var item = Items[row];
             var type = ItemsSource?.GetType() is { } listType && listType.IsGenericType ? listType.GetGenericArguments()[0] : item?.GetType();
@@ -535,6 +526,24 @@ public partial class TableView : ListView
         savePicker.FileTypeChoices.Add("CSV (Comma delimited)", new List<string>() { ".csv" });
 
         return await savePicker.PickSaveFileAsync();
+    }
+
+    private void ApplyItemsClip()
+    {
+        if (_scrollViewer is null || ItemsPanelRoot is null) return;
+
+        Canvas.SetZIndex(ItemsPanelRoot, -1);
+
+        var scrollProperties = ElementCompositionPreview.GetScrollViewerManipulationPropertySet(_scrollViewer);
+        var compositor = scrollProperties.Compositor;
+        var scrollPropSet = scrollProperties.GetSpecializedReference<ManipulationPropertySetReferenceNode>();
+        var itemsPanelVisual = ElementCompositionPreview.GetElementVisual(ItemsPanelRoot);
+        var contentClip = compositor.CreateInsetClip();
+        var expressionClipAnimation = ExpressionFunctions.Max(-scrollPropSet.Translation.Y, 0);
+
+        itemsPanelVisual.Clip = contentClip;
+        contentClip.TopInset = (float)Math.Max(-_scrollViewer.VerticalOffset, 0);
+        contentClip.StartAnimation("TopInset", expressionClipAnimation);
     }
 
     private void UpdateVerticalScrollBarMargin()
@@ -773,6 +782,8 @@ public partial class TableView : ListView
 
     internal async Task<TableViewCell> ScrollCellIntoView(TableViewCellSlot slot)
     {
+        if (_scrollViewer is null) return default!;
+
         var row = await ScrollRowIntoView(slot.Row);
         var (start, end) = GetColumnsInDisplay();
         var xOffset = 0d;
@@ -829,6 +840,8 @@ public partial class TableView : ListView
 
     private async Task<TableViewRow?> ScrollRowIntoView(int index)
     {
+        if (_scrollViewer is null) return default!;
+
         var item = Items[index];
         index = Items.IndexOf(item); // if the ItemsSource has duplicate items in it. ScrollIntoView will only bring first index of item.
         ScrollIntoView(item);
@@ -886,6 +899,8 @@ public partial class TableView : ListView
 
     private (int start, int end) GetColumnsInDisplay()
     {
+        if (_scrollViewer is null) return default!;
+
         var start = -1;
         var end = -1;
         var width = 0d;
