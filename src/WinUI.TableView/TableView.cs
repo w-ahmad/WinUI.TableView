@@ -26,11 +26,19 @@ using WinRT.Interop;
 using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView;
+
 public partial class TableView : ListView
 {
     private TableViewHeaderRow? _headerRow;
-    private ScrollViewer _scrollViewer = null!;
+    private ScrollViewer? _scrollViewer;
     private bool _shouldThrowSelectionModeChangedException;
+
+    internal event EventHandler<TableViewCellSelectionChangedEvenArgs>? SelectedCellsChanged;
+    internal event EventHandler<TableViewCurrentCellChangedEventArgs>? CurrentCellChanged;
+    public event EventHandler<TableViewAutoGeneratingColumnEventArgs>? AutoGeneratingColumn;
+    public event EventHandler<TableViewExportContentEventArgs>? ExportAllContent;
+    public event EventHandler<TableViewExportContentEventArgs>? ExportSelectedContent;
+    public event EventHandler<TableViewCopyToClipboardEventArgs>? CopyToClipboard;
 
     public TableView()
     {
@@ -45,7 +53,7 @@ public partial class TableView : ListView
         SelectionChanged += TableView_SelectionChanged;
     }
 
-    private void TableView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    void TableView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!KeyBoardHelper.IsCtrlKeyDown())
         {
@@ -137,7 +145,8 @@ public partial class TableView : ListView
 
             e.Handled = true;
         }
-        else if ((e.Key is VirtualKey.Left or VirtualKey.Right or VirtualKey.Up or VirtualKey.Down) && !IsEditing)
+        else if ((e.Key is VirtualKey.Left or VirtualKey.Right or VirtualKey.Up or VirtualKey.Down)
+                 && !IsEditing)
         {
             var row = CurrentCellSlot?.Row ?? 0;
             var column = CurrentCellSlot?.Column ?? 0;
@@ -157,7 +166,43 @@ public partial class TableView : ListView
         }
     }
 
-    private bool HandleShortKeys(bool shiftKey, bool ctrlKey, VirtualKey key)
+    protected virtual void OnCopyToClipboard(TableViewCopyToClipboardEventArgs args)
+    {
+        CopyToClipboard?.Invoke(this, args);
+    }
+
+    protected virtual void OnAutoGeneratingColumn(TableViewAutoGeneratingColumnEventArgs e)
+    {
+        AutoGeneratingColumn?.Invoke(this, e);
+    }
+
+    protected virtual void OnExportSelectedContent(TableViewExportContentEventArgs args)
+    {
+        ExportSelectedContent?.Invoke(this, args);
+    }
+
+    protected async override void OnApplyTemplate()
+    {
+        base.OnApplyTemplate();
+
+        _headerRow = GetTemplateChild("HeaderRow") as TableViewHeaderRow;
+        _scrollViewer = GetTemplateChild("ScrollViewer") as ScrollViewer;
+
+        if (IsLoaded)
+    {
+            while (ItemsPanelRoot is null) await Task.Delay(1);
+
+            ApplyItemsClip();
+            UpdateVerticalScrollBarMargin();
+        }
+    }
+
+    protected virtual void OnExportAllContent(TableViewExportContentEventArgs args)
+    {
+        ExportAllContent?.Invoke(this, args);
+    }
+
+    bool HandleShortKeys(bool shiftKey, bool ctrlKey, VirtualKey key)
     {
         if (key == VirtualKey.A && ctrlKey && !shiftKey)
         {
@@ -178,38 +223,13 @@ public partial class TableView : ListView
         return false;
     }
 
-    protected override void OnApplyTemplate()
+    void OnLoaded(object sender, RoutedEventArgs e)
     {
-        base.OnApplyTemplate();
-
-        _headerRow = GetTemplateChild("HeaderRow") as TableViewHeaderRow;
-    }
-
-    private void OnLoaded(object sender, RoutedEventArgs e)
-    {
-        if (GetTemplateChild("ScrollViewer") is not ScrollViewer scrollViewer)
-        {
-            return;
-        }
-
-        _scrollViewer = scrollViewer;
-        Canvas.SetZIndex(ItemsPanelRoot, -1);
-
-        var scrollProperties = ElementCompositionPreview.GetScrollViewerManipulationPropertySet(scrollViewer);
-        var compositor = scrollProperties.Compositor;
-        var scrollPropSet = scrollProperties.GetSpecializedReference<ManipulationPropertySetReferenceNode>();
-        var itemsPanelVisual = ElementCompositionPreview.GetElementVisual(ItemsPanelRoot);
-        var contentClip = compositor.CreateInsetClip();
-        var expressionClipAnimation = ExpressionFunctions.Max(-scrollPropSet.Translation.Y, 0);
-
-        itemsPanelVisual.Clip = contentClip;
-        contentClip.TopInset = (float)Math.Max(-scrollViewer.VerticalOffset, 0);
-        contentClip.StartAnimation("TopInset", expressionClipAnimation);
-
+        ApplyItemsClip();
         UpdateVerticalScrollBarMargin();
     }
 
-    private TableViewCellSlot GetNextSlot(TableViewCellSlot? currentSlot, bool isShiftKeyDown, bool isEnterKey)
+    TableViewCellSlot GetNextSlot(TableViewCellSlot? currentSlot, bool isShiftKeyDown, bool isEnterKey)
     {
         var rows = Items.Count;
         var columns = Columns.VisibleColumns.Count;
@@ -250,7 +270,7 @@ public partial class TableView : ListView
         return new TableViewCellSlot(nextRow, nextColumn);
     }
 
-    private bool Filter(object obj)
+    bool Filter(object obj)
     {
         return ActiveFilters.All(item => item.Value(obj));
     }
@@ -270,11 +290,6 @@ public partial class TableView : ListView
         Clipboard.SetContent(package);
     }
 
-    protected virtual void OnCopyToClipboard(TableViewCopyToClipboardEventArgs args)
-    {
-        CopyToClipboard?.Invoke(this, args);
-    }
-
     public string GetSelectedContent(bool includeHeaders, char separator = '\t')
     {
         var slots = Enumerable.Empty<TableViewCellSlot>();
@@ -283,7 +298,7 @@ public partial class TableView : ListView
         {
             slots = SelectedRanges.SelectMany(x => Enumerable.Range(x.FirstIndex, (int)x.Length))
                                   .SelectMany(r => Enumerable.Range(0, Columns.VisibleColumns.Count)
-                                  .Select(c => new TableViewCellSlot(r, c)))
+                                                                     .Select(c => new TableViewCellSlot(r, c)))
                                   .Concat(SelectedCells)
                                   .OrderBy(x => x.Row)
                                   .ThenByDescending(x => x.Column);
@@ -300,14 +315,14 @@ public partial class TableView : ListView
     {
         var slots = Enumerable.Range(0, Items.Count)
                               .SelectMany(r => Enumerable.Range(0, Columns.VisibleColumns.Count)
-                              .Select(c => new TableViewCellSlot(r, c)))
+                                                                 .Select(c => new TableViewCellSlot(r, c)))
                               .OrderBy(x => x.Row)
                               .ThenByDescending(x => x.Column);
 
         return GetCellsContent(slots, includeHeaders, separator);
     }
 
-    private string GetCellsContent(IEnumerable<TableViewCellSlot> slots, bool includeHeaders, char separator)
+    string GetCellsContent(IEnumerable<TableViewCellSlot> slots, bool includeHeaders, char separator)
     {
         if (!slots.Any())
         {
@@ -358,7 +373,7 @@ public partial class TableView : ListView
         return stringBuilder.ToString();
     }
 
-    private string GetHeadersContent(char separator, int minColumn, int maxColumn)
+    string GetHeadersContent(char separator, int minColumn, int maxColumn)
     {
         var stringBuilder = new StringBuilder();
         for (var col = minColumn; col <= maxColumn; col++)
@@ -370,7 +385,7 @@ public partial class TableView : ListView
         return stringBuilder.ToString();
     }
 
-    private void GenerateColumns()
+    void GenerateColumns()
     {
         var itemsSourceType = ItemsSource?.GetType();
         if (itemsSourceType?.IsGenericType == true)
@@ -380,10 +395,7 @@ public partial class TableView : ListView
             {
                 var displayAttribute = propertyInfo.GetCustomAttributes().OfType<DisplayAttribute>().FirstOrDefault();
                 var autoGenerateField = displayAttribute?.GetAutoGenerateField();
-                if (autoGenerateField == false)
-                {
-                    continue;
-                }
+                if (autoGenerateField == false) { continue; }
 
                 var header = displayAttribute?.GetShortName() ?? propertyInfo.Name;
                 var canFilter = displayAttribute?.GetAutoGenerateFilter() ?? true;
@@ -398,7 +410,7 @@ public partial class TableView : ListView
         }
     }
 
-    private static TableViewAutoGeneratingColumnEventArgs GenerateColumn(Type propertyType, string propertyName, string header, bool canFilter)
+    static TableViewAutoGeneratingColumnEventArgs GenerateColumn(Type propertyType, string propertyName, string header, bool canFilter)
     {
         var newColumn = GetTableViewColumnFromType(propertyType);
         newColumn.Header = header;
@@ -408,29 +420,30 @@ public partial class TableView : ListView
         return new TableViewAutoGeneratingColumnEventArgs(propertyName, propertyType, newColumn);
     }
 
-    protected virtual void OnAutoGeneratingColumn(TableViewAutoGeneratingColumnEventArgs e)
+    static TableViewBoundColumn GetTableViewColumnFromType(Type type)
     {
-        AutoGeneratingColumn?.Invoke(this, e);
+        switch (Type.GetTypeCode(type))
+        {
+            case TypeCode.Byte:
+            case TypeCode.SByte:
+            case TypeCode.UInt16:
+            case TypeCode.UInt32:
+            case TypeCode.UInt64:
+            case TypeCode.Int16:
+            case TypeCode.Int32:
+            case TypeCode.Int64:
+            case TypeCode.Single:
+            case TypeCode.Double:
+            case TypeCode.Decimal:
+                return new TableViewNumberColumn();
+            case TypeCode.Boolean:
+                return new TableViewCheckBoxColumn();
+            default:
+                return new TableViewTextColumn();
+        }
     }
 
-    private static TableViewBoundColumn GetTableViewColumnFromType(Type type)
-    {
-        if (type == typeof(bool) || type == typeof(bool?))
-        {
-            return new TableViewCheckBoxColumn();
-        }
-        else if (type == typeof(int) || type == typeof(int?) ||
-                 type == typeof(double) || type == typeof(double?) ||
-                 type == typeof(float) || type == typeof(float?) ||
-                 type == typeof(decimal) || type == typeof(decimal?))
-        {
-            return new TableViewNumberColumn();
-        }
-
-        return new TableViewTextColumn();
-    }
-
-    private void OnItemsSourceChanged(DependencyPropertyChangedEventArgs e)
+    void OnItemsSourceChanged(DependencyPropertyChangedEventArgs e)
     {
         ((AdvancedCollectionView)CollectionView).Source = null!;
 
@@ -446,7 +459,7 @@ public partial class TableView : ListView
         }
     }
 
-    private void RemoveAutoGeneratedColumns()
+    void RemoveAutoGeneratedColumns()
     {
         while (Columns.Any(x => x.IsAutoGenerated))
         {
@@ -483,11 +496,6 @@ public partial class TableView : ListView
         catch { }
     }
 
-    protected virtual void OnExportSelectedContent(TableViewExportContentEventArgs args)
-    {
-        ExportSelectedContent?.Invoke(this, args);
-    }
-
     internal async void ExportAllToCSV()
     {
         var args = new TableViewExportContentEventArgs();
@@ -512,25 +520,38 @@ public partial class TableView : ListView
 
             using var tw = new StreamWriter(stream);
             await tw.WriteAsync(content);
-            await tw.FlushAsync(); // needed?
         }
         catch { }
     }
 
-    protected virtual void OnExportAllContent(TableViewExportContentEventArgs args)
-    {
-        ExportAllContent?.Invoke(this, args);
-    }
-
-    private static async Task<StorageFile> GetStorageFile(IntPtr hWnd)
+    static async Task<StorageFile> GetStorageFile(IntPtr hWnd)
     {
         var savePicker = new FileSavePicker();
         InitializeWithWindow.Initialize(savePicker, hWnd);
         savePicker.FileTypeChoices.Add("CSV (Comma delimited)", new List<string>() { ".csv" });
+
         return await savePicker.PickSaveFileAsync();
     }
 
-    private void UpdateVerticalScrollBarMargin()
+    void ApplyItemsClip()
+    {
+        if (_scrollViewer is null || ItemsPanelRoot is null) return;
+
+        Canvas.SetZIndex(ItemsPanelRoot, -1);
+
+        var scrollProperties = ElementCompositionPreview.GetScrollViewerManipulationPropertySet(_scrollViewer);
+        var compositor = scrollProperties.Compositor;
+        var scrollPropSet = scrollProperties.GetSpecializedReference<ManipulationPropertySetReferenceNode>();
+        var itemsPanelVisual = ElementCompositionPreview.GetElementVisual(ItemsPanelRoot);
+        var contentClip = compositor.CreateInsetClip();
+        var expressionClipAnimation = ExpressionFunctions.Max(-scrollPropSet.Translation.Y, 0);
+
+        itemsPanelVisual.Clip = contentClip;
+        contentClip.TopInset = (float)Math.Max(-_scrollViewer.VerticalOffset, 0);
+        contentClip.StartAnimation("TopInset", expressionClipAnimation);
+    }
+
+    void UpdateVerticalScrollBarMargin()
     {
         if (GetTemplateChild("ScrollViewer") is ScrollViewer scrollViewer)
         {
@@ -571,7 +592,7 @@ public partial class TableView : ListView
         }
     }
 
-    private bool IsValidSlot(TableViewCellSlot slot)
+    bool IsValidSlot(TableViewCellSlot slot)
     {
         return slot.Row >= 0 && slot.Column >= 0 && slot.Row < Items.Count && slot.Column < Columns.VisibleColumns.Count;
     }
@@ -603,7 +624,7 @@ public partial class TableView : ListView
         }
     }
 
-    private void SelectAllCells()
+    void SelectAllCells()
     {
         switch (SelectionMode)
         {
@@ -639,7 +660,7 @@ public partial class TableView : ListView
         DeselectAllCells();
     }
 
-    private void DeselectAllItems()
+    void DeselectAllItems()
     {
         switch (SelectionMode)
         {
@@ -766,6 +787,8 @@ public partial class TableView : ListView
 
     internal async Task<TableViewCell> ScrollCellIntoView(TableViewCellSlot slot)
     {
+        if (_scrollViewer is null) return default!;
+
         var row = await ScrollRowIntoView(slot.Row);
         var (start, end) = GetColumnsInDisplay();
         var xOffset = 0d;
@@ -822,6 +845,8 @@ public partial class TableView : ListView
 
     async Task<TableViewRow?> ScrollRowIntoView(int index)
     {
+        if (_scrollViewer is null) return default!;
+
         var item = Items[index];
         index = Items.IndexOf(item); // if the ItemsSource has duplicate items in it. ScrollIntoView will only bring first index of item.
         ScrollIntoView(item);
@@ -833,7 +858,7 @@ public partial class TableView : ListView
             {
                 var transform = row.TransformToVisual(_scrollViewer);
                 var positionInScrollViewer = transform.TransformPoint(new Point(0, 0));
-                if ((index == 0 && _scrollViewer.VerticalOffset > 0) || (index > 0 && positionInScrollViewer.Y <= row.ActualHeight))
+                if ((index == 0 && _scrollViewer.VerticalOffset > 0) || (index > 0 && positionInScrollViewer.Y < HeaderRowHeight))
                 {
                     var xOffset = _scrollViewer.HorizontalOffset;
                     var yOffset = index == 0 ? 0d : _scrollViewer.VerticalOffset - row.ActualHeight + positionInScrollViewer.Y + 8;
@@ -877,8 +902,10 @@ public partial class TableView : ListView
         return ContainerFromIndex(slot.Row) is TableViewRow row ? row.Cells[slot.Column] : default!;
     }
 
-    private (int start, int end) GetColumnsInDisplay()
+    (int start, int end) GetColumnsInDisplay()
     {
+        if (_scrollViewer is null) return default!;
+
         var start = -1;
         var end = -1;
         var width = 0d;
@@ -908,11 +935,4 @@ public partial class TableView : ListView
         base.SelectionMode = SelectionUnit is TableViewSelectionUnit.Cell ? ListViewSelectionMode.None : SelectionMode;
         _shouldThrowSelectionModeChangedException = false;
     }
-
-    public event EventHandler<TableViewAutoGeneratingColumnEventArgs>? AutoGeneratingColumn;
-    public event EventHandler<TableViewExportContentEventArgs>? ExportAllContent;
-    public event EventHandler<TableViewExportContentEventArgs>? ExportSelectedContent;
-    public event EventHandler<TableViewCopyToClipboardEventArgs>? CopyToClipboard;
-    internal event EventHandler<TableViewCellSelectionChangedEvenArgs>? SelectedCellsChanged;
-    internal event EventHandler<TableViewCurrentCellChangedEventArgs>? CurrentCellChanged;
 }
