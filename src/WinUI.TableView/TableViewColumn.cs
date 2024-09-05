@@ -13,7 +13,7 @@ public abstract class TableViewColumn : DependencyObject
     public abstract FrameworkElement GenerateElement();
     public abstract FrameworkElement GenerateEditingElement();
 
-    internal void SetOwingCollection(TableViewColumnsCollection collection)
+    internal void SetOwningCollection(TableViewColumnsCollection collection)
     {
         _owningCollection = collection;
     }

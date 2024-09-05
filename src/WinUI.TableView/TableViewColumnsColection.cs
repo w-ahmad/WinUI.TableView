@@ -20,7 +20,7 @@ public class TableViewColumnsCollection : ObservableCollection<TableViewColumn>
         {
             foreach (var column in e.NewItems.OfType<TableViewColumn>())
             {
-                column.SetOwingCollection(this);
+                column.SetOwningCollection(this);
             }
         }
 
@@ -28,7 +28,7 @@ public class TableViewColumnsCollection : ObservableCollection<TableViewColumn>
         {
             foreach (var column in e.OldItems.OfType<TableViewColumn>())
             {
-                column.SetOwingCollection(null!);
+                column.SetOwningCollection(null!);
             }
         }
     }
