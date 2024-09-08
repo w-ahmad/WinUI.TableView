@@ -11,11 +11,12 @@ public class TableViewToggleSwitchColumn : TableViewBoundColumn
         {
             OnContent = OnContent,
             OffContent = OffContent,
-            IsEnabled = !IsReadOnly,
+            UseSystemFocusVisuals = false,
             Margin = new Thickness(12, 0, 12, 0)
         };
 
         toggleSwitch.SetBinding(ToggleSwitch.IsOnProperty, Binding);
+        UpdateToggleButtonState(toggleSwitch);
 
         return toggleSwitch;
     }
@@ -23,6 +24,19 @@ public class TableViewToggleSwitchColumn : TableViewBoundColumn
     public override FrameworkElement GenerateEditingElement()
     {
         return GenerateElement();
+    }
+
+    public override void UpdateElementState(TableViewCell cell)
+    {
+        if (cell?.Content is ToggleSwitch toggleSwitch)
+        {
+            UpdateToggleButtonState(toggleSwitch);
+        }
+    }
+
+    private void UpdateToggleButtonState(ToggleSwitch toggleSwitch)
+    {
+        toggleSwitch.IsHitTestVisible = TableView?.IsReadOnly is false && !IsReadOnly;
     }
 
     public object OnContent

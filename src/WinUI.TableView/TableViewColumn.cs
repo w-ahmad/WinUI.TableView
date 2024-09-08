@@ -6,16 +6,23 @@ namespace WinUI.TableView;
 [StyleTypedProperty(Property = nameof(HeaderStyle), StyleTargetType = typeof(TableViewColumnHeader))]
 public abstract class TableViewColumn : DependencyObject
 {
+    protected TableView? TableView { get; private set; }
     private TableViewColumnsCollection? _owningCollection;
     private TableViewColumnHeader? _headerControl;
     private double _desiredWidth;
 
     public abstract FrameworkElement GenerateElement();
     public abstract FrameworkElement GenerateEditingElement();
+    public virtual void UpdateElementState(TableViewCell cell) { }
 
     internal void SetOwningCollection(TableViewColumnsCollection collection)
     {
         _owningCollection = collection;
+    }
+
+    internal void SetOwningTableView(TableView tableView)
+    {
+        TableView = tableView;
     }
 
     public object Header
@@ -138,6 +145,14 @@ public abstract class TableViewColumn : DependencyObject
         }
     }
 
+    private static void OnIsReadOnlyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableViewColumn column && column._owningCollection is { })
+        {
+            column._owningCollection.HandleColumnPropertyChanged(column, nameof(IsReadOnly));
+        }
+    }
+
     private static void OnVisibilityChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is TableViewColumn column && column._owningCollection is { })
@@ -153,6 +168,6 @@ public abstract class TableViewColumn : DependencyObject
     public static readonly DependencyProperty MaxWidthProperty = DependencyProperty.Register(nameof(MaxWidth), typeof(double?), typeof(TableViewColumn), new PropertyMetadata(default, OnMaxWidthChanged));
     public static readonly DependencyProperty ActualWidthProperty = DependencyProperty.Register(nameof(ActualWidth), typeof(double), typeof(TableViewColumn), new PropertyMetadata(0d, OnActualWidthChanged));
     public static readonly DependencyProperty CanResizeProperty = DependencyProperty.Register(nameof(CanResize), typeof(bool), typeof(TableViewColumn), new PropertyMetadata(true));
-    public static readonly DependencyProperty IsReadOnlyProperty = DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(TableViewColumn), new PropertyMetadata(false));
+    public static readonly DependencyProperty IsReadOnlyProperty = DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(TableViewColumn), new PropertyMetadata(false, OnIsReadOnlyChanged));
     public static readonly DependencyProperty VisibilityProperty = DependencyProperty.Register(nameof(Visibility), typeof(Visibility), typeof(TableViewColumn), new PropertyMetadata(Visibility.Visible, OnVisibilityChanged));
 }

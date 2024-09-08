@@ -12,12 +12,13 @@ public class TableViewCheckBoxColumn : TableViewBoundColumn
         {
             MinWidth = 20,
             MaxWidth = 20,
-            IsEnabled = !IsReadOnly,
             Margin = new Thickness(12, 0, 12, 0),
-            HorizontalAlignment = HorizontalAlignment.Center
+            HorizontalAlignment = HorizontalAlignment.Center,
+            UseSystemFocusVisuals = false,
         };
 
         checkBox.SetBinding(ToggleButton.IsCheckedProperty, Binding);
+        UpdateCheckBoxState(checkBox);
 
         return checkBox;
     }
@@ -25,5 +26,18 @@ public class TableViewCheckBoxColumn : TableViewBoundColumn
     public override FrameworkElement GenerateEditingElement()
     {
         return GenerateElement();
+    }
+
+    public override void UpdateElementState(TableViewCell cell)
+    {
+        if (cell?.Content is CheckBox checkBox)
+        {
+            UpdateCheckBoxState(checkBox);
+        }
+    }
+
+    private void UpdateCheckBoxState(CheckBox checkBox)
+    {
+        checkBox.IsHitTestVisible = TableView?.IsReadOnly is false && !IsReadOnly;
     }
 }

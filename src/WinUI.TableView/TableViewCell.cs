@@ -211,6 +211,14 @@ public class TableViewCell : ContentControl
         VisualStates.GoToState(this, false, stateName);
     }
 
+    internal void UpdateElementState()
+    {
+        if (Column is { })
+        {
+            Column.UpdateElementState(this);
+    }
+    }
+
     private static void OnColumnChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is TableViewCell cell)

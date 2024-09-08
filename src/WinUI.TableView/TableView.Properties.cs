@@ -177,6 +177,14 @@ public partial class TableView
         }
     }
 
+    private static void OnIsReadOnlyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            tableView.IsReadOnlyChanged?.Invoke(d, e);
+        }
+    }
+
     private static void OnCanSortColumnsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is TableView tableView && e.NewValue is false)

@@ -21,6 +21,7 @@ public class TableViewColumnsCollection : ObservableCollection<TableViewColumn>
             foreach (var column in e.NewItems.OfType<TableViewColumn>())
             {
                 column.SetOwningCollection(this);
+                column.SetOwningTableView(TableView!);
             }
         }
 
@@ -29,6 +30,7 @@ public class TableViewColumnsCollection : ObservableCollection<TableViewColumn>
             foreach (var column in e.OldItems.OfType<TableViewColumn>())
             {
                 column.SetOwningCollection(null!);
+                column.SetOwningTableView(null!);
             }
         }
     }
@@ -41,6 +43,8 @@ public class TableViewColumnsCollection : ObservableCollection<TableViewColumn>
             ColumnPropertyChanged?.Invoke(this, new TableViewColumnPropertyChanged(column, propertyName, index));
         }
     }
+
+    public TableView? TableView { get; internal set; }
 }
 
 internal class TableViewColumnPropertyChanged : EventArgs
