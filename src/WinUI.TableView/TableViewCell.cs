@@ -106,26 +106,8 @@ public class TableViewCell : ContentControl
     {
         base.OnTapped(e);
 
-        if (TableView.IsEditing && TableView.CurrentCellSlot == Slot)
-        {
-            return;
+        MakeSelection();
         }
-
-        var shiftKey = KeyBoardHelper.IsShiftKeyDown();
-        var ctrlKey = KeyBoardHelper.IsCtrlKeyDown();
-
-        if (IsSelected && (ctrlKey || TableView.SelectionMode is ListViewSelectionMode.Multiple) && !shiftKey)
-        {
-            TableView.DeselectCell(Slot);
-        }
-        else
-        {
-            TableView.IsEditing = false;
-            TableView.SelectCells(Slot, shiftKey, ctrlKey);
-        }
-
-        Focus(FocusState.Programmatic);
-    }
 
     protected override void OnPointerPressed(PointerRoutedEventArgs e)
     {
@@ -170,6 +152,30 @@ public class TableViewCell : ContentControl
             PrepareForEdit();
 
             TableView.IsEditing = true;
+        }
+    private void MakeSelection()
+    {
+        var shiftKey = KeyBoardHelper.IsShiftKeyDown();
+        var ctrlKey = KeyBoardHelper.IsCtrlKeyDown();
+
+        if ((TableView.IsEditing || Column.UseSingleElement) && TableView.CurrentCellSlot == Slot)
+        {
+            return;
+    }
+
+        if (IsSelected && (ctrlKey || TableView.SelectionMode is ListViewSelectionMode.Multiple) && !shiftKey)
+        {
+            TableView.DeselectCell(Slot);
+        }
+        else
+        {
+            if (Column.UseSingleElement)
+            {
+                TableView.DeselectCell(Slot);
+            }
+
+            TableView.IsEditing = false;
+            TableView.SelectCells(Slot, shiftKey, ctrlKey);
         }
     }
 

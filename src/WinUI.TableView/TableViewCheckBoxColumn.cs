@@ -6,6 +6,11 @@ namespace WinUI.TableView;
 
 public class TableViewCheckBoxColumn : TableViewBoundColumn
 {
+    public TableViewCheckBoxColumn()
+    {
+        UseSingleElement = true;
+    }
+
     public override FrameworkElement GenerateElement()
     {
         var checkBox = new CheckBox
@@ -25,7 +30,7 @@ public class TableViewCheckBoxColumn : TableViewBoundColumn
 
     public override FrameworkElement GenerateEditingElement()
     {
-        return GenerateElement();
+        throw new NotImplementedException();
     }
 
     public override void UpdateElementState(TableViewCell cell)

@@ -5,6 +5,11 @@ namespace WinUI.TableView;
 
 public class TableViewToggleSwitchColumn : TableViewBoundColumn
 {
+    public TableViewToggleSwitchColumn()
+    {
+        UseSingleElement = true;
+    }
+
     public override FrameworkElement GenerateElement()
     {
         var toggleSwitch = new ToggleSwitch
@@ -23,7 +28,7 @@ public class TableViewToggleSwitchColumn : TableViewBoundColumn
 
     public override FrameworkElement GenerateEditingElement()
     {
-        return GenerateElement();
+        throw new NotImplementedException();
     }
 
     public override void UpdateElementState(TableViewCell cell)
