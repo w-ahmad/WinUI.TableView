@@ -8,7 +8,7 @@
         <Setter Property="VerticalContentAlignment"
                 Value="Stretch" />
         <Setter Property="IsTabStop"
-                Value="False" />
+                Value="True" />
         <Setter Property="Padding"
                 Value="16,0,12,0" />
         <Setter Property="Template">
