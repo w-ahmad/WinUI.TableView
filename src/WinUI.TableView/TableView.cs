@@ -36,6 +36,7 @@ public partial class TableView : ListView
     {
         DefaultStyleKey = typeof(TableView);
 
+        Columns.TableView = this;
         CollectionView.Filter = Filter;
         base.ItemsSource = CollectionView;
         base.SelectionMode = SelectionMode;
@@ -84,10 +85,8 @@ public partial class TableView : ListView
         return new TableViewRow { TableView = this };
     }
 
-    protected override void OnPreviewKeyDown(KeyRoutedEventArgs e)
+    protected override void OnKeyDown(KeyRoutedEventArgs e)
     {
-        base.OnPreviewKeyDown(e);
-
         var shiftKey = KeyBoardHelper.IsShiftKeyDown();
         var ctrlKey = KeyBoardHelper.IsCtrlKeyDown();
         var currentCell = CurrentCellSlot.HasValue ? GetCellFromSlot(CurrentCellSlot.Value) : default;
@@ -881,7 +880,6 @@ public partial class TableView : ListView
                     }
                 }
 
-                row.Focus(FocusState.Programmatic);
                 return row;
             }
 
@@ -935,6 +933,8 @@ public partial class TableView : ListView
     public event EventHandler<TableViewExportContentEventArgs>? ExportAllContent;
     public event EventHandler<TableViewExportContentEventArgs>? ExportSelectedContent;
     public event EventHandler<TableViewCopyToClipboardEventArgs>? CopyToClipboard;
+    public event DependencyPropertyChangedEventHandler? IsReadOnlyChanged;
+
     internal event EventHandler<TableViewCellSelectionChangedEvenArgs>? SelectedCellsChanged;
     internal event EventHandler<TableViewCurrentCellChangedEventArgs>? CurrentCellChanged;
 }

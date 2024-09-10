@@ -1,7 +1,10 @@
-﻿using Microsoft.UI.Xaml;
+﻿using CommunityToolkit.WinUI;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
 
@@ -15,11 +18,13 @@ namespace WinUI.TableView;
 [TemplateVisualState(Name = VisualStates.StateUnselected, GroupName = VisualStates.GroupSelection)]
 public class TableViewCell : ContentControl
 {
+    private ScrollViewer? _scrollViewer;
     private ContentPresenter? _contentPresenter;
 
     public TableViewCell()
     {
         DefaultStyleKey = typeof(TableViewCell);
+        ManipulationMode = ManipulationModes.TranslateX | ManipulationModes.TranslateY;
         Loaded += OnLoaded;
     }
 
@@ -106,25 +111,7 @@ public class TableViewCell : ContentControl
     {
         base.OnTapped(e);
 
-        if (TableView.IsEditing && TableView.CurrentCellSlot == Slot)
-        {
-            return;
-        }
-
-        var shiftKey = KeyBoardHelper.IsShiftKeyDown();
-        var ctrlKey = KeyBoardHelper.IsCtrlKeyDown();
-
-        if (IsSelected && (ctrlKey || TableView.SelectionMode is ListViewSelectionMode.Multiple) && !shiftKey)
-        {
-            TableView.DeselectCell(Slot);
-        }
-        else
-        {
-            TableView.IsEditing = false;
-            TableView.SelectCells(Slot, shiftKey, ctrlKey);
-        }
-
-        Focus(FocusState.Programmatic);
+        MakeSelection();
     }
 
     protected override void OnPointerPressed(PointerRoutedEventArgs e)
@@ -134,6 +121,7 @@ public class TableViewCell : ContentControl
         if (!KeyBoardHelper.IsShiftKeyDown())
         {
             TableView.SelectionStartCellSlot = Slot;
+            CapturePointer(e.Pointer);
         }
     }
 
@@ -146,30 +134,74 @@ public class TableViewCell : ContentControl
             TableView.SelectionStartCellSlot = null;
         }
 
+        ReleasePointerCaptures();
+
         e.Handled = TableView.SelectionUnit != TableViewSelectionUnit.Row;
     }
 
-    protected override void OnPointerMoved(PointerRoutedEventArgs e)
+    protected override void OnManipulationDelta(ManipulationDeltaRoutedEventArgs e)
     {
-        base.OnPointerMoved(e);
+        base.OnManipulationDelta(e);
 
-        var point = e.GetCurrentPoint(this);
+        _scrollViewer ??= TableView.FindDescendant<ScrollViewer>();
 
-        if (point.Properties.IsLeftButtonPressed && !TableView.IsEditing)
+        if (PointerCaptures?.Any() is true && _scrollViewer is { })
         {
-            var ctrlKey = KeyBoardHelper.IsCtrlKeyDown();
+            var transform = _scrollViewer.TransformToVisual(this).Inverse;
+            var point = transform.TransformPoint(e.Position);
+            var transformedPoint = _scrollViewer.TransformToVisual(null).TransformPoint(point);
+            var cell = VisualTreeHelper.FindElementsInHostCoordinates(transformedPoint, _scrollViewer)
+                                       .OfType<TableViewCell>()
+                                       .FirstOrDefault();
 
-            TableView.SelectCells(Slot, true, ctrlKey);
+            if (cell is not null && cell != this)
+            {
+                var ctrlKey = KeyBoardHelper.IsCtrlKeyDown();
+                TableView.SelectCells(cell.Slot, true, ctrlKey);
+            }
         }
     }
 
     protected override void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
     {
-        if (!IsReadOnly)
+        if (!IsReadOnly && !TableView.IsEditing && !Column.UseSingleElement)
         {
             PrepareForEdit();
 
             TableView.IsEditing = true;
+        }
+    }
+
+    protected override void OnGotFocus(RoutedEventArgs e)
+    {
+        base.OnGotFocus(e);
+
+        MakeSelection();
+    }
+
+    private void MakeSelection()
+    {
+        var shiftKey = KeyBoardHelper.IsShiftKeyDown();
+        var ctrlKey = KeyBoardHelper.IsCtrlKeyDown();
+
+        if ((TableView.IsEditing || Column.UseSingleElement) && IsCurrent)
+        {
+            return;
+        }
+
+        if (IsSelected && (ctrlKey || TableView.SelectionMode is ListViewSelectionMode.Multiple) && !shiftKey)
+        {
+            TableView.DeselectCell(Slot);
+        }
+        else
+        {
+            if (Column.UseSingleElement)
+            {
+                TableView.DeselectCell(Slot);
+            }
+
+            TableView.IsEditing = false;
+            TableView.SelectCells(Slot, shiftKey, ctrlKey);
         }
     }
 
@@ -192,7 +224,11 @@ public class TableViewCell : ContentControl
 
     private void SetEditingElement()
     {
-        Content = Column.GenerateEditingElement();
+        if (!Column.UseSingleElement)
+        {
+            Content = Column.GenerateEditingElement();
+        }
+
         if (TableView is not null)
         {
             TableView.IsEditing = true;
@@ -209,6 +245,19 @@ public class TableViewCell : ContentControl
     {
         var stateName = IsCurrent ? VisualStates.StateCurrent : VisualStates.StateRegular;
         VisualStates.GoToState(this, false, stateName);
+
+        if (IsCurrent && (Content ?? ContentTemplateRoot) is UIElement element)
+        {
+            element.Focus(FocusState.Programmatic);
+        }
+    }
+
+    internal void UpdateElementState()
+    {
+        if (Column is { })
+        {
+            Column.UpdateElementState(this);
+        }
     }
 
     private static void OnColumnChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

@@ -1,28 +1,48 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System;
 
 namespace WinUI.TableView;
 
 public class TableViewToggleSwitchColumn : TableViewBoundColumn
 {
+    public TableViewToggleSwitchColumn()
+    {
+        UseSingleElement = true;
+    }
+
     public override FrameworkElement GenerateElement()
     {
         var toggleSwitch = new ToggleSwitch
         {
             OnContent = OnContent,
             OffContent = OffContent,
-            IsEnabled = !IsReadOnly,
+            UseSystemFocusVisuals = false,
             Margin = new Thickness(12, 0, 12, 0)
         };
 
         toggleSwitch.SetBinding(ToggleSwitch.IsOnProperty, Binding);
+        UpdateToggleButtonState(toggleSwitch);
 
         return toggleSwitch;
     }
 
     public override FrameworkElement GenerateEditingElement()
     {
-        return GenerateElement();
+        throw new NotImplementedException();
+    }
+
+    public override void UpdateElementState(TableViewCell cell)
+    {
+        if (cell?.Content is ToggleSwitch toggleSwitch)
+        {
+            UpdateToggleButtonState(toggleSwitch);
+        }
+    }
+
+    private void UpdateToggleButtonState(ToggleSwitch toggleSwitch)
+    {
+        toggleSwitch.IsHitTestVisible = TableView?.IsReadOnly is false && !IsReadOnly;
     }
 
     public object OnContent

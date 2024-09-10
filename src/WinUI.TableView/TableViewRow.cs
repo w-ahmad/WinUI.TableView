@@ -97,6 +97,10 @@ public class TableViewRow : ListViewItem
                 cell.Width = e.Column.ActualWidth;
             }
         }
+        else if (e.PropertyName is nameof(TableViewColumn.IsReadOnly))
+        {
+            UpdateCellsState();
+        }
     }
 
     private void RemoveCells(IEnumerable<TableViewColumn> columns)
@@ -150,20 +154,30 @@ public class TableViewRow : ListViewItem
             return;
         }
 
-        if (e.NewValue is TableView newTableView && newTableView.Columns is not null)
+        if (e.NewValue is TableView newTableView)
+        {
+            newTableView.SelectedCellsChanged += row.OnCellSelectionChanged;
+            newTableView.CurrentCellChanged += row.OnCurrentCellChanged;
+            newTableView.IsReadOnlyChanged += row.OnTableViewIsReadOnlyChanged;
+
+            if (newTableView.Columns is not null)
         {
             newTableView.Columns.CollectionChanged += row.OnColumnsCollectionChanged;
             newTableView.Columns.ColumnPropertyChanged += row.OnColumnPropertyChanged;
-            newTableView.SelectedCellsChanged += row.OnCellSelectionChanged;
-            newTableView.CurrentCellChanged += row.OnCurrentCellChanged;
+            }
         }
 
         if (e.OldValue is TableView oldTableView && oldTableView.Columns is not null)
         {
-            oldTableView.Columns.CollectionChanged -= row.OnColumnsCollectionChanged;
-            oldTableView.Columns.ColumnPropertyChanged -= row.OnColumnPropertyChanged;
             oldTableView.SelectedCellsChanged -= row.OnCellSelectionChanged;
             oldTableView.CurrentCellChanged -= row.OnCurrentCellChanged;
+            oldTableView.IsReadOnlyChanged -= row.OnTableViewIsReadOnlyChanged;
+
+            if (oldTableView.Columns is not null)
+            {
+            oldTableView.Columns.CollectionChanged -= row.OnColumnsCollectionChanged;
+            oldTableView.Columns.ColumnPropertyChanged -= row.OnColumnPropertyChanged;
+            }
         }
     }
 
@@ -186,6 +200,19 @@ public class TableViewRow : ListViewItem
         if (e.NewSlot?.Row == Index)
         {
             ApplyCurrentCellState(e.NewSlot.Value);
+        }
+    }
+
+    private void OnTableViewIsReadOnlyChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        UpdateCellsState();
+    }
+
+    private void UpdateCellsState()
+    {
+        foreach (var cell in Cells)
+        {
+            cell.UpdateElementState();
         }
     }
 
