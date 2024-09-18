@@ -33,6 +33,7 @@ public partial class TableView
     internal HashSet<TableViewCellSlot> SelectedCells { get; set; } = new HashSet<TableViewCellSlot>();
     internal HashSet<HashSet<TableViewCellSlot>> SelectedCellRanges { get; } = new HashSet<HashSet<TableViewCellSlot>>();
     internal bool IsEditing { get; set; }
+    internal int SelectionIndicatorWidth => SelectionMode is ListViewSelectionMode.Multiple ? 44 : 16;
     public TableViewColumnsCollection Columns { get; } = new();
 
     public double HeaderRowHeight

@@ -767,11 +767,11 @@ public partial class TableView : ListView
 
             SelectedCellRanges.Add(selectionRange);
             OnCellSelectionChanged();
-            DispatcherQueue.TryEnqueue(async () => SetCurrentCell((await ScrollCellIntoView(slot)).Slot));
+            DispatcherQueue.TryEnqueue(() => SetCurrentCell(slot));
         }
         else
         {
-            DispatcherQueue.TryEnqueue(async () => SetCurrentCell((await ScrollCellIntoView(slot)).Slot));
+            DispatcherQueue.TryEnqueue(() => SetCurrentCell(slot));
         }
     }
 
@@ -789,7 +789,7 @@ public partial class TableView : ListView
         OnCellSelectionChanged();
     }
 
-    internal void SetCurrentCell(TableViewCellSlot? slot)
+    internal async void SetCurrentCell(TableViewCellSlot? slot)
     {
         if (slot == CurrentCellSlot)
         {
@@ -809,8 +809,8 @@ public partial class TableView : ListView
 
         if (slot is { })
         {
-            var row = _rows.FirstOrDefault(x => x.Index == slot?.Row);
-            row?.ApplyCurrentCellState(slot.Value);
+            var cell = await ScrollCellIntoView(slot.Value);
+            cell.ApplyCurrentCellState();
         }
 
         CurrentCellChanged?.Invoke(this, new TableViewCurrentCellChangedEventArgs(oldSlot, slot));
@@ -858,7 +858,7 @@ public partial class TableView : ListView
                 xOffset += Columns.VisibleColumns[i].ActualWidth;
             }
 
-            var change = xOffset - _scrollViewer.HorizontalOffset - (_scrollViewer.ViewportWidth - 16);
+            var change = xOffset - _scrollViewer.HorizontalOffset - (_scrollViewer.ViewportWidth - SelectionIndicatorWidth);
             xOffset = _scrollViewer.HorizontalOffset + change;
         }
         else if (row is not null)
@@ -960,7 +960,7 @@ public partial class TableView : ListView
         var width = 0d;
         foreach (var column in Columns.VisibleColumns)
         {
-            if (width >= _scrollViewer.HorizontalOffset && width + column.ActualWidth <= _scrollViewer.HorizontalOffset + _scrollViewer.ViewportWidth)
+            if (width >= _scrollViewer.HorizontalOffset && width + column.ActualWidth <= _scrollViewer.HorizontalOffset + _scrollViewer.ViewportWidth - SelectionIndicatorWidth)
             {
                 if (start == -1)
                 {
