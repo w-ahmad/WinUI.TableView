@@ -31,7 +31,7 @@ public class TableViewRow : ListViewItem
         {
             foreach (var cell in Cells)
             {
-                cell.SetElement();
+                 cell.RefreshElement();
             }
         }
     }
@@ -156,50 +156,24 @@ public class TableViewRow : ListViewItem
 
         if (e.NewValue is TableView newTableView)
         {
-            newTableView.SelectedCellsChanged += row.OnCellSelectionChanged;
-            newTableView.CurrentCellChanged += row.OnCurrentCellChanged;
             newTableView.IsReadOnlyChanged += row.OnTableViewIsReadOnlyChanged;
 
             if (newTableView.Columns is not null)
-        {
-            newTableView.Columns.CollectionChanged += row.OnColumnsCollectionChanged;
-            newTableView.Columns.ColumnPropertyChanged += row.OnColumnPropertyChanged;
+            {
+                newTableView.Columns.CollectionChanged += row.OnColumnsCollectionChanged;
+                newTableView.Columns.ColumnPropertyChanged += row.OnColumnPropertyChanged;
             }
         }
 
         if (e.OldValue is TableView oldTableView && oldTableView.Columns is not null)
         {
-            oldTableView.SelectedCellsChanged -= row.OnCellSelectionChanged;
-            oldTableView.CurrentCellChanged -= row.OnCurrentCellChanged;
             oldTableView.IsReadOnlyChanged -= row.OnTableViewIsReadOnlyChanged;
 
             if (oldTableView.Columns is not null)
             {
-            oldTableView.Columns.CollectionChanged -= row.OnColumnsCollectionChanged;
-            oldTableView.Columns.ColumnPropertyChanged -= row.OnColumnPropertyChanged;
+                oldTableView.Columns.CollectionChanged -= row.OnColumnsCollectionChanged;
+                oldTableView.Columns.ColumnPropertyChanged -= row.OnColumnPropertyChanged;
             }
-        }
-    }
-
-    private void OnCellSelectionChanged(object? sender, TableViewCellSelectionChangedEvenArgs e)
-    {
-        if (e.OldSelection.Any(x => x.Row == Index) ||
-            e.NewSelection.Any(x => x.Row == Index))
-        {
-            ApplyCellsSelectionState();
-        }
-    }
-
-    private void OnCurrentCellChanged(object? sender, TableViewCurrentCellChangedEventArgs e)
-    {
-        if (e.OldSlot?.Row == Index)
-        {
-            ApplyCurrentCellState(e.OldSlot.Value);
-        }
-
-        if (e.NewSlot?.Row == Index)
-        {
-            ApplyCurrentCellState(e.NewSlot.Value);
         }
     }
 

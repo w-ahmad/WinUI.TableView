@@ -1,5 +1,4 @@
 ﻿using Microsoft.UI.Xaml;
-using System;
 
 namespace WinUI.TableView;
 
@@ -13,6 +12,7 @@ public abstract class TableViewColumn : DependencyObject
 
     public abstract FrameworkElement GenerateElement();
     public abstract FrameworkElement GenerateEditingElement();
+    public virtual void RefreshElement(TableViewCell tableViewCell, object content) { }
     public virtual void UpdateElementState(TableViewCell cell) { }
 
     internal void SetOwningCollection(TableViewColumnsCollection collection)

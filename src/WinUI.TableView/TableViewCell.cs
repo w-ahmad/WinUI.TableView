@@ -172,13 +172,6 @@ public class TableViewCell : ContentControl
         }
     }
 
-    protected override void OnGotFocus(RoutedEventArgs e)
-    {
-        base.OnGotFocus(e);
-
-        MakeSelection();
-    }
-
     private void MakeSelection()
     {
         var shiftKey = KeyBoardHelper.IsShiftKeyDown();
@@ -235,6 +228,11 @@ public class TableViewCell : ContentControl
         }
     }
 
+    internal void RefreshElement()
+    {
+        Column.RefreshElement(this, Content);
+    }
+
     internal void ApplySelectionState()
     {
         var stateName = IsSelected ? VisualStates.StateSelected : VisualStates.StateUnselected;
@@ -246,9 +244,14 @@ public class TableViewCell : ContentControl
         var stateName = IsCurrent ? VisualStates.StateCurrent : VisualStates.StateRegular;
         VisualStates.GoToState(this, false, stateName);
 
-        if (IsCurrent && (Content ?? ContentTemplateRoot) is UIElement element)
+        if (IsCurrent)
         {
-            element.Focus(FocusState.Programmatic);
+            Focus(FocusState.Programmatic);
+
+            if ((Content ?? ContentTemplateRoot) is UIElement { IsHitTestVisible: true, IsTabStop: true } element)
+            {
+                element.Focus(FocusState.Programmatic);
+            }
         }
     }
 
