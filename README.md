@@ -8,6 +8,12 @@
 [![nuget](https://img.shields.io/nuget/v/WinUI.TableView)](https://www.nuget.org/packages/WinUI.TableView/)
 [![nuget](https://img.shields.io/nuget/dt/WinUI.TableView)](https://www.nuget.org/packages/WinUI.TableView/)
 
+## Contributors
+<a href="https://github.com/w-ahmad/WinUI.TableView/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=w-ahmad/WinUI.TableView" />
+</a>
+
+
 ## Features
 
 - **Auto-generating Columns**: Automatically generate columns based on the data source.
