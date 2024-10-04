@@ -1,6 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Input;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -31,8 +31,41 @@ public class TableViewRow : ListViewItem
         {
             foreach (var cell in Cells)
             {
-                 cell.RefreshElement();
+                cell.RefreshElement();
             }
+        }
+    }
+
+    protected override void OnPointerPressed(PointerRoutedEventArgs e)
+    {
+        if (!KeyBoardHelper.IsShiftKeyDown())
+        {
+            TableView.SelectionStartRowIndex = Index;
+        }
+    }
+
+    protected override void OnPointerReleased(PointerRoutedEventArgs e)
+    {
+        if (!KeyBoardHelper.IsShiftKeyDown())
+        {
+            TableView.SelectionStartCellSlot = null;
+            TableView.SelectionStartRowIndex = null;
+        }
+    }
+
+    protected override void OnTapped(TappedRoutedEventArgs e)
+    {
+        var shiftKey = KeyBoardHelper.IsShiftKeyDown();
+        var ctrlKey = KeyBoardHelper.IsCtrlKeyDown();
+
+        if (IsSelected && (ctrlKey || TableView.SelectionMode is ListViewSelectionMode.Multiple) && !shiftKey)
+        {
+            TableView.DeselectRange(new(Index, 1));
+        }
+        else if (!IsSelected || shiftKey | ctrlKey)
+        {
+            TableView.IsEditing = false;
+            TableView.MakeSelection(new(Index, -1), shiftKey, ctrlKey);
         }
     }
 

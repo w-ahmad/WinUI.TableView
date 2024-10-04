@@ -30,6 +30,7 @@ public partial class TableView
     internal IDictionary<string, Predicate<object>> ActiveFilters { get; } = new Dictionary<string, Predicate<object>>();
     internal TableViewCellSlot? CurrentCellSlot { get; set; }
     internal TableViewCellSlot? SelectionStartCellSlot { get; set; }
+    internal int? SelectionStartRowIndex { get; set; }
     internal HashSet<TableViewCellSlot> SelectedCells { get; set; } = new HashSet<TableViewCellSlot>();
     internal HashSet<HashSet<TableViewCellSlot>> SelectedCellRanges { get; } = new HashSet<HashSet<TableViewCellSlot>>();
     internal bool IsEditing { get; set; }
@@ -243,13 +244,5 @@ public partial class TableView
         {
             throw new InvalidOperationException("Setting this property directly is not allowed. Use TableView.SelectionMode instead.");
         }
-    }
-}
-
-public static class ItemIndexRangeExtensions
-{
-    public static bool IsInRange(this ItemIndexRange range, int index)
-    {
-        return index >= range.FirstIndex && index <= range.LastIndex;
     }
 }

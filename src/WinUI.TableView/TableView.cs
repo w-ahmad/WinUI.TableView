@@ -26,6 +26,7 @@ using WinRT.Interop;
 using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView;
+
 public partial class TableView : ListView
 {
     private TableViewHeaderRow? _headerRow;
@@ -103,20 +104,10 @@ public partial class TableView : ListView
             return;
         }
 
-        if (SelectionUnit is not TableViewSelectionUnit.Cell
-            && SelectedIndex >= 0
-            && CurrentCellSlot is null
-            && e.Key is VirtualKey.Up or VirtualKey.Down or VirtualKey.Enter)
-        {
-            base.OnKeyDown(e);
-        }
-        else
-        {
-            HandleCellNavigation(e, shiftKey, ctrlKey);
-        }
+        HandleNavigations(e, shiftKey, ctrlKey);
     }
 
-    private void HandleCellNavigation(KeyRoutedEventArgs e, bool shiftKey, bool ctrlKey)
+    private void HandleNavigations(KeyRoutedEventArgs e, bool shiftKey, bool ctrlKey)
     {
         var currentCell = CurrentCellSlot.HasValue ? GetCellFromSlot(CurrentCellSlot.Value) : default;
 
@@ -136,7 +127,7 @@ public partial class TableView : ListView
         {
             if (!currentCell.IsSelected)
             {
-                SelectCells(CurrentCellSlot.Value, shiftKey, ctrlKey);
+                MakeSelection(CurrentCellSlot.Value, shiftKey, ctrlKey);
             }
             else
             {
@@ -149,7 +140,7 @@ public partial class TableView : ListView
             var isEditing = IsEditing;
             var newSlot = GetNextSlot(CurrentCellSlot, shiftKey, e.Key is VirtualKey.Enter);
 
-            SelectCells(newSlot, false);
+            MakeSelection(newSlot, false);
 
             if (isEditing && currentCell is not null)
             {
@@ -162,7 +153,9 @@ public partial class TableView : ListView
         else if ((e.Key is VirtualKey.Left or VirtualKey.Right or VirtualKey.Up or VirtualKey.Down)
                  && !IsEditing)
         {
-            var row = CurrentCellSlot?.Row ?? SelectedIndex;
+            var row = SelectionStartCellSlot?.Row
+                      ?? SelectionStartRowIndex
+                      ?? -1;
             var column = CurrentCellSlot?.Column ?? -1;
 
             if (row == -1 && column == -1)
@@ -179,7 +172,7 @@ public partial class TableView : ListView
             }
 
             var newSlot = new TableViewCellSlot(row, column);
-            SelectCells(newSlot, shiftKey);
+            MakeSelection(newSlot, shiftKey);
             e.Handled = true;
         }
     }
@@ -706,16 +699,12 @@ public partial class TableView : ListView
         SetCurrentCell(null);
     }
 
-    internal void SelectCells(TableViewCellSlot slot, bool shiftKey, bool ctrlKey = false)
+    internal void MakeSelection(TableViewCellSlot slot, bool shiftKey, bool ctrlKey = false)
     {
-        if (!IsValidSlot(slot))
-        {
-            return;
-        }
-
-        if (SelectionMode != ListViewSelectionMode.None && SelectionUnit != TableViewSelectionUnit.Row)
+        if (SelectionMode != ListViewSelectionMode.None)
         {
             ctrlKey = ctrlKey || SelectionMode is ListViewSelectionMode.Multiple;
+
             if (!ctrlKey || !(SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended))
             {
                 if (SelectedItems.Count > 0)
@@ -729,50 +718,106 @@ public partial class TableView : ListView
                 }
             }
 
-            var selectionRange = (SelectionStartCellSlot is null ? null : SelectedCellRanges.LastOrDefault(x => SelectionStartCellSlot.HasValue && x.Contains(SelectionStartCellSlot.Value))) ?? new HashSet<TableViewCellSlot>();
-            SelectedCellRanges.Remove(selectionRange);
-            selectionRange.Clear();
-            SelectionStartCellSlot ??= CurrentCellSlot;
-            SelectionStartCellSlot ??= slot;
-            if (shiftKey && SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended)
+            if (SelectionUnit is TableViewSelectionUnit.Row ||
+                (slot.Column == -1 && SelectionUnit is TableViewSelectionUnit.CellOrRow))
             {
-                var currentSlot = SelectionStartCellSlot.Value;
-                var startRow = Math.Min(slot.Row, currentSlot.Row);
-                var endRow = Math.Max(slot.Row, currentSlot.Row);
-                var startCol = Math.Min(slot.Column, currentSlot.Column);
-                var endCol = Math.Max(slot.Column, currentSlot.Column);
-                for (var row = startRow; row <= endRow; row++)
-                {
-                    for (var column = startCol; column <= endCol; column++)
-                    {
-                        var nextSlot = new TableViewCellSlot(row, column);
-                        selectionRange.Add(nextSlot);
-                        if (SelectedCellRanges.LastOrDefault(x => x.Contains(nextSlot)) is { } range)
-                        {
-                            range.Remove(nextSlot);
-                        }
-                    }
-                }
+                SelectRows(slot, shiftKey);
             }
             else
             {
-                SelectionStartCellSlot = slot;
-                selectionRange.Add(slot);
-
-                if (SelectedCellRanges.LastOrDefault(x => x.Contains(slot)) is { } range)
-                {
-                    range.Remove(slot);
-                }
+                SelectCells(slot, shiftKey);
             }
+        }
+        else if (!IsReadOnly)
+        {
+            DispatcherQueue.TryEnqueue(() => SetCurrentCell(slot));
+        }
+    }
 
-            SelectedCellRanges.Add(selectionRange);
-            OnCellSelectionChanged();
+    private void SelectRows(TableViewCellSlot slot, bool shiftKey)
+    {
+        var selectionRange = SelectedRanges.FirstOrDefault(x => x.IsInRange(slot.Row));
+        SelectionStartRowIndex ??= slot.Row;
+
+        if (selectionRange is not null)
+        {
+            DeselectRange(selectionRange);
+        }
+
+        if (shiftKey && SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended)
+        {
+            var min = Math.Min(SelectionStartRowIndex.Value, slot.Row);
+            var max = Math.Max(SelectionStartRowIndex.Value, slot.Row);
+
+            SelectRange(new ItemIndexRange(min, (uint)(max - min) + 1));
+        }
+        else
+        {
+            SelectionStartRowIndex = slot.Row;
+            SelectRange(new ItemIndexRange(slot.Row, 1));
+        }
+
+        if (!IsReadOnly)
+        {
             DispatcherQueue.TryEnqueue(() => SetCurrentCell(slot));
         }
         else
         {
-            DispatcherQueue.TryEnqueue(() => SetCurrentCell(slot));
+            DispatcherQueue.TryEnqueue(async () =>
+            {
+                var row = await ScrollRowIntoView(slot.Row);
+                row?.Focus(FocusState.Programmatic);
+            });
         }
+    }
+
+    private void SelectCells(TableViewCellSlot slot, bool shiftKey)
+    {
+        if (!IsValidSlot(slot))
+        {
+            return;
+        }
+
+        var selectionRange = (SelectionStartCellSlot is null ? null : SelectedCellRanges.LastOrDefault(x => SelectionStartCellSlot.HasValue && x.Contains(SelectionStartCellSlot.Value))) ?? new HashSet<TableViewCellSlot>();
+        SelectedCellRanges.Remove(selectionRange);
+        selectionRange.Clear();
+        SelectionStartCellSlot ??= CurrentCellSlot;
+        SelectionStartCellSlot ??= slot;
+
+        if (shiftKey && SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended)
+        {
+            var currentSlot = SelectionStartCellSlot.Value;
+            var startRow = Math.Min(slot.Row, currentSlot.Row);
+            var endRow = Math.Max(slot.Row, currentSlot.Row);
+            var startCol = Math.Min(slot.Column, currentSlot.Column);
+            var endCol = Math.Max(slot.Column, currentSlot.Column);
+            for (var row = startRow; row <= endRow; row++)
+            {
+                for (var column = startCol; column <= endCol; column++)
+                {
+                    var nextSlot = new TableViewCellSlot(row, column);
+                    selectionRange.Add(nextSlot);
+                    if (SelectedCellRanges.LastOrDefault(x => x.Contains(nextSlot)) is { } range)
+                    {
+                        range.Remove(nextSlot);
+                    }
+                }
+            }
+        }
+        else
+        {
+            SelectionStartCellSlot = slot;
+            selectionRange.Add(slot);
+
+            if (SelectedCellRanges.LastOrDefault(x => x.Contains(slot)) is { } range)
+            {
+                range.Remove(slot);
+            }
+        }
+
+        SelectedCellRanges.Add(selectionRange);
+        OnCellSelectionChanged();
+        DispatcherQueue.TryEnqueue(() => SetCurrentCell(slot));
     }
 
     internal void DeselectCell(TableViewCellSlot slot)
@@ -948,7 +993,7 @@ public partial class TableView : ListView
 
     internal TableViewCell GetCellFromSlot(TableViewCellSlot slot)
     {
-        return ContainerFromIndex(slot.Row) is TableViewRow row ? row.Cells[slot.Column] : default!;
+        return IsValidSlot(slot) && ContainerFromIndex(slot.Row) is TableViewRow row ? row.Cells[slot.Column] : default!;
     }
 
     private (int start, int end) GetColumnsInDisplay()
