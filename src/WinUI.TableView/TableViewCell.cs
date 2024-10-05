@@ -97,7 +97,9 @@ public class TableViewCell : ContentControl
     {
         base.OnPointerEntered(e);
 
-        if (TableView.SelectionMode is not ListViewSelectionMode.None && !TableView.IsReadOnly)
+        if ((TableView.SelectionMode is not ListViewSelectionMode.None
+           && TableView.SelectionUnit is not TableViewSelectionUnit.Row)
+           || !TableView.IsReadOnly)
         {
             VisualStates.GoToState(this, false, VisualStates.StatePointerOver);
         }
@@ -107,7 +109,9 @@ public class TableViewCell : ContentControl
     {
         base.OnPointerEntered(e);
 
-        if (TableView.SelectionMode is not ListViewSelectionMode.None && !TableView.IsReadOnly)
+        if ((TableView.SelectionMode is not ListViewSelectionMode.None
+            && TableView.SelectionUnit is not TableViewSelectionUnit.Row)
+            || !TableView.IsReadOnly)
         {
             VisualStates.GoToState(this, false, VisualStates.StateNormal);
         }
@@ -117,7 +121,11 @@ public class TableViewCell : ContentControl
     {
         base.OnTapped(e);
 
-        MakeSelection();
+        if (TableView.SelectionUnit is not TableViewSelectionUnit.Row || !IsReadOnly)
+        {
+            MakeSelection();
+            e.Handled = true;
+        }
     }
 
     protected override void OnPointerPressed(PointerRoutedEventArgs e)

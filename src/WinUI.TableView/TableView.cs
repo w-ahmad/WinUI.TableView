@@ -701,6 +701,11 @@ public partial class TableView : ListView
 
     internal void MakeSelection(TableViewCellSlot slot, bool shiftKey, bool ctrlKey = false)
     {
+        if (slot.Row < 0 || slot.Row >= Items.Count)
+        {
+            return;
+        }
+
         if (SelectionMode != ListViewSelectionMode.None)
         {
             ctrlKey = ctrlKey || SelectionMode is ListViewSelectionMode.Multiple;
@@ -730,6 +735,7 @@ public partial class TableView : ListView
         }
         else if (!IsReadOnly)
         {
+            SelectionStartCellSlot = slot;
             DispatcherQueue.TryEnqueue(() => SetCurrentCell(slot));
         }
     }
@@ -754,7 +760,14 @@ public partial class TableView : ListView
         else
         {
             SelectionStartRowIndex = slot.Row;
-            SelectRange(new ItemIndexRange(slot.Row, 1));
+            if (SelectionMode is ListViewSelectionMode.Single)
+            {
+                SelectedIndex = slot.Row;
+            }
+            else
+            {
+                SelectRange(new ItemIndexRange(slot.Row, 1));
+            }
         }
 
         if (!IsReadOnly)
@@ -855,7 +868,7 @@ public partial class TableView : ListView
         if (slot is { })
         {
             var cell = await ScrollCellIntoView(slot.Value);
-            cell.ApplyCurrentCellState();
+            cell?.ApplyCurrentCellState();
         }
 
         CurrentCellChanged?.Invoke(this, new TableViewCurrentCellChangedEventArgs(oldSlot, slot));
@@ -882,7 +895,7 @@ public partial class TableView : ListView
 
     internal async Task<TableViewCell> ScrollCellIntoView(TableViewCellSlot slot)
     {
-        if (_scrollViewer is null) return default!;
+        if (_scrollViewer is null || !IsValidSlot(slot)) return default!;
 
         var row = await ScrollRowIntoView(slot.Row);
         var (start, end) = GetColumnsInDisplay();
