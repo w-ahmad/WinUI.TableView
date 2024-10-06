@@ -426,13 +426,21 @@ public partial class TableViewColumnHeader : ContentControl
         _resizePreviousStarted = false;
     }
 
-    protected override void OnPointerReleased(PointerRoutedEventArgs e)
+    protected override async void OnPointerReleased(PointerRoutedEventArgs e)
     {
         base.OnPointerReleased(e);
 
         _resizeStarted = false;
         _resizePreviousStarted = false;
         ReleasePointerCaptures();
+
+        await Task.Delay(100);
+
+        if (_tableView?.CurrentCellSlot is not null)
+        {
+            var cell = _tableView.GetCellFromSlot(_tableView.CurrentCellSlot.Value);
+            cell?.ApplyCurrentCellState();
+        }
     }
 
     public SD? SortDirection

@@ -1,6 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Input;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -31,8 +31,41 @@ public class TableViewRow : ListViewItem
         {
             foreach (var cell in Cells)
             {
-                cell.SetElement();
+                cell.RefreshElement();
             }
+        }
+    }
+
+    protected override void OnPointerPressed(PointerRoutedEventArgs e)
+    {
+        if (!KeyBoardHelper.IsShiftKeyDown())
+        {
+            TableView.SelectionStartRowIndex = Index;
+        }
+    }
+
+    protected override void OnPointerReleased(PointerRoutedEventArgs e)
+    {
+        if (!KeyBoardHelper.IsShiftKeyDown())
+        {
+            TableView.SelectionStartCellSlot = null;
+            TableView.SelectionStartRowIndex = null;
+        }
+    }
+
+    protected override void OnTapped(TappedRoutedEventArgs e)
+    {
+        var shiftKey = KeyBoardHelper.IsShiftKeyDown();
+        var ctrlKey = KeyBoardHelper.IsCtrlKeyDown();
+
+        if (IsSelected && (ctrlKey || TableView.SelectionMode is ListViewSelectionMode.Multiple) && !shiftKey)
+        {
+            TableView.DeselectRange(new(Index, 1));
+        }
+        else if (!IsSelected || shiftKey | ctrlKey)
+        {
+            TableView.IsEditing = false;
+            TableView.MakeSelection(new(Index, -1), shiftKey, ctrlKey);
         }
     }
 
@@ -156,50 +189,24 @@ public class TableViewRow : ListViewItem
 
         if (e.NewValue is TableView newTableView)
         {
-            newTableView.SelectedCellsChanged += row.OnCellSelectionChanged;
-            newTableView.CurrentCellChanged += row.OnCurrentCellChanged;
             newTableView.IsReadOnlyChanged += row.OnTableViewIsReadOnlyChanged;
 
             if (newTableView.Columns is not null)
-        {
-            newTableView.Columns.CollectionChanged += row.OnColumnsCollectionChanged;
-            newTableView.Columns.ColumnPropertyChanged += row.OnColumnPropertyChanged;
+            {
+                newTableView.Columns.CollectionChanged += row.OnColumnsCollectionChanged;
+                newTableView.Columns.ColumnPropertyChanged += row.OnColumnPropertyChanged;
             }
         }
 
         if (e.OldValue is TableView oldTableView && oldTableView.Columns is not null)
         {
-            oldTableView.SelectedCellsChanged -= row.OnCellSelectionChanged;
-            oldTableView.CurrentCellChanged -= row.OnCurrentCellChanged;
             oldTableView.IsReadOnlyChanged -= row.OnTableViewIsReadOnlyChanged;
 
             if (oldTableView.Columns is not null)
             {
-            oldTableView.Columns.CollectionChanged -= row.OnColumnsCollectionChanged;
-            oldTableView.Columns.ColumnPropertyChanged -= row.OnColumnPropertyChanged;
+                oldTableView.Columns.CollectionChanged -= row.OnColumnsCollectionChanged;
+                oldTableView.Columns.ColumnPropertyChanged -= row.OnColumnPropertyChanged;
             }
-        }
-    }
-
-    private void OnCellSelectionChanged(object? sender, TableViewCellSelectionChangedEvenArgs e)
-    {
-        if (e.OldSelection.Any(x => x.Row == Index) ||
-            e.NewSelection.Any(x => x.Row == Index))
-        {
-            ApplyCellsSelectionState();
-        }
-    }
-
-    private void OnCurrentCellChanged(object? sender, TableViewCurrentCellChangedEventArgs e)
-    {
-        if (e.OldSlot?.Row == Index)
-        {
-            ApplyCurrentCellState(e.OldSlot.Value);
-        }
-
-        if (e.NewSlot?.Row == Index)
-        {
-            ApplyCurrentCellState(e.NewSlot.Value);
         }
     }
 

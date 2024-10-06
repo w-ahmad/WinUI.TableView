@@ -97,21 +97,35 @@ public class TableViewCell : ContentControl
     {
         base.OnPointerEntered(e);
 
-        VisualStates.GoToState(this, false, VisualStates.StatePointerOver);
+        if ((TableView.SelectionMode is not ListViewSelectionMode.None
+           && TableView.SelectionUnit is not TableViewSelectionUnit.Row)
+           || !TableView.IsReadOnly)
+        {
+            VisualStates.GoToState(this, false, VisualStates.StatePointerOver);
+        }
     }
 
     protected override void OnPointerExited(PointerRoutedEventArgs e)
     {
         base.OnPointerEntered(e);
 
-        VisualStates.GoToState(this, false, VisualStates.StateNormal);
+        if ((TableView.SelectionMode is not ListViewSelectionMode.None
+            && TableView.SelectionUnit is not TableViewSelectionUnit.Row)
+            || !TableView.IsReadOnly)
+        {
+            VisualStates.GoToState(this, false, VisualStates.StateNormal);
+        }
     }
 
     protected override void OnTapped(TappedRoutedEventArgs e)
     {
         base.OnTapped(e);
 
-        MakeSelection();
+        if (TableView.SelectionUnit is not TableViewSelectionUnit.Row || !IsReadOnly)
+        {
+            MakeSelection();
+            e.Handled = true;
+        }
     }
 
     protected override void OnPointerPressed(PointerRoutedEventArgs e)
@@ -120,7 +134,8 @@ public class TableViewCell : ContentControl
 
         if (!KeyBoardHelper.IsShiftKeyDown())
         {
-            TableView.SelectionStartCellSlot = Slot;
+            TableView.SelectionStartCellSlot = TableView.SelectionUnit is not TableViewSelectionUnit.Row || !IsReadOnly ? Slot : default; ;
+            TableView.SelectionStartRowIndex = Index;
             CapturePointer(e.Pointer);
         }
     }
@@ -131,35 +146,47 @@ public class TableViewCell : ContentControl
 
         if (!KeyBoardHelper.IsShiftKeyDown())
         {
-            TableView.SelectionStartCellSlot = null;
+            var cell = FindCell(e.GetCurrentPoint(this).Position);
+            TableView.SelectionStartCellSlot = TableView.SelectionUnit is not TableViewSelectionUnit.Row || !IsReadOnly ? cell?.Slot : default;
+            TableView.SelectionStartRowIndex = cell?.Slot.Row;
         }
 
         ReleasePointerCaptures();
 
-        e.Handled = TableView.SelectionUnit != TableViewSelectionUnit.Row;
+        e.Handled = true;
     }
 
     protected override void OnManipulationDelta(ManipulationDeltaRoutedEventArgs e)
     {
         base.OnManipulationDelta(e);
 
-        _scrollViewer ??= TableView.FindDescendant<ScrollViewer>();
-
-        if (PointerCaptures?.Any() is true && _scrollViewer is { })
+        if (PointerCaptures?.Any() is true)
         {
-            var transform = _scrollViewer.TransformToVisual(this).Inverse;
-            var point = transform.TransformPoint(e.Position);
-            var transformedPoint = _scrollViewer.TransformToVisual(null).TransformPoint(point);
-            var cell = VisualTreeHelper.FindElementsInHostCoordinates(transformedPoint, _scrollViewer)
-                                       .OfType<TableViewCell>()
-                                       .FirstOrDefault();
+            var cell = FindCell(e.Position);
 
             if (cell is not null && cell != this)
             {
                 var ctrlKey = KeyBoardHelper.IsCtrlKeyDown();
-                TableView.SelectCells(cell.Slot, true, ctrlKey);
+                TableView.MakeSelection(cell.Slot, true, ctrlKey);
             }
         }
+    }
+
+    private TableViewCell? FindCell(Point position)
+    {
+        _scrollViewer ??= TableView.FindDescendant<ScrollViewer>();
+
+        if (_scrollViewer is { })
+        {
+            var transform = _scrollViewer.TransformToVisual(this).Inverse;
+            var point = transform.TransformPoint(position);
+            var transformedPoint = _scrollViewer.TransformToVisual(null).TransformPoint(point);
+            return VisualTreeHelper.FindElementsInHostCoordinates(transformedPoint, _scrollViewer)
+                                   .OfType<TableViewCell>()
+                                   .FirstOrDefault();
+        }
+
+        return null;
     }
 
     protected override void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
@@ -170,13 +197,6 @@ public class TableViewCell : ContentControl
 
             TableView.IsEditing = true;
         }
-    }
-
-    protected override void OnGotFocus(RoutedEventArgs e)
-    {
-        base.OnGotFocus(e);
-
-        MakeSelection();
     }
 
     private void MakeSelection()
@@ -201,7 +221,7 @@ public class TableViewCell : ContentControl
             }
 
             TableView.IsEditing = false;
-            TableView.SelectCells(Slot, shiftKey, ctrlKey);
+            TableView.MakeSelection(Slot, shiftKey, ctrlKey);
         }
     }
 
@@ -235,6 +255,11 @@ public class TableViewCell : ContentControl
         }
     }
 
+    internal void RefreshElement()
+    {
+        Column.RefreshElement(this, Content);
+    }
+
     internal void ApplySelectionState()
     {
         var stateName = IsSelected ? VisualStates.StateSelected : VisualStates.StateUnselected;
@@ -246,9 +271,14 @@ public class TableViewCell : ContentControl
         var stateName = IsCurrent ? VisualStates.StateCurrent : VisualStates.StateRegular;
         VisualStates.GoToState(this, false, stateName);
 
-        if (IsCurrent && (Content ?? ContentTemplateRoot) is UIElement element)
+        if (IsCurrent)
         {
-            element.Focus(FocusState.Programmatic);
+            Focus(FocusState.Programmatic);
+
+            if ((Content ?? ContentTemplateRoot) is UIElement { IsHitTestVisible: true, IsTabStop: true } element)
+            {
+                element.Focus(FocusState.Programmatic);
+            }
         }
     }
 

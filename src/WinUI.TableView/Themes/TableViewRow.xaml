@@ -9,6 +9,8 @@
                 Value="Stretch" />
         <Setter Property="IsTabStop"
                 Value="True" />
+        <Setter Property="UseSystemFocusVisuals"
+                Value="False" />
         <Setter Property="Padding"
                 Value="16,0,12,0" />
         <Setter Property="Template">
