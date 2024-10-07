@@ -45,12 +45,12 @@ public class TableViewToggleSwitchColumn : TableViewBoundColumn
         toggleSwitch.IsHitTestVisible = TableView?.IsReadOnly is false && !IsReadOnly;
     }
 
-    public object OnContent
+    public object? OnContent
     {
         get => GetValue(OnContentProperty);
         set => SetValue(OnContentProperty, value);
     }
-    public object OffContent
+    public object? OffContent
     {
         get => GetValue(OffContentProperty);
         set => SetValue(OffContentProperty, value);

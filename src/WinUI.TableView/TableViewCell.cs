@@ -54,7 +54,7 @@ public class TableViewCell : ContentControl
 
             _contentPresenter ??= (ContentPresenter)GetTemplateChild("Content");
 
-            var contentWidth = Column.ActualWidth;
+            var contentWidth = Column?.ActualWidth ?? 0d;
             contentWidth -= element.Margin.Left;
             contentWidth -= element.Margin.Right;
             contentWidth -= Padding.Left;
@@ -97,8 +97,8 @@ public class TableViewCell : ContentControl
     {
         base.OnPointerEntered(e);
 
-        if ((TableView.SelectionMode is not ListViewSelectionMode.None
-           && TableView.SelectionUnit is not TableViewSelectionUnit.Row)
+        if ((TableView?.SelectionMode is not ListViewSelectionMode.None
+           && TableView?.SelectionUnit is not TableViewSelectionUnit.Row)
            || !TableView.IsReadOnly)
         {
             VisualStates.GoToState(this, false, VisualStates.StatePointerOver);
@@ -109,8 +109,8 @@ public class TableViewCell : ContentControl
     {
         base.OnPointerEntered(e);
 
-        if ((TableView.SelectionMode is not ListViewSelectionMode.None
-            && TableView.SelectionUnit is not TableViewSelectionUnit.Row)
+        if ((TableView?.SelectionMode is not ListViewSelectionMode.None
+            && TableView?.SelectionUnit is not TableViewSelectionUnit.Row)
             || !TableView.IsReadOnly)
         {
             VisualStates.GoToState(this, false, VisualStates.StateNormal);
@@ -121,7 +121,7 @@ public class TableViewCell : ContentControl
     {
         base.OnTapped(e);
 
-        if (TableView.SelectionUnit is not TableViewSelectionUnit.Row || !IsReadOnly)
+        if (TableView?.SelectionUnit is not TableViewSelectionUnit.Row || !IsReadOnly)
         {
             MakeSelection();
             e.Handled = true;
@@ -132,7 +132,7 @@ public class TableViewCell : ContentControl
     {
         base.OnPointerPressed(e);
 
-        if (!KeyBoardHelper.IsShiftKeyDown())
+        if (!KeyBoardHelper.IsShiftKeyDown() && TableView is not null)
         {
             TableView.SelectionStartCellSlot = TableView.SelectionUnit is not TableViewSelectionUnit.Row || !IsReadOnly ? Slot : default; ;
             TableView.SelectionStartRowIndex = Index;
@@ -144,7 +144,7 @@ public class TableViewCell : ContentControl
     {
         base.OnPointerReleased(e);
 
-        if (!KeyBoardHelper.IsShiftKeyDown())
+        if (!KeyBoardHelper.IsShiftKeyDown() && TableView is not null)
         {
             var cell = FindCell(e.GetCurrentPoint(this).Position);
             TableView.SelectionStartCellSlot = TableView.SelectionUnit is not TableViewSelectionUnit.Row || !IsReadOnly ? cell?.Slot : default;
@@ -167,14 +167,14 @@ public class TableViewCell : ContentControl
             if (cell is not null && cell != this)
             {
                 var ctrlKey = KeyBoardHelper.IsCtrlKeyDown();
-                TableView.MakeSelection(cell.Slot, true, ctrlKey);
+                TableView?.MakeSelection(cell.Slot, true, ctrlKey);
             }
         }
     }
 
     private TableViewCell? FindCell(Point position)
     {
-        _scrollViewer ??= TableView.FindDescendant<ScrollViewer>();
+        _scrollViewer ??= TableView?.FindDescendant<ScrollViewer>();
 
         if (_scrollViewer is { })
         {
@@ -191,7 +191,7 @@ public class TableViewCell : ContentControl
 
     protected override void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
     {
-        if (!IsReadOnly && !TableView.IsEditing && !Column.UseSingleElement)
+        if (!IsReadOnly && TableView is not null && !TableView.IsEditing && !Column?.UseSingleElement is true)
         {
             PrepareForEdit();
 
@@ -203,6 +203,11 @@ public class TableViewCell : ContentControl
     {
         var shiftKey = KeyBoardHelper.IsShiftKeyDown();
         var ctrlKey = KeyBoardHelper.IsCtrlKeyDown();
+
+        if (TableView is null || Column is null)
+        {
+            return;
+        }
 
         if ((TableView.IsEditing || Column.UseSingleElement) && IsCurrent)
         {
@@ -239,12 +244,12 @@ public class TableViewCell : ContentControl
 
     internal void SetElement()
     {
-        Content = Column.GenerateElement();
+        Content = Column?.GenerateElement();
     }
 
     private void SetEditingElement()
     {
-        if (!Column.UseSingleElement)
+        if (Column?.UseSingleElement is false)
         {
             Content = Column.GenerateEditingElement();
         }
@@ -257,7 +262,7 @@ public class TableViewCell : ContentControl
 
     internal void RefreshElement()
     {
-        Column.RefreshElement(this, Content);
+        Column?.RefreshElement(this, Content);
     }
 
     internal void ApplySelectionState()
@@ -284,10 +289,7 @@ public class TableViewCell : ContentControl
 
     internal void UpdateElementState()
     {
-        if (Column is { })
-        {
-            Column.UpdateElementState(this);
-        }
+        Column?.UpdateElementState(this);
     }
 
     private static void OnColumnChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -305,30 +307,30 @@ public class TableViewCell : ContentControl
         }
     }
 
-    public bool IsReadOnly => TableView.IsReadOnly || Column is TableViewTemplateColumn { EditingTemplate: null } or { IsReadOnly: true };
+    public bool IsReadOnly => TableView?.IsReadOnly is true || Column is TableViewTemplateColumn { EditingTemplate: null } or { IsReadOnly: true };
 
-    internal TableViewCellSlot Slot => new(Row.Index, Index);
+    internal TableViewCellSlot Slot => new(Row?.Index ?? -1, Index);
 
     internal int Index { get; set; }
 
-    public bool IsSelected => TableView.SelectedCells.Contains(Slot);
-    public bool IsCurrent => TableView.CurrentCellSlot == Slot;
+    public bool IsSelected => TableView?.SelectedCells.Contains(Slot) is true;
+    public bool IsCurrent => TableView?.CurrentCellSlot == Slot;
 
-    public TableViewColumn Column
+    public TableViewColumn? Column
     {
-        get => (TableViewColumn)GetValue(ColumnProperty);
+        get => (TableViewColumn?)GetValue(ColumnProperty);
         set => SetValue(ColumnProperty, value);
     }
 
-    public TableViewRow Row
+    public TableViewRow? Row
     {
-        get => (TableViewRow)GetValue(TableViewRowProperty);
+        get => (TableViewRow?)GetValue(TableViewRowProperty);
         set => SetValue(TableViewRowProperty, value);
     }
 
-    public TableView TableView
+    public TableView? TableView
     {
-        get => (TableView)GetValue(TableViewProperty);
+        get => (TableView?)GetValue(TableViewProperty);
         set => SetValue(TableViewProperty, value);
     }
 

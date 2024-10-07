@@ -67,9 +67,9 @@ public abstract class TableViewColumn : DependencyObject
         set => SetValue(IsReadOnlyProperty, value);
     }
 
-    public Style HeaderStyle
+    public Style? HeaderStyle
     {
-        get => (Style)GetValue(HeaderStyleProperty);
+        get => (Style?)GetValue(HeaderStyleProperty);
         set => SetValue(HeaderStyleProperty, value);
     }
 

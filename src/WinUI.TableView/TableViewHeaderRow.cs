@@ -318,11 +318,11 @@ public partial class TableViewHeaderRow : Control
 
     private void SetSelectAllButtonState()
     {
-        if (TableView.SelectionMode == ListViewSelectionMode.Multiple)
+        if (TableView?.SelectionMode == ListViewSelectionMode.Multiple)
         {
             VisualStates.GoToState(this, false, VisualStates.StateSelectAllCheckBox);
         }
-        else if (TableView.ShowOptionsButton)
+        else if (TableView?.ShowOptionsButton is true)
         {
             VisualStates.GoToState(this, false, VisualStates.StateOptionsButton);
         }
@@ -376,9 +376,9 @@ public partial class TableViewHeaderRow : Control
         }
     }
 
-    public TableView TableView
+    public TableView? TableView
     {
-        get => (TableView)GetValue(TableViewProperty);
+        get => (TableView?)GetValue(TableViewProperty);
         set => SetValue(TableViewProperty, value);
     }
 

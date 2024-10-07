@@ -32,27 +32,27 @@ public class TableViewTemplateColumn : TableViewColumn
         return GenerateElement();
     }
 
-    public DataTemplate CellTemplate
+    public DataTemplate? CellTemplate
     {
-        get => (DataTemplate)GetValue(CellTemplateProperty);
+        get => (DataTemplate?)GetValue(CellTemplateProperty);
         set => SetValue(CellTemplateProperty, value);
     }
 
-    public DataTemplateSelector CellTemplateSelector
+    public DataTemplateSelector? CellTemplateSelector
     {
-        get => (DataTemplateSelector)GetValue(CellTemplateSelectorProperty);
+        get => (DataTemplateSelector?)GetValue(CellTemplateSelectorProperty);
         set => SetValue(CellTemplateSelectorProperty, value);
     }
 
-    public DataTemplate EditingTemplate
+    public DataTemplate? EditingTemplate
     {
-        get => (DataTemplate)GetValue(EditingTemplateProperty);
+        get => (DataTemplate?)GetValue(EditingTemplateProperty); 
         set => SetValue(EditingTemplateProperty, value);
     }
 
-    public DataTemplateSelector EditingTemplateSelector
+    public DataTemplateSelector? EditingTemplateSelector
     {
-        get => (DataTemplateSelector)GetValue(EditingTemplateSelectorProperty);
+        get => (DataTemplateSelector?)GetValue(EditingTemplateSelectorProperty);
         set => SetValue(EditingTemplateSelectorProperty, value);
     }
 
