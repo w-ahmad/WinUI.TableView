@@ -42,21 +42,21 @@ public class TableViewComboBoxColumn : TableViewBoundColumn
         return comboBox;
     }
 
-    public object ItemsSource
+    public object? ItemsSource
     {
         get => GetValue(ItemsSourceProperty);
         set => SetValue(ItemsSourceProperty, value);
     }
 
-    public string DisplayMemberPath
+    public string? DisplayMemberPath
     {
-        get => (string)GetValue(DisplayMemberPathProperty);
+        get => (string?)GetValue(DisplayMemberPathProperty);
         set => SetValue(DisplayMemberPathProperty, value);
     }
 
-    public string SelectedValuePath
+    public string? SelectedValuePath
     {
-        get => (string)GetValue(SelectedValuePathProperty);
+        get => (string?)GetValue(SelectedValuePathProperty);
         set => SetValue(SelectedValuePathProperty, value);
     }
 

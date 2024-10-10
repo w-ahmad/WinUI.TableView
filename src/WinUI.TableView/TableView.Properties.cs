@@ -55,9 +55,9 @@ public partial class TableView
         set => SetValue(RowMaxHeightProperty, value);
     }
 
-    public new IList ItemsSource
+    public new IList? ItemsSource
     {
-        get => (IList)GetValue(ItemsSourceProperty);
+        get => (IList?)GetValue(ItemsSourceProperty);
         set => SetValue(ItemsSourceProperty, value);
     }
 

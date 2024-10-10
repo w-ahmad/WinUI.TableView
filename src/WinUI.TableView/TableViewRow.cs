@@ -38,7 +38,7 @@ public class TableViewRow : ListViewItem
 
     protected override void OnPointerPressed(PointerRoutedEventArgs e)
     {
-        if (!KeyBoardHelper.IsShiftKeyDown())
+        if (!KeyBoardHelper.IsShiftKeyDown() && TableView is not null)
         {
             TableView.SelectionStartRowIndex = Index;
         }
@@ -46,7 +46,7 @@ public class TableViewRow : ListViewItem
 
     protected override void OnPointerReleased(PointerRoutedEventArgs e)
     {
-        if (!KeyBoardHelper.IsShiftKeyDown())
+        if (!KeyBoardHelper.IsShiftKeyDown() && TableView is not null)
         {
             TableView.SelectionStartCellSlot = null;
             TableView.SelectionStartRowIndex = null;
@@ -57,6 +57,11 @@ public class TableViewRow : ListViewItem
     {
         var shiftKey = KeyBoardHelper.IsShiftKeyDown();
         var ctrlKey = KeyBoardHelper.IsCtrlKeyDown();
+
+        if (TableView is null)
+        {
+            return;
+        }
 
         if (IsSelected && (ctrlKey || TableView.SelectionMode is ListViewSelectionMode.Multiple) && !shiftKey)
         {
@@ -88,7 +93,7 @@ public class TableViewRow : ListViewItem
 
     private async void OnSizeChanged(object sender, SizeChangedEventArgs e)
     {
-        if (TableView.CurrentCellSlot?.Row == Index)
+        if (TableView?.CurrentCellSlot?.Row == Index)
         {
             _ = await TableView.ScrollCellIntoView(TableView.CurrentCellSlot.Value);
         }
@@ -153,7 +158,7 @@ public class TableViewRow : ListViewItem
 
     private void AddCells(IEnumerable<TableViewColumn> columns, int index = -1)
     {
-        if (_cellPresenter is not null)
+        if (_cellPresenter is not null && TableView is not null)
         {
             foreach (var column in columns)
             {
@@ -242,11 +247,11 @@ public class TableViewRow : ListViewItem
 
     internal IList<TableViewCell> Cells => _cellPresenter?.Cells ?? new List<TableViewCell>();
 
-    public int Index => TableView.IndexFromContainer(this);
+    public int Index => TableView?.IndexFromContainer(this) ?? -1;
 
-    public TableView TableView
+    public TableView? TableView
     {
-        get => (TableView)GetValue(TableViewProperty);
+        get => (TableView?)GetValue(TableViewProperty);
         set => SetValue(TableViewProperty, value);
     }
 
