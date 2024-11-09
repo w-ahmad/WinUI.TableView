@@ -121,11 +121,8 @@ public class TableViewCell : ContentControl
     {
         base.OnTapped(e);
 
-        if (TableView?.SelectionUnit is not TableViewSelectionUnit.Row || !IsReadOnly)
-        {
-            MakeSelection();
-            e.Handled = true;
-        }
+        MakeSelection();
+        e.Handled = true;
     }
 
     protected override void OnPointerPressed(PointerRoutedEventArgs e)
