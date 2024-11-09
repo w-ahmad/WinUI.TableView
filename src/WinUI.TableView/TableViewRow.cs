@@ -38,6 +38,8 @@ public class TableViewRow : ListViewItem
 
     protected override void OnPointerPressed(PointerRoutedEventArgs e)
     {
+        base.OnPointerPressed(e);
+
         if (!KeyBoardHelper.IsShiftKeyDown() && TableView is not null)
         {
             TableView.SelectionStartRowIndex = Index;
@@ -46,6 +48,8 @@ public class TableViewRow : ListViewItem
 
     protected override void OnPointerReleased(PointerRoutedEventArgs e)
     {
+        base.OnPointerReleased(e);
+
         if (!KeyBoardHelper.IsShiftKeyDown() && TableView is not null)
         {
             TableView.SelectionStartCellSlot = null;
