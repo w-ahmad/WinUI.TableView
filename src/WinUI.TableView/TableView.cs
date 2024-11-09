@@ -153,9 +153,7 @@ public partial class TableView : ListView
         else if ((e.Key is VirtualKey.Left or VirtualKey.Right or VirtualKey.Up or VirtualKey.Down)
                  && !IsEditing)
         {
-            var row = SelectionStartCellSlot?.Row
-                      ?? SelectionStartRowIndex
-                      ?? -1;
+            var row = (SelectionUnit is TableViewSelectionUnit.Row ? SelectionStartRowIndex : SelectionStartCellSlot?.Row) ?? -1;
             var column = CurrentCellSlot?.Column ?? -1;
 
             if (row == -1 && column == -1)
@@ -769,7 +767,7 @@ public partial class TableView : ListView
             }
         }
 
-        if (!IsReadOnly)
+        if (!IsReadOnly && IsValidSlot(slot))
         {
             DispatcherQueue.TryEnqueue(() => SetCurrentCell(slot));
         }
