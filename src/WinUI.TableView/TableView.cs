@@ -88,6 +88,11 @@ public partial class TableView : ListView
     protected override DependencyObject GetContainerForItemOverride()
     {
         var row = new TableViewRow { TableView = this };
+        row.SetBinding(HeightProperty, new Binding
+        {
+            Path = new PropertyPath($"{nameof(TableViewRow.TableView)}.{nameof(RowHeight)}"),
+            RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
+        });
         _rows.Add(row);
 
         return row;
@@ -430,19 +435,19 @@ public partial class TableView : ListView
     {
         return Type.GetTypeCode(type) switch
         {
-            TypeCode.Byte 
-              or TypeCode.SByte 
-              or TypeCode.UInt16 
-              or TypeCode.UInt32 
-              or TypeCode.UInt64 
-              or TypeCode.Int16 
-              or TypeCode.Int32 
-              or TypeCode.Int64 
-              or TypeCode.Single 
-              or TypeCode.Double 
-              or TypeCode.Decimal 
+            TypeCode.Byte
+              or TypeCode.SByte
+              or TypeCode.UInt16
+              or TypeCode.UInt32
+              or TypeCode.UInt64
+              or TypeCode.Int16
+              or TypeCode.Int32
+              or TypeCode.Int64
+              or TypeCode.Single
+              or TypeCode.Double
+              or TypeCode.Decimal
               => new TableViewNumberColumn(),
-            TypeCode.Boolean 
+            TypeCode.Boolean
               => new TableViewCheckBoxColumn(),
             _ => new TableViewTextColumn(),
         };
