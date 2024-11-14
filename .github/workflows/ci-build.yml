@@ -18,7 +18,7 @@ jobs:
 
     - name: Build
       run: |
-        msbuild /restore /t:Build,Pack src/WinUI.TableView/WinUI.TableView.csproj /p:Configuration=Release /p:PackageVersion=1.0.${{ github.run_number }}
+        msbuild /restore /t:Build,Pack src/WinUI.TableView/WinUI.TableView.csproj /p:Configuration=Release /p:Version=1.0.${{ github.run_number }}
         msbuild /restore src/SampleApp/SampleApp.csproj /p:Configuration=Release /p:Platform=x64
 
     - name: Upload artifacts
