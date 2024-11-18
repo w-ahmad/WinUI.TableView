@@ -725,8 +725,7 @@ public partial class TableView : ListView
                 }
             }
 
-            if (SelectionUnit is TableViewSelectionUnit.Row ||
-                (slot.Column == -1 && SelectionUnit is TableViewSelectionUnit.CellOrRow))
+            if (SelectionUnit is TableViewSelectionUnit.Row)
             {
                 SelectRows(slot, shiftKey);
             }

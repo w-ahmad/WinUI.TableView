@@ -57,27 +57,6 @@ public class TableViewRow : ListViewItem
         }
     }
 
-    protected override void OnTapped(TappedRoutedEventArgs e)
-    {
-        var shiftKey = KeyBoardHelper.IsShiftKeyDown();
-        var ctrlKey = KeyBoardHelper.IsCtrlKeyDown();
-
-        if (TableView is null)
-        {
-            return;
-        }
-
-        if (IsSelected && (ctrlKey || TableView.SelectionMode is ListViewSelectionMode.Multiple) && !shiftKey)
-        {
-            TableView.DeselectRange(new(Index, 1));
-        }
-        else if (!IsSelected || shiftKey | ctrlKey)
-        {
-            TableView.IsEditing = false;
-            TableView.MakeSelection(new(Index, -1), shiftKey, ctrlKey);
-        }
-    }
-
     private void EnsureCells()
     {
         if (TableView is null)
