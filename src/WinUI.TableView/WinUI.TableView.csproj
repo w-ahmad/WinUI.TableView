@@ -1,10 +1,30 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">  
-  <PropertyGroup Label="PackageInfo">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <PackageId>WinUI.TableView</PackageId>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <Description>TableView control for WinUI.</Description>
+    <PackageTags>WinUI, WinAppSDK, Windows, XAML, TableView, DataGrid</PackageTags>
+    <Product>WinUI TableView Control</Product>
+    <RepositoryUrl>https://github.com/w-ahmad/WinUI3.TableView</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/w-ahmad/WinUI3.TableView</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageOutputPath>$(MSBuildThisFileDirectory)..\..\artifacts\NuGet\$(Configuration)\</PackageOutputPath>
+    <Authors>w-ahmad - https://github.com/w-ahmad</Authors>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.WinUI.Behaviors" Version="8.0.240109" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240227000" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 </Project>
