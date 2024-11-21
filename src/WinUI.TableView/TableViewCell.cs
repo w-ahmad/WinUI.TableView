@@ -18,6 +18,7 @@ namespace WinUI.TableView;
 [TemplateVisualState(Name = VisualStates.StateUnselected, GroupName = VisualStates.GroupSelection)]
 public class TableViewCell : ContentControl
 {
+    private TableViewColumn? _column;
     private ScrollViewer? _scrollViewer;
     private ContentPresenter? _contentPresenter;
 
@@ -289,18 +290,15 @@ public class TableViewCell : ContentControl
         Column?.UpdateElementState(this);
     }
 
-    private static void OnColumnChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private void OnColumnChanged()
     {
-        if (d is TableViewCell cell)
+        if (TableView?.IsEditing == true)
         {
-            if (cell.TableView?.IsEditing == true)
-            {
-                cell.SetEditingElement();
-            }
-            else
-            {
-                cell.SetElement();
-            }
+            SetEditingElement();
+        }
+        else
+        {
+            SetElement();
         }
     }
 
@@ -315,23 +313,19 @@ public class TableViewCell : ContentControl
 
     public TableViewColumn? Column
     {
-        get => (TableViewColumn?)GetValue(ColumnProperty);
-        set => SetValue(ColumnProperty, value);
+        get => _column;
+        internal set
+        {
+            if (_column != value)
+            {
+                _column = value;
+                OnColumnChanged();
+            }
+        }
     }
 
-    public TableViewRow? Row
-    {
-        get => (TableViewRow?)GetValue(TableViewRowProperty);
-        set => SetValue(TableViewRowProperty, value);
-    }
+    public TableViewRow? Row { get; internal set; }
 
-    public TableView? TableView
-    {
-        get => (TableView?)GetValue(TableViewProperty);
-        set => SetValue(TableViewProperty, value);
-    }
+    public TableView? TableView { get; internal set; }
 
-    public static readonly DependencyProperty ColumnProperty = DependencyProperty.Register(nameof(Column), typeof(TableViewColumn), typeof(TableViewCell), new PropertyMetadata(default, OnColumnChanged));
-    public static readonly DependencyProperty TableViewRowProperty = DependencyProperty.Register(nameof(Row), typeof(TableViewRow), typeof(TableViewCell), new PropertyMetadata(default));
-    public static readonly DependencyProperty TableViewProperty = DependencyProperty.Register(nameof(TableView), typeof(TableView), typeof(TableViewCell), new PropertyMetadata(default));
 }
