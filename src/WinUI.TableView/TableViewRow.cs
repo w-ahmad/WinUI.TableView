@@ -10,6 +10,7 @@ namespace WinUI.TableView;
 
 public class TableViewRow : ListViewItem
 {
+    private TableView? _tableView;
     private TableViewCellsPresenter? _cellPresenter;
     private bool _ensureCells = true;
 
@@ -168,32 +169,30 @@ public class TableViewRow : ListViewItem
         }
     }
 
-    private static void OnTableViewChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private void OnTableViewChanging()
     {
-        if (d is not TableViewRow row)
+        if (TableView is not null)
         {
-            return;
-        }
+            TableView.IsReadOnlyChanged -= OnTableViewIsReadOnlyChanged;
 
-        if (e.NewValue is TableView newTableView)
-        {
-            newTableView.IsReadOnlyChanged += row.OnTableViewIsReadOnlyChanged;
-
-            if (newTableView.Columns is not null)
+            if (TableView.Columns is not null)
             {
-                newTableView.Columns.CollectionChanged += row.OnColumnsCollectionChanged;
-                newTableView.Columns.ColumnPropertyChanged += row.OnColumnPropertyChanged;
+                TableView.Columns.CollectionChanged -= OnColumnsCollectionChanged;
+                TableView.Columns.ColumnPropertyChanged -= OnColumnPropertyChanged;
             }
         }
+    }
 
-        if (e.OldValue is TableView oldTableView && oldTableView.Columns is not null)
+    private void OnTableViewChanged()
+    {
+        if (TableView is not null)
         {
-            oldTableView.IsReadOnlyChanged -= row.OnTableViewIsReadOnlyChanged;
+            TableView.IsReadOnlyChanged += OnTableViewIsReadOnlyChanged;
 
-            if (oldTableView.Columns is not null)
+            if (TableView.Columns is not null)
             {
-                oldTableView.Columns.CollectionChanged -= row.OnColumnsCollectionChanged;
-                oldTableView.Columns.ColumnPropertyChanged -= row.OnColumnPropertyChanged;
+                TableView.Columns.CollectionChanged += OnColumnsCollectionChanged;
+                TableView.Columns.ColumnPropertyChanged += OnColumnPropertyChanged;
             }
         }
     }
@@ -234,9 +233,15 @@ public class TableViewRow : ListViewItem
 
     public TableView? TableView
     {
-        get => (TableView?)GetValue(TableViewProperty);
-        set => SetValue(TableViewProperty, value);
+        get => _tableView;
+        internal set
+        {
+            if (_tableView != value)
+            {
+                OnTableViewChanging();
+                _tableView = value;
+                OnTableViewChanged();
+            }
+        }
     }
-
-    public static readonly DependencyProperty TableViewProperty = DependencyProperty.Register(nameof(TableView), typeof(TableView), typeof(TableViewRow), new PropertyMetadata(default, OnTableViewChanged));
 }
