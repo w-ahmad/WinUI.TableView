@@ -28,6 +28,7 @@ public partial class TableView
 
     public IAdvancedCollectionView CollectionView { get; private set; } = new AdvancedCollectionView();
     internal IDictionary<string, Predicate<object>> ActiveFilters { get; } = new Dictionary<string, Predicate<object>>();
+    internal TableViewSelectionUnit LastSelectionUnit { get; set; }
     internal TableViewCellSlot? CurrentCellSlot { get; set; }
     internal TableViewCellSlot? SelectionStartCellSlot { get; set; }
     internal int? SelectionStartRowIndex { get; set; }

@@ -158,7 +158,7 @@ public partial class TableView : ListView
         else if ((e.Key is VirtualKey.Left or VirtualKey.Right or VirtualKey.Up or VirtualKey.Down)
                  && !IsEditing)
         {
-            var row = (SelectionUnit is TableViewSelectionUnit.Row ? SelectionStartRowIndex : SelectionStartCellSlot?.Row) ?? -1;
+            var row = (LastSelectionUnit is TableViewSelectionUnit.Row ? SelectionStartRowIndex : SelectionStartCellSlot?.Row) ?? -1;
             var column = CurrentCellSlot?.Column ?? -1;
 
             if (row == -1 && column == -1)
@@ -168,6 +168,11 @@ public partial class TableView : ListView
             else if (e.Key is VirtualKey.Left or VirtualKey.Right)
             {
                 column = e.Key is VirtualKey.Left ? ctrlKey ? 0 : column - 1 : ctrlKey ? Columns.VisibleColumns.Count - 1 : column + 1;
+                if (column >= Columns.VisibleColumns.Count)
+                {
+                    column = 0;
+                    row++;
+                }
             }
             else
             {
@@ -612,11 +617,6 @@ public partial class TableView : ListView
         }
     }
 
-    private bool IsValidSlot(TableViewCellSlot slot)
-    {
-        return slot.Row >= 0 && slot.Column >= 0 && slot.Row < Items.Count && slot.Column < Columns.VisibleColumns.Count;
-    }
-
     internal new void SelectAll()
     {
         if (IsEditing)
@@ -703,7 +703,7 @@ public partial class TableView : ListView
 
     internal void MakeSelection(TableViewCellSlot slot, bool shiftKey, bool ctrlKey = false)
     {
-        if (slot.Row < 0 || slot.Row >= Items.Count)
+        if (!slot.IsValidRow(this))
         {
             return;
         }
@@ -725,13 +725,17 @@ public partial class TableView : ListView
                 }
             }
 
-            if (SelectionUnit is TableViewSelectionUnit.Row)
+            if (SelectionUnit is TableViewSelectionUnit.Row
+               || (LastSelectionUnit is TableViewSelectionUnit.Row && slot.IsValidRow(this) && !slot.IsValidColumn(this))
+               || (SelectionUnit is TableViewSelectionUnit.CellOrRow && slot.IsValidRow(this) && !slot.IsValidColumn(this)))
             {
                 SelectRows(slot, shiftKey);
+                LastSelectionUnit = TableViewSelectionUnit.Row;
             }
             else
             {
                 SelectCells(slot, shiftKey);
+                LastSelectionUnit = TableViewSelectionUnit.Cell;
             }
         }
         else if (!IsReadOnly)
@@ -771,7 +775,7 @@ public partial class TableView : ListView
             }
         }
 
-        if (!IsReadOnly && IsValidSlot(slot))
+        if (!IsReadOnly && slot.IsValid(this))
         {
             DispatcherQueue.TryEnqueue(() => SetCurrentCell(slot));
         }
@@ -787,7 +791,7 @@ public partial class TableView : ListView
 
     private void SelectCells(TableViewCellSlot slot, bool shiftKey)
     {
-        if (!IsValidSlot(slot))
+        if (!slot.IsValid(this))
         {
             return;
         }
@@ -896,7 +900,7 @@ public partial class TableView : ListView
 
     internal async Task<TableViewCell> ScrollCellIntoView(TableViewCellSlot slot)
     {
-        if (_scrollViewer is null || !IsValidSlot(slot)) return default!;
+        if (_scrollViewer is null || !slot.IsValid(this)) return default!;
 
         var row = await ScrollRowIntoView(slot.Row);
         var (start, end) = GetColumnsInDisplay();
@@ -1007,7 +1011,7 @@ public partial class TableView : ListView
 
     internal TableViewCell GetCellFromSlot(TableViewCellSlot slot)
     {
-        return IsValidSlot(slot) && ContainerFromIndex(slot.Row) is TableViewRow row ? row.Cells[slot.Column] : default!;
+        return slot.IsValid(this) && ContainerFromIndex(slot.Row) is TableViewRow row ? row.Cells[slot.Column] : default!;
     }
 
     private (int start, int end) GetColumnsInDisplay()

@@ -54,7 +54,17 @@ public class TableViewRow : ListViewItem
         if (!KeyBoardHelper.IsShiftKeyDown() && TableView is not null)
         {
             TableView.SelectionStartCellSlot = null;
-            TableView.SelectionStartRowIndex = null;
+            TableView.SelectionStartRowIndex = Index;
+        }
+    }
+
+    protected override void OnTapped(TappedRoutedEventArgs e)
+    {
+        base.OnTapped(e);
+
+        if (TableView?.SelectionUnit is TableViewSelectionUnit.Row or TableViewSelectionUnit.CellOrRow)
+        {
+            TableView.LastSelectionUnit = TableViewSelectionUnit.Row;
         }
     }
 
