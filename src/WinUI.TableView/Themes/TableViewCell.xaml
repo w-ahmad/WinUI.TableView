@@ -2,14 +2,9 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="using:WinUI.TableView">
 
-    <StaticResource x:Key="TableViewGridLinesBrush"
-                    ResourceKey="ControlStrokeColorDefaultBrush" />
-
-    <StaticResource x:Key="TableViewCellSelectionBrush"
-                    ResourceKey="FocusStrokeColorOuterBrush" />
-
-    <SolidColorBrush x:Key="TableViewCellHighlightBrush"
-                     Color="{StaticResource LayerFillColorDefault}" />
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/Resources.xaml" />
+    </ResourceDictionary.MergedDictionaries>
 
     <Style x:Key="DefaultTableViewCellStyle"
            TargetType="local:TableViewCell">
@@ -36,7 +31,7 @@
                                 <VisualState x:Name="PointerOver">
                                     <VisualState.Setters>
                                         <Setter Target="RootBorder.Background"
-                                                Value="{ThemeResource ListViewItemBackgroundPointerOver}" />
+                                                Value="{ThemeResource TableViewCellBackgroundPointerOver}" />
                                     </VisualState.Setters>
                                 </VisualState>
                             </VisualStateGroup>
@@ -44,7 +39,7 @@
                                 <VisualState x:Name="Selected">
                                     <VisualState.Setters>
                                         <Setter Target="SelectionBorder.Background"
-                                                Value="{ThemeResource ListViewItemBackgroundSelected}" />
+                                                Value="{ThemeResource TableViewCellBackgroundSelected}" />
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="Unselected" />
@@ -54,7 +49,7 @@
                                 <VisualState x:Name="Current">
                                     <VisualState.Setters>
                                         <Setter Target="SelectionBorder.BorderBrush"
-                                                Value="{StaticResource TableViewCellSelectionBrush}" />
+                                                Value="{ThemeResource TableViewCellSelectionBrush}" />
                                     </VisualState.Setters>
                                 </VisualState>
                             </VisualStateGroup>

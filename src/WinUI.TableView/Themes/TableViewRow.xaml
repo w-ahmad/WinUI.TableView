@@ -2,17 +2,31 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="using:WinUI.TableView">
 
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/Resources.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
     <Style x:Key="DefaultTableViewRowStyle"
            TargetType="local:TableViewRow"
            BasedOn="{StaticResource DefaultListViewItemStyle}">
-        <Setter Property="VerticalContentAlignment"
-                Value="Stretch" />
-        <Setter Property="IsTabStop"
-                Value="True" />
-        <Setter Property="UseSystemFocusVisuals"
-                Value="False" />
-        <Setter Property="Padding"
-                Value="16,0,12,0" />
+        <Setter Property="FontFamily" Value="{ThemeResource ContentControlThemeFontFamily}" />
+        <Setter Property="FontSize" Value="{ThemeResource ControlContentThemeFontSize}" />
+        <Setter Property="Background" Value="{ThemeResource TableViewRowBackground}" />
+        <Setter Property="Foreground" Value="{ThemeResource TableViewRowForeground}" />
+        <Setter Property="TabNavigation" Value="Local" />
+        <Setter Property="IsHoldingEnabled" Value="True" />
+        <Setter Property="Padding" Value="16,0,12,0" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="MinWidth" Value="{ThemeResource TableViewRowMinWidth}" />
+        <Setter Property="MinHeight" Value="{ThemeResource TableViewRowMinHeight}" />
+        <Setter Property="AllowDrop" Value="False" />
+        <Setter Property="UseSystemFocusVisuals" Value="True" />
+        <Setter Property="FocusVisualMargin" Value="1" />
+        <Setter Property="FocusVisualPrimaryBrush" Value="{ThemeResource TableViewRowFocusVisualPrimaryBrush}" />
+        <Setter Property="FocusVisualPrimaryThickness" Value="2" />
+        <Setter Property="FocusVisualSecondaryBrush" Value="{ThemeResource TableViewRowFocusVisualSecondaryBrush}" />
+        <Setter Property="FocusVisualSecondaryThickness" Value="1" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ListViewItem">
@@ -24,50 +38,50 @@
                                            FocusVisualPrimaryThickness="{TemplateBinding FocusVisualPrimaryThickness}"
                                            FocusVisualSecondaryBrush="{TemplateBinding FocusVisualSecondaryBrush}"
                                            FocusVisualSecondaryThickness="{TemplateBinding FocusVisualSecondaryThickness}"
-                                           SelectionCheckMarkVisualEnabled="{ThemeResource ListViewItemSelectionCheckMarkVisualEnabled}"
-                                           CheckBrush="{ThemeResource ListViewItemCheckBrush}"
-                                           CheckBoxBrush="{ThemeResource ListViewItemCheckBoxBrush}"
-                                           DragBackground="{ThemeResource ListViewItemDragBackground}"
-                                           DragForeground="{ThemeResource ListViewItemDragForeground}"
-                                           FocusBorderBrush="{ThemeResource ListViewItemFocusBorderBrush}"
-                                           FocusSecondaryBorderBrush="{ThemeResource ListViewItemFocusSecondaryBorderBrush}"
-                                           PlaceholderBackground="{ThemeResource ListViewItemPlaceholderBackground}"
-                                           PointerOverBackground="{ThemeResource ListViewItemBackgroundPointerOver}"
-                                           PointerOverForeground="{ThemeResource ListViewItemForegroundPointerOver}"
-                                           SelectedBackground="{ThemeResource ListViewItemBackgroundSelected}"
-                                           SelectedForeground="{ThemeResource ListViewItemForegroundSelected}"
-                                           SelectedPointerOverBackground="{ThemeResource ListViewItemBackgroundSelectedPointerOver}"
-                                           PressedBackground="{ThemeResource ListViewItemBackgroundPressed}"
-                                           SelectedPressedBackground="{ThemeResource ListViewItemBackgroundSelectedPressed}"
-                                           DisabledOpacity="{ThemeResource ListViewItemDisabledThemeOpacity}"
-                                           DragOpacity="{ThemeResource ListViewItemDragThemeOpacity}"
-                                           ReorderHintOffset="{ThemeResource ListViewItemReorderHintThemeOffset}"
+                                           SelectionCheckMarkVisualEnabled="{ThemeResource TableViewRowSelectionCheckMarkVisualEnabled}"
+                                           CheckBrush="{ThemeResource TableViewRowCheckBrush}"
+                                           CheckBoxBrush="{ThemeResource TableViewRowCheckBoxBrush}"
+                                           DragBackground="{ThemeResource TableViewRowDragBackground}"
+                                           DragForeground="{ThemeResource TableViewRowDragForeground}"
+                                           FocusBorderBrush="{ThemeResource TableViewRowFocusBorderBrush}"
+                                           FocusSecondaryBorderBrush="{ThemeResource TableViewRowFocusSecondaryBorderBrush}"
+                                           PlaceholderBackground="{ThemeResource TableViewRowPlaceholderBackground}"
+                                           PointerOverBackground="{ThemeResource TableViewRowBackgroundPointerOver}"
+                                           PointerOverForeground="{ThemeResource TableViewRowForegroundPointerOver}"
+                                           SelectedBackground="{ThemeResource TableViewRowBackgroundSelected}"
+                                           SelectedForeground="{ThemeResource TableViewRowForegroundSelected}"
+                                           SelectedPointerOverBackground="{ThemeResource TableViewRowBackgroundSelectedPointerOver}"
+                                           PressedBackground="{ThemeResource TableViewRowBackgroundPressed}"
+                                           SelectedPressedBackground="{ThemeResource TableViewRowBackgroundSelectedPressed}"
+                                           DisabledOpacity="{ThemeResource TableViewRowDisabledThemeOpacity}"
+                                           DragOpacity="{ThemeResource TableViewRowDragThemeOpacity}"
+                                           ReorderHintOffset="{ThemeResource TableViewRowReorderHintThemeOffset}"
                                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
                                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                                            ContentMargin="{TemplateBinding Padding}"
-                                           CheckMode="{ThemeResource ListViewItemCheckMode}"
-                                           CornerRadius="{ThemeResource ListViewItemCornerRadius}"
-                                           CheckPressedBrush="{ThemeResource ListViewItemCheckPressedBrush}"
-                                           CheckDisabledBrush="{ThemeResource ListViewItemCheckDisabledBrush}"
-                                           CheckBoxPointerOverBrush="{ThemeResource ListViewItemCheckBoxPointerOverBrush}"
-                                           CheckBoxPressedBrush="{ThemeResource ListViewItemCheckBoxPressedBrush}"
-                                           CheckBoxDisabledBrush="{ThemeResource ListViewItemCheckBoxDisabledBrush}"
-                                           CheckBoxSelectedBrush="{ThemeResource ListViewItemCheckBoxSelectedBrush}"
-                                           CheckBoxSelectedPointerOverBrush="{ThemeResource ListViewItemCheckBoxSelectedPointerOverBrush}"
-                                           CheckBoxSelectedPressedBrush="{ThemeResource ListViewItemCheckBoxSelectedPressedBrush}"
-                                           CheckBoxSelectedDisabledBrush="{ThemeResource ListViewItemCheckBoxSelectedDisabledBrush}"
-                                           CheckBoxBorderBrush="{ThemeResource ListViewItemCheckBoxBorderBrush}"
-                                           CheckBoxPointerOverBorderBrush="{ThemeResource ListViewItemCheckBoxPointerOverBorderBrush}"
-                                           CheckBoxPressedBorderBrush="{ThemeResource ListViewItemCheckBoxPressedBorderBrush}"
-                                           CheckBoxDisabledBorderBrush="{ThemeResource ListViewItemCheckBoxDisabledBorderBrush}"
-                                           CheckBoxCornerRadius="{ThemeResource ListViewItemCheckBoxCornerRadius}"
-                                           SelectionIndicatorCornerRadius="{ThemeResource ListViewItemSelectionIndicatorCornerRadius}"
-                                           SelectionIndicatorVisualEnabled="{ThemeResource ListViewItemSelectionIndicatorVisualEnabled}"
-                                           SelectionIndicatorBrush="{ThemeResource ListViewItemSelectionIndicatorBrush}"
-                                           SelectionIndicatorPointerOverBrush="{ThemeResource ListViewItemSelectionIndicatorPointerOverBrush}"
-                                           SelectionIndicatorPressedBrush="{ThemeResource ListViewItemSelectionIndicatorPressedBrush}"
-                                           SelectionIndicatorDisabledBrush="{ThemeResource ListViewItemSelectionIndicatorDisabledBrush}"
-                                           SelectedDisabledBackground="{ThemeResource ListViewItemBackgroundSelectedDisabled}" />
+                                           CheckMode="{ThemeResource TableViewRowCheckMode}"
+                                           CornerRadius="{ThemeResource TableViewRowCornerRadius}"
+                                           CheckPressedBrush="{ThemeResource TableViewRowCheckPressedBrush}"
+                                           CheckDisabledBrush="{ThemeResource TableViewRowCheckDisabledBrush}"
+                                           CheckBoxPointerOverBrush="{ThemeResource TableViewRowCheckBoxPointerOverBrush}"
+                                           CheckBoxPressedBrush="{ThemeResource TableViewRowCheckBoxPressedBrush}"
+                                           CheckBoxDisabledBrush="{ThemeResource TableViewRowCheckBoxDisabledBrush}"
+                                           CheckBoxSelectedBrush="{ThemeResource TableViewRowCheckBoxSelectedBrush}"
+                                           CheckBoxSelectedPointerOverBrush="{ThemeResource TableViewRowCheckBoxSelectedPointerOverBrush}"
+                                           CheckBoxSelectedPressedBrush="{ThemeResource TableViewRowCheckBoxSelectedPressedBrush}"
+                                           CheckBoxSelectedDisabledBrush="{ThemeResource TableViewRowCheckBoxSelectedDisabledBrush}"
+                                           CheckBoxBorderBrush="{ThemeResource TableViewRowCheckBoxBorderBrush}"
+                                           CheckBoxPointerOverBorderBrush="{ThemeResource TableViewRowCheckBoxPointerOverBorderBrush}"
+                                           CheckBoxPressedBorderBrush="{ThemeResource TableViewRowCheckBoxPressedBorderBrush}"
+                                           CheckBoxDisabledBorderBrush="{ThemeResource TableViewRowCheckBoxDisabledBorderBrush}"
+                                           CheckBoxCornerRadius="{ThemeResource TableViewRowCheckBoxCornerRadius}"
+                                           SelectionIndicatorCornerRadius="{ThemeResource TableViewRowSelectionIndicatorCornerRadius}"
+                                           SelectionIndicatorVisualEnabled="{ThemeResource TableViewRowSelectionIndicatorVisualEnabled}"
+                                           SelectionIndicatorBrush="{ThemeResource TableViewRowSelectionIndicatorBrush}"
+                                           SelectionIndicatorPointerOverBrush="{ThemeResource TableViewRowSelectionIndicatorPointerOverBrush}"
+                                           SelectionIndicatorPressedBrush="{ThemeResource TableViewRowSelectionIndicatorPressedBrush}"
+                                           SelectionIndicatorDisabledBrush="{ThemeResource TableViewRowSelectionIndicatorDisabledBrush}"
+                                           SelectedDisabledBackground="{ThemeResource TableViewRowBackgroundSelectedDisabled}" />
 
                 </ControlTemplate>
             </Setter.Value>

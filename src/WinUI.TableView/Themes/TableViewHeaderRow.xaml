@@ -2,18 +2,16 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="using:WinUI.TableView">
 
-    <StaticResource x:Key="TableViewGridLinesBrush"
-                    ResourceKey="ControlStrokeColorDefaultBrush" />
-
-    <x:String x:Key="OptionsButtonIcon">&#xe712;</x:String>
-    <x:String x:Key="SelectAllButtonIcon">&#xE936;</x:String>
-
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/Resources.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+   
     <Style x:Key="DefaultTableViewHeaderRowStyle"
            TargetType="local:TableViewHeaderRow">
         <Setter Property="Height"
                 Value="32" />
         <Setter Property="Background"
-                Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+                Value="{ThemeResource TableViewHeaderRowBackground}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:TableViewHeaderRow">
@@ -62,7 +60,7 @@
                                     Width="16"
                                     Visibility="Visible"
                                     IsTabStop="False"
-                                    BorderBrush="{ThemeResource TableViewGridLinesBrush}">
+                                    BorderBrush="{ThemeResource TableViewBorderBrush}">
                                 <FontIcon FontSize="12"
                                           Margin="6,20,0,0"
                                           Opacity="0.5"
@@ -83,7 +81,7 @@
                                     Width="16"
                                     Visibility="Collapsed"
                                     IsTabStop="False"
-                                    BorderBrush="{ThemeResource TableViewGridLinesBrush}">
+                                    BorderBrush="{ThemeResource TableViewBorderBrush}">
                                 <FontIcon FontSize="12"
                                           Margin="4,0,0,0"
                                           VerticalAlignment="Center"
@@ -158,7 +156,7 @@
 
                             <Border Grid.Column="1"
                                     BorderThickness="0,0,0,1"
-                                    BorderBrush="{ThemeResource TableViewGridLinesBrush}" />
+                                    BorderBrush="{ThemeResource TableViewBorderBrush}" />
                         </Grid>
                     </Grid>
                 </ControlTemplate>
