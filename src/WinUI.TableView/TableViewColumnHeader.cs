@@ -1,14 +1,16 @@
 ﻿using CommunityToolkit.WinUI;
 using CommunityToolkit.WinUI.Collections;
+using Microsoft.UI;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Shapes;
 using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Windows.Foundation;
 using Windows.System;
 using Windows.UI.Core;
 using WinUI.TableView.Extensions;
@@ -33,6 +35,7 @@ public partial class TableViewColumnHeader : ContentControl
     private Button? _optionsButton;
     private MenuFlyout? _optionsFlyout;
     private ContentPresenter? _contentPresenter;
+    private Rectangle? _v_gridLine;
     private CheckBox? _selectAllCheckBox;
     private OptionsFlyoutViewModel _optionsFlyoutViewModel = default!;
     private string _propertyPath = default!;
@@ -161,6 +164,7 @@ public partial class TableViewColumnHeader : ContentControl
         _optionsButton = GetTemplateChild("OptionsButton") as Button;
         _optionsFlyout = GetTemplateChild("OptionsFlyout") as MenuFlyout;
         _contentPresenter = GetTemplateChild("ContentPresenter") as ContentPresenter;
+        _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
 
         if (_tableView is null || _optionsButton is null || _optionsFlyout is null)
         {
@@ -195,6 +199,7 @@ public partial class TableViewColumnHeader : ContentControl
         }
 
         SetFilterButtonVisibility();
+        EnsureGridLines();
     }
 
     private void OnSearchBoxKeyDown(object sender, KeyRoutedEventArgs e)
@@ -309,7 +314,11 @@ public partial class TableViewColumnHeader : ContentControl
 
         if (_contentPresenter is not null)
         {
-            _contentPresenter.Margin = CanFilter ? new Thickness(0, 0, 8, 0) : new Thickness(0);
+            _contentPresenter.Margin = CanFilter ? new Thickness(
+                Padding.Left,
+                Padding.Top,
+                Padding.Right + 8,
+                0) : Padding;
         }
     }
 
@@ -338,15 +347,24 @@ public partial class TableViewColumnHeader : ContentControl
         }
 
         var position = e.GetPosition(this);
+        var v_GridLineStrokeThickness = _tableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                                        || _tableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                                        ? _tableView.VerticalGridLinesStrokeThickness : 0;
 
         if (position.X <= 8 && _headerRow?.GetPreviousHeader(this) is { Column: { } } header)
         {
-            var width = Math.Clamp(header.Column.DesiredWidth, header.Column.MinWidth ?? _tableView.MinColumnWidth, header.Column.MaxWidth ?? _tableView.MaxColumnWidth);
+            var width = Math.Clamp(
+                header.Column.DesiredWidth,
+                header.Column.MinWidth ?? _tableView.MinColumnWidth,
+                header.Column.MaxWidth ?? _tableView.MaxColumnWidth);
             header.Column.Width = new GridLength(width, GridUnitType.Pixel);
         }
         else if (Column is not null)
         {
-            var width = Math.Clamp(Column.DesiredWidth, Column.MinWidth ?? _tableView.MinColumnWidth, Column.MaxWidth ?? _tableView.MaxColumnWidth);
+            var width = Math.Clamp(
+                Column.DesiredWidth,
+                Column.MinWidth ?? _tableView.MinColumnWidth,
+                Column.MaxWidth ?? _tableView.MaxColumnWidth);
             Column.Width = new GridLength(width, GridUnitType.Pixel);
         }
     }
@@ -440,6 +458,19 @@ public partial class TableViewColumnHeader : ContentControl
         {
             var cell = _tableView.GetCellFromSlot(_tableView.CurrentCellSlot.Value);
             cell?.ApplyCurrentCellState();
+        }
+    }
+
+    internal void EnsureGridLines()
+    {
+        if (_v_gridLine is not null && _tableView is not null)
+        {
+            _v_gridLine.Fill = _tableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                               ? _tableView.VerticalGridLinesStroke : new SolidColorBrush(Colors.Transparent);
+            _v_gridLine.Width = _tableView.VerticalGridLinesStrokeThickness;
+            _v_gridLine.Visibility = _tableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                                     || _tableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                                     ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 

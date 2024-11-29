@@ -1047,7 +1047,22 @@ public partial class TableView : ListView
 
         base.SelectionMode = SelectionUnit is TableViewSelectionUnit.Cell ? ListViewSelectionMode.None : SelectionMode;
 
+        foreach (var row in _rows)
+        {
+            row.EnsureLayout();
+        }
+
         _shouldThrowSelectionModeChangedException = false;
+    }
+
+    private void EnsureGridLines()
+    {
+        _headerRow?.EnsureGridLines();
+
+        foreach (var row in _rows)
+        {
+            row.EnsureGridLines();
+        }
     }
 
     public event EventHandler<TableViewAutoGeneratingColumnEventArgs>? AutoGeneratingColumn;
@@ -1055,6 +1070,7 @@ public partial class TableView : ListView
     public event EventHandler<TableViewExportContentEventArgs>? ExportSelectedContent;
     public event EventHandler<TableViewCopyToClipboardEventArgs>? CopyToClipboard;
     public event DependencyPropertyChangedEventHandler? IsReadOnlyChanged;
+    public event DependencyPropertyChangedEventHandler? DependencyPropertyChanged;
 
     internal event EventHandler<TableViewCellSelectionChangedEvenArgs>? SelectedCellsChanged;
     internal event EventHandler<TableViewCurrentCellChangedEventArgs>? CurrentCellChanged;

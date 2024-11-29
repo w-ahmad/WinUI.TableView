@@ -12,10 +12,6 @@
                 Value="Center" />
         <Setter Property="HorizontalContentAlignment"
                 Value="Stretch" />
-        <Setter Property="BorderThickness"
-                Value="2" />
-        <Setter Property="CornerRadius"
-                Value="{ThemeResource ControlCornerRadius}" />
         <Setter Property="Background">
             <Setter.Value>
                 <SolidColorBrush Opacity="0" />
@@ -24,7 +20,15 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:TableViewCell">
-                    <Grid>
+                    <Grid Background="{TemplateBinding Background}"
+                          BorderBrush="{TemplateBinding BorderBrush}"
+                          BorderThickness="{TemplateBinding BorderThickness}"
+                          CornerRadius="{TemplateBinding CornerRadius}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CommonStates">
                                 <VisualState x:Name="Normal" />
@@ -55,18 +59,21 @@
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
                         <Border x:Name="SelectionBorder"
-                                CornerRadius="{TemplateBinding CornerRadius}"
-                                BorderThickness="{TemplateBinding BorderThickness}" />
+                                BorderThickness="{ThemeResource TableViewCellSelectionBorderThickness}"
+                                CornerRadius="{ThemeResource TableViewRowCellSelectionBorderCornerRadius}" />
                         <Border x:Name="RootBorder"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="{TemplateBinding CornerRadius}">
+                                Margin="{ThemeResource TableViewCellSelectionBorderThickness}"
+                                CornerRadius="{ThemeResource TableViewRowCellSelectionBorderCornerRadius}">
                             <ContentPresenter x:Name="Content"
                                               Margin="{TemplateBinding Padding}"
                                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                               HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
                         </Border>
+                        
+                        <Rectangle x:Name="VerticalGridLine"
+                                   Grid.Column="1"
+                                   Width="1"
+                                   VerticalAlignment="Stretch" />
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>

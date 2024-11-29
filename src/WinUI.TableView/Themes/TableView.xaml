@@ -44,6 +44,14 @@
                 Value="1" />
         <Setter Property="SingleSelectionFollowsFocus"
                 Value="False" />
+        <Setter Property="HorizontalGridLinesStroke"
+                Value="{ThemeResource TableViewHorizontalGridLineStroke}" />
+        <Setter Property="VerticalGridLinesStroke"
+                Value="{ThemeResource TableViewVerticalGridLineStroke}" />
+        <Setter Property="HorizontalGridLinesStrokeThickness"
+                Value="{ThemeResource TableViewHorizontalGridLineStrokeThickness}" />
+        <Setter Property="VerticalGridLinesStrokeThickness"
+                Value="{ThemeResource TableViewVerticalGridLineStrokeThickness}" />
         <Setter Property="ItemContainerTransitions">
             <Setter.Value>
                 <TransitionCollection>
@@ -64,7 +72,7 @@
         <Setter Property="ItemTemplate">
             <Setter.Value>
                 <DataTemplate>
-                    <local:TableViewCellsPresenter IsTabStop="False"/>
+                    <local:TableViewCellsPresenter IsTabStop="False" />
                 </DataTemplate>
             </Setter.Value>
         </Setter>

@@ -14,8 +14,12 @@
             <x:Double x:Key="TableViewRowReorderHintThemeOffset">10.0</x:Double>
             <x:Double x:Key="TableViewRowMinWidth">88</x:Double>
             <x:Double x:Key="TableViewRowMinHeight">40</x:Double>
+            <x:Double x:Key="TableViewHorizontalGridLineStrokeThickness">1</x:Double>
+            <x:Double x:Key="TableViewVerticalGridLineStrokeThickness">1</x:Double>
             <x:Boolean x:Key="TableViewRowSelectionCheckMarkVisualEnabled">True</x:Boolean>
             <x:Boolean x:Key="TableViewRowSelectionIndicatorVisualEnabled">True</x:Boolean>
+            <Thickness x:Key="TableViewCellSelectionBorderThickness">2</Thickness>
+            <CornerRadius x:Key="TableViewRowCellSelectionBorderCornerRadius">4</CornerRadius>
             <CornerRadius x:Key="TableViewRowCornerRadius">4</CornerRadius>
             <CornerRadius x:Key="TableViewRowCheckBoxCornerRadius">3</CornerRadius>
             <CornerRadius x:Key="TableViewRowSelectionIndicatorCornerRadius">1.5</CornerRadius>
@@ -62,6 +66,8 @@
             <StaticResource x:Key="TableViewRowSelectionIndicatorPointerOverBrush" ResourceKey="AccentFillColorDefaultBrush" />
             <StaticResource x:Key="TableViewRowSelectionIndicatorPressedBrush" ResourceKey="AccentFillColorDefaultBrush" />
             <StaticResource x:Key="TableViewRowSelectionIndicatorDisabledBrush" ResourceKey="AccentFillColorDisabledBrush" />
+            <StaticResource x:Key="TableViewHorizontalGridLineStroke" ResourceKey="CardStrokeColorDefaultBrush" />
+            <StaticResource x:Key="TableViewVerticalGridLineStroke" ResourceKey="CardStrokeColorDefaultBrush" />            
         </ResourceDictionary>
         
         <ResourceDictionary x:Key="Dark">
@@ -75,8 +81,12 @@
             <x:Double x:Key="TableViewRowReorderHintThemeOffset">10.0</x:Double>
             <x:Double x:Key="TableViewRowMinWidth">88</x:Double>
             <x:Double x:Key="TableViewRowMinHeight">40</x:Double>
+            <x:Double x:Key="TableViewHorizontalGridLineStrokeThickness">1</x:Double>
+            <x:Double x:Key="TableViewVerticalGridLineStrokeThickness">1</x:Double>
             <x:Boolean x:Key="TableViewRowSelectionCheckMarkVisualEnabled">True</x:Boolean>
             <x:Boolean x:Key="TableViewRowSelectionIndicatorVisualEnabled">True</x:Boolean>
+            <Thickness x:Key="TableViewCellSelectionBorderThickness">2</Thickness>
+            <CornerRadius x:Key="TableViewRowCellSelectionBorderCornerRadius">4</CornerRadius>
             <CornerRadius x:Key="TableViewRowCornerRadius">4</CornerRadius>
             <CornerRadius x:Key="TableViewRowCheckBoxCornerRadius">3</CornerRadius>
             <CornerRadius x:Key="TableViewRowSelectionIndicatorCornerRadius">1.5</CornerRadius>
@@ -123,6 +133,8 @@
             <StaticResource x:Key="TableViewRowSelectionIndicatorPointerOverBrush" ResourceKey="AccentFillColorDefaultBrush" />
             <StaticResource x:Key="TableViewRowSelectionIndicatorPressedBrush" ResourceKey="AccentFillColorDefaultBrush" />
             <StaticResource x:Key="TableViewRowSelectionIndicatorDisabledBrush" ResourceKey="AccentFillColorDisabledBrush" />
+            <StaticResource x:Key="TableViewHorizontalGridLineStroke" ResourceKey="ControlStrokeColorDefaultBrush" />
+            <StaticResource x:Key="TableViewVerticalGridLineStroke" ResourceKey="ControlStrokeColorDefaultBrush" />
         </ResourceDictionary>
 
         <ResourceDictionary x:Key="HighContrast">
@@ -136,8 +148,12 @@
             <x:Double x:Key="TableViewRowReorderHintThemeOffset">10.0</x:Double>
             <x:Double x:Key="TableViewRowMinWidth">88</x:Double>
             <x:Double x:Key="TableViewRowMinHeight">40</x:Double>
+            <x:Double x:Key="TableViewHorizontalGridLineStrokeThickness">1</x:Double>
+            <x:Double x:Key="TableViewVerticalGridLineStrokeThickness">1</x:Double>
             <x:Boolean x:Key="TableViewRowSelectionCheckMarkVisualEnabled">True</x:Boolean>
             <x:Boolean x:Key="TableViewRowSelectionIndicatorVisualEnabled">True</x:Boolean>
+            <Thickness x:Key="TableViewCellSelectionBorderThickness">2</Thickness>
+            <CornerRadius x:Key="TableViewRowCellSelectionBorderCornerRadius">4</CornerRadius>
             <CornerRadius x:Key="TableViewRowCornerRadius">4</CornerRadius>
             <CornerRadius x:Key="TableViewRowCheckBoxCornerRadius">3</CornerRadius>
             <CornerRadius x:Key="TableViewRowSelectionIndicatorCornerRadius">1.5</CornerRadius>
@@ -183,6 +199,8 @@
             <SolidColorBrush x:Key="TableViewRowSelectionIndicatorPointerOverBrush" Color="{ThemeResource SystemColorHighlightTextColor}" />
             <SolidColorBrush x:Key="TableViewRowSelectionIndicatorPressedBrush" Color="{ThemeResource SystemColorHighlightTextColor}" />
             <SolidColorBrush x:Key="TableViewRowSelectionIndicatorDisabledBrush" Color="{ThemeResource SystemColorGrayTextColor}" />
+            <StaticResource x:Key="TableViewHorizontalGridLineStroke" ResourceKey="SystemColorButtonTextColorBrush" />
+            <StaticResource x:Key="TableViewVerticalGridLineStroke" ResourceKey="SystemColorButtonTextColorBrush" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
     

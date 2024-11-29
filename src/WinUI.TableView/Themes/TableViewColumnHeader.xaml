@@ -14,10 +14,6 @@
                 Value="InnerBorderEdge" />
         <Setter Property="Foreground"
                 Value="{ThemeResource TableViewHeaderForeground}" />
-        <Setter Property="BorderBrush"
-                Value="{ThemeResource TableViewBorderBrush}" />
-        <Setter Property="BorderThickness"
-                Value="0,0,1,0" />
         <Setter Property="Padding"
                 Value="12,0" />
         <Setter Property="UseSystemFocusVisuals"
@@ -90,8 +86,12 @@
                               BackgroundSizing="{TemplateBinding BackgroundSizing}"
                               VerticalAlignment="{TemplateBinding VerticalAlignment}"
                               HorizontalAlignment="{TemplateBinding HorizontalAlignment}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
                             <ContentPresenter x:Name="ContentPresenter"
-                                              Padding="{TemplateBinding Padding}"
+                                              Margin="{TemplateBinding Padding}"
                                               Foreground="{TemplateBinding Foreground}"
                                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                               HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
@@ -216,6 +216,12 @@
                                     </Button.Flyout>
                                 </Button>
                             </Grid>
+
+                            <Rectangle x:Name="VerticalGridLine"
+                                       Grid.Column="1"
+                                       Width="1"
+                                       HorizontalAlignment="Right"
+                                       VerticalAlignment="Stretch" />
                         </Grid>
                     </Grid>
                 </ControlTemplate>
