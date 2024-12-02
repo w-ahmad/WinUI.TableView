@@ -1,8 +1,10 @@
 ﻿using CommunityToolkit.WinUI;
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Shapes;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -21,6 +23,8 @@ public class TableViewCell : ContentControl
     private TableViewColumn? _column;
     private ScrollViewer? _scrollViewer;
     private ContentPresenter? _contentPresenter;
+    private Border? _selectionBorder;
+    private Rectangle? _v_gridLine;
 
     public TableViewCell()
     {
@@ -33,6 +37,17 @@ public class TableViewCell : ContentControl
     {
         InvalidateMeasure();
         ApplySelectionState();
+    }
+
+    protected override void OnApplyTemplate()
+    {
+        base.OnApplyTemplate();
+
+        _contentPresenter = GetTemplateChild("Content") as ContentPresenter;
+        _selectionBorder = GetTemplateChild("SelectionBorder") as Border;
+        _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
+
+        EnsureGridLines();
     }
 
     protected override Size MeasureOverride(Size availableSize)
@@ -53,7 +68,9 @@ public class TableViewCell : ContentControl
                 }
             }
 
-            _contentPresenter ??= (ContentPresenter)GetTemplateChild("Content");
+            var v_GridLineStrokeThickness = TableView?.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                                            || TableView?.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                                            ? TableView.VerticalGridLinesStrokeThickness : 0;
 
             var contentWidth = Column?.ActualWidth ?? 0d;
             contentWidth -= element.Margin.Left;
@@ -62,6 +79,9 @@ public class TableViewCell : ContentControl
             contentWidth -= Padding.Right;
             contentWidth -= BorderThickness.Left;
             contentWidth -= BorderThickness.Right;
+            contentWidth -= _selectionBorder?.BorderThickness.Right ?? 0;
+            contentWidth -= _selectionBorder?.BorderThickness.Left ?? 0;
+            contentWidth -= v_GridLineStrokeThickness;
 
             element.MaxWidth = double.PositiveInfinity;
             #endregion
@@ -74,19 +94,25 @@ public class TableViewCell : ContentControl
                 desiredWidth += Padding.Right;
                 desiredWidth += BorderThickness.Left;
                 desiredWidth += BorderThickness.Right;
+                desiredWidth += _selectionBorder?.BorderThickness.Right ?? 0;
+                desiredWidth += _selectionBorder?.BorderThickness.Left ?? 0;
+                desiredWidth += v_GridLineStrokeThickness;
 
                 Column.DesiredWidth = Math.Max(Column.DesiredWidth, desiredWidth);
             }
 
             #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860
-            if (contentWidth < 0)
+            if (_contentPresenter is not null)
             {
-                _contentPresenter.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                element.MaxWidth = contentWidth;
-                _contentPresenter.Visibility = Visibility.Visible;
+                if (contentWidth < 0)
+                {
+                    _contentPresenter.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    element.MaxWidth = contentWidth;
+                    _contentPresenter.Visibility = Visibility.Visible;
+                }
             }
             #endregion
         }
@@ -299,6 +325,19 @@ public class TableViewCell : ContentControl
         else
         {
             SetElement();
+        }
+    }
+
+    internal void EnsureGridLines()
+    {
+        if (_v_gridLine is not null && TableView is not null)
+        {
+            _v_gridLine.Fill = TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                               ? TableView.VerticalGridLinesStroke : new SolidColorBrush(Colors.Transparent);
+            _v_gridLine.Width = TableView.VerticalGridLinesStrokeThickness;
+            _v_gridLine.Visibility = TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                                     || TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                                     ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 

@@ -2,18 +2,16 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="using:WinUI.TableView">
 
-    <StaticResource x:Key="TableViewGridLinesBrush"
-                    ResourceKey="ControlStrokeColorDefaultBrush" />
-
-    <x:String x:Key="OptionsButtonIcon">&#xe712;</x:String>
-    <x:String x:Key="SelectAllButtonIcon">&#xE936;</x:String>
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/Resources.xaml" />
+    </ResourceDictionary.MergedDictionaries>
 
     <Style x:Key="DefaultTableViewHeaderRowStyle"
            TargetType="local:TableViewHeaderRow">
         <Setter Property="Height"
                 Value="32" />
         <Setter Property="Background"
-                Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+                Value="{ThemeResource TableViewHeaderRowBackground}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:TableViewHeaderRow">
@@ -47,22 +45,29 @@
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
 
-                        <Grid Background="{TemplateBinding Background}">
+                        <Grid x:Name="root"
+                              Background="{TemplateBinding Background}"
+                              BorderBrush="{TemplateBinding BorderBrush}"
+                              BorderThickness="{TemplateBinding BorderThickness}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
                             <Button x:Name="selectAllButton"
                                     VerticalAlignment="Stretch"
-                                    BorderThickness="0,0,1,1"
+                                    BorderThickness="0"
                                     Background="Transparent"
                                     Padding="0"
                                     CornerRadius="4,0,0,0"
                                     Width="16"
                                     Visibility="Visible"
-                                    IsTabStop="False"
-                                    BorderBrush="{ThemeResource TableViewGridLinesBrush}">
+                                    IsTabStop="False">
                                 <FontIcon FontSize="12"
                                           Margin="6,20,0,0"
                                           Opacity="0.5"
@@ -76,16 +81,16 @@
 
                             <Button x:Name="optionsButton"
                                     VerticalAlignment="Stretch"
-                                    BorderThickness="0,0,1,1"
+                                    BorderThickness="0"
                                     Background="Transparent"
                                     Padding="0"
                                     CornerRadius="4,0,0,0"
                                     Width="16"
                                     Visibility="Collapsed"
-                                    IsTabStop="False"
-                                    BorderBrush="{ThemeResource TableViewGridLinesBrush}">
+                                    IsTabStop="False">
                                 <FontIcon FontSize="12"
-                                          Margin="4,0,0,0"
+                                          MaxWidth="10"
+                                          Margin="-4,0,0,0"
                                           VerticalAlignment="Center"
                                           HorizontalAlignment="Center"
                                           Glyph="{ThemeResource OptionsButtonIcon}"
@@ -128,7 +133,7 @@
                                         <MenuFlyoutSeparator />
                                         <MenuFlyoutItem Command="{Binding ClearSortingCommand}" />
                                         <MenuFlyoutItem Command="{Binding ClearFilterCommand}" />
-                                        <MenuFlyoutSeparator Visibility="{Binding Visibility, ElementName=ExportAllMenuItem}"/>
+                                        <MenuFlyoutSeparator Visibility="{Binding Visibility, ElementName=ExportAllMenuItem}" />
                                         <MenuFlyoutItem x:Name="ExportAllMenuItem"
                                                         Command="{Binding ExportAllToCSVCommand}">
                                             <MenuFlyoutItem.Icon>
@@ -146,19 +151,25 @@
                             </Button>
 
                             <CheckBox x:Name="selectAllCheckBox"
-                                      Margin="14,0,2,0"
+                                      Margin="10,0,2,0"
                                       MinWidth="0"
                                       IsTabStop="False"
                                       IsThreeState="True"
                                       Visibility="Collapsed" />
 
-                            <StackPanel x:Name="HeadersStackPanel"
-                                        Grid.Column="1"
-                                        Orientation="Horizontal" />
+                            <Rectangle x:Name="VerticalGridLine"
+                                           Grid.Column="1"
+                                           Width="1"
+                                           VerticalAlignment="Stretch" />
 
-                            <Border Grid.Column="1"
-                                    BorderThickness="0,0,0,1"
-                                    BorderBrush="{ThemeResource TableViewGridLinesBrush}" />
+                            <Rectangle x:Name="HorizontalGridLine"
+                                       Grid.Row="1"
+                                       Grid.ColumnSpan="3"
+                                       HorizontalAlignment="Stretch" />
+                            
+                            <StackPanel x:Name="HeadersStackPanel"
+                                        Grid.Column="2"
+                                        Orientation="Horizontal" />
                         </Grid>
                     </Grid>
                 </ControlTemplate>

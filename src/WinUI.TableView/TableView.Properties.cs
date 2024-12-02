@@ -1,11 +1,10 @@
 ﻿using CommunityToolkit.WinUI.Collections;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace WinUI.TableView;
 public partial class TableView
@@ -25,6 +24,12 @@ public partial class TableView
     public static readonly DependencyProperty MinColumnWidthProperty = DependencyProperty.Register(nameof(MinColumnWidth), typeof(double), typeof(TableView), new PropertyMetadata(50d, OnMinColumnWidthChanged));
     public static readonly DependencyProperty MaxColumnWidthProperty = DependencyProperty.Register(nameof(MaxColumnWidth), typeof(double), typeof(TableView), new PropertyMetadata(double.PositiveInfinity, OnMaxColumnWidthChanged));
     public static readonly DependencyProperty SelectionUnitProperty = DependencyProperty.Register(nameof(SelectionUnit), typeof(TableViewSelectionUnit), typeof(TableView), new PropertyMetadata(TableViewSelectionUnit.CellOrRow, OnSelectionUnitChanged));
+    public static readonly DependencyProperty HeaderGridLinesVisibilityProperty = DependencyProperty.Register(nameof(HeaderGridLinesVisibility), typeof(TableViewGridLinesVisibility), typeof(TableView), new PropertyMetadata(TableViewGridLinesVisibility.All, OnGridLinesPropertyChanged));
+    public static readonly DependencyProperty GridLinesVisibilityProperty = DependencyProperty.Register(nameof(GridLinesVisibility), typeof(TableViewGridLinesVisibility), typeof(TableView), new PropertyMetadata(TableViewGridLinesVisibility.All, OnGridLinesPropertyChanged));
+    public static readonly DependencyProperty HorizontalGridLinesStrokeThicknessProperty = DependencyProperty.Register(nameof(HorizontalGridLinesStrokeThickness), typeof(double), typeof(TableView), new PropertyMetadata(1d, OnGridLinesPropertyChanged));
+    public static readonly DependencyProperty VerticalGridLinesStrokeThicknessProperty = DependencyProperty.Register(nameof(VerticalGridLinesStrokeThickness), typeof(double), typeof(TableView), new PropertyMetadata(1d, OnGridLinesPropertyChanged));
+    public static readonly DependencyProperty HorizontalGridLinesStrokeProperty = DependencyProperty.Register(nameof(HorizontalGridLinesStroke), typeof(Brush), typeof(TableView), new PropertyMetadata(default, OnGridLinesPropertyChanged));
+    public static readonly DependencyProperty VerticalGridLinesStrokeProperty = DependencyProperty.Register(nameof(VerticalGridLinesStroke), typeof(Brush), typeof(TableView), new PropertyMetadata(default, OnGridLinesPropertyChanged));
 
     public IAdvancedCollectionView CollectionView { get; private set; } = new AdvancedCollectionView();
     internal IDictionary<string, Predicate<object>> ActiveFilters { get; } = new Dictionary<string, Predicate<object>>();
@@ -126,6 +131,42 @@ public partial class TableView
     {
         get => (TableViewSelectionUnit)GetValue(SelectionUnitProperty);
         set => SetValue(SelectionUnitProperty, value);
+    }
+
+    public TableViewGridLinesVisibility HeaderGridLinesVisibility
+    {
+        get => (TableViewGridLinesVisibility)GetValue(HeaderGridLinesVisibilityProperty);
+        set => SetValue(HeaderGridLinesVisibilityProperty, value);
+    }
+
+    public TableViewGridLinesVisibility GridLinesVisibility
+    {
+        get => (TableViewGridLinesVisibility)GetValue(GridLinesVisibilityProperty);
+        set => SetValue(GridLinesVisibilityProperty, value);
+    }
+
+    public double VerticalGridLinesStrokeThickness
+    {
+        get => (double)GetValue(VerticalGridLinesStrokeThicknessProperty);
+        set => SetValue(VerticalGridLinesStrokeThicknessProperty, value);
+    }
+
+    public double HorizontalGridLinesStrokeThickness
+    {
+        get => (double)GetValue(HorizontalGridLinesStrokeThicknessProperty);
+        set => SetValue(HorizontalGridLinesStrokeThicknessProperty, value);
+    }
+
+    public Brush VerticalGridLinesStroke
+    {
+        get => (Brush)GetValue(VerticalGridLinesStrokeProperty);
+        set => SetValue(VerticalGridLinesStrokeProperty, value);
+    }
+
+    public Brush HorizontalGridLinesStroke
+    {
+        get => (Brush)GetValue(HorizontalGridLinesStrokeProperty);
+        set => SetValue(HorizontalGridLinesStrokeProperty, value);
     }
 
     private static void OnItemsSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -238,6 +279,14 @@ public partial class TableView
             }
 
             tableView.UpdateBaseSelectionMode();
+        }
+    }
+
+    private static void OnGridLinesPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            tableView.EnsureGridLines();
         }
     }
 
