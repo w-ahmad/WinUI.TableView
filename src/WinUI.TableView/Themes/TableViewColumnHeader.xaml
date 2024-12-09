@@ -1,17 +1,10 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:converters="using:WinUI.TableView.Converters"
                     xmlns:local="using:WinUI.TableView">
 
-    <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-
-    <StaticResource x:Key="TableViewGridLinesBrush"
-                    ResourceKey="ControlStrokeColorDefaultBrush" />
-
-    <x:String x:Key="SortIconAscending">&#xf0ad;</x:String>
-    <x:String x:Key="SortIconDescending">&#xf0ae;</x:String>
-    <x:String x:Key="FilterIcon">&#xe71c;</x:String>
-    <x:String x:Key="OptionsButtonIcon">&#xe712;</x:String>
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/Resources.xaml" />
+    </ResourceDictionary.MergedDictionaries>
 
     <Style x:Key="DefaultTableViewColumnHeaderStyle"
            TargetType="local:TableViewColumnHeader">
@@ -20,11 +13,7 @@
         <Setter Property="BackgroundSizing"
                 Value="InnerBorderEdge" />
         <Setter Property="Foreground"
-                Value="{ThemeResource ButtonForeground}" />
-        <Setter Property="BorderBrush"
-                Value="{ThemeResource TableViewGridLinesBrush}" />
-        <Setter Property="BorderThickness"
-                Value="0,0,1,0" />
+                Value="{ThemeResource TableViewHeaderForeground}" />
         <Setter Property="Padding"
                 Value="12,0" />
         <Setter Property="UseSystemFocusVisuals"
@@ -97,8 +86,12 @@
                               BackgroundSizing="{TemplateBinding BackgroundSizing}"
                               VerticalAlignment="{TemplateBinding VerticalAlignment}"
                               HorizontalAlignment="{TemplateBinding HorizontalAlignment}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
                             <ContentPresenter x:Name="ContentPresenter"
-                                              Padding="{TemplateBinding Padding}"
+                                              Margin="{TemplateBinding Padding}"
                                               Foreground="{TemplateBinding Foreground}"
                                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                               HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
@@ -168,7 +161,7 @@
                                                                             Text="{Binding FilterText, Mode=TwoWay}" />
                                                             <Border Grid.Row="1"
                                                                     BorderThickness="0,0,0,1"
-                                                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                                                                    BorderBrush="{ThemeResource MenuFlyoutSeparatorBackground}">
                                                                 <CheckBox x:Name="SelectAllCheckBox"
                                                                           Margin="12,8,12,1"
                                                                           IsThreeState="True"
@@ -223,6 +216,12 @@
                                     </Button.Flyout>
                                 </Button>
                             </Grid>
+
+                            <Rectangle x:Name="VerticalGridLine"
+                                       Grid.Column="1"
+                                       Width="1"
+                                       HorizontalAlignment="Right"
+                                       VerticalAlignment="Stretch" />
                         </Grid>
                     </Grid>
                 </ControlTemplate>

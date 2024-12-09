@@ -1,12 +1,14 @@
 ﻿using CommunityToolkit.WinUI;
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Shapes;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
-using System.Threading.Tasks;
 using Windows.Foundation;
 using WinUI.TableView.Converters;
 
@@ -20,6 +22,8 @@ public partial class TableViewHeaderRow : Control
 {
     private Button? _optionsButton;
     private CheckBox? _selectAllCheckBox;
+    private Rectangle? _v_gridLine;
+    private Rectangle? _h_gridLine;
     private StackPanel? _headersStackPanel;
     private bool _calculatingHeaderWidths;
     private DispatcherTimer? _timer;
@@ -35,6 +39,8 @@ public partial class TableViewHeaderRow : Control
 
         _optionsButton = GetTemplateChild("optionsButton") as Button;
         _selectAllCheckBox = GetTemplateChild("selectAllCheckBox") as CheckBox;
+        _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
+        _h_gridLine = GetTemplateChild("HorizontalGridLine") as Rectangle;
         TableView?.RegisterPropertyChangedCallback(ListViewBase.SelectionModeProperty, delegate { SetSelectAllButtonState(); });
         TableView?.RegisterPropertyChangedCallback(TableView.ShowOptionsButtonProperty, delegate { SetSelectAllButtonState(); });
         TableView?.RegisterPropertyChangedCallback(TableView.ItemsSourceProperty, delegate { OnTableViewSelectionChanged(); });
@@ -73,6 +79,7 @@ public partial class TableViewHeaderRow : Control
 
         SetExportOptionsVisibility();
         SetSelectAllButtonState();
+        EnsureGridLines();
     }
 
     private void OnTableViewColumnsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -208,7 +215,7 @@ public partial class TableViewHeaderRow : Control
 
                 return x.DesiredWidth;
             }).Sum();
-            fixedWidth += absoluteColumns.Select(x => x.Width.Value).Sum();
+            fixedWidth += absoluteColumns.Select(x => x.ActualWidth).Sum();
 
             availableWidth -= fixedWidth;
             var starUnitWidth = starUnitWeight > 0 ? availableWidth / starUnitWeight : 0;
@@ -260,8 +267,12 @@ public partial class TableViewHeaderRow : Control
                     width = width < minWidth ? minWidth : width;
                     width = width > maxWidth ? maxWidth : width;
                     header.Width = width;
+                    header.MaxWidth = width;
 
-                    header.Measure(new Size(header.Width, TableView.HeaderRowHeight));
+                    DispatcherQueue.TryEnqueue(() =>
+                        header.Measure(
+                            new Size(header.Width, 
+                            _headersStackPanel?.ActualHeight ?? TableView.HeaderRowHeight)));
                 }
             }
 
@@ -344,6 +355,37 @@ public partial class TableViewHeaderRow : Control
         {
             checkBox.IsChecked = false;
             TableView?.DeselectAll();
+        }
+    }
+
+    internal void EnsureGridLines()
+    {
+        if (_h_gridLine is not null && TableView is not null)
+        {
+            _h_gridLine.Fill = TableView.HorizontalGridLinesStroke;
+            _h_gridLine.Height = TableView.HorizontalGridLinesStrokeThickness;
+            _h_gridLine.Visibility = TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Horizontal
+                                     ? Visibility.Visible : Visibility.Collapsed;
+
+            if (_v_gridLine is not null)
+            {
+                _v_gridLine.Fill = TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                                   ? TableView.VerticalGridLinesStroke : new SolidColorBrush(Colors.Transparent);
+                _v_gridLine.Width = TableView.VerticalGridLinesStrokeThickness;
+                _v_gridLine.Visibility = TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                                         || TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                                         ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+
+        foreach (var header in Headers)
+        {
+            header.EnsureGridLines();
+        }
+
+        if (!_calculatingHeaderWidths)
+        {
+            CalculateHeaderWidths();
         }
     }
 

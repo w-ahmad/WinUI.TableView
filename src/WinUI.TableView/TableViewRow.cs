@@ -1,5 +1,7 @@
-﻿using Microsoft.UI.Xaml;
+﻿using CommunityToolkit.WinUI;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using System;
 using System.Collections.Generic;
@@ -10,14 +12,79 @@ namespace WinUI.TableView;
 
 public class TableViewRow : ListViewItem
 {
+    private const string Selection_Indictor = nameof(Selection_Indictor);
+    private const string Selection_Background = nameof(Selection_Background);
+    private Thickness _focusVisualMargin = new(1);
+    private Thickness _selectionBackgroundMargin = new(4, 2, 4, 2);
+
     private TableView? _tableView;
+    private ListViewItemPresenter? _itemPresenter;
     private TableViewCellsPresenter? _cellPresenter;
     private bool _ensureCells = true;
+    private Border? _selectionBackground;
 
     public TableViewRow()
     {
         DefaultStyleKey = typeof(TableViewRow);
+
         SizeChanged += OnSizeChanged;
+        Loaded += TableViewRow_Loaded;
+        RegisterPropertyChangedCallback(IsSelectedProperty, delegate { OnIsSelectedChanged(); });
+    }
+
+    private void OnIsSelectedChanged()
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            if (IsSelected && TableView?.SelectionMode is not ListViewSelectionMode.Multiple)
+            {
+                if (_itemPresenter is not null)
+                {
+                    var cornerRadius = _itemPresenter.CornerRadius;
+                    var left = Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft);
+                    var selectionIndictor = _itemPresenter.FindDescendants()
+                                                          .OfType<Border>()
+                                                          .FirstOrDefault(x => x is { Name: not Selection_Indictor, Width: 3 });
+
+                    if (selectionIndictor is not null)
+                    {
+                        selectionIndictor.Name = Selection_Indictor;
+                        selectionIndictor.Margin = new Thickness(
+                            selectionIndictor.Margin.Left + left,
+                            selectionIndictor.Margin.Top,
+                            selectionIndictor.Margin.Right,
+                            selectionIndictor.Margin.Bottom);
+                    }
+                }
+            }
+        });
+    }
+
+    private void TableViewRow_Loaded(object sender, RoutedEventArgs e)
+    {
+        _focusVisualMargin = FocusVisualMargin;
+
+        EnsureGridLines();
+    }
+
+    protected override void OnApplyTemplate()
+    {
+        base.OnApplyTemplate();
+
+        _itemPresenter = GetTemplateChild("Root") as ListViewItemPresenter;
+
+        if (_itemPresenter is not null)
+        {
+            var cornerRadius = _itemPresenter.CornerRadius;
+            var left = Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft);
+            var right = Math.Max(cornerRadius.TopRight, cornerRadius.BottomRight);
+
+            _itemPresenter.Margin = new Thickness(
+                _itemPresenter.Margin.Left - left,
+                _itemPresenter.Margin.Top,
+                _itemPresenter.Margin.Right - right,
+                _itemPresenter.Margin.Bottom);
+        }
     }
 
     protected override void OnContentChanged(object oldContent, object newContent)
@@ -234,6 +301,47 @@ public class TableViewRow : ListViewItem
         foreach (var cell in Cells)
         {
             cell.ApplySelectionState();
+        }
+    }
+
+    internal void EnsureGridLines()
+    {
+        if (TableView is not null && _itemPresenter is not null)
+        {
+            var cornerRadius = _itemPresenter.CornerRadius;
+            var left = Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft);
+            var right = Math.Max(cornerRadius.TopRight, cornerRadius.BottomRight);
+            _selectionBackground ??= _itemPresenter.FindDescendants()
+                                                   .OfType<Border>()
+                                                   .FirstOrDefault(x => x.Name is not Selection_Background && x.Margin == _selectionBackgroundMargin);
+
+            if (_selectionBackground is not null)
+            {
+                FocusVisualMargin = new Thickness(
+                    _focusVisualMargin.Left + left,
+                    _focusVisualMargin.Top,
+                    _focusVisualMargin.Right + right,
+                    _focusVisualMargin.Bottom + TableView.HorizontalGridLinesStrokeThickness);
+
+                _selectionBackground.Name = Selection_Background;
+                _selectionBackground.Margin = new Thickness(
+                    _selectionBackgroundMargin.Left + left,
+                    _selectionBackgroundMargin.Top,
+                    _selectionBackgroundMargin.Right + right,
+                    _selectionBackgroundMargin.Bottom + TableView.HorizontalGridLinesStrokeThickness);
+            }
+        }
+
+        _cellPresenter?.EnsureGridLines();
+    }
+
+    internal void EnsureLayout()
+    {
+        if (_cellPresenter is not null && TableView is not null)
+        {
+            _cellPresenter.Padding = ((ListView)TableView).SelectionMode is ListViewSelectionMode.Multiple
+                                     ? new Thickness(16, 0, 16, 0)
+                                     : new Thickness(20, 0, 16, 0);
         }
     }
 
