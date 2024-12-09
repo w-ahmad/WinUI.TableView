@@ -1070,7 +1070,6 @@ public partial class TableView : ListView
     public event EventHandler<TableViewExportContentEventArgs>? ExportSelectedContent;
     public event EventHandler<TableViewCopyToClipboardEventArgs>? CopyToClipboard;
     public event DependencyPropertyChangedEventHandler? IsReadOnlyChanged;
-    public event DependencyPropertyChangedEventHandler? DependencyPropertyChanged;
 
     internal event EventHandler<TableViewCellSelectionChangedEvenArgs>? SelectedCellsChanged;
     internal event EventHandler<TableViewCurrentCellChangedEventArgs>? CurrentCellChanged;
