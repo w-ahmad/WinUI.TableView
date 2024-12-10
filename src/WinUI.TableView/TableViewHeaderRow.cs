@@ -43,17 +43,11 @@ public partial class TableViewHeaderRow : Control
         _selectAllCheckBox = GetTemplateChild("selectAllCheckBox") as CheckBox;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
         _h_gridLine = GetTemplateChild("HorizontalGridLine") as Rectangle;
-        TableView?.RegisterPropertyChangedCallback(ListViewBase.SelectionModeProperty, delegate { SetSelectAllButtonState(); });
-        TableView?.RegisterPropertyChangedCallback(TableView.ShowOptionsButtonProperty, delegate { SetSelectAllButtonState(); });
-        TableView?.RegisterPropertyChangedCallback(TableView.ItemsSourceProperty, delegate { OnTableViewSelectionChanged(); });
 
         if (TableView is null)
         {
             return;
         }
-
-        TableView.SelectionChanged += delegate { OnTableViewSelectionChanged(); };
-        TableView.Items.VectorChanged += delegate { OnTableViewSelectionChanged(); };
 
         if (_optionsButton is not null)
         {
