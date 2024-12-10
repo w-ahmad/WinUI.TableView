@@ -189,7 +189,8 @@ public partial class TableViewColumnHeader : ContentControl
 
             if (_selectAllCheckBox is not null)
             {
-                _selectAllCheckBox.Tapped += OnSelectAllCheckBox_Tapped;
+                _selectAllCheckBox.Checked += OnSelectAllCheckBoxChecked;
+                _selectAllCheckBox.Unchecked += OnSelectAllCheckBoxUnchecked;
             }
 
             if (menuItem?.FindDescendant<AutoSuggestBox>(x => x.Name == "SearchBox") is { } searchBox)
@@ -212,16 +213,15 @@ public partial class TableViewColumnHeader : ContentControl
         }
     }
 
-    private async void OnSelectAllCheckBox_Tapped(object sender, TappedRoutedEventArgs e)
+    private void OnSelectAllCheckBoxChecked(object sender, RoutedEventArgs e)
     {
         var checkBox = (CheckBox)sender;
+        _optionsFlyoutViewModel.SetFilterItemsState(checkBox.IsChecked == true);
+    }
 
-        if (checkBox.IsChecked is null)
-        {
-            await Task.Delay(5);
-            checkBox.IsChecked = false;
-        }
-
+    private void OnSelectAllCheckBoxUnchecked(object sender, RoutedEventArgs e)
+    {
+        var checkBox = (CheckBox)sender;
         _optionsFlyoutViewModel.SetFilterItemsState(checkBox.IsChecked == true);
     }
 

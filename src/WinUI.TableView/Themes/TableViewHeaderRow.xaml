@@ -154,7 +154,6 @@
                                       Margin="10,0,2,0"
                                       MinWidth="0"
                                       IsTabStop="False"
-                                      IsThreeState="True"
                                       Visibility="Collapsed" />
 
                             <Rectangle x:Name="VerticalGridLine"
