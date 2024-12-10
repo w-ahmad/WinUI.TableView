@@ -164,7 +164,6 @@
                                                                     BorderBrush="{ThemeResource MenuFlyoutSeparatorBackground}">
                                                                 <CheckBox x:Name="SelectAllCheckBox"
                                                                           Margin="12,8,12,1"
-                                                                          IsThreeState="True"
                                                                           Content="(Select All)" />
                                                             </Border>
                                                             <ListView Grid.Row="2"
