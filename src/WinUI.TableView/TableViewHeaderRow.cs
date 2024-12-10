@@ -328,15 +328,15 @@ public partial class TableViewHeaderRow : Control
 
     private void SetSelectAllButtonState()
     {
-        if (TableView?.SelectionMode == ListViewSelectionMode.Multiple)
+        if (TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple })
         {
             VisualStates.GoToState(this, false, VisualStates.StateSelectAllCheckBox);
         }
-        else if (TableView?.CornerButtonMode is TableViewCornerButtonMode.Options)
+        else if (TableView is { CornerButtonMode: TableViewCornerButtonMode.Options })
         {
             VisualStates.GoToState(this, false, VisualStates.StateOptionsButton);
         }
-        else if (TableView?.CornerButtonMode is TableViewCornerButtonMode.SelectAll)
+        else if (TableView is { CornerButtonMode: TableViewCornerButtonMode.SelectAll })
         {
             VisualStates.GoToState(this, false, VisualStates.StateSelectAllButton);
         }
