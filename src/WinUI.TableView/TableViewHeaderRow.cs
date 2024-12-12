@@ -61,7 +61,8 @@ public partial class TableViewHeaderRow : Control
 
         if (_selectAllCheckBox is not null)
         {
-            _selectAllCheckBox.Tapped += OnSelectAllCheckBoxTapped;
+            _selectAllCheckBox.Checked += OnSelectAllCheckBoxChecked;
+            _selectAllCheckBox.Unchecked += OnSelectAllCheckBoxUnchecked;
         }
 
         if (TableView.Columns is not null && GetTemplateChild("HeadersStackPanel") is StackPanel stackPanel)
@@ -264,7 +265,7 @@ public partial class TableViewHeaderRow : Control
 
                     DispatcherQueue.TryEnqueue(() =>
                         header.Measure(
-                            new Size(header.Width, 
+                            new Size(header.Width,
                             _headersStackPanel?.ActualHeight ?? TableView.HeaderRowHeight)));
                 }
             }
@@ -340,19 +341,14 @@ public partial class TableViewHeaderRow : Control
         }
     }
 
-    private void OnSelectAllCheckBoxTapped(object sender, RoutedEventArgs e)
+    private void OnSelectAllCheckBoxChecked(object sender, RoutedEventArgs e)
     {
-        var checkBox = (CheckBox)sender;
+        TableView?.SelectAllSafe();
+    }
 
-        if (checkBox.IsChecked == true)
-        {
-            TableView?.SelectAllSafe();
-        }
-        else
-        {
-            checkBox.IsChecked = false;
-            TableView?.DeselectAll();
-        }
+    private void OnSelectAllCheckBoxUnchecked(object sender, RoutedEventArgs e)
+    {
+        TableView?.DeselectAll();
     }
 
     internal void EnsureGridLines()
