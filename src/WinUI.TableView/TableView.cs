@@ -158,7 +158,7 @@ public partial class TableView : ListView
         else if ((e.Key is VirtualKey.Left or VirtualKey.Right or VirtualKey.Up or VirtualKey.Down)
                  && !IsEditing)
         {
-            var row = (LastSelectionUnit is TableViewSelectionUnit.Row ? SelectionStartRowIndex : SelectionStartCellSlot?.Row) ?? -1;
+            var row = (LastSelectionUnit is TableViewSelectionUnit.Row ? CurrentRowIndex : CurrentCellSlot?.Row) ?? -1;
             var column = CurrentCellSlot?.Column ?? -1;
 
             if (row == -1 && column == -1)
@@ -749,6 +749,7 @@ public partial class TableView : ListView
     {
         var selectionRange = SelectedRanges.FirstOrDefault(x => x.IsInRange(slot.Row));
         SelectionStartRowIndex ??= slot.Row;
+        CurrentRowIndex = slot.Row;
 
         if (selectionRange is not null)
         {

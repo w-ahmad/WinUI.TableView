@@ -132,6 +132,7 @@ public class TableViewRow : ListViewItem
 
         if (TableView?.SelectionUnit is TableViewSelectionUnit.Row or TableViewSelectionUnit.CellOrRow)
         {
+            TableView.CurrentRowIndex = Index;
             TableView.LastSelectionUnit = TableViewSelectionUnit.Row;
         }
     }
