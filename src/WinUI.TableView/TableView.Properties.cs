@@ -30,6 +30,8 @@ public partial class TableView
     public static readonly DependencyProperty VerticalGridLinesStrokeThicknessProperty = DependencyProperty.Register(nameof(VerticalGridLinesStrokeThickness), typeof(double), typeof(TableView), new PropertyMetadata(1d, OnGridLinesPropertyChanged));
     public static readonly DependencyProperty HorizontalGridLinesStrokeProperty = DependencyProperty.Register(nameof(HorizontalGridLinesStroke), typeof(Brush), typeof(TableView), new PropertyMetadata(default, OnGridLinesPropertyChanged));
     public static readonly DependencyProperty VerticalGridLinesStrokeProperty = DependencyProperty.Register(nameof(VerticalGridLinesStroke), typeof(Brush), typeof(TableView), new PropertyMetadata(default, OnGridLinesPropertyChanged));
+    public static readonly DependencyProperty AlternateRowForegroundProperty = DependencyProperty.Register(nameof(AlternateRowForeground), typeof(Brush), typeof(TableView), new PropertyMetadata(null, OnAlternateRowColorChanged));
+    public static readonly DependencyProperty AlternateRowBackgroundProperty = DependencyProperty.Register(nameof(AlternateRowBackground), typeof(Brush), typeof(TableView), new PropertyMetadata(null, OnAlternateRowColorChanged));
 
     public IAdvancedCollectionView CollectionView { get; private set; } = new AdvancedCollectionView();
     internal IDictionary<string, Predicate<object>> ActiveFilters { get; } = new Dictionary<string, Predicate<object>>();
@@ -169,6 +171,18 @@ public partial class TableView
         set => SetValue(HorizontalGridLinesStrokeProperty, value);
     }
 
+    public Brush AlternateRowBackground
+    {
+        get => (Brush)GetValue(AlternateRowBackgroundProperty);
+        set => SetValue(AlternateRowBackgroundProperty, value);
+    }
+
+    public Brush AlternateRowForeground
+    {
+        get => (Brush)GetValue(AlternateRowForegroundProperty);
+        set => SetValue(AlternateRowForegroundProperty, value);
+    }
+
     private static void OnItemsSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is TableView tableView)
@@ -287,6 +301,14 @@ public partial class TableView
         if (d is TableView tableView)
         {
             tableView.EnsureGridLines();
+        }
+    }
+
+    private static void OnAlternateRowColorChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            tableView.EnsureAlternateRowColors();
         }
     }
 
