@@ -266,7 +266,12 @@ internal static class VisualStates
     /// </summary>
     public const string GroupScrollBars = "ScrollBarsStates";
 
-    // GroupSelectAllButton
+    // Group Corner Button
+
+    /// <summary>
+    /// No button state
+    /// </summary>
+    public const string StateNoButton = "NoButton";
 
     /// <summary>
     /// Select all button state
@@ -286,7 +291,7 @@ internal static class VisualStates
     /// <summary>
     /// Select all button state group
     /// </summary>
-    public const string GroupSelectAllButton = "SelectAllButtonStates";
+    public const string GroupCornerButton = "CornerButtonStates";
 
     /// <summary>
     /// Use VisualStateManager to change the visual state of the control.

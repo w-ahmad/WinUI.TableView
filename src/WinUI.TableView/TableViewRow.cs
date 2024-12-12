@@ -65,6 +65,7 @@ public class TableViewRow : ListViewItem
         _focusVisualMargin = FocusVisualMargin;
 
         EnsureGridLines();
+        EnsureLayout();
     }
 
     protected override void OnApplyTemplate()

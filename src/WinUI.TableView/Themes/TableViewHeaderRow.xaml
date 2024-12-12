@@ -20,26 +20,26 @@
                             <VisualStateGroup x:Name="CommonStates">
                                 <VisualState x:Name="Normal" />
                             </VisualStateGroup>
-                            <VisualStateGroup x:Name="SelectAllButtonStates">
-                                <VisualState x:Name="SelectAllButton" />
+                            <VisualStateGroup x:Name="CornerButtonStates">
+                                <VisualState x:Name="NoButton" />
+                                <VisualState x:Name="SelectAllButton">
+                                    <VisualState.Setters>
+                                        <Setter Target="selectAllButton.Visibility"
+                                                Value="Visible" />
+                                    </VisualState.Setters>
+                                </VisualState>
                                 <VisualState x:Name="OptionsButton">
                                     <VisualState.Setters>
                                         <Setter Target="optionsButton.Visibility"
                                                 Value="Visible" />
-                                        <Setter Target="selectAllButton.Visibility"
-                                                Value="Collapsed" />
-                                        <Setter Target="selectAllCheckBox.Visibility"
-                                                Value="Collapsed" />
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="SelectAllCheckBox">
                                     <VisualState.Setters>
                                         <Setter Target="selectAllCheckBox.Visibility"
                                                 Value="Visible" />
-                                        <Setter Target="selectAllButton.Visibility"
-                                                Value="Collapsed" />
-                                        <Setter Target="optionsButton.Visibility"
-                                                Value="Collapsed" />
+                                        <Setter Target="cornerButtonColumn.Width"
+                                                Value="40" />
                                     </VisualState.Setters>
                                 </VisualState>
                             </VisualStateGroup>
@@ -54,43 +54,39 @@
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition x:Name="cornerButtonColumn"
+                                                  MinWidth="16"
+                                                  Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
                             <Button x:Name="selectAllButton"
-                                    VerticalAlignment="Stretch"
                                     BorderThickness="0"
                                     Background="Transparent"
                                     Padding="0"
                                     CornerRadius="4,0,0,0"
-                                    Width="16"
-                                    Visibility="Visible"
-                                    IsTabStop="False">
-                                <FontIcon FontSize="12"
-                                          Margin="6,20,0,0"
-                                          Opacity="0.5"
-                                          Glyph="{ThemeResource SelectAllButtonIcon}"
-                                          RenderTransformOrigin="0.5,0.5">
-                                    <FontIcon.RenderTransform>
-                                        <RotateTransform Angle="-45" />
-                                    </FontIcon.RenderTransform>
-                                </FontIcon>
+                                    Visibility="Collapsed"
+                                    IsTabStop="False"
+                                    VerticalAlignment="Stretch">
+                                <FontIcon Opacity="0.5"
+                                          Glyph="&#xE788;"
+                                          Margin="-8,6,0,0"
+                                          VerticalAlignment="Bottom" />
                             </Button>
 
                             <Button x:Name="optionsButton"
+                                    HorizontalAlignment="Stretch"
                                     VerticalAlignment="Stretch"
                                     BorderThickness="0"
                                     Background="Transparent"
                                     Padding="0"
                                     CornerRadius="4,0,0,0"
-                                    Width="16"
                                     Visibility="Collapsed"
                                     IsTabStop="False">
                                 <FontIcon FontSize="12"
                                           MaxWidth="10"
-                                          Margin="-4,0,0,0"
+                                          Margin="-2,0,0,0"
                                           VerticalAlignment="Center"
                                           HorizontalAlignment="Center"
                                           Glyph="{ThemeResource OptionsButtonIcon}"
@@ -151,21 +147,24 @@
                             </Button>
 
                             <CheckBox x:Name="selectAllCheckBox"
-                                      Margin="10,0,2,0"
-                                      MinWidth="0"
+                                      Padding="0"
+                                      MinWidth="20"
+                                      MinHeight="20"
                                       IsTabStop="False"
-                                      Visibility="Collapsed" />
+                                      Visibility="Collapsed"
+                                      VerticalAlignment="Center"
+                                      HorizontalAlignment="Center" />
 
                             <Rectangle x:Name="VerticalGridLine"
-                                           Grid.Column="1"
-                                           Width="1"
-                                           VerticalAlignment="Stretch" />
+                                       Grid.Column="1"
+                                       Width="1"
+                                       VerticalAlignment="Stretch" />
 
                             <Rectangle x:Name="HorizontalGridLine"
                                        Grid.Row="1"
                                        Grid.ColumnSpan="3"
                                        HorizontalAlignment="Stretch" />
-                            
+
                             <StackPanel x:Name="HeadersStackPanel"
                                         Grid.Column="2"
                                         Orientation="Horizontal" />
