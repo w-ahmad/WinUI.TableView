@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -22,6 +23,8 @@ public class TableViewRow : ListViewItem
     private TableViewCellsPresenter? _cellPresenter;
     private bool _ensureCells = true;
     private Border? _selectionBackground;
+    private Brush? _cellPresenterBackground;
+    private Brush? _cellPresenterForeground;
 
     public TableViewRow()
     {
@@ -103,6 +106,8 @@ public class TableViewRow : ListViewItem
                 cell.RefreshElement();
             }
         }
+
+        EnsureAlternateColors();
     }
 
     protected override void OnPointerPressed(PointerRoutedEventArgs e)
@@ -145,9 +150,13 @@ public class TableViewRow : ListViewItem
         }
 
         _cellPresenter = ContentTemplateRoot as TableViewCellsPresenter;
+
         if (_cellPresenter is not null)
         {
+            _cellPresenterBackground = _cellPresenter.Background;
+            _cellPresenterForeground = _cellPresenter.Foreground;
             _cellPresenter.Children.Clear();
+
             AddCells(TableView.Columns.VisibleColumns);
         }
 
@@ -345,6 +354,17 @@ public class TableViewRow : ListViewItem
                                      ? new Thickness(16, 0, 16, 0)
                                      : new Thickness(20, 0, 16, 0);
         }
+    }
+
+    internal void EnsureAlternateColors()
+    {
+        if (TableView is null || _cellPresenter is null) return;
+
+        _cellPresenter.Background =
+            Index % 2 == 1 && TableView.AlternateRowBackground is not null ? TableView.AlternateRowBackground : _cellPresenterBackground;
+
+        _cellPresenter.Foreground =
+            Index % 2 == 1 && TableView.AlternateRowForeground is not null ? TableView.AlternateRowForeground : _cellPresenterForeground;
     }
 
     internal IList<TableViewCell> Cells => _cellPresenter?.Cells ?? new List<TableViewCell>();

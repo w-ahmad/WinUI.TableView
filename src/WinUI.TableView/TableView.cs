@@ -1066,6 +1066,14 @@ public partial class TableView : ListView
         }
     }
 
+    private void EnsureAlternateRowColors()
+    {
+        foreach (var row in _rows)
+        {
+            row.EnsureAlternateColors();
+        }
+    }
+
     public event EventHandler<TableViewAutoGeneratingColumnEventArgs>? AutoGeneratingColumn;
     public event EventHandler<TableViewExportContentEventArgs>? ExportAllContent;
     public event EventHandler<TableViewExportContentEventArgs>? ExportSelectedContent;
