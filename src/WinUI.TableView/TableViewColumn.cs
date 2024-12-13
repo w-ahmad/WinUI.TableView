@@ -89,6 +89,12 @@ public abstract class TableViewColumn : DependencyObject
         set => SetValue(VisibilityProperty, value);
     }
 
+    public object Tag
+    {
+        get => GetValue(TagProperty);
+        set => SetValue(TagProperty, value);
+    }
+
     internal double DesiredWidth
     {
         get => _desiredWidth;
@@ -171,4 +177,5 @@ public abstract class TableViewColumn : DependencyObject
     public static readonly DependencyProperty CanResizeProperty = DependencyProperty.Register(nameof(CanResize), typeof(bool), typeof(TableViewColumn), new PropertyMetadata(true));
     public static readonly DependencyProperty IsReadOnlyProperty = DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(TableViewColumn), new PropertyMetadata(false, OnIsReadOnlyChanged));
     public static readonly DependencyProperty VisibilityProperty = DependencyProperty.Register(nameof(Visibility), typeof(Visibility), typeof(TableViewColumn), new PropertyMetadata(Visibility.Visible, OnVisibilityChanged));
+    public static readonly DependencyProperty TagProperty = DependencyProperty.Register(nameof(Tag), typeof(object), typeof(TableViewColumn), new PropertyMetadata(null));
 }
