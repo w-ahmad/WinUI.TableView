@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.WinUI.Collections;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections;
@@ -32,6 +33,8 @@ public partial class TableView
     public static readonly DependencyProperty VerticalGridLinesStrokeProperty = DependencyProperty.Register(nameof(VerticalGridLinesStroke), typeof(Brush), typeof(TableView), new PropertyMetadata(default, OnGridLinesPropertyChanged));
     public static readonly DependencyProperty AlternateRowForegroundProperty = DependencyProperty.Register(nameof(AlternateRowForeground), typeof(Brush), typeof(TableView), new PropertyMetadata(null, OnAlternateRowColorChanged));
     public static readonly DependencyProperty AlternateRowBackgroundProperty = DependencyProperty.Register(nameof(AlternateRowBackground), typeof(Brush), typeof(TableView), new PropertyMetadata(null, OnAlternateRowColorChanged));
+    public static readonly DependencyProperty RowContextFlyoutProperty = DependencyProperty.Register(nameof(RowContextFlyout), typeof(FlyoutBase), typeof(TableView), new PropertyMetadata(null));
+    public static readonly DependencyProperty CellContextFlyoutProperty = DependencyProperty.Register(nameof(CellContextFlyout), typeof(FlyoutBase), typeof(TableView), new PropertyMetadata(null));
 
     public IAdvancedCollectionView CollectionView { get; private set; } = new AdvancedCollectionView();
     internal IDictionary<string, Predicate<object>> ActiveFilters { get; } = new Dictionary<string, Predicate<object>>();
@@ -182,6 +185,18 @@ public partial class TableView
     {
         get => (Brush)GetValue(AlternateRowForegroundProperty);
         set => SetValue(AlternateRowForegroundProperty, value);
+    }
+
+    public FlyoutBase? RowContextFlyout
+    {
+        get => (FlyoutBase?)GetValue(RowContextFlyoutProperty);
+        set => SetValue(RowContextFlyoutProperty, value);
+    }
+
+    public FlyoutBase? CellContextFlyout
+    {
+        get => (FlyoutBase?)GetValue(CellContextFlyoutProperty);
+        set => SetValue(CellContextFlyoutProperty, value);
     }
 
     private static void OnItemsSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

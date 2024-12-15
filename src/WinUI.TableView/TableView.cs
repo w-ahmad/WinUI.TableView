@@ -1074,11 +1074,49 @@ public partial class TableView : ListView
         }
     }
 
+    internal void ShowRowContext(TableViewRow row, Point position)
+    {
+        if (RowContextFlyout is null) return;
+
+        var eventArgs = new TableViewRowContextFlyoutEventArgs(row.Index, row, row.Content, RowContextFlyout);
+        RowContextFlyoutOpening?.Invoke(this, eventArgs);
+
+        if (!eventArgs.Handled)
+        {
+            RowContextFlyout.ShowAt(row, new FlyoutShowOptions
+            {
+                ShowMode = FlyoutShowMode.Standard,
+                Placement = RowContextFlyout.Placement,
+                Position = position
+            });
+        }
+    }
+
+    internal void ShowCellContext(TableViewCell cell, Point position)
+    {
+        if (CellContextFlyout is null) return;
+
+        var eventArgs = new TableViewCellContextFlyoutEventArgs(cell.Slot, cell, cell.Row?.Content!, CellContextFlyout);
+        CellContextFlyoutOpening?.Invoke(this, eventArgs);
+
+        if (!eventArgs.Handled)
+        {
+            CellContextFlyout.ShowAt(cell, new FlyoutShowOptions
+            {
+                ShowMode = FlyoutShowMode.Standard,
+                Placement = CellContextFlyout.Placement,
+                Position = position
+            });
+        }
+    }
+
     public event EventHandler<TableViewAutoGeneratingColumnEventArgs>? AutoGeneratingColumn;
     public event EventHandler<TableViewExportContentEventArgs>? ExportAllContent;
     public event EventHandler<TableViewExportContentEventArgs>? ExportSelectedContent;
     public event EventHandler<TableViewCopyToClipboardEventArgs>? CopyToClipboard;
     public event DependencyPropertyChangedEventHandler? IsReadOnlyChanged;
+    public event EventHandler<TableViewRowContextFlyoutEventArgs>? RowContextFlyoutOpening;
+    public event EventHandler<TableViewCellContextFlyoutEventArgs>? CellContextFlyoutOpening;
 
     internal event EventHandler<TableViewCellSelectionChangedEvenArgs>? SelectedCellsChanged;
     internal event EventHandler<TableViewCurrentCellChangedEventArgs>? CurrentCellChanged;
