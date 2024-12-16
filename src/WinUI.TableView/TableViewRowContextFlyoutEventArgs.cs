@@ -5,12 +5,12 @@ namespace WinUI.TableView;
 
 public partial class TableViewRowContextFlyoutEventArgs : HandledEventArgs
 {
-    public TableViewRowContextFlyoutEventArgs(int index, TableViewRow row, object item, FlyoutBase flyoutBase)
+    public TableViewRowContextFlyoutEventArgs(int index, TableViewRow row, object item, FlyoutBase flyout)
     {
         Index = index;
         Row = row;
         Item = item;
-        Flyout = flyoutBase;
+        Flyout = flyout;
     }
 
     public int Index { get; }
