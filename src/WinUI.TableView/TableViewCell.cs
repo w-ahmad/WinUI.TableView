@@ -31,6 +31,15 @@ public class TableViewCell : ContentControl
         DefaultStyleKey = typeof(TableViewCell);
         ManipulationMode = ManipulationModes.TranslateX | ManipulationModes.TranslateY;
         Loaded += OnLoaded;
+        ContextRequested += OnContextRequested;
+    }
+
+    private void OnContextRequested(UIElement sender, ContextRequestedEventArgs args)
+    {
+        if (TableView is not null && args.TryGetPosition(sender, out var position))
+        {
+            TableView.ShowCellContext(this, position);
+        }
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)

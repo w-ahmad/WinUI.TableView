@@ -32,7 +32,31 @@ public class TableViewRow : ListViewItem
 
         SizeChanged += OnSizeChanged;
         Loaded += TableViewRow_Loaded;
+        ContextRequested += OnContextRequested;
         RegisterPropertyChangedCallback(IsSelectedProperty, delegate { OnIsSelectedChanged(); });
+    }
+
+    private void OnContextRequested(UIElement sender, ContextRequestedEventArgs args)
+    {
+        if (args.TryGetPosition(sender, out var position))
+        {
+            if (IsContextRequestedFromCell(position) && TableView?.CellContextFlyout is not null) return;
+
+
+            TableView?.ShowRowContext(this, position);
+        }
+    }
+
+    private bool IsContextRequestedFromCell(Windows.Foundation.Point position)
+    {
+        if (_cellPresenter is null) return false;
+
+        var transform = _cellPresenter.TransformToVisual(this).Inverse;
+        var point = transform.TransformPoint(position);
+        var transformedPoint = _cellPresenter.TransformToVisual(null).TransformPoint(point);
+        return VisualTreeHelper.FindElementsInHostCoordinates(transformedPoint, _cellPresenter)
+                               .OfType<TableViewCell>()
+                               .Any();
     }
 
     private void OnIsSelectedChanged()
