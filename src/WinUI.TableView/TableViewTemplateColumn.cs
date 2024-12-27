@@ -5,7 +5,7 @@ namespace WinUI.TableView;
 
 public class TableViewTemplateColumn : TableViewColumn
 {
-    public override FrameworkElement GenerateElement()
+    public override FrameworkElement GenerateElement(TableViewCell cell, object? dataItem)
     {
         var contentControl = new ContentControl
         {
@@ -16,7 +16,7 @@ public class TableViewTemplateColumn : TableViewColumn
         return contentControl;
     }
 
-    public override FrameworkElement GenerateEditingElement()
+    public override FrameworkElement GenerateEditingElement(TableViewCell cell, object? dataItem)
     {
         if (EditingTemplate is not null || EditingTemplateSelector is not null)
         {
@@ -29,7 +29,7 @@ public class TableViewTemplateColumn : TableViewColumn
             return contentControl;
         }
 
-        return GenerateElement();
+        return GenerateElement(cell, dataItem);
     }
 
     public DataTemplate? CellTemplate

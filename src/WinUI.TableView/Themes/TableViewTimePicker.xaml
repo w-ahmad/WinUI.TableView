@@ -1,0 +1,51 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="using:WinUI.TableView"
+                    xmlns:controls="using:WinUI.TableView.Controls">
+
+  <Style x:Key="DefaultTableViewTimePickerStyle"
+         TargetType="controls:TableViewTimePicker">
+    <Setter Property="HorizontalAlignment"
+            Value="Stretch" />
+    <Setter Property="VerticalAlignment"
+            Value="Stretch" />
+    <Setter Property="MinHeight"
+            Value="32" />
+    <Setter Property="UseSystemFocusVisuals"
+            Value="False" />
+    <Setter Property="FocusVisualMargin"
+            Value="-3" />
+    <Setter Property="CornerRadius"
+            Value="{ThemeResource ControlCornerRadius}" />
+    <Setter Property="Foreground"
+            Value="{ThemeResource TextFillColorPrimaryBrush}" />
+    <Setter Property="Background">
+      <Setter.Value>
+        <SolidColorBrush Opacity="0" />
+      </Setter.Value>
+    </Setter>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="controls:TableViewTimePicker">
+          <Grid x:Name="Root"
+                Background="{TemplateBinding Background}">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="32" />
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="TimeText"
+                       HorizontalAlignment="Left"
+                       Text="{TemplateBinding PlaceholderText}"
+                       Padding="12, 0, 0, 2"
+                       VerticalAlignment="Center" />
+            <FontIcon Grid.Column="1"
+                      FontSize="12"
+                      Glyph="&#xE823;" />
+          </Grid>
+
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+</ResourceDictionary>
+    

@@ -11,7 +11,7 @@ public class TableViewToggleSwitchColumn : TableViewBoundColumn
         UseSingleElement = true;
     }
 
-    public override FrameworkElement GenerateElement()
+    public override FrameworkElement GenerateElement(TableViewCell cell, object? dataItem)
     {
         var toggleSwitch = new ToggleSwitch
         {
@@ -27,12 +27,12 @@ public class TableViewToggleSwitchColumn : TableViewBoundColumn
         return toggleSwitch;
     }
 
-    public override FrameworkElement GenerateEditingElement()
+    public override FrameworkElement GenerateEditingElement(TableViewCell cell, object? dataItem)
     {
         throw new NotImplementedException();
     }
 
-    public override void UpdateElementState(TableViewCell cell)
+    public override void UpdateElementState(TableViewCell cell, object? dataItem)
     {
         if (cell?.Content is ToggleSwitch toggleSwitch)
         {

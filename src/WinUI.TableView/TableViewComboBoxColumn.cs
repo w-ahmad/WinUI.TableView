@@ -10,7 +10,7 @@ public class TableViewComboBoxColumn : TableViewBoundColumn
     private Binding? _textBinding;
     private Binding? _selectedValueBinding;
 
-    public override FrameworkElement GenerateElement()
+    public override FrameworkElement GenerateElement(TableViewCell cell, object? dataItem)
     {
         var textBlock = new TextBlock
         {
@@ -20,7 +20,7 @@ public class TableViewComboBoxColumn : TableViewBoundColumn
         return textBlock;
     }
 
-    public override FrameworkElement GenerateEditingElement()
+    public override FrameworkElement GenerateEditingElement(TableViewCell cell, object? dataItem)
     {
         var comboBox = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch };
         comboBox.SetBinding(ItemsControl.ItemsSourceProperty, new Binding { Source = this, Path = new PropertyPath(nameof(ItemsSource)) });
