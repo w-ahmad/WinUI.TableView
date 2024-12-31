@@ -18,6 +18,9 @@ using SD = CommunityToolkit.WinUI.Collections.SortDirection;
 
 namespace WinUI.TableView;
 
+/// <summary>
+/// Represents the header of a column in a TableView.
+/// </summary>
 [TemplateVisualState(Name = VisualStates.StateNormal, GroupName = VisualStates.GroupCommon)]
 [TemplateVisualState(Name = VisualStates.StatePointerOver, GroupName = VisualStates.GroupCommon)]
 [TemplateVisualState(Name = VisualStates.StatePressed, GroupName = VisualStates.GroupCommon)]
@@ -45,6 +48,9 @@ public partial class TableViewColumnHeader : ContentControl
     private bool _resizeStarted;
     private bool _resizePreviousStarted;
 
+    /// <summary>
+    /// Initializes a new instance of the TableViewColumnHeader class.
+    /// </summary>
     public TableViewColumnHeader()
     {
         DefaultStyleKey = typeof(TableViewColumnHeader);
@@ -52,6 +58,9 @@ public partial class TableViewColumnHeader : ContentControl
         RegisterPropertyChangedCallback(WidthProperty, OnWidthChanged);
     }
 
+    /// <summary>
+    /// Handles changes to the Width property.
+    /// </summary>
     private void OnWidthChanged(DependencyObject sender, DependencyProperty dp)
     {
         if (Column is not null)
@@ -60,6 +69,9 @@ public partial class TableViewColumnHeader : ContentControl
         }
     }
 
+    /// <summary>
+    /// Sorts the column in the specified direction.
+    /// </summary>
     private void DoSort(SD direction, bool singleSorting = true)
     {
         if (CanSort && _tableView is not null)
@@ -89,6 +101,9 @@ public partial class TableViewColumnHeader : ContentControl
         }
     }
 
+    /// <summary>
+    /// Clears the sorting for the column.
+    /// </summary>
     private void ClearSorting()
     {
         if (CanSort && _tableView is not null && SortDirection is not null)
@@ -103,6 +118,9 @@ public partial class TableViewColumnHeader : ContentControl
         }
     }
 
+    /// <summary>
+    /// Clears the filter for the column.
+    /// </summary>
     private void ClearFilter()
     {
         if (_tableView?.ActiveFilters.ContainsKey(_propertyPath) == true)
@@ -116,6 +134,9 @@ public partial class TableViewColumnHeader : ContentControl
         _tableView?.CollectionView.RefreshFilter();
     }
 
+    /// <summary>
+    /// Applies the filter for the column.
+    /// </summary>
     private void ApplyFilter()
     {
         if (_tableView is null)
@@ -129,11 +150,17 @@ public partial class TableViewColumnHeader : ContentControl
         IsFiltered = true;
     }
 
+    /// <summary>
+    /// Hides the options flyout.
+    /// </summary>
     private void HideFlyout()
     {
         _optionsFlyout?.Hide();
     }
 
+    /// <summary>
+    /// Filters the items in the collection view.
+    /// </summary>
     private bool Filter(object item)
     {
         var value = GetValue(item);
@@ -203,6 +230,9 @@ public partial class TableViewColumnHeader : ContentControl
         EnsureGridLines();
     }
 
+    /// <summary>
+    /// Handles the KeyDown event for the search box.
+    /// </summary>
     private void OnSearchBoxKeyDown(object sender, KeyRoutedEventArgs e)
     {
         if (e.Key == VirtualKey.Enter && _optionsFlyoutViewModel is { FilterText.Length: > 0 })
@@ -213,23 +243,35 @@ public partial class TableViewColumnHeader : ContentControl
         }
     }
 
+    /// <summary>
+    /// Handles the Checked event for the select all checkbox.
+    /// </summary>
     private void OnSelectAllCheckBoxChecked(object sender, RoutedEventArgs e)
     {
         var checkBox = (CheckBox)sender;
         _optionsFlyoutViewModel.SetFilterItemsState(checkBox.IsChecked == true);
     }
 
+    /// <summary>
+    /// Handles the Unchecked event for the select all checkbox.
+    /// </summary>
     private void OnSelectAllCheckBoxUnchecked(object sender, RoutedEventArgs e)
     {
         var checkBox = (CheckBox)sender;
         _optionsFlyoutViewModel.SetFilterItemsState(checkBox.IsChecked == true);
     }
 
+    /// <summary>
+    /// Handles the Opening event for the options flyout.
+    /// </summary>
     private void OnOptionsFlyoutOpening(object? sender, object e)
     {
         _optionsFlyoutViewModel.FilterText = null;
     }
 
+    /// <summary>
+    /// Prepares the filter items based on the filter text.
+    /// </summary>
     private void PrepareFilterItems(string? _filterText)
     {
         if (_tableView is { ItemsSource: { } } && Column is TableViewBoundColumn column)
@@ -261,6 +303,9 @@ public partial class TableViewColumnHeader : ContentControl
         }
     }
 
+    /// <summary>
+    /// Gets the value of the specified item.
+    /// </summary>
     private object? GetValue(object item)
     {
         if (_propertyInfo is null)
@@ -272,11 +317,17 @@ public partial class TableViewColumnHeader : ContentControl
         return item.GetValue(_propertyInfo);
     }
 
+    /// <summary>
+    /// Handles the Tapped event for the options button.
+    /// </summary>
     private void OnOptionsButtonTaped(object sender, TappedRoutedEventArgs e)
     {
         e.Handled = true;
     }
 
+    /// <summary>
+    /// Handles changes to the SortDirection property.
+    /// </summary>
     private void OnSortDirectionChanged()
     {
         if (SortDirection == SD.Ascending)
@@ -293,6 +344,9 @@ public partial class TableViewColumnHeader : ContentControl
         }
     }
 
+    /// <summary>
+    /// Handles changes to the IsFiltered property.
+    /// </summary>
     private void OnIsFilteredChanged()
     {
         if (IsFiltered)
@@ -305,6 +359,9 @@ public partial class TableViewColumnHeader : ContentControl
         }
     }
 
+    /// <summary>
+    /// Sets the visibility of the filter button.
+    /// </summary>
     private void SetFilterButtonVisibility()
     {
         if (_optionsButton is not null)
@@ -322,6 +379,9 @@ public partial class TableViewColumnHeader : ContentControl
         }
     }
 
+    /// <summary>
+    /// Determines whether the cursor is in the right resize area.
+    /// </summary>
     private bool IsCursorInRightResizeArea(PointerRoutedEventArgs args)
     {
         var resizeWidth = args.Pointer.PointerDeviceType == PointerDeviceType.Touch ? 8 : 4;
@@ -330,6 +390,9 @@ public partial class TableViewColumnHeader : ContentControl
         return ActualWidth - point.Position.X <= resizeWidth && point.Position.Y < resizeHeight;
     }
 
+    /// <summary>
+    /// Determines whether the cursor is in the left resize area.
+    /// </summary>
     private bool IsCursorInLeftResizeArea(PointerRoutedEventArgs args)
     {
         var resizeArea = args.Pointer.PointerDeviceType == PointerDeviceType.Touch ? 8 : 4;
@@ -461,6 +524,9 @@ public partial class TableViewColumnHeader : ContentControl
         }
     }
 
+    /// <summary>
+    /// Ensures grid lines are applied.
+    /// </summary>
     internal void EnsureGridLines()
     {
         if (_v_gridLine is not null && _tableView is not null)
@@ -474,6 +540,9 @@ public partial class TableViewColumnHeader : ContentControl
         }
     }
 
+    /// <summary>
+    /// Gets or sets the sort direction for the column.
+    /// </summary>
     public SD? SortDirection
     {
         get => _sortDirection;
@@ -484,6 +553,9 @@ public partial class TableViewColumnHeader : ContentControl
         }
     }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the column is filtered.
+    /// </summary>
     public bool IsFiltered
     {
         get => _isFiltered;
@@ -494,11 +566,33 @@ public partial class TableViewColumnHeader : ContentControl
         }
     }
 
+    /// <summary>
+    /// Gets or sets the column associated with the header.
+    /// </summary>
     public TableViewColumn? Column { get; internal set; }
 
+    /// <summary>
+    /// Gets a value indicating whether the column can be resized.
+    /// </summary>
     private bool CanResize => _tableView?.CanResizeColumns == true && Column?.CanResize == true;
+
+    /// <summary>
+    /// Gets a value indicating whether the column can be sorted.
+    /// </summary>
     private bool CanSort => _tableView?.CanSortColumns == true && Column is TableViewBoundColumn { CanSort: true };
+
+    /// <summary>
+    /// Gets a value indicating whether the column can be filtered.
+    /// </summary>
     private bool CanFilter => _tableView?.CanFilterColumns == true && Column is TableViewBoundColumn { CanFilter: true };
+
+    /// <summary>
+    /// Gets a value indicating whether the previous column can be resized.
+    /// </summary>
     private bool CanResizePrevious => _headerRow?.GetPreviousHeader(this)?.CanResize == true;
+
+    /// <summary>
+    /// Gets a value indicating whether the cursor is in the sizing area.
+    /// </summary>
     private bool IsSizingCursor => ProtectedCursor is InputSystemCursor { CursorShape: InputSystemCursorShape.SizeWestEast };
 }

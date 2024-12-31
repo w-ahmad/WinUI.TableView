@@ -2,6 +2,8 @@
 
 namespace WinUI.TableView;
 
+/// Represents a column in a TableView.
+/// </summary>
 [StyleTypedProperty(Property = nameof(HeaderStyle), StyleTargetType = typeof(TableViewColumnHeader))]
 public abstract class TableViewColumn : DependencyObject
 {
@@ -10,69 +12,129 @@ public abstract class TableViewColumn : DependencyObject
     private TableViewColumnHeader? _headerControl;
     private double _desiredWidth;
 
+    /// <summary>
+    /// Generates a display element for the cell.
+    /// </summary>
+    /// <param name="cell">The cell for which the element is generated.</param>
+    /// <param name="dataItem">The data item associated with the cell.</param>
+    /// <returns>A FrameworkElement representing the display element.</returns>
     public abstract FrameworkElement GenerateElement(TableViewCell cell, object? dataItem);
+
+    /// <summary>
+    /// Generates an editing element for the cell.
+    /// </summary>
+    /// <param name="cell">The cell for which the editing element is generated.</param>
+    /// <param name="dataItem">The data item associated with the cell.</param>
+    /// <returns>A FrameworkElement representing the editing element.</returns>
     public abstract FrameworkElement GenerateEditingElement(TableViewCell cell, object? dataItem);
+
+    /// <summary>
+    /// Refreshes the display element for the cell.
+    /// </summary>
+    /// <param name="tableViewCell">The cell for which the element is refreshed.</param>
+    /// <param name="dataItem">The data item associated with the cell.</param>
     public virtual void RefreshElement(TableViewCell tableViewCell, object? dataItem) { }
+
+    /// <summary>
+    /// Updates the state of the element for the cell.
+    /// </summary>
+    /// <param name="cell">The cell for which the element state is updated.</param>
+    /// <param name="dataItem">The data item associated with the cell.</param>
     public virtual void UpdateElementState(TableViewCell cell, object? dataItem) { }
 
+    /// <summary>
+    /// Sets the owning collection for the column.
+    /// </summary>
+    /// <param name="collection">The owning collection.</param>
     internal void SetOwningCollection(TableViewColumnsCollection collection)
     {
         _owningCollection = collection;
     }
 
+    /// <summary>
+    /// Sets the owning TableView for the column.
+    /// </summary>
+    /// <param name="tableView">The owning TableView.</param>
     internal void SetOwningTableView(TableView tableView)
     {
         TableView = tableView;
     }
 
+    /// <summary>
+    /// Gets or sets the header content of the column.
+    /// </summary>
     public object Header
     {
         get => GetValue(HeaderProperty);
         set => SetValue(HeaderProperty, value);
     }
 
+    /// <summary>
+    /// Gets or sets the width of the column.
+    /// </summary>
     public GridLength Width
     {
         get => (GridLength)GetValue(WidthProperty);
         set => SetValue(WidthProperty, value);
     }
 
+    /// <summary>
+    /// Gets or sets the minimum width of the column.
+    /// </summary>
     public double? MinWidth
     {
         get => (double?)GetValue(MinWidthProperty);
         set => SetValue(MinWidthProperty, value);
     }
 
+    /// <summary>
+    /// Gets or sets the maximum width of the column.
+    /// </summary>
     public double? MaxWidth
     {
         get => (double?)GetValue(MaxWidthProperty);
         set => SetValue(MaxWidthProperty, value);
     }
 
+    /// <summary>
+    /// Gets or sets the actual width of the column.
+    /// </summary>
     public double ActualWidth
     {
         get => (double)GetValue(ActualWidthProperty);
         set => SetValue(ActualWidthProperty, value);
     }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the column can be resized.
+    /// </summary>
     public bool CanResize
     {
         get => (bool)GetValue(CanResizeProperty);
         set => SetValue(CanResizeProperty, value);
     }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the column is read-only.
+    /// </summary>
     public bool IsReadOnly
     {
         get => (bool)GetValue(IsReadOnlyProperty);
         set => SetValue(IsReadOnlyProperty, value);
     }
 
+    /// <summary>
+    /// Gets or sets the style for the column header.
+    /// </summary>
     public Style? HeaderStyle
     {
         get => (Style?)GetValue(HeaderStyleProperty);
         set => SetValue(HeaderStyleProperty, value);
     }
 
+    /// <summary>
+    /// Gets or sets the header control for the column.
+    /// </summary>
     public TableViewColumnHeader? HeaderControl
     {
         get => _headerControl;
@@ -83,18 +145,27 @@ public abstract class TableViewColumn : DependencyObject
         }
     }
 
+    /// <summary>
+    /// Gets or sets the visibility of the column.
+    /// </summary>
     public Visibility Visibility
     {
         get => (Visibility)GetValue(VisibilityProperty);
         set => SetValue(VisibilityProperty, value);
     }
 
+    /// <summary>
+    /// Gets or sets a custom tag object for the column.
+    /// </summary>
     public object Tag
     {
         get => GetValue(TagProperty);
         set => SetValue(TagProperty, value);
     }
 
+    /// <summary>
+    /// Gets or sets the desired width of the column.
+    /// </summary>
     internal double DesiredWidth
     {
         get => _desiredWidth;
@@ -108,10 +179,19 @@ public abstract class TableViewColumn : DependencyObject
         }
     }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the column is auto-generated.
+    /// </summary>
     public bool IsAutoGenerated { get; internal set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the column uses a single element for display and editing.
+    /// </summary>
     public bool UseSingleElement { get; set; }
 
+    /// <summary>
+    /// Ensures the header style is applied to the header control.
+    /// </summary>
     private void EnsureHeaderStyle()
     {
         if (_headerControl is not null && HeaderStyle is not null)
@@ -120,6 +200,9 @@ public abstract class TableViewColumn : DependencyObject
         }
     }
 
+    /// <summary>
+    /// Handles changes to the Width property.
+    /// </summary>
     private static void OnWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is TableViewColumn column && column._owningCollection is { })
@@ -128,6 +211,9 @@ public abstract class TableViewColumn : DependencyObject
         }
     }
 
+    /// <summary>
+    /// Handles changes to the MinWidth property.
+    /// </summary>
     private static void OnMinWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is TableViewColumn column && column._owningCollection is { })
@@ -136,6 +222,9 @@ public abstract class TableViewColumn : DependencyObject
         }
     }
 
+    /// <summary>
+    /// Handles changes to the MaxWidth property.
+    /// </summary>
     private static void OnMaxWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is TableViewColumn column && column._owningCollection is { })
@@ -144,6 +233,9 @@ public abstract class TableViewColumn : DependencyObject
         }
     }
 
+    /// <summary>
+    /// Handles changes to the ActualWidth property.
+    /// </summary>
     private static void OnActualWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is TableViewColumn column && column._owningCollection is { })
@@ -152,6 +244,9 @@ public abstract class TableViewColumn : DependencyObject
         }
     }
 
+    /// <summary>
+    /// Handles changes to the IsReadOnly property.
+    /// </summary>
     private static void OnIsReadOnlyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is TableViewColumn column && column._owningCollection is { })
@@ -160,6 +255,9 @@ public abstract class TableViewColumn : DependencyObject
         }
     }
 
+    /// <summary>
+    /// Handles changes to the Visibility property.
+    /// </summary>
     private static void OnVisibilityChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is TableViewColumn column && column._owningCollection is { })

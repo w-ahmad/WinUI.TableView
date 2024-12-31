@@ -9,13 +9,25 @@ using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
 
+/// <summary>
+/// Represents a column in a TableView that displays time.
+/// </summary>
 public partial class TableViewTimeColumn : TableViewBoundColumn
 {
+    /// <summary>
+    /// Initializes a new instance of the TableViewTimeColumn class.
+    /// </summary>
     public TableViewTimeColumn()
     {
         ClockIdentifier = DateTimeFormatter.ShortTime.Clock;
     }
 
+    /// <summary>
+    /// Generates a TextBlock element for the cell.
+    /// </summary>
+    /// <param name="cell">The cell for which the element is generated.</param>
+    /// <param name="dataItem">The data item associated with the cell.</param>
+    /// <returns>A TextBlock element.</returns>
     public override FrameworkElement GenerateElement(TableViewCell cell, object? dataItem)
     {
         var textBlock = new TextBlock
@@ -33,6 +45,12 @@ public partial class TableViewTimeColumn : TableViewBoundColumn
         return textBlock;
     }
 
+    /// <summary>
+    /// Generates a TableViewTimePicker element for editing the cell.
+    /// </summary>
+    /// <param name="cell">The cell for which the editing element is generated.</param>
+    /// <param name="dataItem">The data item associated with the cell.</param>
+    /// <returns>A TableViewTimePicker element.</returns>
     public override FrameworkElement GenerateEditingElement(TableViewCell cell, object? dataItem)
     {
         var timePicker = new TableViewTimePicker
@@ -49,6 +67,11 @@ public partial class TableViewTimeColumn : TableViewBoundColumn
         return timePicker;
     }
 
+    /// <summary>
+    /// Gets the type of the source property.
+    /// </summary>
+    /// <param name="dataItem">The data item associated with the cell.</param>
+    /// <returns>The type of the source property.</returns>
     private Type? GetSourcePropertyType(object? dataItem)
     {
         if (Binding is not null && dataItem is not null)
@@ -74,18 +97,31 @@ public partial class TableViewTimeColumn : TableViewBoundColumn
         return default;
     }
 
+    /// <summary>
+    /// Gets or sets the clock identifier for the time picker.
+    /// </summary>
     public string ClockIdentifier
     {
         get => (string)GetValue(ClockIdentifierProperty);
         set => SetValue(ClockIdentifierProperty, value);
     }
 
+    /// <summary>
+    /// Gets or sets the minute increment for the time picker.
+    /// </summary>
     public int MinuteIncrement
     {
         get => (int)GetValue(MinuteIncrementProperty);
         set => SetValue(MinuteIncrementProperty, value);
     }
 
+    /// <summary>
+    /// Identifies the MinuteIncrement dependency property.
+    /// </summary>
     public static readonly DependencyProperty MinuteIncrementProperty = DependencyProperty.Register(nameof(MinuteIncrement), typeof(int), typeof(TableViewTimeColumn), new PropertyMetadata(1));
+
+    /// <summary>
+    /// Identifies the ClockIdentifier dependency property.
+    /// </summary>
     public static readonly DependencyProperty ClockIdentifierProperty = DependencyProperty.Register(nameof(ClockIdentifier), typeof(string), typeof(TableViewTimeColumn), new PropertyMetadata(default));
 }

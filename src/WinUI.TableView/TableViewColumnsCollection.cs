@@ -7,9 +7,19 @@ using System.Linq;
 
 namespace WinUI.TableView;
 
+/// <summary>
+/// Represents a collection of columns in a TableView.
+/// </summary>
 public class TableViewColumnsCollection : ObservableCollection<TableViewColumn>
 {
+    /// <summary>
+    /// Occurs when a property of a column in the collection changes.
+    /// </summary>
     internal event EventHandler<TableViewColumnPropertyChanged>? ColumnPropertyChanged;
+
+    /// <summary>
+    /// Gets the list of visible columns in the collection.
+    /// </summary>
     internal IList<TableViewColumn> VisibleColumns => Items.Where(x => x.Visibility == Visibility.Visible).ToList();
 
     protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
@@ -35,6 +45,11 @@ public class TableViewColumnsCollection : ObservableCollection<TableViewColumn>
         }
     }
 
+    /// <summary>
+    /// Handles the property changed event for a column.
+    /// </summary>
+    /// <param name="column">The column that changed.</param>
+    /// <param name="propertyName">The name of the property that changed.</param>
     internal void HandleColumnPropertyChanged(TableViewColumn column, string propertyName)
     {
         if (Items.Contains(column))
@@ -44,19 +59,8 @@ public class TableViewColumnsCollection : ObservableCollection<TableViewColumn>
         }
     }
 
+    /// <summary>
+    /// Gets or sets the TableView associated with the collection.
+    /// </summary>
     public TableView? TableView { get; internal set; }
-}
-
-internal class TableViewColumnPropertyChanged : EventArgs
-{
-    public TableViewColumnPropertyChanged(TableViewColumn column, string propertyName, int index)
-    {
-        Column = column;
-        PropertyName = propertyName;
-        Index = index;
-    }
-
-    public TableViewColumn Column { get; }
-    public string PropertyName { get; }
-    public int Index { get; }
 }

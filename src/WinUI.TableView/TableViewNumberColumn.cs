@@ -3,8 +3,17 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace WinUI.TableView;
 
+/// <summary>
+/// Represents a column in a TableView that displays a number.
+/// </summary>
 public class TableViewNumberColumn : TableViewBoundColumn
 {
+    /// <summary>
+    /// Generates a TextBlock element for the cell.
+    /// </summary>
+    /// <param name="cell">The cell for which the element is generated.</param>
+    /// <param name="dataItem">The data item associated with the cell.</param>
+    /// <returns>A TextBlock element.</returns>
     public override FrameworkElement GenerateElement(TableViewCell cell, object? dataItem)
     {
         var textBlock = new TextBlock
@@ -16,6 +25,12 @@ public class TableViewNumberColumn : TableViewBoundColumn
         return textBlock;
     }
 
+    /// <summary>
+    /// Generates a NumberBox element for editing the cell.
+    /// </summary>
+    /// <param name="cell">The cell for which the editing element is generated.</param>
+    /// <param name="dataItem">The data item associated with the cell.</param>
+    /// <returns>A NumberBox element.</returns>
     public override FrameworkElement GenerateEditingElement(TableViewCell cell, object? dataItem)
     {
         var numberBox = new NumberBox();
