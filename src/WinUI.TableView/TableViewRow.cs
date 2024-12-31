@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
 
@@ -138,7 +139,7 @@ public class TableViewRow : ListViewItem
     {
         base.OnPointerPressed(e);
 
-        if (!KeyBoardHelper.IsShiftKeyDown() && TableView is not null)
+        if (!KeyboardHelper.IsShiftKeyDown() && TableView is not null)
         {
             TableView.SelectionStartRowIndex = Index;
         }
@@ -148,7 +149,7 @@ public class TableViewRow : ListViewItem
     {
         base.OnPointerReleased(e);
 
-        if (!KeyBoardHelper.IsShiftKeyDown() && TableView is not null)
+        if (!KeyboardHelper.IsShiftKeyDown() && TableView is not null)
         {
             TableView.SelectionStartCellSlot = null;
             TableView.SelectionStartRowIndex = Index;

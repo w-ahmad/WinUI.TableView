@@ -24,6 +24,7 @@ using Windows.Storage.Pickers;
 using Windows.System;
 using WinRT.Interop;
 using WinUI.TableView.Extensions;
+using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
 
@@ -50,7 +51,7 @@ public partial class TableView : ListView
 
     private void TableView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (!KeyBoardHelper.IsCtrlKeyDown())
+        if (!KeyboardHelper.IsCtrlKeyDown())
         {
             SelectedCellRanges.Clear();
         }
@@ -100,8 +101,8 @@ public partial class TableView : ListView
 
     protected override void OnKeyDown(KeyRoutedEventArgs e)
     {
-        var shiftKey = KeyBoardHelper.IsShiftKeyDown();
-        var ctrlKey = KeyBoardHelper.IsCtrlKeyDown();
+        var shiftKey = KeyboardHelper.IsShiftKeyDown();
+        var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
 
         if (HandleShortKeys(shiftKey, ctrlKey, e.Key))
         {

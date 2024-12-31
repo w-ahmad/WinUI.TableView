@@ -9,6 +9,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
+using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
 
@@ -165,7 +166,7 @@ public class TableViewCell : ContentControl
     {
         base.OnPointerPressed(e);
 
-        if (!KeyBoardHelper.IsShiftKeyDown() && TableView is not null)
+        if (!KeyboardHelper.IsShiftKeyDown() && TableView is not null)
         {
             TableView.SelectionStartCellSlot = TableView.SelectionUnit is not TableViewSelectionUnit.Row || !IsReadOnly ? Slot : default; ;
             TableView.SelectionStartRowIndex = Index;
@@ -177,7 +178,7 @@ public class TableViewCell : ContentControl
     {
         base.OnPointerReleased(e);
 
-        if (!KeyBoardHelper.IsShiftKeyDown() && TableView is not null)
+        if (!KeyboardHelper.IsShiftKeyDown() && TableView is not null)
         {
             var cell = FindCell(e.GetCurrentPoint(this).Position);
             TableView.SelectionStartCellSlot = TableView.SelectionUnit is not TableViewSelectionUnit.Row || !IsReadOnly ? cell?.Slot : default;
@@ -199,7 +200,7 @@ public class TableViewCell : ContentControl
 
             if (cell is not null && cell != this)
             {
-                var ctrlKey = KeyBoardHelper.IsCtrlKeyDown();
+                var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
                 TableView?.MakeSelection(cell.Slot, true, ctrlKey);
             }
         }
@@ -234,8 +235,8 @@ public class TableViewCell : ContentControl
 
     private void MakeSelection()
     {
-        var shiftKey = KeyBoardHelper.IsShiftKeyDown();
-        var ctrlKey = KeyBoardHelper.IsCtrlKeyDown();
+        var shiftKey = KeyboardHelper.IsShiftKeyDown();
+        var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
 
         if (TableView is null || Column is null)
         {

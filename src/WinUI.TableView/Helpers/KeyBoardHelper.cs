@@ -2,8 +2,8 @@
 using Windows.System;
 using Windows.UI.Core;
 
-namespace WinUI.TableView;
-internal static class KeyBoardHelper
+namespace WinUI.TableView.Helpers;
+internal static class KeyboardHelper
 {
     public static bool IsShiftKeyDown()
     {
