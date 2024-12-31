@@ -277,14 +277,14 @@ public class TableViewCell : ContentControl
 
     internal void SetElement()
     {
-        Content = Column?.GenerateElement();
+        Content = Column?.GenerateElement(this, Row?.Content);
     }
 
     private void SetEditingElement()
     {
         if (Column?.UseSingleElement is false)
         {
-            Content = Column.GenerateEditingElement();
+            Content = Column.GenerateEditingElement(this, Row?.Content);
         }
 
         if (TableView is not null)
@@ -322,7 +322,7 @@ public class TableViewCell : ContentControl
 
     internal void UpdateElementState()
     {
-        Column?.UpdateElementState(this);
+        Column?.UpdateElementState(this, Row?.Content);
     }
 
     private void OnColumnChanged()

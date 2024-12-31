@@ -12,7 +12,7 @@ public class TableViewCheckBoxColumn : TableViewBoundColumn
         UseSingleElement = true;
     }
 
-    public override FrameworkElement GenerateElement()
+    public override FrameworkElement GenerateElement(TableViewCell cell, object? dataItem)
     {
         var checkBox = new CheckBox
         {
@@ -29,12 +29,12 @@ public class TableViewCheckBoxColumn : TableViewBoundColumn
         return checkBox;
     }
 
-    public override FrameworkElement GenerateEditingElement()
+    public override FrameworkElement GenerateEditingElement(TableViewCell cell, object? dataItem)
     {
         throw new NotImplementedException();
     }
 
-    public override void UpdateElementState(TableViewCell cell)
+    public override void UpdateElementState(TableViewCell cell, object? dataItem)
     {
         if (cell?.Content is CheckBox checkBox)
         {

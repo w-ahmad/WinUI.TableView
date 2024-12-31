@@ -5,7 +5,7 @@ namespace WinUI.TableView;
 
 public class TableViewTextColumn : TableViewBoundColumn
 {
-    public override FrameworkElement GenerateElement()
+    public override FrameworkElement GenerateElement(TableViewCell cell, object? dataItem)
     {
         var textBlock = new TextBlock
         {
@@ -15,7 +15,7 @@ public class TableViewTextColumn : TableViewBoundColumn
         return textBlock;
     }
 
-    public override FrameworkElement GenerateEditingElement()
+    public override FrameworkElement GenerateEditingElement(TableViewCell cell, object? dataItem)
     {
         var textBox = new TextBox();
         textBox.SetBinding(TextBox.TextProperty, Binding);

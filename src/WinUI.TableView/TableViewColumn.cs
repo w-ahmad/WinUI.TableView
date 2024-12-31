@@ -10,10 +10,10 @@ public abstract class TableViewColumn : DependencyObject
     private TableViewColumnHeader? _headerControl;
     private double _desiredWidth;
 
-    public abstract FrameworkElement GenerateElement();
-    public abstract FrameworkElement GenerateEditingElement();
-    public virtual void RefreshElement(TableViewCell tableViewCell, object content) { }
-    public virtual void UpdateElementState(TableViewCell cell) { }
+    public abstract FrameworkElement GenerateElement(TableViewCell cell, object? dataItem);
+    public abstract FrameworkElement GenerateEditingElement(TableViewCell cell, object? dataItem);
+    public virtual void RefreshElement(TableViewCell tableViewCell, object? dataItem) { }
+    public virtual void UpdateElementState(TableViewCell cell, object? dataItem) { }
 
     internal void SetOwningCollection(TableViewColumnsCollection collection)
     {
