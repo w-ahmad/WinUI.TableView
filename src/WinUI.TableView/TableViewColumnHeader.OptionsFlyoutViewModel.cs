@@ -99,6 +99,7 @@ public partial class TableViewColumnHeader
             set
             {
                 _filterItems = value;
+                SetSelectAllCheckBoxState();
                 OnPropertyChanged();
             }
         }
@@ -148,31 +149,31 @@ public partial class TableViewColumnHeader
         /// <summary>
         /// Gets the command to sort in ascending order.
         /// </summary>
-        public StandardUICommand SortAscendingCommand { get; private set; }
+        public StandardUICommand SortAscendingCommand { get; } = new() { Label = "Sort Ascending" };
 
         /// <summary>
         /// Gets the command to sort in descending order.
         /// </summary>
-        public StandardUICommand SortDescendingCommand { get; private set; }
+        public StandardUICommand SortDescendingCommand { get; } = new() { Label = "Sort Descending" };
 
         /// <summary>
         /// Gets the command to clear sorting.
         /// </summary>
-        public StandardUICommand ClearSortingCommand { get; private set; }
+        public StandardUICommand ClearSortingCommand { get; } = new() { Label = "Clear Sorting" };
 
         /// <summary>
         /// Gets the command to clear the filter.
         /// </summary>
-        public StandardUICommand ClearFilterCommand { get; private set; }
+        public StandardUICommand ClearFilterCommand { get; } = new() { Label = "Clear Filter" };
 
         /// <summary>
         /// Gets the command to confirm the filter.
         /// </summary>
-        public StandardUICommand OkCommand { get; private set; }
+        public StandardUICommand OkCommand { get; } = new() { Label = "OK" };
 
         /// <summary>
         /// Gets the command to cancel the filter.
         /// </summary>
-        public StandardUICommand CancelCommand { get; private set; }
+        public StandardUICommand CancelCommand { get; } = new() { Label = "Cancel" };
     }
 }
