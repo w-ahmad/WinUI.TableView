@@ -140,12 +140,12 @@ public partial class TableView
     public static readonly DependencyProperty CellContextFlyoutProperty = DependencyProperty.Register(nameof(CellContextFlyout), typeof(FlyoutBase), typeof(TableView), new PropertyMetadata(null));
 
     /// <summary>
-    /// Gets the collection view used for filtering and sorting.
+    /// Gets IAdvancedCollectionView assigned as TableView's items source.
     /// </summary>
     public IAdvancedCollectionView CollectionView { get; private set; } = new AdvancedCollectionView();
 
     /// <summary>
-    /// Gets the active filters applied to the collection view.
+    /// Gets the active filters applied to the TableView.
     /// </summary>
     internal IDictionary<string, Predicate<object>> ActiveFilters { get; } = new Dictionary<string, Predicate<object>>();
 
@@ -227,7 +227,7 @@ public partial class TableView
     }
 
     /// <summary>
-    /// Gets or sets the items source for the TableView.
+    ///  Gets or sets an object source used to generate the content of the TableView.
     /// </summary>
     public new IList? ItemsSource
     {

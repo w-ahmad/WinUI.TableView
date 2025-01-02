@@ -132,7 +132,7 @@ public partial class TableViewDateColumn : TableViewBoundColumn
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether today's date is highlighted.
+    /// Gets or sets a value indicating whether today's date is highlighted in date picker.
     /// </summary>
     public bool IsTodayHighlighted
     {
@@ -141,7 +141,7 @@ public partial class TableViewDateColumn : TableViewBoundColumn
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether out-of-scope dates are enabled.
+    /// Gets or sets a value indicating whether out-of-scope dates are enabled in date picker.
     /// </summary>
     public bool IsOutOfScopeEnabled
     {
@@ -150,7 +150,7 @@ public partial class TableViewDateColumn : TableViewBoundColumn
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether the group label is visible.
+    /// Gets or sets a value indicating whether the group label is visible in date picker.
     /// </summary>
     public bool IsGroupLabelVisible
     {
@@ -159,7 +159,7 @@ public partial class TableViewDateColumn : TableViewBoundColumn
     }
 
     /// <summary>
-    /// Gets or sets the placeholder text for the date picker.
+    /// Gets or sets the placeholder text for the date picker in date picker.
     /// </summary>
     public string PlaceHolderText
     {
@@ -168,7 +168,7 @@ public partial class TableViewDateColumn : TableViewBoundColumn
     }
 
     /// <summary>
-    /// Gets or sets the format for the day of the week.
+    /// Gets or sets the format for the day of the week in date picker.
     /// </summary>
     public string DayOfWeekFormat
     {
@@ -177,7 +177,7 @@ public partial class TableViewDateColumn : TableViewBoundColumn
     }
 
     /// <summary>
-    /// Gets or sets the first day of the week.
+    /// Gets or sets the first day of the week in date picker.
     /// </summary>
     public DayOfWeek FirstDayOfWeek
     {

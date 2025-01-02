@@ -323,16 +323,20 @@ public partial class TableView : ListView
     }
 
     /// <summary>
-    /// Raises the CopyToClipboard event.
+    /// Called before the CopyToClipboard event occurs.
     /// </summary>
+    /// <param name="args">Handleable event args.</param>
     protected virtual void OnCopyToClipboard(TableViewCopyToClipboardEventArgs args)
     {
         CopyToClipboard?.Invoke(this, args);
     }
 
     /// <summary>
-    /// Gets the selected rows or cells content as a string.
+    /// Returns the selected cells' or rows' content as a string, optionally including headers, with values separated by the given character.
     /// </summary>
+    /// <param name="includeHeaders">Whether to include headers in the output.</param>
+    /// <param name="separator">The character used to separate cell values (default is tab).</param>
+    /// <returns>A string of selected cell content separated by the specified character.</returns>
     public string GetSelectedContent(bool includeHeaders, char separator = '\t')
     {
         var slots = Enumerable.Empty<TableViewCellSlot>();
@@ -355,8 +359,11 @@ public partial class TableView : ListView
     }
 
     /// <summary>
-    /// Gets all rows content as a string.
+    /// Returns all the cells' content as a string, optionally including headers, with values separated by the given character.
     /// </summary>
+    /// <param name="includeHeaders">Whether to include headers in the output.</param>
+    /// <param name="separator">The character used to separate cell values (default is tab).</param>
+    /// <returns>A string of all cell content separated by the specified character.</returns>
     public string GetAllContent(bool includeHeaders, char separator = '\t')
     {
         var slots = Enumerable.Range(0, Items.Count)
@@ -369,8 +376,11 @@ public partial class TableView : ListView
     }
 
     /// <summary>
-    /// Gets the content of the specified cells as a string.
+    /// Returns specified cells' content as a string, optionally including headers, with values separated by the given character.
     /// </summary>
+    /// <param name="includeHeaders">Whether to include headers in the output.</param>
+    /// <param name="separator">The character used to separate cell values.</param>
+    /// <returns>A string of specified cell content separated by the specified character.</returns>
     private string GetCellsContent(IEnumerable<TableViewCellSlot> slots, bool includeHeaders, char separator)
     {
         if (!slots.Any())
@@ -423,8 +433,12 @@ public partial class TableView : ListView
     }
 
     /// <summary>
-    /// Gets the column headers content as a string.
+    /// Returns all headers content as a string with values separated by the given character.
     /// </summary>
+    /// <param name="separator">The character used to separate cell values.</param>
+    /// <param name="minColumn">Min index column.</param>
+    /// /// <param name="minColumn">Max index column.</param>
+    /// <returns>A string of all headers content separated by the specified character.</returns>
     private string GetHeadersContent(char separator, int minColumn, int maxColumn)
     {
         var stringBuilder = new StringBuilder();
@@ -482,15 +496,16 @@ public partial class TableView : ListView
     }
 
     /// <summary>
-    /// Raises the AutoGeneratingColumn event.
+    /// Called before the AutoGeneratingColumn event occurs.
     /// </summary>
-    protected virtual void OnAutoGeneratingColumn(TableViewAutoGeneratingColumnEventArgs e)
+    /// <param name="args">Cancelable event args.</param>
+    protected virtual void OnAutoGeneratingColumn(TableViewAutoGeneratingColumnEventArgs args)
     {
-        AutoGeneratingColumn?.Invoke(this, e);
+        AutoGeneratingColumn?.Invoke(this, args);
     }
 
     /// <summary>
-    /// Gets a TableView column based on the property type.
+    /// Gets a TableViewColumn based on the property type.
     /// </summary>
     private static TableViewBoundColumn GetTableViewColumnFromType(string propertyName, Type type)
     {
@@ -587,8 +602,9 @@ public partial class TableView : ListView
     }
 
     /// <summary>
-    /// Raises the ExportSelectedContent event.
+    /// Called before the ExportSelectedContent event occurs.
     /// </summary>
+    /// <param name="args">Handleable event args.</param>
     protected virtual void OnExportSelectedContent(TableViewExportContentEventArgs args)
     {
         ExportSelectedContent?.Invoke(this, args);
@@ -626,8 +642,9 @@ public partial class TableView : ListView
     }
 
     /// <summary>
-    /// Raises the ExportAllContent event.
+    /// Called before the ExportAllContent event occurs.
     /// </summary>
+    /// <param name="args">Handleable event args.</param>
     protected virtual void OnExportAllContent(TableViewExportContentEventArgs args)
     {
         ExportAllContent?.Invoke(this, args);
