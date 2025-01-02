@@ -5,15 +5,24 @@ using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView.Controls;
 
+/// <summary>
+/// Represents a date editing element for the TableViewDateColumn.
+/// </summary>
 public partial class TableViewDatePicker : CalendarDatePicker
 {
     private bool _deferUpdate;
 
+    /// <summary>
+    /// Initializes a new instance of the TableViewDatePicker class.
+    /// </summary>
     public TableViewDatePicker()
     {
         DateChanged += OnDateChanged;
     }
 
+    /// <summary>
+    /// Handles the DateChanged event.
+    /// </summary>
     private void OnDateChanged(CalendarDatePicker sender, CalendarDatePickerDateChangedEventArgs args)
     {
         if (_deferUpdate) return;
@@ -46,6 +55,9 @@ public partial class TableViewDatePicker : CalendarDatePicker
         _deferUpdate = false;
     }
 
+    /// <summary>
+    /// Handles changes to the SelectedDate property.
+    /// </summary>
     private static void OnSelectedDateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is TableViewDatePicker datePicker && !datePicker._deferUpdate)
@@ -63,13 +75,23 @@ public partial class TableViewDatePicker : CalendarDatePicker
         }
     }
 
+    /// <summary>
+    /// Gets or sets the source type of the date picker.
+    /// This value could be DateOnly, DateTime, or DateTimeOffset.
+    /// </summary>
     internal Type? SourceType { get; set; }
 
+    /// <summary>
+    /// Gets or sets the selected date.
+    /// </summary>
     public object? SelectedDate
     {
         get => GetValue(SelectedDateProperty);
         set => SetValue(SelectedDateProperty, value);
     }
 
+    /// <summary>
+    /// Identifies the SelectedDate dependency property.
+    /// </summary>
     public static readonly DependencyProperty SelectedDateProperty = DependencyProperty.Register(nameof(SelectedDate), typeof(object), typeof(TableViewDatePicker), new PropertyMetadata(default, OnSelectedDateChanged));
 }

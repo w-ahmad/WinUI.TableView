@@ -5,13 +5,25 @@ using System;
 
 namespace WinUI.TableView;
 
+/// <summary>
+/// Represents a column in a TableView that displays a CheckBox.
+/// </summary>
 public class TableViewCheckBoxColumn : TableViewBoundColumn
 {
+    /// <summary>
+    /// Initializes a new instance of the TableViewCheckBoxColumn class.
+    /// </summary>
     public TableViewCheckBoxColumn()
     {
         UseSingleElement = true;
     }
 
+    /// <summary>
+    /// Generates a CheckBox element for the cell.
+    /// </summary>
+    /// <param name="cell">The cell for which the element is generated.</param>
+    /// <param name="dataItem">The data item associated with the cell.</param>
+    /// <returns>A CheckBox element.</returns>
     public override FrameworkElement GenerateElement(TableViewCell cell, object? dataItem)
     {
         var checkBox = new CheckBox
@@ -42,6 +54,10 @@ public class TableViewCheckBoxColumn : TableViewBoundColumn
         }
     }
 
+    /// <summary>
+    /// Updates the state of the CheckBox element.
+    /// </summary>
+    /// <param name="checkBox">The CheckBox element to update.</param>
     private void UpdateCheckBoxState(CheckBox checkBox)
     {
         checkBox.IsHitTestVisible = TableView?.IsReadOnly is false && !IsReadOnly;

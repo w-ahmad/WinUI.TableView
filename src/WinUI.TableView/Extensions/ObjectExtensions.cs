@@ -3,8 +3,17 @@ using System.Reflection;
 
 namespace WinUI.TableView.Extensions;
 
+/// <summary>
+/// Provides extension methods for object types.
+/// </summary>
 internal static class ObjectExtensions
 {
+    /// <summary>
+    /// Gets the value of a property from an object using a sequence of property info and index pairs.
+    /// </summary>
+    /// <param name="obj">The object from which to get the value.</param>
+    /// <param name="pis">An array of property info and index pairs.</param>
+    /// <returns>The value of the property, or null if the object is null.</returns>
     internal static object? GetValue(this object? obj, (PropertyInfo pi, object? index)[] pis)
     {
         foreach (var pi in pis)
@@ -20,6 +29,14 @@ internal static class ObjectExtensions
         return obj;
     }
 
+    /// <summary>
+    /// Gets the value of a property from an object using a type and a property path.
+    /// </summary>
+    /// <param name="obj">The object from which to get the value.</param>
+    /// <param name="type">The type of the object.</param>
+    /// <param name="path">The property path.</param>
+    /// <param name="pis">An array of property info and index pairs.</param>
+    /// <returns>The value of the property, or null if the object is null.</returns>
     internal static object? GetValue(this object? obj, Type? type, string path, out (PropertyInfo pi, object? index)[] pis)
     {
         var parts = path.Split('.');

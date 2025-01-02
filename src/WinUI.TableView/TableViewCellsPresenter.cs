@@ -9,12 +9,18 @@ using System.Linq;
 
 namespace WinUI.TableView;
 
+/// <summary>
+/// Represents a presenter for the cells in a TableView row.
+/// </summary>
 public class TableViewCellsPresenter : Control
 {
     private StackPanel? _stackPanel;
     private Rectangle? _v_gridLine;
     private Rectangle? _h_gridLine;
 
+    /// <summary>
+    /// Initializes a new instance of the TableViewCellsPresenter class.
+    /// </summary>
     public TableViewCellsPresenter()
     {
         DefaultStyleKey = typeof(TableViewCellsPresenter);
@@ -34,6 +40,9 @@ public class TableViewCellsPresenter : Control
         EnsureGridLines();
     }
 
+    /// <summary>
+    /// Ensures grid lines are applied to the cells.
+    /// </summary>
     internal void EnsureGridLines()
     {
         if (TableView is null) return;
@@ -62,8 +71,23 @@ public class TableViewCellsPresenter : Control
         }
     }
 
+    /// <summary>
+    /// Gets the collection of child elements.
+    /// </summary>
     internal UIElementCollection Children => _stackPanel?.Children!;
+
+    /// <summary>
+    /// Gets the list of cells in the presenter.
+    /// </summary>
     public IList<TableViewCell> Cells => _stackPanel?.Children.OfType<TableViewCell>().ToList()!;
+
+    /// <summary>
+    /// Gets or sets the TableViewRow associated with the presenter.
+    /// </summary>
     public TableViewRow? TableViewRow { get; private set; }
+
+    /// <summary>
+    /// Gets or sets the TableView associated with the presenter.
+    /// </summary>
     public TableView? TableView { get; private set; }
 }

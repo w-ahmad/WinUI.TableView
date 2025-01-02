@@ -14,6 +14,9 @@ using WinUI.TableView.Converters;
 
 namespace WinUI.TableView;
 
+/// <summary>
+/// Represents the header row in a TableView.
+/// </summary>
 [TemplateVisualState(Name = VisualStates.StateNormal, GroupName = VisualStates.GroupCommon)]
 [TemplateVisualState(Name = VisualStates.StateNoButton, GroupName = VisualStates.GroupCornerButton)]
 [TemplateVisualState(Name = VisualStates.StateSelectAllButton, GroupName = VisualStates.GroupCornerButton)]
@@ -30,6 +33,9 @@ public partial class TableViewHeaderRow : Control
     private DispatcherTimer? _timer;
     private readonly Dictionary<DependencyProperty, long> _callbackTokens = new();
 
+    /// <summary>
+    /// Initializes a new instance of the TableViewHeaderRow class.
+    /// </summary>
     public TableViewHeaderRow()
     {
         DefaultStyleKey = typeof(TableViewHeaderRow);
@@ -76,6 +82,9 @@ public partial class TableViewHeaderRow : Control
         EnsureGridLines();
     }
 
+    /// <summary>
+    /// Handles the collection changed event for the columns.
+    /// </summary>
     private void OnTableViewColumnsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems?.OfType<TableViewColumn>() is IEnumerable<TableViewColumn> newItems)
@@ -92,6 +101,9 @@ public partial class TableViewHeaderRow : Control
         }
     }
 
+    /// <summary>
+    /// Handles the property changed event for a column.
+    /// </summary>
     private void OnColumnPropertyChanged(object? sender, TableViewColumnPropertyChanged e)
     {
         if (e.PropertyName is nameof(TableViewColumn.Visibility))
@@ -127,6 +139,9 @@ public partial class TableViewHeaderRow : Control
         }
     }
 
+    /// <summary>
+    /// Handles the timer tick event.
+    /// </summary>
     private void OnTimerTick(object? sender, object e)
     {
         if (!_calculatingHeaderWidths)
@@ -142,6 +157,9 @@ public partial class TableViewHeaderRow : Control
         }
     }
 
+    /// <summary>
+    /// Removes headers for the specified columns.
+    /// </summary>
     private void RemoveHeaders(IEnumerable<TableViewColumn> columns)
     {
         if (_headersStackPanel is not null)
@@ -157,6 +175,9 @@ public partial class TableViewHeaderRow : Control
         }
     }
 
+    /// <summary>
+    /// Adds headers for the specified columns.
+    /// </summary>
     private void AddHeaders(IEnumerable<TableViewColumn> columns, int index = -1)
     {
         if (_headersStackPanel is not null)
@@ -185,6 +206,9 @@ public partial class TableViewHeaderRow : Control
         }
     }
 
+    /// <summary>
+    /// Calculates the widths of the headers.
+    /// </summary>
     internal void CalculateHeaderWidths()
     {
         if (TableView?.ActualWidth > 0)
@@ -274,6 +298,9 @@ public partial class TableViewHeaderRow : Control
         }
     }
 
+    /// <summary>
+    /// Sets the visibility of the export options.
+    /// </summary>
     private void SetExportOptionsVisibility()
     {
         var binding = new Binding
@@ -294,6 +321,9 @@ public partial class TableViewHeaderRow : Control
         }
     }
 
+    /// <summary>
+    /// Handles the selection changed event for the TableView.
+    /// </summary>
     private void OnTableViewSelectionChanged()
     {
         if (TableView is not null && _selectAllCheckBox is not null)
@@ -321,6 +351,9 @@ public partial class TableViewHeaderRow : Control
         }
     }
 
+    /// <summary>
+    /// Sets the state of the select all button.
+    /// </summary>
     private void SetSelectAllButtonState()
     {
         if (TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple })
@@ -341,16 +374,25 @@ public partial class TableViewHeaderRow : Control
         }
     }
 
+    /// <summary>
+    /// Handles the Checked event for the select all checkbox.
+    /// </summary>
     private void OnSelectAllCheckBoxChecked(object sender, RoutedEventArgs e)
     {
         TableView?.SelectAllSafe();
     }
 
+    /// <summary>
+    /// Handles the Unchecked event for the select all checkbox.
+    /// </summary>
     private void OnSelectAllCheckBoxUnchecked(object sender, RoutedEventArgs e)
     {
         TableView?.DeselectAll();
     }
 
+    /// <summary>
+    /// Ensures grid lines are applied to the header row.
+    /// </summary>
     internal void EnsureGridLines()
     {
         if (_h_gridLine is not null && TableView is not null)
@@ -382,19 +424,31 @@ public partial class TableViewHeaderRow : Control
         }
     }
 
+    /// <summary>
+    /// Gets the list of headers in the header row.
+    /// </summary>
     private IList<TableViewColumnHeader> Headers => _headersStackPanel!.Children.OfType<TableViewColumnHeader>().ToList();
 
+    /// <summary>
+    /// Gets the previous header in the header row.
+    /// </summary>
     internal TableViewColumnHeader? GetPreviousHeader(TableViewColumnHeader? currentHeader)
     {
         var previousCellIndex = currentHeader is null ? Headers.Count - 1 : Headers.IndexOf(currentHeader) - 1;
         return previousCellIndex >= 0 ? Headers[previousCellIndex] : default;
     }
 
+    /// <summary>
+    /// Handles the SizeChanged event for the TableView.
+    /// </summary>
     private void OnTableViewSizeChanged(object sender, SizeChangedEventArgs e)
     {
         CalculateHeaderWidths();
     }
 
+    /// <summary>
+    /// Handles changes to the TableView property.
+    /// </summary>
     private static void OnTableViewChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is TableViewHeaderRow headerRow)
@@ -403,10 +457,13 @@ public partial class TableViewHeaderRow : Control
         }
     }
 
+    /// <summary>
+    /// Handles changes to the TableView property.
+    /// </summary>
     private void OnTableViewChanged(DependencyPropertyChangedEventArgs e)
     {
-            if (e.OldValue is TableView oldTableView)
-            {
+        if (e.OldValue is TableView oldTableView)
+        {
             oldTableView.SizeChanged -= OnTableViewSizeChanged;
             oldTableView.SelectionChanged -= delegate { OnTableViewSelectionChanged(); };
             oldTableView.Items.VectorChanged -= delegate { OnTableViewSelectionChanged(); };
@@ -416,10 +473,10 @@ public partial class TableViewHeaderRow : Control
             oldTableView.UnregisterPropertyChangedCallback(ListViewBase.SelectionModeProperty, _callbackTokens[ListViewBase.SelectionModeProperty]);
             oldTableView.UnregisterPropertyChangedCallback(TableView.CornerButtonModeProperty, _callbackTokens[TableView.CornerButtonModeProperty]);
             oldTableView.UnregisterPropertyChangedCallback(TableView.ItemsSourceProperty, _callbackTokens[TableView.ItemsSourceProperty]);
-            }
+        }
 
-            if (e.NewValue is TableView newTableView)
-            {
+        if (e.NewValue is TableView newTableView)
+        {
             newTableView.SizeChanged += OnTableViewSizeChanged;
             newTableView.SelectionChanged += delegate { OnTableViewSelectionChanged(); };
             newTableView.Items.VectorChanged += delegate { OnTableViewSelectionChanged(); };
@@ -437,11 +494,17 @@ public partial class TableViewHeaderRow : Control
         }
     }
 
+    /// <summary>
+    /// Gets or sets the TableView associated with the header row.
+    /// </summary>
     public TableView? TableView
     {
         get => (TableView?)GetValue(TableViewProperty);
         set => SetValue(TableViewProperty, value);
     }
 
+    /// <summary>
+    /// Identifies the TableView dependency property.
+    /// </summary>
     public static readonly DependencyProperty TableViewProperty = DependencyProperty.Register(nameof(TableView), typeof(TableView), typeof(TableViewHeaderRow), new PropertyMetadata(null, OnTableViewChanged));
 }

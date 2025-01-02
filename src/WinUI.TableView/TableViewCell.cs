@@ -13,6 +13,9 @@ using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
 
+/// <summary>
+/// Represents a cell in a TableView.
+/// </summary>
 [TemplateVisualState(Name = VisualStates.StateNormal, GroupName = VisualStates.GroupCommon)]
 [TemplateVisualState(Name = VisualStates.StatePointerOver, GroupName = VisualStates.GroupCommon)]
 [TemplateVisualState(Name = VisualStates.StateRegular, GroupName = VisualStates.GroupCurrent)]
@@ -27,6 +30,9 @@ public class TableViewCell : ContentControl
     private Border? _selectionBorder;
     private Rectangle? _v_gridLine;
 
+    /// <summary>
+    /// Initializes a new instance of the TableViewCell class.
+    /// </summary>
     public TableViewCell()
     {
         DefaultStyleKey = typeof(TableViewCell);
@@ -35,6 +41,9 @@ public class TableViewCell : ContentControl
         ContextRequested += OnContextRequested;
     }
 
+    /// <summary>
+    /// Handles the ContextRequested event.
+    /// </summary>
     private void OnContextRequested(UIElement sender, ContextRequestedEventArgs args)
     {
         if (TableView is not null && args.TryGetPosition(sender, out var position))
@@ -43,6 +52,9 @@ public class TableViewCell : ContentControl
         }
     }
 
+    /// <summary>
+    /// Handles the Loaded event.
+    /// </summary>
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         InvalidateMeasure();
@@ -206,6 +218,9 @@ public class TableViewCell : ContentControl
         }
     }
 
+    /// <summary>
+    /// Finds the cell at the specified position.
+    /// </summary>
     private TableViewCell? FindCell(Point position)
     {
         _scrollViewer ??= TableView?.FindDescendant<ScrollViewer>();
@@ -233,6 +248,9 @@ public class TableViewCell : ContentControl
         }
     }
 
+    /// <summary>
+    /// Makes a selection based on the current cell.
+    /// </summary>
     private void MakeSelection()
     {
         var shiftKey = KeyboardHelper.IsShiftKeyDown();
@@ -264,6 +282,9 @@ public class TableViewCell : ContentControl
         }
     }
 
+    /// <summary>
+    /// Prepares the cell for editing.
+    /// </summary>
     internal async void PrepareForEdit()
     {
         SetEditingElement();
@@ -276,11 +297,17 @@ public class TableViewCell : ContentControl
         }
     }
 
+    /// <summary>
+    /// Sets the element for the cell.
+    /// </summary>
     internal void SetElement()
     {
         Content = Column?.GenerateElement(this, Row?.Content);
     }
 
+    /// <summary>
+    /// Sets the editing element for the cell.
+    /// </summary>
     private void SetEditingElement()
     {
         if (Column?.UseSingleElement is false)
@@ -294,17 +321,26 @@ public class TableViewCell : ContentControl
         }
     }
 
+    /// <summary>
+    /// Refreshes the element for the cell.
+    /// </summary>
     internal void RefreshElement()
     {
         Column?.RefreshElement(this, Content);
     }
 
+    /// <summary>
+    /// Applies the selection state to the cell.
+    /// </summary>
     internal void ApplySelectionState()
     {
         var stateName = IsSelected ? VisualStates.StateSelected : VisualStates.StateUnselected;
         VisualStates.GoToState(this, false, stateName);
     }
 
+    /// <summary>
+    /// Applies the current cell state to the cell.
+    /// </summary>
     internal void ApplyCurrentCellState()
     {
         var stateName = IsCurrent ? VisualStates.StateCurrent : VisualStates.StateRegular;
@@ -321,11 +357,17 @@ public class TableViewCell : ContentControl
         }
     }
 
+    /// <summary>
+    /// Updates the element state for the cell.
+    /// </summary>
     internal void UpdateElementState()
     {
         Column?.UpdateElementState(this, Row?.Content);
     }
 
+    /// <summary>
+    /// Handles changes to the column.
+    /// </summary>
     private void OnColumnChanged()
     {
         if (TableView?.IsEditing == true)
@@ -338,6 +380,9 @@ public class TableViewCell : ContentControl
         }
     }
 
+    /// <summary>
+    /// Ensures grid lines are applied to the cell.
+    /// </summary>
     internal void EnsureGridLines()
     {
         if (_v_gridLine is not null && TableView is not null)
@@ -351,15 +396,34 @@ public class TableViewCell : ContentControl
         }
     }
 
+    /// <summary>
+    /// Gets a value indicating whether the cell is read-only.
+    /// </summary>
     public bool IsReadOnly => TableView?.IsReadOnly is true || Column is TableViewTemplateColumn { EditingTemplate: null } or { IsReadOnly: true };
 
+    /// <summary>
+    /// Gets the slot for the cell.
+    /// </summary>
     internal TableViewCellSlot Slot => new(Row?.Index ?? -1, Index);
 
+    /// <summary>
+    /// Gets or sets the index of the cell.
+    /// </summary>
     internal int Index { get; set; }
 
+    /// <summary>
+    /// Gets a value indicating whether the cell is selected.
+    /// </summary>
     public bool IsSelected => TableView?.SelectedCells.Contains(Slot) is true;
+
+    /// <summary>
+    /// Gets a value indicating whether the cell is the current cell.
+    /// </summary>
     public bool IsCurrent => TableView?.CurrentCellSlot == Slot;
 
+    /// <summary>
+    /// Gets or sets the column for the cell.
+    /// </summary>
     public TableViewColumn? Column
     {
         get => _column;
@@ -373,8 +437,13 @@ public class TableViewCell : ContentControl
         }
     }
 
+    /// <summary>
+    /// Gets or sets the row for the cell.
+    /// </summary>
     public TableViewRow? Row { get; internal set; }
 
+    /// <summary>
+    /// Gets or sets the TableView for the cell.
+    /// </summary>
     public TableView? TableView { get; internal set; }
-
 }

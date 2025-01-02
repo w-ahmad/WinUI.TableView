@@ -12,6 +12,9 @@ using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
 
+/// <summary>
+/// Represents a row in a TableView.
+/// </summary>
 public class TableViewRow : ListViewItem
 {
     private const string Selection_Indictor = nameof(Selection_Indictor);
@@ -27,6 +30,9 @@ public class TableViewRow : ListViewItem
     private Brush? _cellPresenterBackground;
     private Brush? _cellPresenterForeground;
 
+    /// <summary>
+    /// Initializes a new instance of the TableViewRow class.
+    /// </summary>
     public TableViewRow()
     {
         DefaultStyleKey = typeof(TableViewRow);
@@ -37,17 +43,22 @@ public class TableViewRow : ListViewItem
         RegisterPropertyChangedCallback(IsSelectedProperty, delegate { OnIsSelectedChanged(); });
     }
 
+    /// <summary>
+    /// Handles the ContextRequested event.
+    /// </summary>
     private void OnContextRequested(UIElement sender, ContextRequestedEventArgs args)
     {
         if (args.TryGetPosition(sender, out var position))
         {
             if (IsContextRequestedFromCell(position) && TableView?.CellContextFlyout is not null) return;
 
-
             TableView?.ShowRowContext(this, position);
         }
     }
 
+    /// <summary>
+    /// Determines if the context request is from a cell.
+    /// </summary>
     private bool IsContextRequestedFromCell(Windows.Foundation.Point position)
     {
         if (_cellPresenter is null) return false;
@@ -60,6 +71,9 @@ public class TableViewRow : ListViewItem
                                .Any();
     }
 
+    /// <summary>
+    /// Handles the IsSelected property changed event.
+    /// </summary>
     private void OnIsSelectedChanged()
     {
         DispatcherQueue.TryEnqueue(() =>
@@ -88,6 +102,9 @@ public class TableViewRow : ListViewItem
         });
     }
 
+    /// <summary>
+    /// Handles the Loaded event.
+    /// </summary>
     private void TableViewRow_Loaded(object sender, RoutedEventArgs e)
     {
         _focusVisualMargin = FocusVisualMargin;
@@ -167,6 +184,9 @@ public class TableViewRow : ListViewItem
         }
     }
 
+    /// <summary>
+    /// Ensures cells are created for the row.
+    /// </summary>
     private void EnsureCells()
     {
         if (TableView is null)
@@ -188,6 +208,9 @@ public class TableViewRow : ListViewItem
         _ensureCells = false;
     }
 
+    /// <summary>
+    /// Handles the SizeChanged event.
+    /// </summary>
     private async void OnSizeChanged(object sender, SizeChangedEventArgs e)
     {
         if (TableView?.CurrentCellSlot?.Row == Index)
@@ -196,6 +219,9 @@ public class TableViewRow : ListViewItem
         }
     }
 
+    /// <summary>
+    /// Handles the collection changed event for the columns.
+    /// </summary>
     private void OnColumnsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems?.OfType<TableViewColumn>() is IEnumerable<TableViewColumn> newItems)
@@ -212,6 +238,9 @@ public class TableViewRow : ListViewItem
         }
     }
 
+    /// <summary>
+    /// Handles the property changed event for a column.
+    /// </summary>
     private void OnColumnPropertyChanged(object? sender, TableViewColumnPropertyChanged e)
     {
         if (e.PropertyName is nameof(TableViewColumn.Visibility))
@@ -238,6 +267,9 @@ public class TableViewRow : ListViewItem
         }
     }
 
+    /// <summary>
+    /// Removes cells for the specified columns.
+    /// </summary>
     private void RemoveCells(IEnumerable<TableViewColumn> columns)
     {
         if (_cellPresenter is not null)
@@ -253,6 +285,9 @@ public class TableViewRow : ListViewItem
         }
     }
 
+    /// <summary>
+    /// Adds cells for the specified columns.
+    /// </summary>
     private void AddCells(IEnumerable<TableViewColumn> columns, int index = -1)
     {
         if (_cellPresenter is not null && TableView is not null)
@@ -282,6 +317,9 @@ public class TableViewRow : ListViewItem
         }
     }
 
+    /// <summary>
+    /// Handles the TableView changing event.
+    /// </summary>
     private void OnTableViewChanging()
     {
         if (TableView is not null)
@@ -296,6 +334,9 @@ public class TableViewRow : ListViewItem
         }
     }
 
+    /// <summary>
+    /// Handles the TableView changed event.
+    /// </summary>
     private void OnTableViewChanged()
     {
         if (TableView is not null)
@@ -310,11 +351,17 @@ public class TableViewRow : ListViewItem
         }
     }
 
+    /// <summary>
+    /// Handles the IsReadOnly property changed event for the TableView.
+    /// </summary>
     private void OnTableViewIsReadOnlyChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
         UpdateCellsState();
     }
 
+    /// <summary>
+    /// Updates the state of the cells.
+    /// </summary>
     private void UpdateCellsState()
     {
         foreach (var cell in Cells)
@@ -323,6 +370,9 @@ public class TableViewRow : ListViewItem
         }
     }
 
+    /// <summary>
+    /// Applies the current cell state to the specified slot.
+    /// </summary>
     internal void ApplyCurrentCellState(TableViewCellSlot slot)
     {
         if (slot.Column >= 0 && slot.Column < Cells.Count)
@@ -332,6 +382,9 @@ public class TableViewRow : ListViewItem
         }
     }
 
+    /// <summary>
+    /// Applies the selection state to the cells.
+    /// </summary>
     internal void ApplyCellsSelectionState()
     {
         foreach (var cell in Cells)
@@ -340,6 +393,9 @@ public class TableViewRow : ListViewItem
         }
     }
 
+    /// <summary>
+    /// Ensures grid lines are applied to the row.
+    /// </summary>
     internal void EnsureGridLines()
     {
         if (TableView is not null && _itemPresenter is not null)
@@ -371,6 +427,9 @@ public class TableViewRow : ListViewItem
         _cellPresenter?.EnsureGridLines();
     }
 
+    /// <summary>
+    /// Ensures the layout of the row.
+    /// </summary>
     internal void EnsureLayout()
     {
         if (_cellPresenter is not null && TableView is not null)
@@ -381,6 +440,9 @@ public class TableViewRow : ListViewItem
         }
     }
 
+    /// <summary>
+    /// Ensures alternate colors are applied to the row.
+    /// </summary>
     internal void EnsureAlternateColors()
     {
         if (TableView is null || _cellPresenter is null) return;
@@ -392,10 +454,19 @@ public class TableViewRow : ListViewItem
             Index % 2 == 1 && TableView.AlternateRowForeground is not null ? TableView.AlternateRowForeground : _cellPresenterForeground;
     }
 
+    /// <summary>
+    /// Gets the list of cells in the row.
+    /// </summary>
     internal IList<TableViewCell> Cells => _cellPresenter?.Cells ?? new List<TableViewCell>();
 
+    /// <summary>
+    /// Gets the index of the row.
+    /// </summary>
     public int Index => TableView?.IndexFromContainer(this) ?? -1;
 
+    /// <summary>
+    /// Gets or sets the TableView associated with the row.
+    /// </summary>
     public TableView? TableView
     {
         get => _tableView;

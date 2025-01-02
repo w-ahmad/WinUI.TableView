@@ -28,6 +28,9 @@ using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
 
+/// <summary>
+/// Represents a control that displays data in customizable table-like interface.
+/// </summary>
 public partial class TableView : ListView
 {
     private TableViewHeaderRow? _headerRow;
@@ -35,6 +38,9 @@ public partial class TableView : ListView
     private bool _shouldThrowSelectionModeChangedException;
     private readonly List<TableViewRow> _rows = new();
 
+    /// <summary>
+    /// Initializes a new instance of the TableView class.
+    /// </summary>
     public TableView()
     {
         DefaultStyleKey = typeof(TableView);
@@ -49,6 +55,9 @@ public partial class TableView : ListView
         SelectionChanged += TableView_SelectionChanged;
     }
 
+    /// <summary>
+    /// Handles the SelectionChanged event of the TableView control.
+    /// </summary>
     private void TableView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!KeyboardHelper.IsCtrlKeyDown())
@@ -113,6 +122,9 @@ public partial class TableView : ListView
         HandleNavigations(e, shiftKey, ctrlKey);
     }
 
+    /// <summary>
+    /// Handles navigation keys.
+    /// </summary>
     private void HandleNavigations(KeyRoutedEventArgs e, bool shiftKey, bool ctrlKey)
     {
         var currentCell = CurrentCellSlot.HasValue ? GetCellFromSlot(CurrentCellSlot.Value) : default;
@@ -140,6 +152,7 @@ public partial class TableView : ListView
                 DeselectCell(CurrentCellSlot.Value);
             }
         }
+
         // Handle navigation keys
         else if (e.Key is VirtualKey.Tab or VirtualKey.Enter)
         {
@@ -186,6 +199,9 @@ public partial class TableView : ListView
         }
     }
 
+    /// <summary>
+    /// Handles shortcut keys.
+    /// </summary>
     private bool HandleShortKeys(bool shiftKey, bool ctrlKey, VirtualKey key)
     {
         if (key == VirtualKey.A && ctrlKey && !shiftKey)
@@ -223,12 +239,18 @@ public partial class TableView : ListView
         }
     }
 
+    /// <summary>
+    /// Handles the Loaded event of the TableView control.
+    /// </summary>
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         ApplyItemsClip();
         UpdateVerticalScrollBarMargin();
     }
 
+    /// <summary>
+    /// Gets the next cell slot based on the current slot and input keys.
+    /// </summary>
     private TableViewCellSlot GetNextSlot(TableViewCellSlot? currentSlot, bool isShiftKeyDown, bool isEnterKey)
     {
         var rows = Items.Count;
@@ -274,11 +296,17 @@ public partial class TableView : ListView
         return new TableViewCellSlot(nextRow, nextColumn);
     }
 
+    /// <summary>
+    /// Filters the items in the collection view.
+    /// </summary>
     private bool Filter(object obj)
     {
         return ActiveFilters.All(item => item.Value(obj));
     }
 
+    /// <summary>
+    /// Copies the selected rows or cells content to the clipboard.
+    /// </summary>
     internal void CopyToClipboardInternal(bool includeHeaders)
     {
         var args = new TableViewCopyToClipboardEventArgs(includeHeaders);
@@ -294,11 +322,21 @@ public partial class TableView : ListView
         Clipboard.SetContent(package);
     }
 
+    /// <summary>
+    /// Called before the CopyToClipboard event occurs.
+    /// </summary>
+    /// <param name="args">Handleable event args.</param>
     protected virtual void OnCopyToClipboard(TableViewCopyToClipboardEventArgs args)
     {
         CopyToClipboard?.Invoke(this, args);
     }
 
+    /// <summary>
+    /// Returns the selected cells' or rows' content as a string, optionally including headers, with values separated by the given character.
+    /// </summary>
+    /// <param name="includeHeaders">Whether to include headers in the output.</param>
+    /// <param name="separator">The character used to separate cell values (default is tab).</param>
+    /// <returns>A string of selected cell content separated by the specified character.</returns>
     public string GetSelectedContent(bool includeHeaders, char separator = '\t')
     {
         var slots = Enumerable.Empty<TableViewCellSlot>();
@@ -307,7 +345,7 @@ public partial class TableView : ListView
         {
             slots = SelectedRanges.SelectMany(x => Enumerable.Range(x.FirstIndex, (int)x.Length))
                                   .SelectMany(r => Enumerable.Range(0, Columns.VisibleColumns.Count)
-                                                                     .Select(c => new TableViewCellSlot(r, c)))
+                                                             .Select(c => new TableViewCellSlot(r, c)))
                                   .Concat(SelectedCells)
                                   .OrderBy(x => x.Row)
                                   .ThenByDescending(x => x.Column);
@@ -320,17 +358,29 @@ public partial class TableView : ListView
         return GetCellsContent(slots, includeHeaders, separator);
     }
 
+    /// <summary>
+    /// Returns all the cells' content as a string, optionally including headers, with values separated by the given character.
+    /// </summary>
+    /// <param name="includeHeaders">Whether to include headers in the output.</param>
+    /// <param name="separator">The character used to separate cell values (default is tab).</param>
+    /// <returns>A string of all cell content separated by the specified character.</returns>
     public string GetAllContent(bool includeHeaders, char separator = '\t')
     {
         var slots = Enumerable.Range(0, Items.Count)
                               .SelectMany(r => Enumerable.Range(0, Columns.VisibleColumns.Count)
-                                                                 .Select(c => new TableViewCellSlot(r, c)))
+                                                         .Select(c => new TableViewCellSlot(r, c)))
                               .OrderBy(x => x.Row)
                               .ThenByDescending(x => x.Column);
 
         return GetCellsContent(slots, includeHeaders, separator);
     }
 
+    /// <summary>
+    /// Returns specified cells' content as a string, optionally including headers, with values separated by the given character.
+    /// </summary>
+    /// <param name="includeHeaders">Whether to include headers in the output.</param>
+    /// <param name="separator">The character used to separate cell values.</param>
+    /// <returns>A string of specified cell content separated by the specified character.</returns>
     private string GetCellsContent(IEnumerable<TableViewCellSlot> slots, bool includeHeaders, char separator)
     {
         if (!slots.Any())
@@ -382,6 +432,13 @@ public partial class TableView : ListView
         return stringBuilder.ToString();
     }
 
+    /// <summary>
+    /// Returns all headers content as a string with values separated by the given character.
+    /// </summary>
+    /// <param name="separator">The character used to separate cell values.</param>
+    /// <param name="minColumn">Min index column.</param>
+    /// /// <param name="minColumn">Max index column.</param>
+    /// <returns>A string of all headers content separated by the specified character.</returns>
     private string GetHeadersContent(char separator, int minColumn, int maxColumn)
     {
         var stringBuilder = new StringBuilder();
@@ -394,6 +451,9 @@ public partial class TableView : ListView
         return stringBuilder.ToString();
     }
 
+    /// <summary>
+    /// Generates columns based on the types of the properties of the ItemsSource collection type.
+    /// </summary>
     private void GenerateColumns()
     {
         var itemsSourceType = ItemsSource?.GetType();
@@ -422,6 +482,9 @@ public partial class TableView : ListView
         }
     }
 
+    /// <summary>
+    /// Generates a column based on the property type.
+    /// </summary>
     private static TableViewAutoGeneratingColumnEventArgs GenerateColumn(Type propertyType, string propertyName, string header, bool canFilter)
     {
         var newColumn = GetTableViewColumnFromType(propertyName, propertyType);
@@ -432,11 +495,18 @@ public partial class TableView : ListView
         return new TableViewAutoGeneratingColumnEventArgs(propertyName, propertyType, newColumn);
     }
 
-    protected virtual void OnAutoGeneratingColumn(TableViewAutoGeneratingColumnEventArgs e)
+    /// <summary>
+    /// Called before the AutoGeneratingColumn event occurs.
+    /// </summary>
+    /// <param name="args">Cancelable event args.</param>
+    protected virtual void OnAutoGeneratingColumn(TableViewAutoGeneratingColumnEventArgs args)
     {
-        AutoGeneratingColumn?.Invoke(this, e);
+        AutoGeneratingColumn?.Invoke(this, args);
     }
 
+    /// <summary>
+    /// Gets a TableViewColumn based on the property type.
+    /// </summary>
     private static TableViewBoundColumn GetTableViewColumnFromType(string propertyName, Type type)
     {
         var binding = new Binding { Path = new PropertyPath(propertyName), Mode = BindingMode.TwoWay };
@@ -454,7 +524,7 @@ public partial class TableView : ListView
         {
             column = new TableViewDateColumn();
         }
-        else if (typeCode is TypeCode.Byte or TypeCode.SByte or TypeCode.UInt16 or TypeCode.UInt32 or TypeCode.UInt64 
+        else if (typeCode is TypeCode.Byte or TypeCode.SByte or TypeCode.UInt16 or TypeCode.UInt32 or TypeCode.UInt64
             or TypeCode.Int16 or TypeCode.Int32 or TypeCode.Int64 or TypeCode.Single or TypeCode.Double or TypeCode.Decimal)
         {
             column = new TableViewNumberColumn();
@@ -469,6 +539,9 @@ public partial class TableView : ListView
         return column;
     }
 
+    /// <summary>
+    /// Handles the ItemsSource property changed event.
+    /// </summary>
     private void OnItemsSourceChanged(DependencyPropertyChangedEventArgs e)
     {
         ((AdvancedCollectionView)CollectionView).Source = null!;
@@ -485,6 +558,9 @@ public partial class TableView : ListView
         }
     }
 
+    /// <summary>
+    /// Removes auto-generated columns.
+    /// </summary>
     private void RemoveAutoGeneratedColumns()
     {
         while (Columns.Any(x => x.IsAutoGenerated))
@@ -494,6 +570,9 @@ public partial class TableView : ListView
         }
     }
 
+    /// <summary>
+    /// Exports the selected rows or cells content to a CSV file.
+    /// </summary>
     internal async void ExportSelectedToCSV()
     {
         var args = new TableViewExportContentEventArgs();
@@ -522,11 +601,18 @@ public partial class TableView : ListView
         catch { }
     }
 
+    /// <summary>
+    /// Called before the ExportSelectedContent event occurs.
+    /// </summary>
+    /// <param name="args">Handleable event args.</param>
     protected virtual void OnExportSelectedContent(TableViewExportContentEventArgs args)
     {
         ExportSelectedContent?.Invoke(this, args);
     }
 
+    /// <summary>
+    /// Exports all rows content to a CSV file.
+    /// </summary>
     internal async void ExportAllToCSV()
     {
         var args = new TableViewExportContentEventArgs();
@@ -555,11 +641,18 @@ public partial class TableView : ListView
         catch { }
     }
 
+    /// <summary>
+    /// Called before the ExportAllContent event occurs.
+    /// </summary>
+    /// <param name="args">Handleable event args.</param>
     protected virtual void OnExportAllContent(TableViewExportContentEventArgs args)
     {
         ExportAllContent?.Invoke(this, args);
     }
 
+    /// <summary>
+    /// Gets a storage file for saving the CSV.
+    /// </summary>
     private static async Task<StorageFile> GetStorageFile(IntPtr hWnd)
     {
         var savePicker = new FileSavePicker();
@@ -569,6 +662,9 @@ public partial class TableView : ListView
         return await savePicker.PickSaveFileAsync();
     }
 
+    /// <summary>
+    /// Applies clipping to the items panel. This will allow header row to stay on top while scrolling
+    /// </summary>
     private void ApplyItemsClip()
     {
         if (_scrollViewer is null || ItemsPanelRoot is null) return;
@@ -587,6 +683,9 @@ public partial class TableView : ListView
         contentClip.StartAnimation("TopInset", expressionClipAnimation);
     }
 
+    /// <summary>
+    /// Updates the margin of the vertical scroll bar to always show under the header row.
+    /// </summary>
     private void UpdateVerticalScrollBarMargin()
     {
         if (GetTemplateChild("ScrollViewer") is ScrollViewer scrollViewer)
@@ -599,6 +698,9 @@ public partial class TableView : ListView
         }
     }
 
+    /// <summary>
+    /// Clears all sorting applied.
+    /// </summary>
     internal void ClearSorting()
     {
         DeselectAll();
@@ -613,6 +715,9 @@ public partial class TableView : ListView
         }
     }
 
+    /// <summary>
+    /// Clears all filters applied.
+    /// </summary>
     internal void ClearFilters()
     {
         DeselectAll();
@@ -628,6 +733,9 @@ public partial class TableView : ListView
         }
     }
 
+    /// <summary>
+    /// Selects all rows or cells in the TableView.
+    /// </summary>
     internal new void SelectAll()
     {
         if (IsEditing)
@@ -655,6 +763,9 @@ public partial class TableView : ListView
         }
     }
 
+    /// <summary>
+    /// Selects all cells in the TableView.
+    /// </summary>
     private void SelectAllCells()
     {
         switch (SelectionMode)
@@ -685,12 +796,18 @@ public partial class TableView : ListView
         OnCellSelectionChanged();
     }
 
+    /// <summary>
+    /// Deselects all rows or cells in the TableView.
+    /// </summary>
     internal void DeselectAll()
     {
         DeselectAllItems();
         DeselectAllCells();
     }
 
+    /// <summary>
+    /// Deselects all rows in the TableView.
+    /// </summary>
     private void DeselectAllItems()
     {
         switch (SelectionMode)
@@ -705,6 +822,9 @@ public partial class TableView : ListView
         }
     }
 
+    /// <summary>
+    /// Deselects all cells in the TableView.
+    /// </summary>
     private void DeselectAllCells()
     {
         SelectedCellRanges.Clear();
@@ -712,6 +832,9 @@ public partial class TableView : ListView
         SetCurrentCell(null);
     }
 
+    /// <summary>
+    /// Selects a row or cell based on the specified cell slot.
+    /// </summary>
     internal void MakeSelection(TableViewCellSlot slot, bool shiftKey, bool ctrlKey = false)
     {
         if (!slot.IsValidRow(this))
@@ -756,6 +879,9 @@ public partial class TableView : ListView
         }
     }
 
+    /// <summary>
+    /// Selects rows based on the specified cell slot.
+    /// </summary>
     private void SelectRows(TableViewCellSlot slot, bool shiftKey)
     {
         var selectionRange = SelectedRanges.FirstOrDefault(x => x.IsInRange(slot.Row));
@@ -801,6 +927,9 @@ public partial class TableView : ListView
         }
     }
 
+    /// <summary>
+    /// Selects cells based on the specified cell slot.
+    /// </summary>
     private void SelectCells(TableViewCellSlot slot, bool shiftKey)
     {
         if (!slot.IsValid(this))
@@ -850,6 +979,9 @@ public partial class TableView : ListView
         DispatcherQueue.TryEnqueue(() => SetCurrentCell(slot));
     }
 
+    /// <summary>
+    /// Deselects the specified cell slot.
+    /// </summary>
     internal void DeselectCell(TableViewCellSlot slot)
     {
         var selectionRange = SelectedCellRanges.LastOrDefault(x => x.Contains(slot));
@@ -864,6 +996,9 @@ public partial class TableView : ListView
         OnCellSelectionChanged();
     }
 
+    /// <summary>
+    /// Sets the current cell based on the specified cell slot.
+    /// </summary>
     internal async void SetCurrentCell(TableViewCellSlot? slot)
     {
         if (slot == CurrentCellSlot)
@@ -891,6 +1026,9 @@ public partial class TableView : ListView
         CurrentCellChanged?.Invoke(this, new TableViewCurrentCellChangedEventArgs(oldSlot, slot));
     }
 
+    /// <summary>
+    /// Handles cell selection changes.
+    /// </summary>
     private void OnCellSelectionChanged()
     {
         DispatcherQueue.TryEnqueue(() =>
@@ -910,6 +1048,9 @@ public partial class TableView : ListView
         });
     }
 
+    /// <summary>
+    /// Scrolls the specified cell slot into view.
+    /// </summary>
     internal async Task<TableViewCell> ScrollCellIntoView(TableViewCellSlot slot)
     {
         if (_scrollViewer is null || !slot.IsValid(this)) return default!;
@@ -968,6 +1109,9 @@ public partial class TableView : ListView
         return row?.Cells.ElementAt(slot.Column)!;
     }
 
+    /// <summary>
+    /// Scrolls the specified row into view.
+    /// </summary>
     private async Task<TableViewRow?> ScrollRowIntoView(int index)
     {
         if (_scrollViewer is null) return default!;
@@ -1021,11 +1165,17 @@ public partial class TableView : ListView
         return default;
     }
 
+    /// <summary>
+    /// Gets the cell based on the specified cell slot.
+    /// </summary>
     internal TableViewCell GetCellFromSlot(TableViewCellSlot slot)
     {
         return slot.IsValid(this) && ContainerFromIndex(slot.Row) is TableViewRow row ? row.Cells[slot.Column] : default!;
     }
 
+    /// <summary>
+    /// Gets the columns currently in view.
+    /// </summary>
     private (int start, int end) GetColumnsInDisplay()
     {
         if (_scrollViewer is null) return default!;
@@ -1053,6 +1203,9 @@ public partial class TableView : ListView
         return (start, end);
     }
 
+    /// <summary>
+    /// Updates the base SelectionMode property.
+    /// </summary>
     private void UpdateBaseSelectionMode()
     {
         _shouldThrowSelectionModeChangedException = true;
@@ -1067,6 +1220,9 @@ public partial class TableView : ListView
         _shouldThrowSelectionModeChangedException = false;
     }
 
+    /// <summary>
+    /// Ensures grid lines are applied to the header row and body rows.
+    /// </summary>
     private void EnsureGridLines()
     {
         _headerRow?.EnsureGridLines();
@@ -1077,6 +1233,9 @@ public partial class TableView : ListView
         }
     }
 
+    /// <summary>
+    /// Ensures alternate row colors are applied.
+    /// </summary>
     private void EnsureAlternateRowColors()
     {
         foreach (var row in _rows)
@@ -1085,6 +1244,9 @@ public partial class TableView : ListView
         }
     }
 
+    /// <summary>
+    /// Shows the context flyout for the specified row.
+    /// </summary>
     internal void ShowRowContext(TableViewRow row, Point position)
     {
         if (RowContextFlyout is null) return;
@@ -1103,6 +1265,9 @@ public partial class TableView : ListView
         }
     }
 
+    /// <summary>
+    /// Shows the context flyout for the specified cell.
+    /// </summary>
     internal void ShowCellContext(TableViewCell cell, Point position)
     {
         if (CellContextFlyout is null) return;
@@ -1121,14 +1286,48 @@ public partial class TableView : ListView
         }
     }
 
+    /// <summary>
+    /// Event triggered when a column is auto-generating.
+    /// </summary>
     public event EventHandler<TableViewAutoGeneratingColumnEventArgs>? AutoGeneratingColumn;
+
+    /// <summary>
+    /// Event triggered when exporting all rows content.
+    /// </summary>
     public event EventHandler<TableViewExportContentEventArgs>? ExportAllContent;
+
+    /// <summary>
+    /// Event triggered when exporting selected rows or cells content.
+    /// </summary>
     public event EventHandler<TableViewExportContentEventArgs>? ExportSelectedContent;
+
+    /// <summary>
+    /// Event triggered when copying selected rows or cell content to the clipboard.
+    /// </summary>
     public event EventHandler<TableViewCopyToClipboardEventArgs>? CopyToClipboard;
+
+    /// <summary>
+    /// Event triggered when the IsReadOnly property changes.
+    /// </summary>
     public event DependencyPropertyChangedEventHandler? IsReadOnlyChanged;
+
+    /// <summary>
+    /// Event triggered when the row context flyout is opening.
+    /// </summary>
     public event EventHandler<TableViewRowContextFlyoutEventArgs>? RowContextFlyoutOpening;
+
+    /// <summary>
+    /// Event triggered when the cell context flyout is opening.
+    /// </summary>
     public event EventHandler<TableViewCellContextFlyoutEventArgs>? CellContextFlyoutOpening;
 
+    /// <summary>
+    /// Internal event triggered when selected cells change.
+    /// </summary>
     internal event EventHandler<TableViewCellSelectionChangedEvenArgs>? SelectedCellsChanged;
+
+    /// <summary>
+    /// Internal event triggered when the current cell changes.
+    /// </summary>
     internal event EventHandler<TableViewCurrentCellChangedEventArgs>? CurrentCellChanged;
 }

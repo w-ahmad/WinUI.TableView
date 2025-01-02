@@ -1,5 +1,8 @@
 ﻿namespace WinUI.TableView;
 
+/// <summary>
+/// Specifies the visibility of grid lines in a TableView.
+/// </summary>
 public enum TableViewGridLinesVisibility
 {
     /// <summary>
@@ -8,7 +11,7 @@ public enum TableViewGridLinesVisibility
     All,
 
     /// <summary>
-    ///  Only horizontal grid lines are visible.
+    /// Only horizontal grid lines are visible.
     /// </summary>
     Horizontal,
 

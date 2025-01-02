@@ -1,5 +1,8 @@
 ﻿namespace WinUI.TableView;
 
+/// <summary>
+/// Specifies the mode of the corner button in a TableView.
+/// </summary>
 public enum TableViewCornerButtonMode
 {
     /// <summary>
