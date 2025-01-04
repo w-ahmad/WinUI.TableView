@@ -1,5 +1,4 @@
-﻿using CommunityToolkit.WinUI.Collections;
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
@@ -140,14 +139,14 @@ public partial class TableView
     public static readonly DependencyProperty CellContextFlyoutProperty = DependencyProperty.Register(nameof(CellContextFlyout), typeof(FlyoutBase), typeof(TableView), new PropertyMetadata(null));
 
     /// <summary>
-    /// Gets IAdvancedCollectionView assigned as TableView's items source.
+    /// Gets the collection of sort descriptions applied to the items.
     /// </summary>
-    public IAdvancedCollectionView CollectionView { get; private set; } = new AdvancedCollectionView();
+    public IList<SortDescription> SortDescriptions => _collectionView.SortDescriptions;
 
     /// <summary>
-    /// Gets the active filters applied to the TableView.
+    /// Gets the collection of filter descriptions applied to the items.
     /// </summary>
-    internal IDictionary<string, Predicate<object>> ActiveFilters { get; } = new Dictionary<string, Predicate<object>>();
+    public IList<FilterDescription> FilterDescriptions => _collectionView.FilterDescriptions;
 
     /// <summary>
     /// Gets or sets the last selection unit used.

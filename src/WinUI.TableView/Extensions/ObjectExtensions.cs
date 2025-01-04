@@ -37,10 +37,18 @@ internal static class ObjectExtensions
     /// <param name="path">The property path.</param>
     /// <param name="pis">An array of property info and index pairs.</param>
     /// <returns>The value of the property, or null if the object is null.</returns>
-    internal static object? GetValue(this object? obj, Type? type, string path, out (PropertyInfo pi, object? index)[] pis)
+    internal static object? GetValue(this object? obj, Type? type, string? path, out (PropertyInfo pi, object? index)[] pis)
     {
-        var parts = path.Split('.');
+        var parts = path?.Split('.');
+
+        if (parts is null)
+        {
+            pis = Array.Empty<(PropertyInfo, object?)>();
+            return obj;
+        }
+
         pis = new (PropertyInfo, object?)[parts.Length];
+
         for (var i = 0; i < parts.Length; i++)
         {
             var part = parts[i];
@@ -60,10 +68,31 @@ internal static class ObjectExtensions
             }
             else
             {
-                return obj;
+                pis = null!;
+                return null;
             }
         }
 
         return obj;
+    }
+
+    /// <summary>
+    /// Determines whether the specified object is numeric.
+    /// </summary>
+    /// <param name="obj"></param>
+    /// <returns></returns>
+    public static bool IsNumeric(this object obj)
+    {
+        return obj is byte 
+                   or sbyte 
+                   or short 
+                   or ushort 
+                   or int
+                   or uint
+                   or long
+                   or ulong 
+                   or float 
+                   or double 
+                   or decimal;
     }
 }

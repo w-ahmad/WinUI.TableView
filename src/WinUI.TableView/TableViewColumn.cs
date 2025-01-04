@@ -61,6 +61,16 @@ public abstract class TableViewColumn : DependencyObject
     }
 
     /// <summary>
+    /// Gets the content of the cell for the specified data item.
+    /// </summary>
+    /// <param name="dataItem">The data item.</param>
+    /// <returns>The content of the cell.</returns>
+    public virtual object? GetCellContent(object? dataItem)
+    {
+        return default;
+    }
+
+    /// <summary>
     /// Gets or sets the header content of the column.
     /// </summary>
     public object Header

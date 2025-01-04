@@ -52,10 +52,10 @@ public partial class TableViewHeaderRow
             CopyWithHeadersCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.SelectedItems.Count > 0 || TableView.SelectedCells.Count > 0 || TableView.CurrentCellSlot.HasValue;
 
             ClearSortingCommand.ExecuteRequested += delegate { TableView.ClearSorting(); };
-            ClearSortingCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.CollectionView.SortDescriptions.Count > 0;
+            ClearSortingCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.SortDescriptions.Count > 0;
 
             ClearFilterCommand.ExecuteRequested += delegate { TableView.ClearFilters(); };
-            ClearFilterCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.ActiveFilters.Count > 0;
+            ClearFilterCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.FilterDescriptions.Count > 0;
 
             ExportAllToCSVCommand.ExecuteRequested += delegate { TableView.ExportAllToCSV(); };
 
