@@ -404,7 +404,7 @@ public class TableViewCell : ContentControl
     /// <summary>
     /// Gets the slot for the cell.
     /// </summary>
-    internal TableViewCellSlot Slot => new(Row?.Index ?? -1, Index);
+    public TableViewCellSlot Slot => new(Row?.Index ?? -1, Index);
 
     /// <summary>
     /// Gets or sets the index of the cell.

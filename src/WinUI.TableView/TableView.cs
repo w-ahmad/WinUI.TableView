@@ -357,11 +357,23 @@ public partial class TableView : ListView
     /// <returns>A string of all cell content separated by the specified character.</returns>
     public string GetAllContent(bool includeHeaders, char separator = '\t')
     {
-        var slots = Enumerable.Range(0, Items.Count)
-                              .SelectMany(r => Enumerable.Range(0, Columns.VisibleColumns.Count)
-                                                         .Select(c => new TableViewCellSlot(r, c)))
-                              .OrderBy(x => x.Row)
-                              .ThenByDescending(x => x.Column);
+        var rows = Enumerable.Range(0, Items.Count).ToArray();
+
+        return GetRowsContent(rows, includeHeaders, separator);
+    }
+
+    /// <summary>
+    /// Returns specified rows' content as a string, optionally including headers, with values separated by the given character.
+    /// </summary>
+    /// <param name="includeHeaders">Whether to include headers in the output.</param>
+    /// <param name="separator">The character used to separate cell values.</param>
+    /// <returns>A string of specified row content separated by the specified character.</returns>
+    public string GetRowsContent(int[] rows, bool includeHeaders, char separator = '\t')
+    {
+        var slots = rows.SelectMany(r => Enumerable.Range(0, Columns.VisibleColumns.Count)
+                                                           .Select(c => new TableViewCellSlot(r, c)))
+                        .OrderBy(x => x.Row)
+                        .ThenByDescending(x => x.Column);
 
         return GetCellsContent(slots, includeHeaders, separator);
     }
@@ -372,7 +384,7 @@ public partial class TableView : ListView
     /// <param name="includeHeaders">Whether to include headers in the output.</param>
     /// <param name="separator">The character used to separate cell values.</param>
     /// <returns>A string of specified cell content separated by the specified character.</returns>
-    private string GetCellsContent(IEnumerable<TableViewCellSlot> slots, bool includeHeaders, char separator)
+    public string GetCellsContent(IEnumerable<TableViewCellSlot> slots, bool includeHeaders, char separator = '\t')
     {
         if (!slots.Any())
         {
@@ -726,8 +738,8 @@ public partial class TableView : ListView
                 header.IsFiltered = false;
             }
         }
-    } 
-    
+    }
+
     /// <summary>
     /// Refreshes all applied filters.
     /// </summary>
