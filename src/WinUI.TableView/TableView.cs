@@ -1263,7 +1263,9 @@ public partial class TableView : ListView
 
         if (!eventArgs.Handled)
         {
-            RowContextFlyout.ShowAt(row, new FlyoutShowOptions
+            var presenter = row.FindDescendant<ListViewItemPresenter>();
+
+            RowContextFlyout.ShowAt(presenter, new FlyoutShowOptions
             {
                 ShowMode = FlyoutShowMode.Standard,
                 Placement = RowContextFlyout.Placement,
