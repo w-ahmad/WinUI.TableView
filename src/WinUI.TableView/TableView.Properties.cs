@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections;
@@ -137,6 +138,11 @@ public partial class TableView
     /// Identifies the CellContextFlyout dependency property.
     /// </summary>
     public static readonly DependencyProperty CellContextFlyoutProperty = DependencyProperty.Register(nameof(CellContextFlyout), typeof(FlyoutBase), typeof(TableView), new PropertyMetadata(null));
+
+    /// <summary>
+    /// Gets the collection view associated with the TableView.
+    /// </summary>
+    public ICollectionView CollectionView => _collectionView;
 
     /// <summary>
     /// Gets the collection of sort descriptions applied to the items.
