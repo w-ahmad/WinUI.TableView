@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.WinUI;
-using CommunityToolkit.WinUI.Collections;
 using Microsoft.UI;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
@@ -8,13 +7,13 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Windows.System;
 using Windows.UI.Core;
 using WinUI.TableView.Extensions;
-using SD = CommunityToolkit.WinUI.Collections.SortDirection;
+using SD = WinUI.TableView.SortDirection;
 
 namespace WinUI.TableView;
 
@@ -41,8 +40,6 @@ public partial class TableViewColumnHeader : ContentControl
     private Rectangle? _v_gridLine;
     private CheckBox? _selectAllCheckBox;
     private OptionsFlyoutViewModel _optionsFlyoutViewModel = default!;
-    private string _propertyPath = default!;
-    private (PropertyInfo, object?)[] _propertyInfo = default!;
     private SD? _sortDirection;
     private bool _isFiltered;
     private bool _resizeStarted;
@@ -78,26 +75,19 @@ public partial class TableViewColumnHeader : ContentControl
         {
             if (singleSorting)
             {
-                _tableView.CollectionView.SortDescriptions.Clear();
-
-                foreach (var header in _tableView.Columns.Select(x => x.HeaderControl))
-                {
-                    if (header is not null && header != this)
-                    {
-                        header.SortDirection = null;
-                    }
-                }
+                _tableView.ClearSorting();
             }
-
-            _tableView.DeselectAll();
-
-            if (_tableView.CollectionView.SortDescriptions.FirstOrDefault(x => x.PropertyName == _propertyPath) is { } description)
+            else
             {
-                _tableView.CollectionView.SortDescriptions.Remove(description);
+                ClearSorting();
             }
 
+            var boundColumn = Column as TableViewBoundColumn;
             SortDirection = direction;
-            _tableView.CollectionView.SortDescriptions.Add(new SortDescription(_propertyPath, SortDirection.Value));
+            _tableView.SortDescriptions.Add(
+                new ColumnSortDescription(Column!, boundColumn?.PropertyPath, SortDirection.Value));
+
+            _tableView.EnsureAlternateRowColors();
         }
     }
 
@@ -110,11 +100,7 @@ public partial class TableViewColumnHeader : ContentControl
         {
             _tableView.DeselectAll();
             SortDirection = null;
-
-            if (_tableView.CollectionView.SortDescriptions.FirstOrDefault(x => x.PropertyName == _propertyPath) is { } description)
-            {
-                _tableView.CollectionView.SortDescriptions.Remove(description);
-            }
+            _tableView.SortDescriptions.RemoveWhere(x => x is ColumnSortDescription columnSort && columnSort.Column == Column);
         }
     }
 
@@ -123,15 +109,10 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     private void ClearFilter()
     {
-        if (_tableView?.ActiveFilters.ContainsKey(_propertyPath) == true)
-        {
-            _tableView.ActiveFilters.Remove(_propertyPath);
-            _tableView.DeselectAll();
-        }
-
+        _tableView?.FilterDescriptions.RemoveWhere(x => x is ColumnFilterDescription columnFilter && columnFilter.Column == Column);
         IsFiltered = false;
         _optionsFlyoutViewModel.FilterItems.Clear();
-        _tableView?.CollectionView.RefreshFilter();
+        _tableView?.RefreshFilter();
     }
 
     /// <summary>
@@ -145,8 +126,20 @@ public partial class TableViewColumnHeader : ContentControl
         }
 
         _tableView.DeselectAll();
-        _tableView.ActiveFilters[_propertyPath] = Filter;
-        _tableView.CollectionView.RefreshFilter();
+
+        if (IsFiltered)
+        {
+            _tableView.RefreshFilter();
+        }
+        else
+        {
+            var boundColumn = Column as TableViewBoundColumn;
+            _tableView.FilterDescriptions.Add(new ColumnFilterDescription(Column!, boundColumn?.PropertyPath, Filter));
+        }
+
+        _tableView.RefreshFilter();
+        _tableView.EnsureAlternateRowColors();
+
         IsFiltered = true;
     }
 
@@ -161,9 +154,9 @@ public partial class TableViewColumnHeader : ContentControl
     /// <summary>
     /// Filters the items in the collection view.
     /// </summary>
-    private bool Filter(object item)
+    private bool Filter(object? item)
     {
-        var value = GetValue(item);
+        var value = Column?.GetCellContent(item);
         value = string.IsNullOrWhiteSpace(value?.ToString()) ? "(Blank)" : value;
         return _optionsFlyoutViewModel.SelectedValues.Contains(value);
     }
@@ -198,9 +191,8 @@ public partial class TableViewColumnHeader : ContentControl
             return;
         }
 
-        if (Column is TableViewBoundColumn column && column.Binding.Path.Path is { Length: > 0 } path)
+        if (Column is TableViewBoundColumn column)
         {
-            _propertyPath = path;
             column?.RegisterPropertyChangedCallback(TableViewBoundColumn.CanFilterProperty, delegate { SetFilterButtonVisibility(); });
         }
 
@@ -276,45 +268,32 @@ public partial class TableViewColumnHeader : ContentControl
     {
         if (_tableView is { ItemsSource: { } } && Column is TableViewBoundColumn column)
         {
-            var collectionView = new AdvancedCollectionView(_tableView.ItemsSource)
-            {
-                Filter = o => _tableView.ActiveFilters.Where(x => x.Key != _propertyPath)
-                                                      .All(x => x.Value(o))
-            };
+            var collectionView = new CollectionView(_tableView.ItemsSource);
+            collectionView.FilterDescriptions.AddRange(
+                _tableView.FilterDescriptions.Where(
+                x => x is not ColumnFilterDescription columnFilter || columnFilter.Column != column));
 
-            var isFiltered = _tableView.ActiveFilters.ContainsKey(_propertyPath);
+            var filterItems = new SortedSet<object?>();
 
-            _optionsFlyoutViewModel.FilterItems = collectionView.Select(item =>
+            foreach (var item in collectionView)
             {
-                var value = GetValue(item);
+                var value = Column?.GetCellContent(item);
+                filterItems.Add(value);
+            }
+
+            _optionsFlyoutViewModel.FilterItems = filterItems.Select(value =>
+            {
                 value = string.IsNullOrWhiteSpace(value?.ToString()) ? "(Blank)" : value;
-                var isSelected = !isFiltered || !string.IsNullOrEmpty(_filterText) ||
-                  (isFiltered && _optionsFlyoutViewModel.SelectedValues.Contains(value));
+                var isSelected = !IsFiltered || !string.IsNullOrEmpty(_filterText) ||
+                  (IsFiltered && _optionsFlyoutViewModel.SelectedValues.Contains(value));
 
                 return string.IsNullOrEmpty(_filterText)
                       || value?.ToString()?.Contains(_filterText, StringComparison.OrdinalIgnoreCase) == true
                       ? new FilterItem(isSelected, value, _optionsFlyoutViewModel)
                       : null;
 
-            }).OfType<FilterItem>()
-              .OrderBy(x => x.Value)
-              .DistinctBy(x => x.Value)
-              .ToList();
+            }).OfType<FilterItem>().ToList();
         }
-    }
-
-    /// <summary>
-    /// Gets the value of the specified item.
-    /// </summary>
-    private object? GetValue(object item)
-    {
-        if (_propertyInfo is null)
-        {
-            var type = _tableView!.ItemsSource?.GetType() is { } listType && listType.IsGenericType ? listType.GetGenericArguments()[0] : item?.GetType();
-            item.GetValue(type, _propertyPath, out _propertyInfo);
-        }
-
-        return item.GetValue(_propertyInfo);
     }
 
     /// <summary>
@@ -410,9 +389,6 @@ public partial class TableViewColumnHeader : ContentControl
         }
 
         var position = e.GetPosition(this);
-        var v_GridLineStrokeThickness = _tableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
-                                        || _tableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
-                                        ? _tableView.VerticalGridLinesStrokeThickness : 0;
 
         if (position.X <= 8 && _headerRow?.GetPreviousHeader(this) is { Column: { } } header)
         {

@@ -149,7 +149,7 @@ public class TableViewRow : ListViewItem
             }
         }
 
-        EnsureAlternateColors();
+        _tableView?.EnsureAlternateRowColors();
     }
 
     protected override void OnPointerPressed(PointerRoutedEventArgs e)

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using SD = CommunityToolkit.WinUI.Collections.SortDirection;
+using SD = WinUI.TableView.SortDirection;
 
 namespace WinUI.TableView;
 

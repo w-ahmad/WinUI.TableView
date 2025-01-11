@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.WinUI;
 using CommunityToolkit.WinUI.Animations.Expressions;
-using CommunityToolkit.WinUI.Collections;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -37,6 +36,7 @@ public partial class TableView : ListView
     private ScrollViewer? _scrollViewer;
     private bool _shouldThrowSelectionModeChangedException;
     private readonly List<TableViewRow> _rows = new();
+    private readonly CollectionView _collectionView = new();
 
     /// <summary>
     /// Initializes a new instance of the TableView class.
@@ -46,8 +46,7 @@ public partial class TableView : ListView
         DefaultStyleKey = typeof(TableView);
 
         Columns.TableView = this;
-        CollectionView.Filter = Filter;
-        base.ItemsSource = CollectionView;
+        base.ItemsSource = _collectionView;
         base.SelectionMode = SelectionMode;
         RegisterPropertyChangedCallback(ItemsControl.ItemsSourceProperty, OnBaseItemsSourceChanged);
         RegisterPropertyChangedCallback(ListViewBase.SelectionModeProperty, OnBaseSelectionModeChanged);
@@ -297,14 +296,6 @@ public partial class TableView : ListView
     }
 
     /// <summary>
-    /// Filters the items in the collection view.
-    /// </summary>
-    private bool Filter(object obj)
-    {
-        return ActiveFilters.All(item => item.Value(obj));
-    }
-
-    /// <summary>
     /// Copies the selected rows or cells content to the clipboard.
     /// </summary>
     internal void CopyToClipboardInternal(bool includeHeaders)
@@ -402,7 +393,6 @@ public partial class TableView : ListView
         foreach (var row in slots.Select(x => x.Row).Distinct())
         {
             var item = Items[row];
-            var type = ItemsSource?.GetType() is { } listType && listType.IsGenericType ? listType.GetGenericArguments()[0] : item?.GetType();
 
             for (var col = minColumn; col <= maxColumn; col++)
             {
@@ -413,16 +403,7 @@ public partial class TableView : ListView
                     continue;
                 }
 
-                var property = column.Binding.Path.Path;
-                if (!properties.TryGetValue(property, out var pis))
-                {
-                    stringBuilder.Append($"{item.GetValue(type, property, out pis)}{separator}");
-                    properties.Add(property, pis);
-                }
-                else
-                {
-                    stringBuilder.Append($"{item.GetValue(pis)}{separator}");
-                }
+                stringBuilder.Append($"{column.GetCellContent(item)}{separator}");
             }
 
             stringBuilder.Remove(stringBuilder.Length - 1, 1);
@@ -460,23 +441,38 @@ public partial class TableView : ListView
         if (itemsSourceType?.IsGenericType == true)
         {
             var dataType = itemsSourceType.GenericTypeArguments[0];
-            foreach (var propertyInfo in dataType.GetProperties())
-            {
-                var displayAttribute = propertyInfo.GetCustomAttributes().OfType<DisplayAttribute>().FirstOrDefault();
-                var autoGenerateField = displayAttribute?.GetAutoGenerateField();
-                if (autoGenerateField == false)
-                {
-                    continue;
-                }
+            dataType = dataType.GetNonNullableType();
 
-                var header = displayAttribute?.GetShortName() ?? propertyInfo.Name;
-                var canFilter = displayAttribute?.GetAutoGenerateFilter() ?? true;
-                var columnArgs = GenerateColumn(propertyInfo.PropertyType, propertyInfo.Name, header, canFilter);
+            if (dataType.IsPrimitive())
+            {
+                var columnArgs = GenerateColumn(dataType, null, "", dataType.IsInheritedFromIComparable());
                 OnAutoGeneratingColumn(columnArgs);
 
                 if (!columnArgs.Cancel && columnArgs.Column is not null)
                 {
-                    Columns.Insert(displayAttribute?.GetOrder() ?? Columns.Count, columnArgs.Column);
+                    Columns.Insert(Columns.Count, columnArgs.Column);
+                }
+            }
+            else
+            {
+                foreach (var propertyInfo in dataType.GetProperties())
+                {
+                    var displayAttribute = propertyInfo.GetCustomAttributes().OfType<DisplayAttribute>().FirstOrDefault();
+                    var autoGenerateField = displayAttribute?.GetAutoGenerateField();
+                    if (autoGenerateField == false)
+                    {
+                        continue;
+                    }
+
+                    var header = displayAttribute?.GetShortName() ?? propertyInfo.Name;
+                    var canFilter = displayAttribute?.GetAutoGenerateFilter() ?? true;
+                    var columnArgs = GenerateColumn(propertyInfo.PropertyType, propertyInfo.Name, header, canFilter);
+                    OnAutoGeneratingColumn(columnArgs);
+
+                    if (!columnArgs.Cancel && columnArgs.Column is not null)
+                    {
+                        Columns.Insert(displayAttribute?.GetOrder() ?? Columns.Count, columnArgs.Column);
+                    }
                 }
             }
         }
@@ -485,14 +481,14 @@ public partial class TableView : ListView
     /// <summary>
     /// Generates a column based on the property type.
     /// </summary>
-    private static TableViewAutoGeneratingColumnEventArgs GenerateColumn(Type propertyType, string propertyName, string header, bool canFilter)
+    private static TableViewAutoGeneratingColumnEventArgs GenerateColumn(Type propertyType, string? propertyName, string header, bool canFilter)
     {
         var newColumn = GetTableViewColumnFromType(propertyName, propertyType);
         newColumn.Header = header;
         newColumn.CanFilter = canFilter;
         newColumn.IsAutoGenerated = true;
 
-        return new TableViewAutoGeneratingColumnEventArgs(propertyName, propertyType, newColumn);
+        return new TableViewAutoGeneratingColumnEventArgs(propertyName!, propertyType, newColumn);
     }
 
     /// <summary>
@@ -507,29 +503,24 @@ public partial class TableView : ListView
     /// <summary>
     /// Gets a TableViewColumn based on the property type.
     /// </summary>
-    private static TableViewBoundColumn GetTableViewColumnFromType(string propertyName, Type type)
+    private static TableViewBoundColumn GetTableViewColumnFromType(string? propertyName, Type type)
     {
         var binding = new Binding { Path = new PropertyPath(propertyName), Mode = BindingMode.TwoWay };
-        var typeCode = Type.GetTypeCode(type);
         var column = (TableViewBoundColumn)new TableViewTextColumn();
 
-        if (type == typeof(TimeSpan) || type == typeof(TimeSpan?) ||
-            type == typeof(TimeOnly) || type == typeof(TimeOnly?))
+        if (type.IsTimeSpan() || type.IsTimeOnly())
         {
             column = new TableViewTimeColumn();
         }
-        else if (type == typeof(DateOnly) || type == typeof(DateOnly?) ||
-                 type == typeof(DateTime) || type == typeof(DateTime?) ||
-                 type == typeof(DateTimeOffset) || type == typeof(DateTimeOffset?))
+        else if (type.IsDateOnly() || type.IsDateTime() || type.IsDateTimeOffset())
         {
             column = new TableViewDateColumn();
         }
-        else if (typeCode is TypeCode.Byte or TypeCode.SByte or TypeCode.UInt16 or TypeCode.UInt32 or TypeCode.UInt64
-            or TypeCode.Int16 or TypeCode.Int32 or TypeCode.Int64 or TypeCode.Single or TypeCode.Double or TypeCode.Decimal)
+        else if (type.IsNumeric())
         {
             column = new TableViewNumberColumn();
         }
-        else if (typeCode is TypeCode.Boolean)
+        else if (type.IsBoolean())
         {
             column = new TableViewCheckBoxColumn();
         }
@@ -544,18 +535,22 @@ public partial class TableView : ListView
     /// </summary>
     private void OnItemsSourceChanged(DependencyPropertyChangedEventArgs e)
     {
-        ((AdvancedCollectionView)CollectionView).Source = null!;
-
-        if (e.NewValue is IList source)
+        var defer = _collectionView.DeferRefresh();
         {
-            if (AutoGenerateColumns)
-            {
-                RemoveAutoGeneratedColumns();
-                GenerateColumns();
-            }
+            _collectionView.Source = null!;
 
-            ((AdvancedCollectionView)CollectionView).Source = source;
+            if (e.NewValue is IList source)
+            {
+                if (AutoGenerateColumns)
+                {
+                    RemoveAutoGeneratedColumns();
+                    GenerateColumns();
+                }
+
+                _collectionView.Source = source;
+            }
         }
+        defer.Complete();
     }
 
     /// <summary>
@@ -704,7 +699,7 @@ public partial class TableView : ListView
     internal void ClearSorting()
     {
         DeselectAll();
-        CollectionView.SortDescriptions.Clear();
+        _collectionView.SortDescriptions.Clear();
 
         foreach (var header in Columns.Select(x => x.HeaderControl))
         {
@@ -721,8 +716,8 @@ public partial class TableView : ListView
     internal void ClearFilters()
     {
         DeselectAll();
-        ActiveFilters.Clear();
-        CollectionView.RefreshFilter();
+
+        _collectionView.FilterDescriptions.Clear();
 
         foreach (var header in Columns.Select(x => x.HeaderControl))
         {
@@ -731,6 +726,15 @@ public partial class TableView : ListView
                 header.IsFiltered = false;
             }
         }
+    } 
+    
+    /// <summary>
+    /// Refreshes all applied filters.
+    /// </summary>
+    internal void RefreshFilter()
+    {
+        DeselectAll();
+        _collectionView.RefreshFilter();
     }
 
     /// <summary>
@@ -1236,12 +1240,15 @@ public partial class TableView : ListView
     /// <summary>
     /// Ensures alternate row colors are applied.
     /// </summary>
-    private void EnsureAlternateRowColors()
+    internal void EnsureAlternateRowColors()
     {
-        foreach (var row in _rows)
+        DispatcherQueue.TryEnqueue(() =>
         {
-            row.EnsureAlternateColors();
-        }
+            foreach (var row in _rows)
+            {
+                row.EnsureAlternateColors();
+            }
+        });
     }
 
     /// <summary>
