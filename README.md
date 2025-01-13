@@ -176,11 +176,13 @@ You can customize the appearance and behavior of the `TableView` by modifying it
 
 ### Available Column Types
 1. TableViewTextColumn
-1. TableViewCheckBoxColumn
-1. TableViewComboBoxColumn
-1. TableViewNumberColumn
-1. TableViewToggleSwitchColumn
-1. TableViewTemplateColumn
+2. TableViewCheckBoxColumn
+3. TableViewComboBoxColumn
+4. TableViewNumberColumn
+5. TableViewToggleSwitchColumn
+6. TableViewTemplateColumn
+7. TableViewTimeColumn
+8. TableViewDateColumn
 
 ## Contributing
 
