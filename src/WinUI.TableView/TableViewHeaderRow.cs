@@ -104,7 +104,7 @@ public partial class TableViewHeaderRow : Control
     /// <summary>
     /// Handles the property changed event for a column.
     /// </summary>
-    private void OnColumnPropertyChanged(object? sender, TableViewColumnPropertyChanged e)
+    private void OnColumnPropertyChanged(object? sender, TableViewColumnPropertyChangedEventArgs e)
     {
         if (e.PropertyName is nameof(TableViewColumn.Visibility))
         {

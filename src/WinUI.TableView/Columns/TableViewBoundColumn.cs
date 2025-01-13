@@ -42,6 +42,14 @@ public abstract class TableViewBoundColumn : TableViewColumn
         return dataItem;
     }
 
+    private static void OnCanFilterChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableViewBoundColumn column && column.HeaderControl is not null)
+        {
+            column.HeaderControl.SetFilterButtonVisibility();
+        }
+    }
+
     /// <summary>
     /// Gets the property path for the binding.
     /// </summary>
@@ -96,5 +104,5 @@ public abstract class TableViewBoundColumn : TableViewColumn
     /// <summary>
     /// Identifies the CanFilter dependency property.
     /// </summary>
-    public static readonly DependencyProperty CanFilterProperty = DependencyProperty.Register(nameof(CanFilter), typeof(bool), typeof(TableViewBoundColumn), new PropertyMetadata(true));
+    public static readonly DependencyProperty CanFilterProperty = DependencyProperty.Register(nameof(CanFilter), typeof(bool), typeof(TableViewBoundColumn), new PropertyMetadata(true, OnCanFilterChanged));
 }

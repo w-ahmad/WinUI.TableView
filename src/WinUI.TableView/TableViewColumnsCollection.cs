@@ -15,7 +15,7 @@ public class TableViewColumnsCollection : ObservableCollection<TableViewColumn>
     /// <summary>
     /// Occurs when a property of a column in the collection changes.
     /// </summary>
-    internal event EventHandler<TableViewColumnPropertyChanged>? ColumnPropertyChanged;
+    internal event EventHandler<TableViewColumnPropertyChangedEventArgs>? ColumnPropertyChanged;
 
     /// <summary>
     /// Gets the list of visible columns in the collection.
@@ -55,7 +55,7 @@ public class TableViewColumnsCollection : ObservableCollection<TableViewColumn>
         if (Items.Contains(column))
         {
             var index = IndexOf(column);
-            ColumnPropertyChanged?.Invoke(this, new TableViewColumnPropertyChanged(column, propertyName, index));
+            ColumnPropertyChanged?.Invoke(this, new TableViewColumnPropertyChangedEventArgs(column, propertyName, index));
         }
     }
 
