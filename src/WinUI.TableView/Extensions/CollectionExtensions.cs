@@ -31,9 +31,9 @@ internal static class CollectionExtensions
     /// <param name="predicate">The predicate to determine which items to remove.</param>
     public static void RemoveWhere<T>(this ICollection<T> collection, Predicate<T> predicate)
     {
-        var item = collection.FirstOrDefault(x => predicate(x));
+        var itemsToRemove = collection.Where(x => predicate(x)).ToList();
 
-        if (item is not null)
+        foreach (var item in itemsToRemove)
         {
             collection.Remove(item);
         }
