@@ -7,7 +7,6 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.System;
@@ -40,8 +39,6 @@ public partial class TableViewColumnHeader : ContentControl
     private Rectangle? _v_gridLine;
     private CheckBox? _selectAllCheckBox;
     private OptionsFlyoutViewModel _optionsFlyoutViewModel = default!;
-    private SD? _sortDirection;
-    private bool _isFiltered;
     private bool _resizeStarted;
     private bool _resizePreviousStarted;
 
@@ -69,23 +66,25 @@ public partial class TableViewColumnHeader : ContentControl
     /// <summary>
     /// Sorts the column in the specified direction.
     /// </summary>
-    private void DoSort(SD direction, bool singleSorting = true)
+    private void DoSort(SD? direction, bool singleSorting = true)
     {
-        if (CanSort && _tableView is not null)
+        if (CanSort && Column is not null && _tableView is not null)
         {
             if (singleSorting)
             {
-                _tableView.ClearSorting();
+                _tableView.ClearAllSorting();
             }
             else
             {
                 ClearSorting();
             }
 
+            if (direction is null) return;
+
             var boundColumn = Column as TableViewBoundColumn;
-            SortDirection = direction;
+            Column.SortDirection = direction;
             _tableView.SortDescriptions.Add(
-                new ColumnSortDescription(Column!, boundColumn?.PropertyPath, SortDirection.Value));
+                new ColumnSortDescription(Column!, boundColumn?.PropertyPath, direction.Value));
 
             _tableView.EnsureAlternateRowColors();
         }
@@ -96,10 +95,10 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     private void ClearSorting()
     {
-        if (CanSort && _tableView is not null && SortDirection is not null)
+        if (CanSort && _tableView is not null && Column is not null)
         {
             _tableView.DeselectAll();
-            SortDirection = null;
+            Column.SortDirection = null;
             _tableView.SortDescriptions.RemoveWhere(x => x is ColumnSortDescription columnSort && columnSort.Column == Column);
         }
     }
@@ -109,10 +108,7 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     private void ClearFilter()
     {
-        _tableView?.FilterDescriptions.RemoveWhere(x => x is ColumnFilterDescription columnFilter && columnFilter.Column == Column);
-        IsFiltered = false;
-        _optionsFlyoutViewModel.FilterItems.Clear();
-        _tableView?.RefreshFilter();
+        _tableView?.FilterHandler?.ClearFilter(Column!);
     }
 
     /// <summary>
@@ -120,27 +116,11 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     private void ApplyFilter()
     {
-        if (_tableView is null)
+        if (_tableView is not null)
         {
-            return;
+            _tableView.FilterHandler.SelectedValues = _optionsFlyoutViewModel.SelectedValues;
+            _tableView.FilterHandler?.ApplyFilter(Column!);
         }
-
-        _tableView.DeselectAll();
-
-        if (IsFiltered)
-        {
-            _tableView.RefreshFilter();
-        }
-        else
-        {
-            var boundColumn = Column as TableViewBoundColumn;
-            _tableView.FilterDescriptions.Add(new ColumnFilterDescription(Column!, boundColumn?.PropertyPath, Filter));
-        }
-
-        _tableView.RefreshFilter();
-        _tableView.EnsureAlternateRowColors();
-
-        IsFiltered = true;
     }
 
     /// <summary>
@@ -151,27 +131,33 @@ public partial class TableViewColumnHeader : ContentControl
         _optionsFlyout?.Hide();
     }
 
-    /// <summary>
-    /// Filters the items in the collection view.
-    /// </summary>
-    private bool Filter(object? item)
-    {
-        var value = Column?.GetCellContent(item);
-        value = string.IsNullOrWhiteSpace(value?.ToString()) ? "(Blank)" : value;
-        return _optionsFlyoutViewModel.SelectedValues.Contains(value);
-    }
-
     protected override void OnTapped(TappedRoutedEventArgs e)
     {
-        if (CanSort && _tableView is not null && !IsSizingCursor)
+        if (CanSort && Column is not null && _tableView is not null && !IsSizingCursor)
         {
             var isCtrlButtonDown = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control) is
                 CoreVirtualKeyStates.Down or (CoreVirtualKeyStates.Down | CoreVirtualKeyStates.Locked);
 
-            DoSort(SortDirection == SD.Ascending ? SD.Descending : SD.Ascending, !isCtrlButtonDown);
+            var eventArgs = new TableViewSortingEventArgs(Column);
+            _tableView.OnSorting(eventArgs);
+
+            if (!e.Handled)
+            {
+                DoSort(GetNextSortDirection(), !isCtrlButtonDown);
+            }
         }
 
         base.OnTapped(e);
+    }
+
+    private SD? GetNextSortDirection()
+    {
+        return Column?.SortDirection switch
+        {
+            SD.Ascending => SD.Descending,
+            SD.Descending => null,
+            _ => SD.Ascending,
+        };
     }
 
     protected override void OnApplyTemplate()
@@ -179,7 +165,6 @@ public partial class TableViewColumnHeader : ContentControl
         base.OnApplyTemplate();
 
         _tableView = this.FindAscendant<TableView>();
-        _tableView?.RegisterPropertyChangedCallback(TableView.CanFilterColumnsProperty, delegate { SetFilterButtonVisibility(); });
         _headerRow = this.FindAscendant<TableViewHeaderRow>();
         _optionsButton = GetTemplateChild("OptionsButton") as Button;
         _optionsFlyout = GetTemplateChild("OptionsFlyout") as MenuFlyout;
@@ -191,31 +176,24 @@ public partial class TableViewColumnHeader : ContentControl
             return;
         }
 
-        if (Column is TableViewBoundColumn column)
+        _optionsFlyout.Opening += OnOptionsFlyoutOpening;
+        _optionsFlyout.Closed += (s, e) => _optionsFlyoutViewModel.ClearFilterText();
+        _optionsButton.Tapped += OnOptionsButtonTaped;
+        _optionsButton.DataContext = _optionsFlyoutViewModel = new OptionsFlyoutViewModel(_tableView, this);
+
+        var menuItem = _optionsFlyout.Items.FirstOrDefault(x => x.Name == "ItemsCheckFlyoutItem");
+        menuItem?.ApplyTemplate();
+
+        if (menuItem?.FindDescendant<CheckBox>(x => x.Name == "SelectAllCheckBox") is { } checkBox)
         {
-            column?.RegisterPropertyChangedCallback(TableViewBoundColumn.CanFilterProperty, delegate { SetFilterButtonVisibility(); });
+            _selectAllCheckBox = checkBox;
+            _selectAllCheckBox.Checked += OnSelectAllCheckBoxChecked;
+            _selectAllCheckBox.Unchecked += OnSelectAllCheckBoxUnchecked;
         }
 
-        if (_optionsButton is not null && _optionsFlyout is not null)
+        if (menuItem?.FindDescendant<AutoSuggestBox>(x => x.Name == "SearchBox") is { } searchBox)
         {
-            _optionsFlyout.Opening += OnOptionsFlyoutOpening;
-            _optionsButton.Tapped += OnOptionsButtonTaped;
-            _optionsButton.DataContext = _optionsFlyoutViewModel = new OptionsFlyoutViewModel(_tableView, this);
-
-            var menuItem = _optionsFlyout.Items.FirstOrDefault(x => x.Name == "ItemsCheckFlyoutItem");
-            menuItem?.ApplyTemplate();
-            _selectAllCheckBox = menuItem?.FindDescendant<CheckBox>(x => x.Name == "SelectAllCheckBox");
-
-            if (_selectAllCheckBox is not null)
-            {
-                _selectAllCheckBox.Checked += OnSelectAllCheckBoxChecked;
-                _selectAllCheckBox.Unchecked += OnSelectAllCheckBoxUnchecked;
-            }
-
-            if (menuItem?.FindDescendant<AutoSuggestBox>(x => x.Name == "SearchBox") is { } searchBox)
-            {
-                searchBox.PreviewKeyDown += OnSearchBoxKeyDown;
-            }
+            searchBox.PreviewKeyDown += OnSearchBoxKeyDown;
         }
 
         SetFilterButtonVisibility();
@@ -258,42 +236,8 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     private void OnOptionsFlyoutOpening(object? sender, object e)
     {
-        _optionsFlyoutViewModel.FilterText = null;
-    }
-
-    /// <summary>
-    /// Prepares the filter items based on the filter text.
-    /// </summary>
-    private void PrepareFilterItems(string? _filterText)
-    {
-        if (_tableView is { ItemsSource: { } } && Column is TableViewBoundColumn column)
-        {
-            var collectionView = new CollectionView(_tableView.ItemsSource);
-            collectionView.FilterDescriptions.AddRange(
-                _tableView.FilterDescriptions.Where(
-                x => x is not ColumnFilterDescription columnFilter || columnFilter.Column != column));
-
-            var filterItems = new SortedSet<object?>();
-
-            foreach (var item in collectionView)
-            {
-                var value = Column?.GetCellContent(item);
-                filterItems.Add(value);
-            }
-
-            _optionsFlyoutViewModel.FilterItems = filterItems.Select(value =>
-            {
-                value = string.IsNullOrWhiteSpace(value?.ToString()) ? "(Blank)" : value;
-                var isSelected = !IsFiltered || !string.IsNullOrEmpty(_filterText) ||
-                  (IsFiltered && _optionsFlyoutViewModel.SelectedValues.Contains(value));
-
-                return string.IsNullOrEmpty(_filterText)
-                      || value?.ToString()?.Contains(_filterText, StringComparison.OrdinalIgnoreCase) == true
-                      ? new FilterItem(isSelected, value, _optionsFlyoutViewModel)
-                      : null;
-
-            }).OfType<FilterItem>().ToList();
-        }
+        _tableView?.FilterHandler?.PrepareFilterItems(Column!);
+        _optionsFlyoutViewModel.FilterItems = _tableView?.FilterHandler?.FilterItems!;
     }
 
     /// <summary>
@@ -307,13 +251,13 @@ public partial class TableViewColumnHeader : ContentControl
     /// <summary>
     /// Handles changes to the SortDirection property.
     /// </summary>
-    private void OnSortDirectionChanged()
+    internal void OnSortDirectionChanged()
     {
-        if (SortDirection == SD.Ascending)
+        if (Column?.SortDirection == SD.Ascending)
         {
             VisualStates.GoToState(this, false, VisualStates.StateSortAscending);
         }
-        else if (SortDirection == SD.Descending)
+        else if (Column?.SortDirection == SD.Descending)
         {
             VisualStates.GoToState(this, false, VisualStates.StateSortDescending);
         }
@@ -326,9 +270,9 @@ public partial class TableViewColumnHeader : ContentControl
     /// <summary>
     /// Handles changes to the IsFiltered property.
     /// </summary>
-    private void OnIsFilteredChanged()
+    internal void OnIsFilteredChanged()
     {
-        if (IsFiltered)
+        if (Column?.IsFiltered is true)
         {
             VisualStates.GoToState(this, false, VisualStates.StateFiltered);
         }
@@ -341,7 +285,7 @@ public partial class TableViewColumnHeader : ContentControl
     /// <summary>
     /// Sets the visibility of the filter button.
     /// </summary>
-    private void SetFilterButtonVisibility()
+    internal void SetFilterButtonVisibility()
     {
         if (_optionsButton is not null)
         {
@@ -513,32 +457,6 @@ public partial class TableViewColumnHeader : ContentControl
             _v_gridLine.Visibility = _tableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
                                      || _tableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
                                      ? Visibility.Visible : Visibility.Collapsed;
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the sort direction for the column.
-    /// </summary>
-    public SD? SortDirection
-    {
-        get => _sortDirection;
-        internal set
-        {
-            _sortDirection = value;
-            OnSortDirectionChanged();
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether the column is filtered.
-    /// </summary>
-    public bool IsFiltered
-    {
-        get => _isFiltered;
-        internal set
-        {
-            _isFiltered = value;
-            OnIsFilteredChanged();
         }
     }
 

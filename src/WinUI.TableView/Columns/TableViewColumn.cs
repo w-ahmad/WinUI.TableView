@@ -1,4 +1,5 @@
 ﻿using Microsoft.UI.Xaml;
+using SD = WinUI.TableView.SortDirection;
 
 namespace WinUI.TableView;
 
@@ -6,11 +7,12 @@ namespace WinUI.TableView;
 /// </summary>
 [StyleTypedProperty(Property = nameof(HeaderStyle), StyleTargetType = typeof(TableViewColumnHeader))]
 public abstract class TableViewColumn : DependencyObject
-{
-    protected TableView? TableView { get; private set; }
+{    
     private TableViewColumnsCollection? _owningCollection;
     private TableViewColumnHeader? _headerControl;
     private double _desiredWidth;
+    private SD? _sortDirection;
+    private bool _isFiltered;
 
     /// <summary>
     /// Generates a display element for the cell.
@@ -198,6 +200,53 @@ public abstract class TableViewColumn : DependencyObject
     /// Gets or sets a value indicating whether the column uses a single element for display and editing.
     /// </summary>
     public bool UseSingleElement { get; set; }
+
+    /// <summary>
+    /// Gets or sets the sort direction for the column.
+    /// </summary>
+    public SD? SortDirection
+    {
+        get => _sortDirection;
+        set
+        {
+            _sortDirection = value;
+            OnSortDirectionChanged();
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the column is filtered.
+    /// </summary>
+    public bool IsFiltered
+    {
+        get => _isFiltered;
+        set
+        {
+            _isFiltered = value;
+            OnIsFilteredChanged();
+        }
+    }
+
+    /// <summary>
+    /// Gets the owning TableView for the column.
+    /// </summary>
+    protected internal TableView? TableView { get; private set; }
+
+    /// <summary>
+    /// Handles changes to the SortDirection property.
+    /// </summary>
+    private void OnSortDirectionChanged()
+    {
+        HeaderControl?.OnSortDirectionChanged();
+    }
+
+    /// <summary>
+    /// Handles changes to the IsFiltered property.
+    /// </summary>
+    private void OnIsFilteredChanged()
+    {
+        HeaderControl?.OnIsFilteredChanged();
+    }
 
     /// <summary>
     /// Ensures the header style is applied to the header control.

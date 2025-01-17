@@ -146,7 +146,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
             return;
         }
 
-        if (FilterDescriptions.Any(fd => fd.PropertyName == e.PropertyName))
+        if (FilterDescriptions.Any(fd => string.IsNullOrEmpty(fd.PropertyName) || fd.PropertyName == e.PropertyName))
         {
             var filterResult = FilterDescriptions.All(x => x.Predicate(item));
             var viewIndex = _view.IndexOf(item);
@@ -162,7 +162,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
             }
         }
 
-        if (SortDescriptions.Any(sd => sd.PropertyName == e.PropertyName))
+        if (SortDescriptions.Any(sd => string.IsNullOrEmpty(sd.PropertyName) || sd.PropertyName == e.PropertyName))
         {
             var oldIndex = _view.IndexOf(item);
 

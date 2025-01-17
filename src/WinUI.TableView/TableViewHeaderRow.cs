@@ -425,11 +425,6 @@ public partial class TableViewHeaderRow : Control
     }
 
     /// <summary>
-    /// Gets the list of headers in the header row.
-    /// </summary>
-    private IList<TableViewColumnHeader> Headers => _headersStackPanel!.Children.OfType<TableViewColumnHeader>().ToList();
-
-    /// <summary>
     /// Gets the previous header in the header row.
     /// </summary>
     internal TableViewColumnHeader? GetPreviousHeader(TableViewColumnHeader? currentHeader)
@@ -493,6 +488,11 @@ public partial class TableViewHeaderRow : Control
                 newTableView.RegisterPropertyChangedCallback(TableView.ItemsSourceProperty, delegate { OnTableViewSelectionChanged(); });
         }
     }
+
+    /// <summary>
+    /// Gets the list of headers in the header row.
+    /// </summary>
+    public IList<TableViewColumnHeader> Headers => _headersStackPanel!.Children.OfType<TableViewColumnHeader>().ToList();
 
     /// <summary>
     /// Gets or sets the TableView associated with the header row.

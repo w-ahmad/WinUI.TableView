@@ -17,7 +17,7 @@ public class SortDescription
     /// <param name="direction">The direction of the sort.</param>
     /// <param name="comparer">An optional comparer to use for sorting.</param>
     /// <param name="valueDelegate">An optional delegate to extract the value to sort by.</param>
-    public SortDescription(string propertyName,
+    public SortDescription(string? propertyName,
                            SortDirection direction,
                            IComparer? comparer = null,
                            Func<object?, object?>? valueDelegate = null)
@@ -39,11 +39,15 @@ public class SortDescription
         {
             return ValueDelegate(item);
         }
-        else
+        else if (PropertyName is not null)
         {
             return item?.GetType()
                         .GetProperty(PropertyName)?
                         .GetValue(item);
+        }
+        else
+        {
+            return default!;
         }
     }
 
@@ -61,7 +65,7 @@ public class SortDescription
     /// <summary>
     /// Gets the name of the property to sort by.
     /// </summary>
-    public string PropertyName { get; }
+    public string? PropertyName { get; }
 
     /// <summary>
     /// Gets the direction of the sort.

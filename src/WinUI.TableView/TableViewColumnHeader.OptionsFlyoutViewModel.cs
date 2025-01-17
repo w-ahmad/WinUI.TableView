@@ -12,11 +12,12 @@ public partial class TableViewColumnHeader
     /// <summary>
     /// ViewModel for the options flyout in the TableViewColumnHeader.
     /// </summary>
-    private class OptionsFlyoutViewModel : INotifyPropertyChanged
+    private partial class OptionsFlyoutViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         private string? _filterText;
-        private List<FilterItem> _filterItems = new();
+        private bool _canFilter = true;
+        private IList<TableViewFilterItem> _filterItems = new List<TableViewFilterItem>();
         private bool _canSetState = true;
 
         /// <summary>
@@ -37,16 +38,16 @@ public partial class TableViewColumnHeader
         private void InitializeCommands()
         {
             SortAscendingCommand.ExecuteRequested += delegate { ColumnHeader.DoSort(SD.Ascending); };
-            SortAscendingCommand.CanExecuteRequested += (_, e) => e.CanExecute = ColumnHeader.CanSort && ColumnHeader.SortDirection != SD.Ascending;
+            SortAscendingCommand.CanExecuteRequested += (_, e) => e.CanExecute = ColumnHeader.CanSort && ColumnHeader.Column?.SortDirection != SD.Ascending;
 
             SortDescendingCommand.ExecuteRequested += delegate { ColumnHeader.DoSort(SD.Descending); };
-            SortDescendingCommand.CanExecuteRequested += (_, e) => e.CanExecute = ColumnHeader.CanSort && ColumnHeader.SortDirection != SD.Descending;
+            SortDescendingCommand.CanExecuteRequested += (_, e) => e.CanExecute = ColumnHeader.CanSort && ColumnHeader.Column?.SortDirection != SD.Descending;
 
             ClearSortingCommand.ExecuteRequested += delegate { ColumnHeader.ClearSorting(); };
-            ClearSortingCommand.CanExecuteRequested += (_, e) => e.CanExecute = ColumnHeader.SortDirection is not null;
+            ClearSortingCommand.CanExecuteRequested += (_, e) => e.CanExecute = ColumnHeader.Column?.SortDirection is not null;
 
             ClearFilterCommand.ExecuteRequested += delegate { ColumnHeader.ClearFilter(); };
-            ClearFilterCommand.CanExecuteRequested += (_, e) => e.CanExecute = ColumnHeader.IsFiltered;
+            ClearFilterCommand.CanExecuteRequested += (_, e) => e.CanExecute = ColumnHeader.Column?.IsFiltered is true;
 
             OkCommand.ExecuteRequested += delegate
             {
@@ -64,6 +65,52 @@ public partial class TableViewColumnHeader
             };
 
             CancelCommand.ExecuteRequested += delegate { ColumnHeader.HideFlyout(); };
+        }
+
+        /// <summary>
+        /// Attaches property changed handlers to the filter items.
+        /// </summary>
+        private void AttachPropertyChangedHandlers()
+        {
+            if (_filterItems?.Count > 0)
+            {
+                foreach (var item in _filterItems)
+                {
+                    item.PropertyChanged += OnFilterItemPropertyChanged;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Detaches property changed handlers from the filter items.
+        /// </summary>
+        private void DetachPropertyChangedHandlers()
+        {
+            if (_filterItems?.Count > 0)
+            {
+                foreach (var item in _filterItems)
+                {
+                    item.PropertyChanged -= OnFilterItemPropertyChanged;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Handles the PropertyChanged event for filter items.
+        /// </summary>
+        private void OnFilterItemPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            SetSelectAllCheckBoxState();
+        }
+
+        /// <summary>
+        /// Clears the filter text.
+        /// </summary>
+        internal void ClearFilterText()
+        {
+            _canFilter = false;
+            FilterText = default;
+            _canFilter = true;
         }
 
         /// <summary>
@@ -85,20 +132,35 @@ public partial class TableViewColumnHeader
             set
             {
                 _filterText = value;
-                ColumnHeader.PrepareFilterItems(_filterText);
+                OnFilterItemsSearchTextChanged();
                 OnPropertyChanged();
             }
         }
 
         /// <summary>
+        /// Handles the filter items search text changed event.
+        /// </summary>
+        private void OnFilterItemsSearchTextChanged()
+        {
+            if (!_canFilter) return;
+
+            TableView.FilterHandler.SearchTextChanged(ColumnHeader.Column!,FilterText);
+            FilterItems = TableView.FilterHandler.FilterItems;
+        }
+
+        /// <summary>
         /// Gets or sets the filter items.
         /// </summary>
-        public List<FilterItem> FilterItems
+        public IList<TableViewFilterItem> FilterItems
         {
             get => _filterItems;
             set
             {
+                if (_filterItems == value) return;
+
+                DetachPropertyChangedHandlers();
                 _filterItems = value;
+                AttachPropertyChangedHandlers();
                 SetSelectAllCheckBoxState();
                 OnPropertyChanged();
             }
@@ -112,7 +174,7 @@ public partial class TableViewColumnHeader
         /// <summary>
         /// Sets the state of the select all checkbox.
         /// </summary>
-        internal void SetSelectAllCheckBoxState()
+        private void SetSelectAllCheckBoxState()
         {
             if (ColumnHeader._selectAllCheckBox is null || !_canSetState)
             {
@@ -133,7 +195,12 @@ public partial class TableViewColumnHeader
         internal void SetFilterItemsState(bool isSelected)
         {
             _canSetState = false;
-            FilterItems.ForEach(x => x.IsSelected = isSelected);
+
+            foreach (var item in FilterItems)
+            {
+                item.IsSelected = isSelected;
+            }
+
             _canSetState = true;
         }
 
