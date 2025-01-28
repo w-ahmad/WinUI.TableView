@@ -1,5 +1,4 @@
-﻿using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Data;
+﻿using Microsoft.UI.Xaml.Data;
 using System;
 using System.Reflection;
 using WinUI.TableView.Extensions;
@@ -42,14 +41,6 @@ public abstract class TableViewBoundColumn : TableViewColumn
         return dataItem;
     }
 
-    private static void OnCanFilterChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is TableViewBoundColumn column && column.HeaderControl is not null)
-        {
-            column.HeaderControl.SetFilterButtonVisibility();
-        }
-    }
-
     /// <summary>
     /// Gets the property path for the binding.
     /// </summary>
@@ -77,32 +68,4 @@ public abstract class TableViewBoundColumn : TableViewColumn
             }
         }
     }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether the column can be sorted. This can be overridden by the TableView.
-    /// </summary>
-    public bool CanSort
-    {
-        get => (bool)GetValue(CanSortProperty);
-        set => SetValue(CanSortProperty, value);
-    }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether the column can be filtered.
-    /// </summary>
-    public bool CanFilter
-    {
-        get => (bool)GetValue(CanFilterProperty);
-        set => SetValue(CanFilterProperty, value);
-    }
-
-    /// <summary>
-    /// Identifies the CanSort dependency property.
-    /// </summary>
-    public static readonly DependencyProperty CanSortProperty = DependencyProperty.Register(nameof(CanSort), typeof(bool), typeof(TableViewBoundColumn), new PropertyMetadata(true));
-
-    /// <summary>
-    /// Identifies the CanFilter dependency property.
-    /// </summary>
-    public static readonly DependencyProperty CanFilterProperty = DependencyProperty.Register(nameof(CanFilter), typeof(bool), typeof(TableViewBoundColumn), new PropertyMetadata(true, OnCanFilterChanged));
 }

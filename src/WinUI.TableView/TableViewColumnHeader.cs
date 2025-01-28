@@ -473,12 +473,12 @@ public partial class TableViewColumnHeader : ContentControl
     /// <summary>
     /// Gets a value indicating whether the column can be sorted.
     /// </summary>
-    private bool CanSort => _tableView?.CanSortColumns == true && Column is TableViewBoundColumn { CanSort: true };
+    private bool CanSort => _tableView?.CanSortColumns is true && Column?.CanSort is true;
 
     /// <summary>
     /// Gets a value indicating whether the column can be filtered.
     /// </summary>
-    private bool CanFilter => _tableView?.CanFilterColumns == true && Column is TableViewBoundColumn { CanFilter: true };
+    private bool CanFilter => _tableView?.CanFilterColumns is true && Column?.CanFilter is true;
 
     /// <summary>
     /// Gets a value indicating whether the previous column can be resized.

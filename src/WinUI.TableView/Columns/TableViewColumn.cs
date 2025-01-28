@@ -176,6 +176,24 @@ public abstract class TableViewColumn : DependencyObject
     }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the column can be sorted. This can be overridden by the TableView.
+    /// </summary>
+    public bool CanSort
+    {
+        get => (bool)GetValue(CanSortProperty);
+        set => SetValue(CanSortProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the column can be filtered.
+    /// </summary>
+    public bool CanFilter
+    {
+        get => (bool)GetValue(CanFilterProperty);
+        set => SetValue(CanFilterProperty, value);
+    }
+
+    /// <summary>
     /// Gets or sets the desired width of the column.
     /// </summary>
     internal double DesiredWidth
@@ -325,6 +343,14 @@ public abstract class TableViewColumn : DependencyObject
         }
     }
 
+    private static void OnCanFilterChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableViewColumn column && column.HeaderControl is not null)
+        {
+            column.HeaderControl.SetFilterButtonVisibility();
+        }
+    }
+
     public static readonly DependencyProperty HeaderStyleProperty = DependencyProperty.Register(nameof(HeaderStyle), typeof(Style), typeof(TableViewColumn), new PropertyMetadata(null, (d, _) => ((TableViewColumn)d).EnsureHeaderStyle()));
     public static readonly DependencyProperty HeaderProperty = DependencyProperty.Register(nameof(Header), typeof(object), typeof(TableViewColumn), new PropertyMetadata(null));
     public static readonly DependencyProperty WidthProperty = DependencyProperty.Register(nameof(Width), typeof(GridLength), typeof(TableViewColumn), new PropertyMetadata(GridLength.Auto, OnWidthChanged));
@@ -335,4 +361,14 @@ public abstract class TableViewColumn : DependencyObject
     public static readonly DependencyProperty IsReadOnlyProperty = DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(TableViewColumn), new PropertyMetadata(false, OnIsReadOnlyChanged));
     public static readonly DependencyProperty VisibilityProperty = DependencyProperty.Register(nameof(Visibility), typeof(Visibility), typeof(TableViewColumn), new PropertyMetadata(Visibility.Visible, OnVisibilityChanged));
     public static readonly DependencyProperty TagProperty = DependencyProperty.Register(nameof(Tag), typeof(object), typeof(TableViewColumn), new PropertyMetadata(null));
+    
+    /// <summary>
+    /// Identifies the CanSort dependency property.
+    /// </summary>
+    public static readonly DependencyProperty CanSortProperty = DependencyProperty.Register(nameof(CanSort), typeof(bool), typeof(TableViewColumn), new PropertyMetadata(true));
+
+    /// <summary>
+    /// Identifies the CanFilter dependency property.
+    /// </summary>
+    public static readonly DependencyProperty CanFilterProperty = DependencyProperty.Register(nameof(CanFilter), typeof(bool), typeof(TableViewColumn), new PropertyMetadata(true, OnCanFilterChanged));
 }

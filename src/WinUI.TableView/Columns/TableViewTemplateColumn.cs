@@ -8,6 +8,12 @@ namespace WinUI.TableView;
 /// </summary>
 public class TableViewTemplateColumn : TableViewColumn
 {
+    public TableViewTemplateColumn()
+    {
+        CanSort = false;
+        CanFilter = false;
+    }
+
     /// <summary>
     /// Generates a ContentControl for the cell based on CellTemplate and CellTemplateSelector.
     /// </summary>
