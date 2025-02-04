@@ -51,11 +51,11 @@ public partial class TableViewHeaderRow
             CopyWithHeadersCommand.ExecuteRequested += delegate { TableView.CopyToClipboardInternal(true); };
             CopyWithHeadersCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.SelectedItems.Count > 0 || TableView.SelectedCells.Count > 0 || TableView.CurrentCellSlot.HasValue;
 
-            ClearSortingCommand.ExecuteRequested += delegate { TableView.ClearSorting(); };
-            ClearSortingCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.SortDescriptions.Count > 0;
+            ClearSortingCommand.ExecuteRequested += delegate { TableView.ClearAllSortingWithEvent(); };
+            ClearSortingCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.IsSorted;
 
-            ClearFilterCommand.ExecuteRequested += delegate { TableView.ClearFilters(); };
-            ClearFilterCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.FilterDescriptions.Count > 0;
+            ClearFilterCommand.ExecuteRequested += delegate { TableView.FilterHandler.ClearFilter(default); };
+            ClearFilterCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.IsFiltered;
 
             ExportAllToCSVCommand.ExecuteRequested += delegate { TableView.ExportAllToCSV(); };
 

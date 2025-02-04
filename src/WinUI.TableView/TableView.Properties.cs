@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace WinUI.TableView;
 
@@ -67,7 +68,7 @@ public partial class TableView
     /// <summary>
     /// Identifies the CanSortColumns dependency property.
     /// </summary>
-    public static readonly DependencyProperty CanSortColumnsProperty = DependencyProperty.Register(nameof(CanSortColumns), typeof(bool), typeof(TableView), new PropertyMetadata(true, OnCanSortColumnsChanged));
+    public static readonly DependencyProperty CanSortColumnsProperty = DependencyProperty.Register(nameof(CanSortColumns), typeof(bool), typeof(TableView), new PropertyMetadata(true));
 
     /// <summary>
     /// Identifies the CanFilterColumns dependency property.
@@ -198,6 +199,18 @@ public partial class TableView
     /// Gets the width of the selection indicator.
     /// </summary>
     internal int SelectionIndicatorWidth => SelectionMode is ListViewSelectionMode.Multiple ? 44 : 16;
+
+    public IColumnFilterHandler FilterHandler { get; set; }
+
+    /// <summary>
+    /// Gets a value indicating whether the TableView items are filtered.
+    /// </summary>
+    public bool IsFiltered => FilterDescriptions.Count > 0 || Columns.Any(x => x.IsFiltered) is true;
+
+    /// <summary>
+    /// Gets a value indicating whether the TableView items are sorted.
+    /// </summary>
+    public bool IsSorted => SortDescriptions.Count > 0 || Columns.Any(x => x.SortDirection is not null) is true;
 
     /// <summary>
     /// Gets the collection of columns in the TableView.
@@ -512,24 +525,16 @@ public partial class TableView
     }
 
     /// <summary>
-    /// Handles changes to the CanSortColumns property.
-    /// </summary>
-    private static void OnCanSortColumnsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is TableView tableView && e.NewValue is false)
-        {
-            tableView.ClearSorting();
-        }
-    }
-
-    /// <summary>
     /// Handles changes to the CanFilterColumns property.
     /// </summary>
     private static void OnCanFilterColumnsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableView tableView && e.NewValue is false)
+        if (d is TableView tableView && tableView._headerRow is not null)
         {
-            tableView.ClearFilters();
+            foreach (var header in tableView._headerRow.Headers)
+            {
+                header.SetFilterButtonVisibility();
+            }
         }
     }
 
