@@ -72,11 +72,11 @@ public partial class TableViewColumnHeader : ContentControl
         {
             if (singleSorting)
             {
-                _tableView.ClearAllSorting();
+                _tableView.ClearAllSortingWithEvent();
             }
             else
             {
-                ClearSorting();
+                ClearSortingWithEvent();
             }
 
             if (direction is null) return;
@@ -93,8 +93,16 @@ public partial class TableViewColumnHeader : ContentControl
     /// <summary>
     /// Clears the sorting for the column.
     /// </summary>
-    private void ClearSorting()
+    private void ClearSortingWithEvent()
     {
+        var eventArgs = new TableViewClearSortingEventArgs();
+        _tableView?.OnClearSorting(eventArgs);
+
+        if (eventArgs.Handled)
+        {
+            return;
+        }
+
         if (CanSort && _tableView is not null && Column is not null)
         {
             _tableView.DeselectAll();
@@ -141,7 +149,7 @@ public partial class TableViewColumnHeader : ContentControl
             var eventArgs = new TableViewSortingEventArgs(Column);
             _tableView.OnSorting(eventArgs);
 
-            if (!e.Handled)
+            if (!eventArgs.Handled)
             {
                 DoSort(GetNextSortDirection(), !isCtrlButtonDown);
             }

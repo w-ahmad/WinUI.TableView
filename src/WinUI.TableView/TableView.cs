@@ -707,14 +707,6 @@ public partial class TableView : ListView
     /// </summary>
     public void ClearAllSorting()
     {
-        var eventArgs = new TableViewClearSortingEventArgs();
-        OnClearSorting(eventArgs);
-
-        if (eventArgs.Handled)
-        {
-            return;
-        }
-
         DeselectAll();
         SortDescriptions.Clear();
 
@@ -725,6 +717,22 @@ public partial class TableView : ListView
                 column.SortDirection = null;
             }
         }
+    }
+
+    /// <summary>
+    /// Clears all sorting applied to the items with event.
+    /// </summary>
+    internal void ClearAllSortingWithEvent()
+    {
+        var eventArgs = new TableViewClearSortingEventArgs();
+        OnClearSorting(eventArgs);
+
+        if (eventArgs.Handled)
+        {
+            return;
+        }
+
+        ClearAllSorting();
     }
 
     /// <summary>

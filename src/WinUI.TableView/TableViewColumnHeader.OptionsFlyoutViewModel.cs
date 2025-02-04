@@ -43,7 +43,7 @@ public partial class TableViewColumnHeader
             SortDescendingCommand.ExecuteRequested += delegate { ColumnHeader.DoSort(SD.Descending); };
             SortDescendingCommand.CanExecuteRequested += (_, e) => e.CanExecute = ColumnHeader.CanSort && ColumnHeader.Column?.SortDirection != SD.Descending;
 
-            ClearSortingCommand.ExecuteRequested += delegate { ColumnHeader.ClearSorting(); };
+            ClearSortingCommand.ExecuteRequested += delegate { ColumnHeader.ClearSortingWithEvent(); };
             ClearSortingCommand.CanExecuteRequested += (_, e) => e.CanExecute = ColumnHeader.Column?.SortDirection is not null;
 
             ClearFilterCommand.ExecuteRequested += delegate { ColumnHeader.ClearFilter(); };
