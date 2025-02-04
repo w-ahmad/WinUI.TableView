@@ -21,7 +21,11 @@ jobs:
 
     - name: Build
       run: |
-        msbuild /restore /t:Build,Pack src/WinUI.TableView/WinUI.TableView.csproj /p:Configuration=Release /p:Version=${{ steps.version.outputs.version-without-v }}
+        msbuild /restore 
+                /t:Build,Pack src/WinUI.TableView/WinUI.TableView.csproj 
+                /p:Configuration=Release 
+                /p:Version=${{ steps.version.outputs.version-without-v }}
+                /p:PackageReleaseNotes="https://github.com/w-ahmad/WinUI.TableView/releases/tag/v${{ steps.version.outputs.version-without-v }}"
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
