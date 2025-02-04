@@ -41,7 +41,7 @@ public interface IColumnFilterHandler
     /// Clears the filter from the specified column.
     /// </summary>
     /// <param name="column">The column from which the filter is cleared.</param>
-    void ClearFilter(TableViewColumn column);
+    void ClearFilter(TableViewColumn? column);
 
     /// <summary>
     /// Determines whether the specified item passes the filter for the specified column.

@@ -200,7 +200,7 @@ public partial class TableView
     /// </summary>
     internal int SelectionIndicatorWidth => SelectionMode is ListViewSelectionMode.Multiple ? 44 : 16;
 
-    public IColumnFilterHandler FilterHandler { get; set; } = new ColumnFilterHandler();
+    public IColumnFilterHandler FilterHandler { get; set; }
 
     /// <summary>
     /// Gets a value indicating whether the TableView items are filtered.

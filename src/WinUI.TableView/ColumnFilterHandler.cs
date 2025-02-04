@@ -10,6 +10,16 @@ namespace WinUI.TableView;
 /// </summary>
 public class ColumnFilterHandler : IColumnFilterHandler
 {
+    private readonly TableView _tableView;
+
+    /// <summary>
+    /// Initializes a new instance of the ColumnFilterHandler class.
+    /// </summary>
+    public ColumnFilterHandler(TableView tableView)
+    {
+        _tableView = tableView;
+    }
+
     public virtual void PrepareFilterItems(TableViewColumn column, string? searchText = default)
     {
         if (column is { TableView.ItemsSource: { } })
@@ -73,13 +83,17 @@ public class ColumnFilterHandler : IColumnFilterHandler
         }
     }
 
-    public virtual void ClearFilter(TableViewColumn column)
+    public virtual void ClearFilter(TableViewColumn? column)
     {
         if (column is { TableView: { } })
         {
             column.IsFiltered = false;
             column.TableView.FilterDescriptions.RemoveWhere(x => x is ColumnFilterDescription columnFilter && columnFilter.Column == column);
             column.TableView.RefreshFilter();
+        }
+        else
+        {
+            _tableView.ClearAllFilters();
         }
     }
 

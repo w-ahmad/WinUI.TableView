@@ -46,6 +46,7 @@ public partial class TableView : ListView
         DefaultStyleKey = typeof(TableView);
 
         Columns.TableView = this;
+        FilterHandler = new ColumnFilterHandler(this);
         base.ItemsSource = _collectionView;
         base.SelectionMode = SelectionMode;
         RegisterPropertyChangedCallback(ItemsControl.ItemsSourceProperty, OnBaseItemsSourceChanged);
