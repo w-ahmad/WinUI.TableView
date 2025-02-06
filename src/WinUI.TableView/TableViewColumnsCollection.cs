@@ -10,7 +10,7 @@ namespace WinUI.TableView;
 /// <summary>
 /// Represents a collection of columns in a TableView.
 /// </summary>
-public class TableViewColumnsCollection : ObservableCollection<TableViewColumn>
+public partial class TableViewColumnsCollection : ObservableCollection<TableViewColumn>
 {
     /// <summary>
     /// Occurs when a property of a column in the collection changes.

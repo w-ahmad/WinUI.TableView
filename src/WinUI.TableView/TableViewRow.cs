@@ -15,7 +15,7 @@ namespace WinUI.TableView;
 /// <summary>
 /// Represents a row in a TableView.
 /// </summary>
-public class TableViewRow : ListViewItem
+public partial class TableViewRow : ListViewItem
 {
     private const string Selection_Indictor = nameof(Selection_Indictor);
     private const string Selection_Background = nameof(Selection_Background);
@@ -247,11 +247,11 @@ public class TableViewRow : ListViewItem
         {
             if (e.Column.Visibility == Visibility.Visible)
             {
-                AddCells(new[] { e.Column }, e.Index);
+                AddCells([e.Column], e.Index);
             }
             else
             {
-                RemoveCells(new[] { e.Column });
+                RemoveCells([e.Column]);
             }
         }
         else if (e.PropertyName is nameof(TableViewColumn.ActualWidth))
@@ -303,16 +303,10 @@ public class TableViewRow : ListViewItem
                     Width = column.ActualWidth,
                 };
 
-                if (index < 0)
-                {
-                    _cellPresenter.Children.Add(cell);
-                }
-                else
-                {
-                    index = Math.Min(index, _cellPresenter.Children.Count);
-                    _cellPresenter.Children.Insert(index, cell);
-                    index++;
-                }
+                index = Math.Min(index, _cellPresenter.Children.Count);
+                index = Math.Max(index, 0); // handles -ve index.
+                _cellPresenter.Children.Insert(index, cell);
+                index++;
             }
         }
     }
@@ -457,7 +451,7 @@ public class TableViewRow : ListViewItem
     /// <summary>
     /// Gets the list of cells in the row.
     /// </summary>
-    internal IList<TableViewCell> Cells => _cellPresenter?.Cells ?? new List<TableViewCell>();
+    internal IList<TableViewCell> Cells => _cellPresenter?.Cells ?? [];
 
     /// <summary>
     /// Gets the index of the row.

@@ -19,9 +19,9 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
 {
     private IList _source = default!;
     private bool _allowLiveShaping;
-    private readonly List<object> _view = new();
-    private ObservableCollection<FilterDescription> _filterDescriptions = new();
-    private readonly ObservableCollection<SortDescription> _sortDescriptions = new();
+    private readonly List<object> _view = [];
+    private readonly ObservableCollection<FilterDescription> _filterDescriptions = [];
+    private readonly ObservableCollection<SortDescription> _sortDescriptions = [];
     private CollectionChangedListener<CollectionView>? _collectionChangedListener;
 
     /// <summary>

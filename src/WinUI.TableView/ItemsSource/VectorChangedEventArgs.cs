@@ -6,7 +6,7 @@ namespace WinUI.TableView;
 /// Vector changed EventArgs
 /// </summary>
 /// <remarks>
-internal class VectorChangedEventArgs : IVectorChangedEventArgs
+internal partial class VectorChangedEventArgs : IVectorChangedEventArgs
 {
     /// Initializes a new instance of the <see cref="VectorChangedEventArgs"/> class.
     /// </remarks>

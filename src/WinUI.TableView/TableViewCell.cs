@@ -22,7 +22,7 @@ namespace WinUI.TableView;
 [TemplateVisualState(Name = VisualStates.StateCurrent, GroupName = VisualStates.GroupCurrent)]
 [TemplateVisualState(Name = VisualStates.StateSelected, GroupName = VisualStates.GroupSelection)]
 [TemplateVisualState(Name = VisualStates.StateUnselected, GroupName = VisualStates.GroupSelection)]
-public class TableViewCell : ContentControl
+public partial class TableViewCell : ContentControl
 {
     private TableViewColumn? _column;
     private ScrollViewer? _scrollViewer;

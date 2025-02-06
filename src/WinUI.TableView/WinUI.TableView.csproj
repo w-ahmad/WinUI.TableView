@@ -1,4 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <PackageId>WinUI.TableView</PackageId>
     <IncludeSymbols>true</IncludeSymbols>
@@ -16,8 +20,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.WinUI.Behaviors" Version="8.0.240109" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240227000" />
+    <PackageReference Include="CommunityToolkit.WinUI.Behaviors" Version="8.1.240916" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.250108002" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Release'">

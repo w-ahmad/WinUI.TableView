@@ -12,7 +12,7 @@ namespace WinUI.TableView;
 /// <summary>
 /// Represents a presenter for the cells in a TableView row.
 /// </summary>
-public class TableViewCellsPresenter : Control
+public partial class TableViewCellsPresenter : Control
 {
     private StackPanel? _stackPanel;
     private Rectangle? _v_gridLine;
