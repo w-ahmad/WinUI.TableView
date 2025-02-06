@@ -8,6 +8,8 @@ namespace WinUI.TableView;
 /// <summary>
 /// Represents a column in a TableView that displays a ComboBox.
 /// </summary>
+[StyleTypedProperty(Property = nameof(ElementStyle), StyleTargetType = typeof(TextBlock))]
+[StyleTypedProperty(Property = nameof(EditingElementStyle), StyleTargetType = typeof(ComboBox))]
 public class TableViewComboBoxColumn : TableViewBoundColumn
 {
     private Binding? _textBinding;

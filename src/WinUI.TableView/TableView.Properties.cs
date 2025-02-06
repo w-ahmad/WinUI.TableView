@@ -141,6 +141,16 @@ public partial class TableView
     public static readonly DependencyProperty CellContextFlyoutProperty = DependencyProperty.Register(nameof(CellContextFlyout), typeof(FlyoutBase), typeof(TableView), new PropertyMetadata(null));
 
     /// <summary>
+    /// Identifies the ColumnHeaderStyle dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ColumnHeaderStyleProperty = DependencyProperty.Register(nameof(ColumnHeaderStyle), typeof(Style), typeof(TableView), new PropertyMetadata(null, OnColumnHeaderStyleChanged));
+
+    /// <summary>
+    /// Identifies the CellStyle dependency property.
+    /// </summary>
+    public static readonly DependencyProperty CellStyleProperty = DependencyProperty.Register(nameof(CellStyle), typeof(Style), typeof(TableView), new PropertyMetadata(null, OnCellStyleChanged));
+
+    /// <summary>
     /// Gets the collection view associated with the TableView.
     /// </summary>
     public ICollectionView CollectionView => _collectionView;
@@ -443,6 +453,24 @@ public partial class TableView
     }
 
     /// <summary>
+    /// Gets or sets the style for the column headers.
+    /// </summary>
+    public Style ColumnHeaderStyle
+    {
+        get => (Style)GetValue(ColumnHeaderStyleProperty);
+        set => SetValue(ColumnHeaderStyleProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the style for the cells.
+    /// </summary>
+    public Style CellStyle
+    {
+        get => (Style)GetValue(CellStyleProperty);
+        set => SetValue(CellStyleProperty, value);
+    }
+
+    /// <summary>
     /// Handles changes to the ItemsSource property.
     /// </summary>
     private static void OnItemsSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -596,6 +624,28 @@ public partial class TableView
         if (d is TableView tableView)
         {
             tableView.EnsureAlternateRowColors();
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the ColumnHeaderStyle property.
+    /// </summary>
+    private static void OnColumnHeaderStyleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            tableView.EnsureColumnHeadersStyle();
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the CellStyle property.
+    /// </summary>
+    private static void OnCellStyleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            tableView.EnsureCellsStyle();
         }
     }
 

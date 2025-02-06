@@ -265,6 +265,34 @@ public partial class TableViewRow : ListViewItem
         {
             UpdateCellsState();
         }
+        else if (e.PropertyName is nameof(TableViewColumn.CellStyle))
+        {
+            EnsureCellsStyle(e.Column);
+        }
+        else if (e.PropertyName is nameof(TableViewBoundColumn.ElementStyle))
+        {
+            foreach (var cell in Cells)
+            {
+                if (cell.Column == e.Column
+                    && cell.Content is FrameworkElement element
+                    && cell.Column is TableViewBoundColumn boundColumn
+                    && (TableView?.IsEditing is false || TableView?.CurrentCellSlot != cell.Slot))
+                {
+                    element.Style = boundColumn.ElementStyle;
+                }
+            }
+        }
+        else if (e.PropertyName is nameof(TableViewBoundColumn.EditingElementStyle))
+        {
+            if (TableView?.IsEditing is true
+                && TableView.CurrentCellSlot is not null
+                && e.Column is TableViewBoundColumn boundColumn
+                && TableView.GetCellFromSlot(TableView.CurrentCellSlot.Value) is { } cell
+                && cell.Content is FrameworkElement element)
+            {
+                element.Style = boundColumn.EditingElementStyle;
+            }
+        }
     }
 
     /// <summary>
@@ -301,6 +329,7 @@ public partial class TableViewRow : ListViewItem
                     TableView = TableView!,
                     Index = TableView.Columns.VisibleColumns.IndexOf(column),
                     Width = column.ActualWidth,
+                    Style = column.CellStyle ?? TableView.CellStyle
                 };
 
                 index = Math.Min(index, _cellPresenter.Children.Count);
@@ -361,6 +390,20 @@ public partial class TableViewRow : ListViewItem
         foreach (var cell in Cells)
         {
             cell.UpdateElementState();
+        }
+    }
+
+    /// <summary>
+    /// Ensures the cells style is applied.
+    /// </summary>
+    internal void EnsureCellsStyle(TableViewColumn? column = null)
+    {
+        var cells = Cells.Where(x => column is null || x.Column == column);
+
+        foreach (var cell in cells)
+        {
+            var style = cell.Column?.CellStyle ?? TableView?.CellStyle;
+            cell.Style = style;
         }
     }
 

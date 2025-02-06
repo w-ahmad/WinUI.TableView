@@ -1,4 +1,5 @@
-﻿using Microsoft.UI.Xaml.Data;
+﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Data;
 using System;
 using System.Reflection;
 using WinUI.TableView.Extensions;
@@ -68,4 +69,56 @@ public abstract class TableViewBoundColumn : TableViewColumn
             }
         }
     }
+
+    /// <summary>
+    /// Handles changes to the ElementStyle property.
+    /// </summary>
+    private static void OnElementStyleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableViewColumn column && column.OwningCollection is { })
+        {
+            column.OwningCollection.HandleColumnPropertyChanged(column, nameof(ElementStyle));
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the EditingElementStyle property.
+    /// </summary>
+    private static void OnEditingElementStyleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableViewColumn column && column.OwningCollection is { })
+        {
+            column.OwningCollection.HandleColumnPropertyChanged(column, nameof(EditingElementStyle));
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the style that is used when rendering the element that the column
+    /// displays for a cell that is not in editing mode.
+    /// </summary>
+    public Style ElementStyle
+    {
+        get => (Style)GetValue(ElementStyleProperty);
+        set => SetValue(ElementStyleProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the style that is used when rendering the element that the column
+    /// displays for a cell in editing mode.
+    /// </summary>
+    public Style EditingElementStyle
+    {
+        get => (Style)GetValue(EditingElementStyleProperty);
+        set => SetValue(EditingElementStyleProperty, value);
+    }
+
+    /// <summary>
+    /// Identifies the <see cref="ElementStyle"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ElementStyleProperty = DependencyProperty.Register(nameof(ElementStyle), typeof(Style), typeof(TableViewBoundColumn), new PropertyMetadata(null, OnElementStyleChanged));
+
+    /// <summary>
+    /// Identifies the <see cref="EditingElementStyle"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty EditingElementStyleProperty = DependencyProperty.Register(nameof(EditingElementStyle), typeof(Style), typeof(TableViewBoundColumn), new PropertyMetadata(null, OnEditingElementStyleChanged));
 }

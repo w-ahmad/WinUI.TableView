@@ -13,6 +13,8 @@ namespace WinUI.TableView;
 /// <summary>
 /// Represents a column in a TableView that displays a date.
 /// </summary>
+[StyleTypedProperty(Property = nameof(ElementStyle), StyleTargetType = typeof(TextBlock))]
+[StyleTypedProperty(Property = nameof(EditingElementStyle), StyleTargetType = typeof(TableViewDatePicker))]
 public partial class TableViewDateColumn : TableViewBoundColumn
 {
     /// <summary>

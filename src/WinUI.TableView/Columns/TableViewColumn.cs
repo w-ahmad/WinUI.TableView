@@ -6,9 +6,9 @@ namespace WinUI.TableView;
 /// Represents a column in a TableView.
 /// </summary>
 [StyleTypedProperty(Property = nameof(HeaderStyle), StyleTargetType = typeof(TableViewColumnHeader))]
+[StyleTypedProperty(Property = nameof(CellStyle), StyleTargetType = typeof(TableViewCell))]
 public abstract class TableViewColumn : DependencyObject
-{    
-    private TableViewColumnsCollection? _owningCollection;
+{
     private TableViewColumnHeader? _headerControl;
     private double _desiredWidth;
     private SD? _sortDirection;
@@ -50,7 +50,7 @@ public abstract class TableViewColumn : DependencyObject
     /// <param name="collection">The owning collection.</param>
     internal void SetOwningCollection(TableViewColumnsCollection collection)
     {
-        _owningCollection = collection;
+        OwningCollection = collection;
     }
 
     /// <summary>
@@ -144,6 +144,16 @@ public abstract class TableViewColumn : DependencyObject
         set => SetValue(HeaderStyleProperty, value);
     }
 
+
+    /// <summary>
+    /// Gets or sets the style for the cells.
+    /// </summary>
+    public Style CellStyle
+    {
+        get => (Style)GetValue(CellStyleProperty);
+        set => SetValue(CellStyleProperty, value);
+    }
+
     /// <summary>
     /// Gets or sets the header control for the column.
     /// </summary>
@@ -193,6 +203,8 @@ public abstract class TableViewColumn : DependencyObject
         set => SetValue(CanFilterProperty, value);
     }
 
+    internal TableViewColumnsCollection? OwningCollection { get; set; }
+
     /// <summary>
     /// Gets or sets the desired width of the column.
     /// </summary>
@@ -204,7 +216,7 @@ public abstract class TableViewColumn : DependencyObject
             if (_desiredWidth != value)
             {
                 _desiredWidth = value;
-                _owningCollection?.HandleColumnPropertyChanged(this, nameof(DesiredWidth));
+                OwningCollection?.HandleColumnPropertyChanged(this, nameof(DesiredWidth));
             }
         }
     }
@@ -269,11 +281,11 @@ public abstract class TableViewColumn : DependencyObject
     /// <summary>
     /// Ensures the header style is applied to the header control.
     /// </summary>
-    private void EnsureHeaderStyle()
+    internal void EnsureHeaderStyle()
     {
-        if (_headerControl is not null && HeaderStyle is not null)
+        if (_headerControl is not null)
         {
-            _headerControl.Style = HeaderStyle;
+            _headerControl.Style = HeaderStyle ?? TableView?.ColumnHeaderStyle;
         }
     }
 
@@ -282,9 +294,9 @@ public abstract class TableViewColumn : DependencyObject
     /// </summary>
     private static void OnWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableViewColumn column && column._owningCollection is { })
+        if (d is TableViewColumn column && column.OwningCollection is { })
         {
-            column._owningCollection.HandleColumnPropertyChanged(column, nameof(Width));
+            column.OwningCollection.HandleColumnPropertyChanged(column, nameof(Width));
         }
     }
 
@@ -293,9 +305,9 @@ public abstract class TableViewColumn : DependencyObject
     /// </summary>
     private static void OnMinWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableViewColumn column && column._owningCollection is { })
+        if (d is TableViewColumn column && column.OwningCollection is { })
         {
-            column._owningCollection.HandleColumnPropertyChanged(column, nameof(MinWidth));
+            column.OwningCollection.HandleColumnPropertyChanged(column, nameof(MinWidth));
         }
     }
 
@@ -304,9 +316,9 @@ public abstract class TableViewColumn : DependencyObject
     /// </summary>
     private static void OnMaxWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableViewColumn column && column._owningCollection is { })
+        if (d is TableViewColumn column && column.OwningCollection is { })
         {
-            column._owningCollection.HandleColumnPropertyChanged(column, nameof(MaxWidth));
+            column.OwningCollection.HandleColumnPropertyChanged(column, nameof(MaxWidth));
         }
     }
 
@@ -315,9 +327,9 @@ public abstract class TableViewColumn : DependencyObject
     /// </summary>
     private static void OnActualWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableViewColumn column && column._owningCollection is { })
+        if (d is TableViewColumn column && column.OwningCollection is { })
         {
-            column._owningCollection.HandleColumnPropertyChanged(column, nameof(ActualWidth));
+            column.OwningCollection.HandleColumnPropertyChanged(column, nameof(ActualWidth));
         }
     }
 
@@ -326,9 +338,9 @@ public abstract class TableViewColumn : DependencyObject
     /// </summary>
     private static void OnIsReadOnlyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableViewColumn column && column._owningCollection is { })
+        if (d is TableViewColumn column && column.OwningCollection is { })
         {
-            column._owningCollection.HandleColumnPropertyChanged(column, nameof(IsReadOnly));
+            column.OwningCollection.HandleColumnPropertyChanged(column, nameof(IsReadOnly));
         }
     }
 
@@ -337,9 +349,9 @@ public abstract class TableViewColumn : DependencyObject
     /// </summary>
     private static void OnVisibilityChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableViewColumn column && column._owningCollection is { })
+        if (d is TableViewColumn column && column.OwningCollection is { })
         {
-            column._owningCollection.HandleColumnPropertyChanged(column, nameof(Visibility));
+            column.OwningCollection.HandleColumnPropertyChanged(column, nameof(Visibility));
         }
     }
 
@@ -352,46 +364,82 @@ public abstract class TableViewColumn : DependencyObject
     }
 
     /// <summary>
+    /// Handles changes to the HeaderStyle property.
+    /// </summary>
+    private static void OnHeaderStyleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableViewColumn column)
+        {
+            column.EnsureHeaderStyle();
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the CellStyle property.
+    /// </summary>
+    private static void OnCellStyleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableViewColumn column && column.OwningCollection is { })
+        {
+            column.OwningCollection.HandleColumnPropertyChanged(column, nameof(CellStyle));
+        }
+    }
+
+    /// <summary>
     /// Identifies the HeaderStyle dependency property.
     /// </summary>
-    public static readonly DependencyProperty HeaderStyleProperty = DependencyProperty.Register(nameof(HeaderStyle), typeof(Style), typeof(TableViewColumn), new PropertyMetadata(null, (d, _) => ((TableViewColumn)d).EnsureHeaderStyle()));
+    public static readonly DependencyProperty HeaderStyleProperty = DependencyProperty.Register(nameof(HeaderStyle), typeof(Style), typeof(TableViewColumn), new PropertyMetadata(null, OnHeaderStyleChanged));
+
+    /// <summary>
+    /// Identifies the CellStyle dependency property.
+    /// </summary>
+    public static readonly DependencyProperty CellStyleProperty = DependencyProperty.Register(nameof(CellStyle), typeof(Style), typeof(TableView), new PropertyMetadata(null, OnCellStyleChanged));
+
     /// <summary>
     /// Identifies the Header dependency property.
     /// </summary>
     public static readonly DependencyProperty HeaderProperty = DependencyProperty.Register(nameof(Header), typeof(object), typeof(TableViewColumn), new PropertyMetadata(null));
+
     /// <summary>
     /// Identifies the Width dependency property.
     /// </summary>
     public static readonly DependencyProperty WidthProperty = DependencyProperty.Register(nameof(Width), typeof(GridLength), typeof(TableViewColumn), new PropertyMetadata(GridLength.Auto, OnWidthChanged));
+
     /// <summary>
     /// Identifies the MinWidth dependency property.
     /// </summary>
     public static readonly DependencyProperty MinWidthProperty = DependencyProperty.Register(nameof(MinWidth), typeof(double?), typeof(TableViewColumn), new PropertyMetadata(default, OnMinWidthChanged));
+
     /// <summary>
     /// Identifies the MaxWidth dependency property.
     /// </summary>
     public static readonly DependencyProperty MaxWidthProperty = DependencyProperty.Register(nameof(MaxWidth), typeof(double?), typeof(TableViewColumn), new PropertyMetadata(default, OnMaxWidthChanged));
+
     /// <summary>
     /// Identifies the ActualWidth dependency property.
     /// </summary>
     public static readonly DependencyProperty ActualWidthProperty = DependencyProperty.Register(nameof(ActualWidth), typeof(double), typeof(TableViewColumn), new PropertyMetadata(0d, OnActualWidthChanged));
+
     /// <summary>
     /// Identifies the CanResize dependency property.
     /// </summary>
     public static readonly DependencyProperty CanResizeProperty = DependencyProperty.Register(nameof(CanResize), typeof(bool), typeof(TableViewColumn), new PropertyMetadata(true));
+
     /// <summary>
     /// Identifies the IsReadOnly dependency property.
     /// </summary>
     public static readonly DependencyProperty IsReadOnlyProperty = DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(TableViewColumn), new PropertyMetadata(false, OnIsReadOnlyChanged));
+
     /// <summary>
     /// Identifies the Visibility dependency property.
     /// </summary>
     public static readonly DependencyProperty VisibilityProperty = DependencyProperty.Register(nameof(Visibility), typeof(Visibility), typeof(TableViewColumn), new PropertyMetadata(Visibility.Visible, OnVisibilityChanged));
+
     /// <summary>
     /// Identifies the Tag dependency property.
     /// </summary>
     public static readonly DependencyProperty TagProperty = DependencyProperty.Register(nameof(Tag), typeof(object), typeof(TableViewColumn), new PropertyMetadata(null));
-    
+
     /// <summary>
     /// Identifies the CanSort dependency property.
     /// </summary>
