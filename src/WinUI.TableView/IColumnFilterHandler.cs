@@ -8,28 +8,16 @@ namespace WinUI.TableView;
 public interface IColumnFilterHandler
 {
     /// <summary>
-    /// Gets or sets the filter items.
+    /// Gets or sets the selected values for the filter per column.
     /// </summary>
-    IList<TableViewFilterItem> FilterItems { get; set; }
+    IDictionary<TableViewColumn, IList<object>> SelectedValues { get; }
 
     /// <summary>
-    /// Gets or sets the selected values for the filter.
-    /// </summary>
-    IList<object> SelectedValues { get; set; }
-
-    /// <summary>
-    /// Prepares the filter items for the specified column.
+    /// Get the filter items for the specified column.
     /// </summary>
     /// <param name="column">The column for which to prepare filter items.</param>
     /// <param name="searchText">The search text to filter the items.</param>
-    void PrepareFilterItems(TableViewColumn column, string? searchText = default);
-
-    /// <summary>
-    /// Handles the search text changed event for the specified column.
-    /// </summary>
-    /// <param name="column">The column for which the search text has changed.</param>
-    /// <param name="searchText">The new search text.</param>
-    void SearchTextChanged(TableViewColumn column, string? searchText);
+    IList<TableViewFilterItem> GetFilterItems(TableViewColumn column, string? searchText);
 
     /// <summary>
     /// Applies the filter to the specified column.

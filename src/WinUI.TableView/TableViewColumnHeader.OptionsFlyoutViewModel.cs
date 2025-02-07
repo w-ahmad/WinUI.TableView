@@ -144,8 +144,7 @@ public partial class TableViewColumnHeader
         {
             if (!_canFilter) return;
 
-            TableView.FilterHandler.SearchTextChanged(ColumnHeader.Column!,FilterText);
-            FilterItems = TableView.FilterHandler.FilterItems;
+            FilterItems = TableView.FilterHandler.GetFilterItems(ColumnHeader.Column!, FilterText);
         }
 
         /// <summary>

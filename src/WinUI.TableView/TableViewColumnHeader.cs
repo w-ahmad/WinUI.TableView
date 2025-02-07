@@ -126,7 +126,7 @@ public partial class TableViewColumnHeader : ContentControl
     {
         if (_tableView is not null)
         {
-            _tableView.FilterHandler.SelectedValues = _optionsFlyoutViewModel.SelectedValues;
+            _tableView.FilterHandler.SelectedValues[Column!] = _optionsFlyoutViewModel.SelectedValues;
             _tableView.FilterHandler?.ApplyFilter(Column!);
         }
     }
@@ -244,8 +244,10 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     private void OnOptionsFlyoutOpening(object? sender, object e)
     {
-        _tableView?.FilterHandler?.PrepareFilterItems(Column!);
-        _optionsFlyoutViewModel.FilterItems = _tableView?.FilterHandler?.FilterItems!;
+        if (_tableView?.FilterHandler is not null)
+        {
+            _optionsFlyoutViewModel.FilterItems = _tableView.FilterHandler.GetFilterItems(Column!, null);
+        }
     }
 
     /// <summary>
