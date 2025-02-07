@@ -6,6 +6,8 @@ namespace WinUI.TableView;
 /// <summary>
 /// Represents a column in a TableView that displays a number.
 /// </summary>
+[StyleTypedProperty(Property = nameof(ElementStyle), StyleTargetType = typeof(TextBlock))]
+[StyleTypedProperty(Property = nameof(EditingElementStyle), StyleTargetType = typeof(NumberBox))]
 public class TableViewNumberColumn : TableViewBoundColumn
 {
     /// <summary>
@@ -18,6 +20,7 @@ public class TableViewNumberColumn : TableViewBoundColumn
     {
         var textBlock = new TextBlock
         {
+            TextAlignment = TextAlignment.Right,
             Margin = new Thickness(12, 0, 12, 0),
         };
         textBlock.SetBinding(TextBlock.TextProperty, Binding);

@@ -30,6 +30,8 @@ namespace WinUI.TableView;
 /// <summary>
 /// Represents a control that displays data in customizable table-like interface.
 /// </summary>
+[StyleTypedProperty(Property = nameof(ColumnHeaderStyle), StyleTargetType = typeof(TableViewColumnHeader))]
+[StyleTypedProperty(Property = nameof(CellStyle), StyleTargetType = typeof(TableViewCell))]
 public partial class TableView : ListView
 {
     private TableViewHeaderRow? _headerRow;
@@ -1273,6 +1275,28 @@ public partial class TableView : ListView
                 row.EnsureAlternateColors();
             }
         });
+    }
+
+    /// <summary>
+    /// Ensures the column headers style is applied.
+    /// </summary>
+    private void EnsureColumnHeadersStyle()
+    {
+        foreach (var column in Columns)
+        {
+            column.EnsureHeaderStyle();
+        }
+    }
+
+    /// <summary>
+    /// Ensures the cells style is applied.
+    /// </summary>
+    private void EnsureCellsStyle()
+    {
+        foreach (var row in _rows)
+        {
+            row.EnsureCellsStyle();
+        }
     }
 
     /// <summary>

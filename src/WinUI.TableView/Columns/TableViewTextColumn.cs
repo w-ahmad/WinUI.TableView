@@ -6,6 +6,8 @@ namespace WinUI.TableView;
 /// <summary>
 /// Represents a column in a TableView that displays text.
 /// </summary>
+[StyleTypedProperty(Property = nameof(ElementStyle), StyleTargetType = typeof(TextBlock))]
+[StyleTypedProperty(Property = nameof(EditingElementStyle), StyleTargetType = typeof(TextBox))]
 public class TableViewTextColumn : TableViewBoundColumn
 {
     /// <summary>

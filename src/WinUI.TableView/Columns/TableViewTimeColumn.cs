@@ -12,6 +12,8 @@ namespace WinUI.TableView;
 /// <summary>
 /// Represents a column in a TableView that displays time.
 /// </summary>
+[StyleTypedProperty(Property = nameof(ElementStyle), StyleTargetType = typeof(TextBlock))]
+[StyleTypedProperty(Property = nameof(EditingElementStyle), StyleTargetType = typeof(TableViewTimePicker))]
 public partial class TableViewTimeColumn : TableViewBoundColumn
 {
     /// <summary>

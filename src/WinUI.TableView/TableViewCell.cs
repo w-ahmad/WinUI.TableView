@@ -302,7 +302,14 @@ public partial class TableViewCell : ContentControl
     /// </summary>
     internal void SetElement()
     {
-        Content = Column?.GenerateElement(this, Row?.Content);
+        var element = Column?.GenerateElement(this, Row?.Content);
+
+        if (element is not null && Column is TableViewBoundColumn boundColumn)
+        {
+            element.Style = boundColumn.ElementStyle;
+        }
+
+        Content = element;
     }
 
     /// <summary>
@@ -312,7 +319,14 @@ public partial class TableViewCell : ContentControl
     {
         if (Column?.UseSingleElement is false)
         {
-            Content = Column.GenerateEditingElement(this, Row?.Content);
+            var element = Column.GenerateEditingElement(this, Row?.Content);
+
+            if(element is not null && Column is TableViewBoundColumn boundColumn)
+            {
+                element.Style = boundColumn.EditingElementStyle;
+            }
+
+            Content = element;
         }
 
         if (TableView is not null)
