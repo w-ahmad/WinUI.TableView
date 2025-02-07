@@ -453,7 +453,7 @@ public partial class TableView
     }
 
     /// <summary>
-    /// Gets or sets the style for the column headers.
+    /// Gets or sets the style applied to all column headers.
     /// </summary>
     public Style ColumnHeaderStyle
     {
@@ -462,7 +462,7 @@ public partial class TableView
     }
 
     /// <summary>
-    /// Gets or sets the style for the cells.
+    /// Gets or sets the style applied to all cells.
     /// </summary>
     public Style CellStyle
     {

@@ -136,7 +136,7 @@ public abstract class TableViewColumn : DependencyObject
     }
 
     /// <summary>
-    /// Gets or sets the style for the column header.
+    /// Gets or sets the style that is used when rendering the column header.
     /// </summary>
     public Style? HeaderStyle
     {
@@ -146,7 +146,7 @@ public abstract class TableViewColumn : DependencyObject
 
 
     /// <summary>
-    /// Gets or sets the style for the cells.
+    /// Gets or sets the style that is used to render cells in the column.
     /// </summary>
     public Style CellStyle
     {
