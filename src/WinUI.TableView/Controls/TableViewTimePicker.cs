@@ -12,7 +12,7 @@ namespace WinUI.TableView.Controls;
 /// <summary>
 /// Represents a time editing element for the TableViewTimeColumn.
 /// </summary>
-public class TableViewTimePicker : Control
+public partial class TableViewTimePicker : Control
 {
     private TextBlock? _timeText;
     private readonly TimePickerFlyout _flyout;

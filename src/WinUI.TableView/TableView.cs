@@ -35,8 +35,8 @@ public partial class TableView : ListView
     private TableViewHeaderRow? _headerRow;
     private ScrollViewer? _scrollViewer;
     private bool _shouldThrowSelectionModeChangedException;
-    private readonly List<TableViewRow> _rows = new();
-    private readonly CollectionView _collectionView = new();
+    private readonly List<TableViewRow> _rows = [];
+    private readonly CollectionView _collectionView = [];
 
     /// <summary>
     /// Initializes a new instance of the TableView class.
@@ -333,7 +333,7 @@ public partial class TableView : ListView
     {
         var slots = Enumerable.Empty<TableViewCellSlot>();
 
-        if (SelectedItems.Any() || SelectedCells.Any())
+        if (SelectedItems.Any() || SelectedCells.Count != 0)
         {
             slots = SelectedRanges.SelectMany(x => Enumerable.Range(x.FirstIndex, (int)x.Length))
                                   .SelectMany(r => Enumerable.Range(0, Columns.VisibleColumns.Count)
@@ -344,7 +344,7 @@ public partial class TableView : ListView
         }
         else if (CurrentCellSlot.HasValue)
         {
-            slots = new[] { CurrentCellSlot.Value };
+            slots = [CurrentCellSlot.Value];
         }
 
         return GetCellsContent(slots, includeHeaders, separator);
@@ -661,7 +661,7 @@ public partial class TableView : ListView
     {
         var savePicker = new FileSavePicker();
         InitializeWithWindow.Initialize(savePicker, hWnd);
-        savePicker.FileTypeChoices.Add("CSV (Comma delimited)", new List<string>() { ".csv" });
+        savePicker.FileTypeChoices.Add("CSV (Comma delimited)", [".csv"]);
 
         return await savePicker.PickSaveFileAsync();
     }
@@ -802,7 +802,7 @@ public partial class TableView : ListView
                 if (Items.Count > 0 && Columns.VisibleColumns.Count > 0)
                 {
                     SelectedCellRanges.Clear();
-                    SelectedCellRanges.Add(new() { new TableViewCellSlot(0, 0) });
+                    SelectedCellRanges.Add([new TableViewCellSlot(0, 0)]);
                 }
                 break;
             case ListViewSelectionMode.Multiple:
@@ -965,7 +965,7 @@ public partial class TableView : ListView
             return;
         }
 
-        var selectionRange = (SelectionStartCellSlot is null ? null : SelectedCellRanges.LastOrDefault(x => SelectionStartCellSlot.HasValue && x.Contains(SelectionStartCellSlot.Value))) ?? new HashSet<TableViewCellSlot>();
+        var selectionRange = (SelectionStartCellSlot is null ? null : SelectedCellRanges.LastOrDefault(x => SelectionStartCellSlot.HasValue && x.Contains(SelectionStartCellSlot.Value))) ?? [];
         SelectedCellRanges.Remove(selectionRange);
         selectionRange.Clear();
         SelectionStartCellSlot ??= CurrentCellSlot;

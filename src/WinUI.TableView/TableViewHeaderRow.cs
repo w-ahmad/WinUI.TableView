@@ -31,7 +31,7 @@ public partial class TableViewHeaderRow : Control
     private StackPanel? _headersStackPanel;
     private bool _calculatingHeaderWidths;
     private DispatcherTimer? _timer;
-    private readonly Dictionary<DependencyProperty, long> _callbackTokens = new();
+    private readonly Dictionary<DependencyProperty, long> _callbackTokens = [];
 
     /// <summary>
     /// Initializes a new instance of the TableViewHeaderRow class.
@@ -110,11 +110,11 @@ public partial class TableViewHeaderRow : Control
         {
             if (e.Column.Visibility == Visibility.Visible)
             {
-                AddHeaders(new[] { e.Column }, e.Index);
+                AddHeaders([e.Column], e.Index);
             }
             else
             {
-                RemoveHeaders(new[] { e.Column });
+                RemoveHeaders([e.Column]);
             }
         }
         else if (e.PropertyName is nameof(TableViewColumn.Width) or
@@ -187,16 +187,10 @@ public partial class TableViewHeaderRow : Control
                 var header = new TableViewColumnHeader { DataContext = column, Column = column };
                 column.HeaderControl = header;
 
-                if (index < 0)
-                {
-                    _headersStackPanel.Children.Add(header);
-                }
-                else
-                {
-                    index = Math.Min(index, _headersStackPanel.Children.Count);
-                    _headersStackPanel.Children.Insert(index, header);
-                    index++;
-                }
+                index = Math.Min(index, _headersStackPanel.Children.Count);
+                index = Math.Max(index, 0); // handles -ve index;
+                _headersStackPanel.Children.Insert(index, header);
+                index++;
 
                 header.SetBinding(ContentControl.ContentProperty,
                                   new Binding { Path = new PropertyPath(nameof(TableViewColumn.Header)) });

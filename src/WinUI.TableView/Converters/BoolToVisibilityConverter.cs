@@ -4,7 +4,7 @@ using System;
 
 namespace WinUI.TableView.Converters;
 
-internal class BoolToVisibilityConverter : IValueConverter
+internal partial class BoolToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
     {

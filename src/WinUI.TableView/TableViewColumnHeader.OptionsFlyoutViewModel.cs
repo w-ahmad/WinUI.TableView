@@ -17,7 +17,7 @@ public partial class TableViewColumnHeader
         public event PropertyChangedEventHandler? PropertyChanged;
         private string? _filterText;
         private bool _canFilter = true;
-        private IList<TableViewFilterItem> _filterItems = new List<TableViewFilterItem>();
+        private IList<TableViewFilterItem> _filterItems = [];
         private bool _canSetState = true;
 
         /// <summary>
@@ -169,7 +169,7 @@ public partial class TableViewColumnHeader
         /// <summary>
         /// Gets the selected values for the filter.
         /// </summary>
-        public List<object> SelectedValues { get; private set; } = new();
+        public List<object> SelectedValues { get; private set; } = [];
 
         /// <summary>
         /// Sets the state of the select all checkbox.

@@ -104,7 +104,7 @@ public class ColumnFilterHandler : IColumnFilterHandler
         return SelectedValues.Contains(value);
     }
 
-    public IList<TableViewFilterItem> FilterItems { get; set; } = new List<TableViewFilterItem>();
+    public IList<TableViewFilterItem> FilterItems { get; set; } = [];
 
-    public IList<object> SelectedValues { get; set; } = new List<object>();
+    public IList<object> SelectedValues { get; set; } = [];
 }

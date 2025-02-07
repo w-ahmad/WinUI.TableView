@@ -23,7 +23,7 @@ internal static class ObjectExtensions
                 break;
             }
 
-            obj = pi.index is not null ? pi.pi.GetValue(obj, new[] { pi.index }) : pi.pi.GetValue(obj);
+            obj = pi.index is not null ? pi.pi.GetValue(obj, [pi.index]) : pi.pi.GetValue(obj);
         }
 
         return obj;
@@ -43,7 +43,7 @@ internal static class ObjectExtensions
 
         if (parts is null)
         {
-            pis = Array.Empty<(PropertyInfo, object?)>();
+            pis = [];
             return obj;
         }
 
@@ -63,7 +63,7 @@ internal static class ObjectExtensions
             if (pi is not null)
             {
                 pis[i] = (pi, index);
-                obj = index is not null ? pi?.GetValue(obj, new[] { index }) : pi?.GetValue(obj);
+                obj = index is not null ? pi?.GetValue(obj, [index]) : pi?.GetValue(obj);
                 type = obj?.GetType();
             }
             else

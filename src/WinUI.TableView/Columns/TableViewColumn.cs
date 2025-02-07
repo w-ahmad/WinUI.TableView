@@ -351,15 +351,45 @@ public abstract class TableViewColumn : DependencyObject
         }
     }
 
+    /// <summary>
+    /// Identifies the HeaderStyle dependency property.
+    /// </summary>
     public static readonly DependencyProperty HeaderStyleProperty = DependencyProperty.Register(nameof(HeaderStyle), typeof(Style), typeof(TableViewColumn), new PropertyMetadata(null, (d, _) => ((TableViewColumn)d).EnsureHeaderStyle()));
+    /// <summary>
+    /// Identifies the Header dependency property.
+    /// </summary>
     public static readonly DependencyProperty HeaderProperty = DependencyProperty.Register(nameof(Header), typeof(object), typeof(TableViewColumn), new PropertyMetadata(null));
+    /// <summary>
+    /// Identifies the Width dependency property.
+    /// </summary>
     public static readonly DependencyProperty WidthProperty = DependencyProperty.Register(nameof(Width), typeof(GridLength), typeof(TableViewColumn), new PropertyMetadata(GridLength.Auto, OnWidthChanged));
+    /// <summary>
+    /// Identifies the MinWidth dependency property.
+    /// </summary>
     public static readonly DependencyProperty MinWidthProperty = DependencyProperty.Register(nameof(MinWidth), typeof(double?), typeof(TableViewColumn), new PropertyMetadata(default, OnMinWidthChanged));
+    /// <summary>
+    /// Identifies the MaxWidth dependency property.
+    /// </summary>
     public static readonly DependencyProperty MaxWidthProperty = DependencyProperty.Register(nameof(MaxWidth), typeof(double?), typeof(TableViewColumn), new PropertyMetadata(default, OnMaxWidthChanged));
+    /// <summary>
+    /// Identifies the ActualWidth dependency property.
+    /// </summary>
     public static readonly DependencyProperty ActualWidthProperty = DependencyProperty.Register(nameof(ActualWidth), typeof(double), typeof(TableViewColumn), new PropertyMetadata(0d, OnActualWidthChanged));
+    /// <summary>
+    /// Identifies the CanResize dependency property.
+    /// </summary>
     public static readonly DependencyProperty CanResizeProperty = DependencyProperty.Register(nameof(CanResize), typeof(bool), typeof(TableViewColumn), new PropertyMetadata(true));
+    /// <summary>
+    /// Identifies the IsReadOnly dependency property.
+    /// </summary>
     public static readonly DependencyProperty IsReadOnlyProperty = DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(TableViewColumn), new PropertyMetadata(false, OnIsReadOnlyChanged));
+    /// <summary>
+    /// Identifies the Visibility dependency property.
+    /// </summary>
     public static readonly DependencyProperty VisibilityProperty = DependencyProperty.Register(nameof(Visibility), typeof(Visibility), typeof(TableViewColumn), new PropertyMetadata(Visibility.Visible, OnVisibilityChanged));
+    /// <summary>
+    /// Identifies the Tag dependency property.
+    /// </summary>
     public static readonly DependencyProperty TagProperty = DependencyProperty.Register(nameof(Tag), typeof(object), typeof(TableViewColumn), new PropertyMetadata(null));
     
     /// <summary>

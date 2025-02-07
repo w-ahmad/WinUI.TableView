@@ -183,12 +183,12 @@ public partial class TableView
     /// <summary>
     /// Gets or sets the selected cells.
     /// </summary>
-    internal HashSet<TableViewCellSlot> SelectedCells { get; set; } = new HashSet<TableViewCellSlot>();
+    internal HashSet<TableViewCellSlot> SelectedCells { get; set; } = [];
 
     /// <summary>
     /// Gets the selected cell ranges.
     /// </summary>
-    internal HashSet<HashSet<TableViewCellSlot>> SelectedCellRanges { get; } = new HashSet<HashSet<TableViewCellSlot>>();
+    internal HashSet<HashSet<TableViewCellSlot>> SelectedCellRanges { get; } = [];
 
     /// <summary>
     /// Gets or sets a value indicating whether the TableView is in editing mode.
@@ -215,7 +215,7 @@ public partial class TableView
     /// <summary>
     /// Gets the collection of columns in the TableView.
     /// </summary>
-    public TableViewColumnsCollection Columns { get; } = new();
+    public TableViewColumnsCollection Columns { get; } = [];
 
     /// <summary>
     /// Gets or sets the height of the header row.
@@ -470,7 +470,7 @@ public partial class TableView
 
                 if (tableView.SelectionMode is ListViewSelectionMode.Single && tableView.CurrentCellSlot.HasValue)
                 {
-                    tableView.SelectedCellRanges.Add(new() { tableView.CurrentCellSlot.Value });
+                    tableView.SelectedCellRanges.Add([tableView.CurrentCellSlot.Value]);
                 }
 
                 tableView.OnCellSelectionChanged();
