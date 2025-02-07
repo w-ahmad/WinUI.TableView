@@ -20,7 +20,7 @@ public class ColumnFilterHandler : IColumnFilterHandler
         _tableView = tableView;
     }
 
-    public virtual void PrepareFilterItems(TableViewColumn column, string? searchText = default)
+    public virtual IList<TableViewFilterItem> GetFilterItems(TableViewColumn column, string? searchText = default)
     {
         if (column is { TableView.ItemsSource: { } })
         {
@@ -37,11 +37,11 @@ public class ColumnFilterHandler : IColumnFilterHandler
                 filterValues.Add(value);
             }
 
-            FilterItems = filterValues.Select(value =>
+            return filterValues.Select(value =>
             {
                 value = string.IsNullOrWhiteSpace(value?.ToString()) ? "(Blank)" : value;
                 var isSelected = !column.IsFiltered || !string.IsNullOrEmpty(searchText) ||
-                  (column.IsFiltered && SelectedValues.Contains(value));
+                  (column.IsFiltered && SelectedValues[column].Contains(value));
 
                 return string.IsNullOrEmpty(searchText)
                       || value?.ToString()?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true
@@ -51,11 +51,8 @@ public class ColumnFilterHandler : IColumnFilterHandler
             }).OfType<TableViewFilterItem>()
               .ToList();
         }
-    }
 
-    public virtual void SearchTextChanged(TableViewColumn column, string? searchText)
-    {
-        PrepareFilterItems(column, searchText);
+        return [];
     }
 
     public virtual void ApplyFilter(TableViewColumn column)
@@ -89,22 +86,30 @@ public class ColumnFilterHandler : IColumnFilterHandler
         {
             column.IsFiltered = false;
             column.TableView.FilterDescriptions.RemoveWhere(x => x is ColumnFilterDescription columnFilter && columnFilter.Column == column);
+            SelectedValues.RemoveWhere(x => x.Key == column);
             column.TableView.RefreshFilter();
         }
         else
         {
-            _tableView.ClearAllFilters();
+            SelectedValues.Clear();
+            _tableView.FilterDescriptions.Clear();
+
+            foreach (var col in _tableView.Columns)
+            {
+                if (col is not null)
+                {
+                    col.IsFiltered = false;
+                }
+            }
         }
     }
 
     public virtual bool Filter(TableViewColumn column, object? item)
     {
-        var value = column?.GetCellContent(item);
+        var value = column.GetCellContent(item);
         value = string.IsNullOrWhiteSpace(value?.ToString()) ? "(Blank)" : value;
-        return SelectedValues.Contains(value);
+        return SelectedValues[column].Contains(value);
     }
 
-    public IList<TableViewFilterItem> FilterItems { get; set; } = [];
-
-    public IList<object> SelectedValues { get; set; } = [];
+    public IDictionary<TableViewColumn, IList<object>> SelectedValues { get; } = new Dictionary<TableViewColumn, IList<object>>();
 }

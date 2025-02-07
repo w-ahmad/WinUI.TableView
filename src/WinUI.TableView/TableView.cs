@@ -742,16 +742,7 @@ public partial class TableView : ListView
     /// </summary>
     public void ClearAllFilters()
     {
-        DeselectAll();
-        FilterDescriptions.Clear();
-
-        foreach (var column in Columns)
-        {
-            if (column is not null)
-            {
-                column.IsFiltered = false;
-            }
-        }
+        FilterHandler.ClearFilter(null);
     }
 
     /// <summary>
