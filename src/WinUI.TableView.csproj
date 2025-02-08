@@ -20,7 +20,7 @@
     <PackageProjectUrl>https://github.com/w-ahmad/WinUI3.TableView</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageOutputPath>$(MSBuildThisFileDirectory)..\..\artifacts\NuGet\$(Configuration)\</PackageOutputPath>
+    <PackageOutputPath>$(MSBuildThisFileDirectory)..\artifacts\NuGet\$(Configuration)\</PackageOutputPath>
     <Authors>w-ahmad - https://github.com/w-ahmad</Authors>
   </PropertyGroup>
 
@@ -34,6 +34,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 </Project>
