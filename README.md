@@ -13,6 +13,9 @@
   <img src="https://contrib.rocks/image?repo=w-ahmad/WinUI.TableView" />
 </a>
 
+##
+
+![WinUI TableView SampleApp](https://github.com/w-ahmad/WinUI.TableView.SampleApp/blob/main/WinUI.TableView%20SampleApp.gif)
 
 ## Features
 
@@ -152,26 +155,27 @@ You can customize the appearance and behavior of the `TableView` by modifying it
 - **TableView Options**: Turn on or off options flyout for the TableView based on your requirements.
 
 ```xml
-<tableView:TableView x:Name="MyTableView"
-                     ItemsSource="{x:Bind ViewModel.Items}"
-                     AutoGenerateColumns="False">
-    <tableView:TableView.Columns>
-        <tableView:TableViewTextColumn Header="Name" Binding="{Binding Name}" />
-        <tableView:TableViewNumberColumn Header="Price" Binding="{Binding Price}" />
-        <tableView:TableViewTemplateColumn Header="Quantity">
-            <tableView:TableViewTemplateColumn.CellTemplate>
+<tv:TableView x:Name="MyTableView"
+              ItemsSource="{x:Bind ViewModel.Items}"
+              AutoGenerateColumns="False"
+              xmlns:tv="using:WinUI.TableView">
+    <tv:TableView.Columns>
+        <tv:TableViewTextColumn Header="Name" Binding="{Binding Name}" />
+        <tv:TableViewNumberColumn Header="Price" Binding="{Binding Price}" />
+        <tv:TableViewTemplateColumn Header="Quantity">
+            <tv:TableViewTemplateColumn.CellTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding Quantity}" />
                 </DataTemplate>
-            </tableView:TableViewTemplateColumn.CellTemplate>
-            <tableView:TableViewTemplateColumn.EditingTemplate>
+            </tv:TableViewTemplateColumn.CellTemplate>
+            <tv:TableViewTemplateColumn.EditingTemplate>
                 <DataTemplate>
                     <NumberBox Value="{Binding Quantity, Mode=TwoWay}" />
                 </DataTemplate>
-            </tableView:TableViewTemplateColumn.EditingTemplate>
-        </tableView:TableViewTemplateColumn>
-    </tableView:TableView.Columns>
-</tableView:TableView>
+            </tv:TableViewTemplateColumn.EditingTemplate>
+        </tv:TableViewTemplateColumn>
+    </tv:TableView.Columns>
+</tv:TableView>
 ```
 
 ### Available Column Types
