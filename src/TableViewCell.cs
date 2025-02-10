@@ -304,7 +304,7 @@ public partial class TableViewCell : ContentControl
     {
         var element = Column?.GenerateElement(this, Row?.Content);
 
-        if (element is not null && Column is TableViewBoundColumn boundColumn)
+        if (element is not null && Column is TableViewBoundColumn { ElementStyle: { } } boundColumn)
         {
             element.Style = boundColumn.ElementStyle;
         }
@@ -321,7 +321,7 @@ public partial class TableViewCell : ContentControl
         {
             var element = Column.GenerateEditingElement(this, Row?.Content);
 
-            if(element is not null && Column is TableViewBoundColumn boundColumn)
+            if (element is not null && Column is TableViewBoundColumn { EditingElementStyle: { } } boundColumn)
             {
                 element.Style = boundColumn.EditingElementStyle;
             }
