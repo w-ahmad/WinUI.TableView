@@ -1295,10 +1295,11 @@ public partial class TableView : ListView
     /// </summary>
     internal void ShowRowContext(TableViewRow row, Point position)
     {
-        if (RowContextFlyout is null) return;
 
         var eventArgs = new TableViewRowContextFlyoutEventArgs(row.Index, row, row.Content, RowContextFlyout);
         RowContextFlyoutOpening?.Invoke(this, eventArgs);
+
+        if (RowContextFlyout is null) return;
 
         if (!eventArgs.Handled)
         {
@@ -1318,10 +1319,11 @@ public partial class TableView : ListView
     /// </summary>
     internal void ShowCellContext(TableViewCell cell, Point position)
     {
-        if (CellContextFlyout is null) return;
 
         var eventArgs = new TableViewCellContextFlyoutEventArgs(cell.Slot, cell, cell.Row?.Content!, CellContextFlyout);
         CellContextFlyoutOpening?.Invoke(this, eventArgs);
+
+        if (CellContextFlyout is null) return;
 
         if (!eventArgs.Handled)
         {

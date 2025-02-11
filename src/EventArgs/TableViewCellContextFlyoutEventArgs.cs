@@ -15,7 +15,7 @@ public partial class TableViewCellContextFlyoutEventArgs : HandledEventArgs
     /// <param name="cell">The cell for which the context flyout is being shown.</param>
     /// <param name="item">The item associated with the cell.</param>
     /// <param name="flyout">The context flyout to be shown.</param>
-    public TableViewCellContextFlyoutEventArgs(TableViewCellSlot slot, TableViewCell cell, object item, FlyoutBase flyout)
+    public TableViewCellContextFlyoutEventArgs(TableViewCellSlot slot, TableViewCell cell, object item, FlyoutBase? flyout)
     {
         Slot = slot;
         Cell = cell;
@@ -41,5 +41,5 @@ public partial class TableViewCellContextFlyoutEventArgs : HandledEventArgs
     /// <summary>
     /// Gets the context flyout to be shown.
     /// </summary>
-    public FlyoutBase Flyout { get; }
+    public FlyoutBase? Flyout { get; }
 }
