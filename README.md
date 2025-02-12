@@ -9,7 +9,7 @@
 [![nuget](https://img.shields.io/nuget/dt/WinUI.TableView)](https://www.nuget.org/packages/WinUI.TableView/)
 
 ## Contributors
-[![ci-build](https://contrib.rocks/image?repo=w-ahmad/WinUI.TableView)](https://contrib.rocks/image?repo=w-ahmad/WinUI.TableView)
+[![ci-build](https://contrib.rocks/image?repo=w-ahmad/WinUI.TableView)](https://github.com/w-ahmad/WinUI.TableView/graphs/contributors)
 
 ##
 [WinUI.TableView SampleApp](https://github.com/w-ahmad/WinUI.TableView.SampleApp)
