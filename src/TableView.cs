@@ -1295,13 +1295,10 @@ public partial class TableView : ListView
     /// </summary>
     internal void ShowRowContext(TableViewRow row, Point position)
     {
-
         var eventArgs = new TableViewRowContextFlyoutEventArgs(row.Index, row, row.Content, RowContextFlyout);
         RowContextFlyoutOpening?.Invoke(this, eventArgs);
 
-        if (RowContextFlyout is null) return;
-
-        if (!eventArgs.Handled)
+        if (RowContextFlyout is not null && !eventArgs.Handled)
         {
             var presenter = row.FindDescendant<ListViewItemPresenter>();
 
@@ -1319,13 +1316,10 @@ public partial class TableView : ListView
     /// </summary>
     internal void ShowCellContext(TableViewCell cell, Point position)
     {
-
         var eventArgs = new TableViewCellContextFlyoutEventArgs(cell.Slot, cell, cell.Row?.Content!, CellContextFlyout);
         CellContextFlyoutOpening?.Invoke(this, eventArgs);
 
-        if (CellContextFlyout is null) return;
-
-        if (!eventArgs.Handled)
+        if (CellContextFlyout is not null && !eventArgs.Handled)
         {
             CellContextFlyout.ShowAt(cell, new FlyoutShowOptions
             {
