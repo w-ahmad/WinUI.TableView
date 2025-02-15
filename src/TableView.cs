@@ -159,7 +159,15 @@ public partial class TableView : ListView
         else if (e.Key is VirtualKey.Tab or VirtualKey.Enter)
         {
             var isEditing = IsEditing;
-            var newSlot = GetNextSlot(CurrentCellSlot, shiftKey, e.Key is VirtualKey.Enter);
+
+            var newSlot = CurrentCellSlot ?? new();
+
+            do
+            {
+                newSlot = GetNextSlot(newSlot, shiftKey, e.Key is VirtualKey.Enter);
+
+            } while (isEditing && Columns[newSlot.Column].IsReadOnly);
+
 
             MakeSelection(newSlot, false);
 
