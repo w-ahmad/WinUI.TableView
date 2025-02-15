@@ -41,6 +41,8 @@ public partial class TableViewRow : ListViewItem
         Loaded += TableViewRow_Loaded;
         ContextRequested += OnContextRequested;
         RegisterPropertyChangedCallback(IsSelectedProperty, delegate { OnIsSelectedChanged(); });
+        RegisterPropertyChangedCallback(ForegroundProperty, delegate { OnForegroundChanged(); });
+        RegisterPropertyChangedCallback(BackgroundProperty, delegate { OnBackgroundChanged(); });
     }
 
     /// <summary>
@@ -72,7 +74,7 @@ public partial class TableViewRow : ListViewItem
     }
 
     /// <summary>
-    /// Handles the IsSelected property changed event.
+    /// Handles the IsSelected property changed.
     /// </summary>
     private void OnIsSelectedChanged()
     {
@@ -100,6 +102,24 @@ public partial class TableViewRow : ListViewItem
                 }
             }
         });
+    }
+
+    /// <summary>
+    /// Handles the Foreground property changed.
+    /// </summary>
+    private void OnForegroundChanged()
+    {
+        _cellPresenterForeground = Foreground;
+        EnsureAlternateColors();
+    }
+
+    /// <summary>
+    /// Handles the Background property changed.
+    /// </summary>
+    private void OnBackgroundChanged()
+    {
+        _cellPresenterBackground = Background;
+        EnsureAlternateColors();
     }
 
     /// <summary>
@@ -198,8 +218,8 @@ public partial class TableViewRow : ListViewItem
 
         if (_cellPresenter is not null)
         {
-            _cellPresenterBackground = _cellPresenter.Background;
-            _cellPresenterForeground = _cellPresenter.Foreground;
+            _cellPresenterBackground = Background;
+            _cellPresenterForeground = Foreground;
             _cellPresenter.Children.Clear();
 
             AddCells(TableView.Columns.VisibleColumns);
