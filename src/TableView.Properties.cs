@@ -41,6 +41,11 @@ public partial class TableView
     public static readonly DependencyProperty RowMaxHeightProperty = DependencyProperty.Register(nameof(RowMaxHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.PositiveInfinity));
 
     /// <summary>
+    /// Identifies the RowMinHeight dependency property.
+    /// </summary>
+    public static readonly DependencyProperty RowMinHeightProperty = DependencyProperty.Register(nameof(RowMinHeight), typeof(double), typeof(TableView), new PropertyMetadata(40d));
+
+    /// <summary>
     /// Identifies the ShowExportOptions dependency property.
     /// </summary>
     public static readonly DependencyProperty ShowExportOptionsProperty = DependencyProperty.Register(nameof(ShowExportOptions), typeof(bool), typeof(TableView), new PropertyMetadata(false));
@@ -252,6 +257,15 @@ public partial class TableView
     {
         get => (double)GetValue(RowMaxHeightProperty);
         set => SetValue(RowMaxHeightProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the minimum height of the rows.
+    /// </summary>
+    public double RowMinHeight
+    {
+        get => (double)GetValue(RowMinHeightProperty);
+        set => SetValue(RowMinHeightProperty, value);
     }
 
     /// <summary>
