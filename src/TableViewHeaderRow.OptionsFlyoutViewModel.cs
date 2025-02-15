@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using System;
 
 namespace WinUI.TableView;
 
@@ -28,39 +29,77 @@ public partial class TableViewHeaderRow
         {
             SelectAllCommand.Description = "Select all rows.";
             SelectAllCommand.ExecuteRequested += delegate { TableView.SelectAll(); };
-            SelectAllCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended;
+            SelectAllCommand.CanExecuteRequested += CanExecuteSelectAllCommand;
 
             DeselectAllCommand.Description = "Deselect all rows.";
             DeselectAllCommand.ExecuteRequested += delegate { TableView.DeselectAll(); };
-            DeselectAllCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.SelectedItems.Count > 0 || TableView.SelectedCells.Count > 0;
+            DeselectAllCommand.CanExecuteRequested += CanExecuteDeselectAllCommand;
 
             CopyCommand.Description = "Copy the selected row's content to clipboard.";
-            CopyCommand.ExecuteRequested += delegate
-            {
-                var focusedElement = FocusManager.GetFocusedElement(TableView.XamlRoot);
-                if (focusedElement is FrameworkElement { Parent: TableViewCell })
-                {
-                    return;
-                }
+            CopyCommand.ExecuteRequested += ExecuteCopyCommand;
 
-                TableView.CopyToClipboardInternal(false);
-            };
-            CopyCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.SelectedItems.Count > 0 || TableView.SelectedCells.Count > 0 || TableView.CurrentCellSlot.HasValue;
+            CopyCommand.CanExecuteRequested += CanExecuteCopyCommand;
 
             CopyWithHeadersCommand.Description = "Copy the selected row's content including column headers to clipboard.";
             CopyWithHeadersCommand.ExecuteRequested += delegate { TableView.CopyToClipboardInternal(true); };
-            CopyWithHeadersCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.SelectedItems.Count > 0 || TableView.SelectedCells.Count > 0 || TableView.CurrentCellSlot.HasValue;
+            CopyWithHeadersCommand.CanExecuteRequested += CanExecuteCopyWithHeadersCommand;
 
             ClearSortingCommand.ExecuteRequested += delegate { TableView.ClearAllSortingWithEvent(); };
-            ClearSortingCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.IsSorted;
+            ClearSortingCommand.CanExecuteRequested += CanExecuteClearSortingCommand;
 
             ClearFilterCommand.ExecuteRequested += delegate { TableView.FilterHandler.ClearFilter(default); };
-            ClearFilterCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.IsFiltered;
+            ClearFilterCommand.CanExecuteRequested += CanExecuteClearFilterCommand;
 
             ExportAllToCSVCommand.ExecuteRequested += delegate { TableView.ExportAllToCSV(); };
 
             ExportSelectedToCSVCommand.ExecuteRequested += delegate { TableView.ExportSelectedToCSV(); };
-            ExportSelectedToCSVCommand.CanExecuteRequested += (_, e) => e.CanExecute = TableView.SelectedItems.Count > 0 || TableView.SelectedCells.Count > 0 || TableView.CurrentCellSlot.HasValue;
+            ExportSelectedToCSVCommand.CanExecuteRequested += CanExecuteExportSelectedToCSVCommand;
+        }
+
+        private void CanExecuteSelectAllCommand(XamlUICommand sender, CanExecuteRequestedEventArgs e)
+        {
+            e.CanExecute = TableView.SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended;
+        }
+
+        private void CanExecuteDeselectAllCommand(XamlUICommand sender, CanExecuteRequestedEventArgs e)
+        {
+            e.CanExecute = TableView.SelectedItems.Count > 0 || TableView.SelectedCells.Count > 0;
+        }
+
+        private void ExecuteCopyCommand(XamlUICommand sender, ExecuteRequestedEventArgs e)
+        {
+            var focusedElement = FocusManager.GetFocusedElement(TableView.XamlRoot);
+            if (focusedElement is FrameworkElement { Parent: TableViewCell })
+            {
+                return;
+            }
+
+            TableView.CopyToClipboardInternal(false);
+        }
+
+        private void CanExecuteCopyCommand(XamlUICommand sender, CanExecuteRequestedEventArgs e)
+        {
+            e.CanExecute = TableView.SelectedItems.Count > 0 || TableView.SelectedCells.Count > 0 || TableView.CurrentCellSlot.HasValue;
+        }
+
+        private void CanExecuteCopyWithHeadersCommand(XamlUICommand sender, CanExecuteRequestedEventArgs e)
+        {
+            e.CanExecute = TableView.SelectedItems.Count > 0 || TableView.SelectedCells.Count > 0 || TableView.CurrentCellSlot.HasValue;
+        }
+
+        private void CanExecuteClearSortingCommand(XamlUICommand sender, CanExecuteRequestedEventArgs e)
+        {
+            e.CanExecute = TableView.IsSorted;
+        }
+
+        private void CanExecuteClearFilterCommand(XamlUICommand sender, CanExecuteRequestedEventArgs e)
+        {
+            e.CanExecute = TableView.IsFiltered;
+        }
+
+        private void CanExecuteExportSelectedToCSVCommand(XamlUICommand sender, CanExecuteRequestedEventArgs e)
+        {
+            e.CanExecute = TableView.SelectedItems.Count > 0 || TableView.SelectedCells.Count > 0 || TableView.CurrentCellSlot.HasValue;
         }
 
         /// <summary>
