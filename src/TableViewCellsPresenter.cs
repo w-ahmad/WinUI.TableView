@@ -56,7 +56,7 @@ public partial class TableViewCellsPresenter : Control
 
             if (_v_gridLine is not null)
             {
-                _v_gridLine.Fill = TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                _v_gridLine.Fill = TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
                                    ? TableView.VerticalGridLinesStroke : new SolidColorBrush(Colors.Transparent);
                 _v_gridLine.Width = TableView.VerticalGridLinesStrokeThickness;
                 _v_gridLine.Visibility = TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
