@@ -58,12 +58,12 @@ public partial class TableViewHeaderRow
 
         private void CanExecuteSelectAllCommand(XamlUICommand sender, CanExecuteRequestedEventArgs e)
         {
-            e.CanExecute = TableView.SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended;
+            e.CanExecute = !TableView.IsEditing && TableView.SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended;
         }
 
         private void CanExecuteDeselectAllCommand(XamlUICommand sender, CanExecuteRequestedEventArgs e)
         {
-            e.CanExecute = TableView.SelectedItems.Count > 0 || TableView.SelectedCells.Count > 0;
+            e.CanExecute = !TableView.IsEditing && (TableView.SelectedItems.Count > 0 || TableView.SelectedCells.Count > 0);
         }
 
         private void ExecuteCopyCommand(XamlUICommand sender, ExecuteRequestedEventArgs e)
@@ -89,17 +89,17 @@ public partial class TableViewHeaderRow
 
         private void CanExecuteClearSortingCommand(XamlUICommand sender, CanExecuteRequestedEventArgs e)
         {
-            e.CanExecute = TableView.IsSorted;
+            e.CanExecute = !TableView.IsEditing && TableView.IsSorted;
         }
 
         private void CanExecuteClearFilterCommand(XamlUICommand sender, CanExecuteRequestedEventArgs e)
         {
-            e.CanExecute = TableView.IsFiltered;
+            e.CanExecute = !TableView.IsEditing && TableView.IsFiltered;
         }
 
         private void CanExecuteExportSelectedToCSVCommand(XamlUICommand sender, CanExecuteRequestedEventArgs e)
         {
-            e.CanExecute = TableView.SelectedItems.Count > 0 || TableView.SelectedCells.Count > 0 || TableView.CurrentCellSlot.HasValue;
+            e.CanExecute = !TableView.IsEditing && (TableView.SelectedItems.Count > 0 || TableView.SelectedCells.Count > 0 || TableView.CurrentCellSlot.HasValue);
         }
 
         /// <summary>
