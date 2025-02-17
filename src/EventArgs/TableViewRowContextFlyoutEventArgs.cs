@@ -15,7 +15,7 @@ public partial class TableViewRowContextFlyoutEventArgs : HandledEventArgs
     /// <param name="row">The TableViewRow associated with the event.</param>
     /// <param name="item">The item associated with the row.</param>
     /// <param name="flyout">The flyout to be shown.</param>
-    public TableViewRowContextFlyoutEventArgs(int index, TableViewRow row, object item, FlyoutBase flyout)
+    public TableViewRowContextFlyoutEventArgs(int index, TableViewRow row, object item, FlyoutBase? flyout)
     {
         Index = index;
         Row = row;
@@ -41,5 +41,5 @@ public partial class TableViewRowContextFlyoutEventArgs : HandledEventArgs
     /// <summary>
     /// Gets the flyout to be shown.
     /// </summary>
-    public FlyoutBase Flyout { get; }
+    public FlyoutBase? Flyout { get; }
 }
