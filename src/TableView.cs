@@ -100,11 +100,25 @@ public partial class TableView : ListView
     protected override DependencyObject GetContainerForItemOverride()
     {
         var row = new TableViewRow { TableView = this };
+        
         row.SetBinding(HeightProperty, new Binding
         {
             Path = new PropertyPath($"{nameof(TableViewRow.TableView)}.{nameof(RowHeight)}"),
             RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
         });
+
+        row.SetBinding(MaxHeightProperty, new Binding
+        {
+            Path = new PropertyPath($"{nameof(TableViewRow.TableView)}.{nameof(RowMaxHeight)}"),
+            RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
+        });
+
+        row.SetBinding(MinHeightProperty, new Binding
+        {
+            Path = new PropertyPath($"{nameof(TableViewRow.TableView)}.{nameof(RowMinHeight)}"),
+            RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
+        });
+
         _rows.Add(row);
 
         return row;
