@@ -27,20 +27,19 @@ public partial class TableViewHeaderRow
         /// </summary>
         private void InitializeCommands()
         {
-            SelectAllCommand.Description = "Select all rows.";
+            SelectAllCommand.Description = TableViewLocalizedStrings.SelectAllCommandDescription;
             SelectAllCommand.ExecuteRequested += delegate { TableView.SelectAll(); };
             SelectAllCommand.CanExecuteRequested += CanExecuteSelectAllCommand;
 
-            DeselectAllCommand.Description = "Deselect all rows.";
+            DeselectAllCommand.Description = TableViewLocalizedStrings.DeselectAllCommandDescription;
             DeselectAllCommand.ExecuteRequested += delegate { TableView.DeselectAll(); };
             DeselectAllCommand.CanExecuteRequested += CanExecuteDeselectAllCommand;
 
-            CopyCommand.Description = "Copy the selected row's content to clipboard.";
+            CopyCommand.Description = TableViewLocalizedStrings.CopyCommandDescription;
             CopyCommand.ExecuteRequested += ExecuteCopyCommand;
-
             CopyCommand.CanExecuteRequested += CanExecuteCopyCommand;
 
-            CopyWithHeadersCommand.Description = "Copy the selected row's content including column headers to clipboard.";
+            CopyWithHeadersCommand.Description = TableViewLocalizedStrings.CopyWithHeadersCommandDescription;
             CopyWithHeadersCommand.ExecuteRequested += delegate { TableView.CopyToClipboardInternal(true); };
             CopyWithHeadersCommand.CanExecuteRequested += CanExecuteCopyWithHeadersCommand;
 
@@ -105,42 +104,42 @@ public partial class TableViewHeaderRow
         /// <summary>
         /// Gets the command to select all rows.
         /// </summary>
-        public StandardUICommand SelectAllCommand { get; } = new(StandardUICommandKind.SelectAll);
+        public StandardUICommand SelectAllCommand { get; } = new(StandardUICommandKind.SelectAll) { Label = TableViewLocalizedStrings.SelectAll };
 
         /// <summary>
         /// Gets the command to deselect all rows.
         /// </summary>
-        public StandardUICommand DeselectAllCommand { get; } = new() { Label = "Deselect All" };
+        public StandardUICommand DeselectAllCommand { get; } = new() { Label = TableViewLocalizedStrings.DeselectAll };
 
         /// <summary>
         /// Gets the command to copy the selected row's content to the clipboard.
         /// </summary>
-        public StandardUICommand CopyCommand { get; } = new(StandardUICommandKind.Copy);
+        public StandardUICommand CopyCommand { get; } = new(StandardUICommandKind.Copy) { Label = TableViewLocalizedStrings.Copy };
 
         /// <summary>
         /// Gets the command to copy the selected row's content including column headers to the clipboard.
         /// </summary>
-        public StandardUICommand CopyWithHeadersCommand { get; } = new() { Label = "Copy with Headers" };
+        public StandardUICommand CopyWithHeadersCommand { get; } = new() { Label = TableViewLocalizedStrings.CopyWithHeaders };
 
         /// <summary>
         /// Gets the command to clear sorting.
         /// </summary>
-        public StandardUICommand ClearSortingCommand { get; } = new() { Label = "Clear Sorting" };
+        public StandardUICommand ClearSortingCommand { get; } = new() { Label = TableViewLocalizedStrings.ClearSorting };
 
         /// <summary>
         /// Gets the command to clear filters.
         /// </summary>
-        public StandardUICommand ClearFilterCommand { get; } = new() { Label = "Clear Filter" };
+        public StandardUICommand ClearFilterCommand { get; } = new() { Label = TableViewLocalizedStrings.ClearFilter };
 
         /// <summary>
         /// Gets the command to export all content to a CSV file.
         /// </summary>
-        public StandardUICommand ExportAllToCSVCommand { get; } = new() { Label = "Export All to CSV" };
+        public StandardUICommand ExportAllToCSVCommand { get; } = new() { Label = TableViewLocalizedStrings.ExportAll };
 
         /// <summary>
         /// Gets the command to export selected content to a CSV file.
         /// </summary>
-        public StandardUICommand ExportSelectedToCSVCommand { get; } = new() { Label = "Export Selected to CSV" };
+        public StandardUICommand ExportSelectedToCSVCommand { get; } = new() { Label = TableViewLocalizedStrings.ExportSelected };
 
         /// <summary>
         /// Gets the TableView associated with the ViewModel.

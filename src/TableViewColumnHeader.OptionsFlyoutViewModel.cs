@@ -215,31 +215,31 @@ public partial class TableViewColumnHeader
         /// <summary>
         /// Gets the command to sort in ascending order.
         /// </summary>
-        public StandardUICommand SortAscendingCommand { get; } = new() { Label = "Sort Ascending" };
+        public StandardUICommand SortAscendingCommand { get; } = new() { Label = TableViewLocalizedStrings.SortAscending };
 
         /// <summary>
         /// Gets the command to sort in descending order.
         /// </summary>
-        public StandardUICommand SortDescendingCommand { get; } = new() { Label = "Sort Descending" };
+        public StandardUICommand SortDescendingCommand { get; } = new() { Label = TableViewLocalizedStrings.SortDescending};
 
         /// <summary>
         /// Gets the command to clear sorting.
         /// </summary>
-        public StandardUICommand ClearSortingCommand { get; } = new() { Label = "Clear Sorting" };
+        public StandardUICommand ClearSortingCommand { get; } = new() { Label = TableViewLocalizedStrings.ClearSorting };
 
         /// <summary>
         /// Gets the command to clear the filter.
         /// </summary>
-        public StandardUICommand ClearFilterCommand { get; } = new() { Label = "Clear Filter" };
+        public StandardUICommand ClearFilterCommand { get; } = new() { Label = TableViewLocalizedStrings.ClearFilter };
 
         /// <summary>
         /// Gets the command to confirm the filter.
         /// </summary>
-        public StandardUICommand OkCommand { get; } = new() { Label = "OK" };
+        public StandardUICommand OkCommand { get; } = new() { Label = TableViewLocalizedStrings.Ok};
 
         /// <summary>
         /// Gets the command to cancel the filter.
         /// </summary>
-        public StandardUICommand CancelCommand { get; } = new() { Label = "Cancel" };
+        public StandardUICommand CancelCommand { get; } = new() { Label = TableViewLocalizedStrings.Cancel };
     }
 }

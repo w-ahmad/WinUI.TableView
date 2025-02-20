@@ -64,7 +64,7 @@ public partial class TableViewDateColumn : TableViewBoundColumn
             IsTodayHighlighted = IsTodayHighlighted,
             IsGroupLabelVisible = IsGroupLabelVisible,
             IsOutOfScopeEnabled = IsOutOfScopeEnabled,
-            PlaceholderText = PlaceHolderText,
+            PlaceholderText = PlaceHolderText ?? TableViewLocalizedStrings.DatePickerPlaceholder,
             DayOfWeekFormat = DayOfWeekFormat,
             FirstDayOfWeek = FirstDayOfWeek,
             SourceType = GetSourcePropertyType(dataItem),
