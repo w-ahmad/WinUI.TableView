@@ -157,7 +157,6 @@
                                                             </Grid.RowDefinitions>
                                                             <AutoSuggestBox x:Name="SearchBox"
                                                                             QueryIcon="Find"
-                                                                            PlaceholderText="Search..."
                                                                             Text="{Binding FilterText, Mode=TwoWay}" />
                                                             <Border Grid.Row="1"
                                                                     BorderThickness="0,0,0,1"
