@@ -59,6 +59,7 @@ public partial class TableViewTimeColumn : TableViewBoundColumn
         {
             ClockIdentifier = ClockIdentifier,
             MinuteIncrement = MinuteIncrement,
+            PlaceholderText = PlaceholderText ?? TableViewLocalizedStrings.TimePickerPlaceholder,
             SourceType = GetSourcePropertyType(dataItem),
             VerticalAlignment = VerticalAlignment.Stretch,
             HorizontalAlignment = HorizontalAlignment.Stretch,
@@ -118,6 +119,15 @@ public partial class TableViewTimeColumn : TableViewBoundColumn
     }
 
     /// <summary>
+    /// Gets or sets the placeholder text for the time picker.
+    /// </summary>
+    public string? PlaceholderText
+    {
+        get => (string?)GetValue(PlaceholderTextProperty);
+        set => SetValue(PlaceholderTextProperty, value);
+    }
+
+    /// <summary>
     /// Identifies the MinuteIncrement dependency property.
     /// </summary>
     public static readonly DependencyProperty MinuteIncrementProperty = DependencyProperty.Register(nameof(MinuteIncrement), typeof(int), typeof(TableViewTimeColumn), new PropertyMetadata(1));
@@ -126,4 +136,11 @@ public partial class TableViewTimeColumn : TableViewBoundColumn
     /// Identifies the ClockIdentifier dependency property.
     /// </summary>
     public static readonly DependencyProperty ClockIdentifierProperty = DependencyProperty.Register(nameof(ClockIdentifier), typeof(string), typeof(TableViewTimeColumn), new PropertyMetadata(default));
+
+    /// <summary>
+    /// Identifies the PlaceholderText dependency property.
+    /// </summary>
+    public static readonly DependencyProperty PlaceholderTextProperty = DependencyProperty.Register(nameof(PlaceholderText), typeof(string), typeof(TableViewTimeColumn), new PropertyMetadata(null));
+
+
 }
