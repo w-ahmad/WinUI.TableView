@@ -157,14 +157,12 @@
                                                             </Grid.RowDefinitions>
                                                             <AutoSuggestBox x:Name="SearchBox"
                                                                             QueryIcon="Find"
-                                                                            PlaceholderText="Search..."
                                                                             Text="{Binding FilterText, Mode=TwoWay}" />
                                                             <Border Grid.Row="1"
                                                                     BorderThickness="0,0,0,1"
                                                                     BorderBrush="{ThemeResource MenuFlyoutSeparatorBackground}">
                                                                 <CheckBox x:Name="SelectAllCheckBox"
-                                                                          Margin="12,8,12,1"
-                                                                          Content="(Select All)" />
+                                                                          Margin="12,8,12,1" />
                                                             </Border>
                                                             <ListView Grid.Row="2"
                                                                       SelectionMode="None"

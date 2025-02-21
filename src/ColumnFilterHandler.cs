@@ -39,7 +39,7 @@ public class ColumnFilterHandler : IColumnFilterHandler
 
             return filterValues.Select(value =>
             {
-                value = string.IsNullOrWhiteSpace(value?.ToString()) ? "(Blank)" : value;
+                value = string.IsNullOrWhiteSpace(value?.ToString()) ? TableViewLocalizedStrings.BlankFilterValue : value;
                 var isSelected = !column.IsFiltered || !string.IsNullOrEmpty(searchText) ||
                   (column.IsFiltered && SelectedValues[column].Contains(value));
 
@@ -107,7 +107,7 @@ public class ColumnFilterHandler : IColumnFilterHandler
     public virtual bool Filter(TableViewColumn column, object? item)
     {
         var value = column.GetCellContent(item);
-        value = string.IsNullOrWhiteSpace(value?.ToString()) ? "(Blank)" : value;
+        value = string.IsNullOrWhiteSpace(value?.ToString()) ? TableViewLocalizedStrings.BlankFilterValue : value;
         return SelectedValues[column].Contains(value);
     }
 

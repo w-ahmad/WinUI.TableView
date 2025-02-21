@@ -195,12 +195,14 @@ public partial class TableViewColumnHeader : ContentControl
         if (menuItem?.FindDescendant<CheckBox>(x => x.Name == "SelectAllCheckBox") is { } checkBox)
         {
             _selectAllCheckBox = checkBox;
+            _selectAllCheckBox.Content = TableViewLocalizedStrings.SelectAllParenthesized;
             _selectAllCheckBox.Checked += OnSelectAllCheckBoxChecked;
             _selectAllCheckBox.Unchecked += OnSelectAllCheckBoxUnchecked;
         }
 
         if (menuItem?.FindDescendant<AutoSuggestBox>(x => x.Name == "SearchBox") is { } searchBox)
         {
+            searchBox.PlaceholderText = TableViewLocalizedStrings.SearchBoxPlaceholder;
             searchBox.PreviewKeyDown += OnSearchBoxKeyDown;
         }
 

@@ -64,7 +64,7 @@ public partial class TableViewDateColumn : TableViewBoundColumn
             IsTodayHighlighted = IsTodayHighlighted,
             IsGroupLabelVisible = IsGroupLabelVisible,
             IsOutOfScopeEnabled = IsOutOfScopeEnabled,
-            PlaceholderText = PlaceHolderText,
+            PlaceholderText = PlaceHolderText ?? TableViewLocalizedStrings.DatePickerPlaceholder,
             DayOfWeekFormat = DayOfWeekFormat,
             FirstDayOfWeek = FirstDayOfWeek,
             SourceType = GetSourcePropertyType(dataItem),
@@ -163,9 +163,9 @@ public partial class TableViewDateColumn : TableViewBoundColumn
     /// <summary>
     /// Gets or sets the placeholder text for the date picker in date picker.
     /// </summary>
-    public string PlaceHolderText
+    public string? PlaceHolderText
     {
-        get => (string)GetValue(PlaceHolderTextProperty);
+        get => (string?)GetValue(PlaceHolderTextProperty);
         set => SetValue(PlaceHolderTextProperty, value);
     }
 
@@ -200,7 +200,7 @@ public partial class TableViewDateColumn : TableViewBoundColumn
     /// <summary>
     /// Identifies the PlaceHolderText dependency property.
     /// </summary>
-    public static readonly DependencyProperty PlaceHolderTextProperty = DependencyProperty.Register(nameof(PlaceHolderText), typeof(string), typeof(TableViewDateColumn), new PropertyMetadata("pick a date"));
+    public static readonly DependencyProperty PlaceHolderTextProperty = DependencyProperty.Register(nameof(PlaceHolderText), typeof(string), typeof(TableViewDateColumn), new PropertyMetadata(null));
 
     /// <summary>
     /// Identifies the IsGroupLabelVisible dependency property.
