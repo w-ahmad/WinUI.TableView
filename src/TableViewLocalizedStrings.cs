@@ -1,4 +1,5 @@
-﻿using Microsoft.Windows.ApplicationModel.Resources;
+﻿using System;
+using Windows.ApplicationModel.Resources;
 
 namespace WinUI.TableView;
 
@@ -8,7 +9,9 @@ namespace WinUI.TableView;
 internal partial class TableViewLocalizedStrings
 {
     private const string WinUI_TableView = "WinUI.TableView";
-    private static readonly ResourceManager _resourceManager = new();
+
+    private static readonly ResourceLoader _appResourceLoader = new(WinUI_TableView);
+    private static readonly ResourceLoader _defaultResourceLoader = new($"{WinUI_TableView}/{WinUI_TableView}");
 
     static TableViewLocalizedStrings()
     {
@@ -37,10 +40,18 @@ internal partial class TableViewLocalizedStrings
 
     private static string GetValue(string name)
     {
-        var value = _resourceManager.MainResourceMap.TryGetValue($"{WinUI_TableView}/{name}");
-        value ??= _resourceManager.MainResourceMap.GetValue($"{WinUI_TableView}/{WinUI_TableView}/{name}");
-
-        return value.ValueAsString;
+        if (_appResourceLoader.GetString(name) is { Length: > 0 } appValue)
+        {
+            return appValue;
+        }
+        else if (_defaultResourceLoader.GetString(name) is { Length: > 0 } defaultValue)
+        {
+            return defaultValue;
+        }
+        else
+        {
+            throw new InvalidOperationException("Should not happen.");
+        }
     }
 
     public static string BlankFilterValue { get; set; }

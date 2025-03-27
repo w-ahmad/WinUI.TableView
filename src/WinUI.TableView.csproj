@@ -1,13 +1,24 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Uno.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0-windows10.0.22621.0</TargetFramework>
-    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
-    <WindowsSdkPackageVersion>10.0.22621.38</WindowsSdkPackageVersion>
+    <TargetFrameworks>
+      net8.0-desktop;
+      net8.0;
+      net8.0-maccatalyst;
+      net8.0-windows10.0.26100;
+      net8.0-browserwasm;
+    </TargetFrameworks>
+    <UnoSingleProject>true</UnoSingleProject>
+    <OutputType>Library</OutputType>
+    <!-- Ensures the .xr.xml files are generated in a proper layout folder -->
+    <GenerateLibraryLayout>true</GenerateLibraryLayout>
     <Nullable>enable</Nullable>
-    <UseWinUI>true</UseWinUI>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <UnoUICustomConditionsEnabled>true</UnoUICustomConditionsEnabled>
   </PropertyGroup>
-  
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.WinUI.Behaviors" Version="8.1.240916" />
+  </ItemGroup>
+
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <PackageId>WinUI.TableView</PackageId>
     <IncludeSymbols>true</IncludeSymbols>
@@ -24,11 +35,6 @@
     <Authors>w-ahmad - https://github.com/w-ahmad</Authors>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="CommunityToolkit.WinUI.Behaviors" Version="8.1.240916" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.250108002" />
-  </ItemGroup>
-
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
       <PrivateAssets>all</PrivateAssets>
@@ -36,4 +42,5 @@
     </PackageReference>
     <None Include="..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
+
 </Project>

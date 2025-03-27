@@ -3,7 +3,7 @@
 namespace WinUI.TableView.Extensions;
 
 /// <summary>
-/// Provides extension methods for Date&Time types.
+/// Provides extension methods for Date and Time types.
 /// </summary>
 internal static class DateTimeExtensions
 {

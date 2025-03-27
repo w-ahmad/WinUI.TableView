@@ -38,9 +38,12 @@ public partial class TableViewCell : ContentControl
         DefaultStyleKey = typeof(TableViewCell);
         ManipulationMode = ManipulationModes.TranslateX | ManipulationModes.TranslateY;
         Loaded += OnLoaded;
+#if WINDOWS
         ContextRequested += OnContextRequested;
+#endif
     }
 
+#if WINDOWS
     /// <summary>
     /// Handles the ContextRequested event.
     /// </summary>
@@ -51,14 +54,31 @@ public partial class TableViewCell : ContentControl
             TableView.ShowCellContext(this, position);
         }
     }
+#endif
+
+#if !WINDOWS
+    protected override void OnDataContextChanged()
+    {
+        base.OnDataContextChanged();
+
+        if (DataContext is TableViewColumn column)
+        {
+            Column = column;
+            Width = column.ActualWidth;
+            Style = column.CellStyle ?? TableView?.CellStyle;
+        }
+    }
+#endif
 
     /// <summary>
     /// Handles the Loaded event.
     /// </summary>
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
+#if WINDOWS
         InvalidateMeasure();
         ApplySelectionState();
+#endif
     }
 
     protected override void OnApplyTemplate()
@@ -69,13 +89,33 @@ public partial class TableViewCell : ContentControl
         _selectionBorder = GetTemplateChild("SelectionBorder") as Border;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
 
+#if WINDOWS
         EnsureGridLines();
+#else
+        if (this.FindAscendant<TableViewRow>() is { TableView: { } } row)
+        {
+            Row = row;
+            TableView = row.TableView;
+            Index = Column is not null ? TableView.Columns.VisibleColumns.IndexOf(Column) : -1;
+            DataContext = Row?.Content;
+
+            EnsureGridLines();
+            SetElement();
+
+            InvalidateMeasure();
+            ApplySelectionState();
+        }
+#endif
     }
 
     protected override Size MeasureOverride(Size availableSize)
     {
         if ((Content ?? ContentTemplateRoot) is FrameworkElement element)
         {
+            var v_GridLineStrokeThickness = TableView?.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                                            || TableView?.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                                            ? TableView.VerticalGridLinesStrokeThickness : 0;
+#if WINDOWS
             #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860
             if (Column is TableViewTemplateColumn)
             {
@@ -90,9 +130,6 @@ public partial class TableViewCell : ContentControl
                 }
             }
 
-            var v_GridLineStrokeThickness = TableView?.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
-                                            || TableView?.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
-                                            ? TableView.VerticalGridLinesStrokeThickness : 0;
 
             var contentWidth = Column?.ActualWidth ?? 0d;
             contentWidth -= element.Margin.Left;
@@ -107,6 +144,7 @@ public partial class TableViewCell : ContentControl
 
             element.MaxWidth = double.PositiveInfinity;
             #endregion
+#endif
             element.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
 
             if (Column is not null)
@@ -123,6 +161,7 @@ public partial class TableViewCell : ContentControl
                 Column.DesiredWidth = Math.Max(Column.DesiredWidth, desiredWidth);
             }
 
+#if WINDOWS
             #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860
             if (_contentPresenter is not null)
             {
@@ -137,6 +176,7 @@ public partial class TableViewCell : ContentControl
                 }
             }
             #endregion
+#endif
         }
 
         return base.MeasureOverride(availableSize);
@@ -302,6 +342,10 @@ public partial class TableViewCell : ContentControl
     /// </summary>
     internal void SetElement()
     {
+#if !WINDOWS
+        if (_contentPresenter is null) return; 
+#endif
+
         var element = Column?.GenerateElement(this, Row?.Content);
 
         if (element is not null && Column is TableViewBoundColumn { ElementStyle: { } } boundColumn)
