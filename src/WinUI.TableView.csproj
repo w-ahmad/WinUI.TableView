@@ -7,16 +7,19 @@
       net8.0-windows10.0.26100;
       net8.0-browserwasm;
     </TargetFrameworks>
+    <IsPackable>true</IsPackable>
     <UnoSingleProject>true</UnoSingleProject>
     <OutputType>Library</OutputType>
     <!-- Ensures the .xr.xml files are generated in a proper layout folder -->
     <GenerateLibraryLayout>true</GenerateLibraryLayout>
     <Nullable>enable</Nullable>
-    <UnoUICustomConditionsEnabled>true</UnoUICustomConditionsEnabled>
+    <DisableImplicitUnoPackages>true</DisableImplicitUnoPackages>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.WinUI.Behaviors" Version="8.1.240916" />
+    <PackageReference Condition="'$(TargetFramework)' == 'net8.0-windows10.0.26100'" Include="Microsoft.WindowsAppSDK" Version="1.6.250108002" />
+    <PackageReference Condition="'$(TargetFramework)' != 'net8.0-windows10.0.26100'" Include="Uno.WinUI" Version="5.5.95" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
