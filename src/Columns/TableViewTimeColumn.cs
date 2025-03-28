@@ -21,7 +21,7 @@ public partial class TableViewTimeColumn : TableViewBoundColumn
     /// </summary>
     public TableViewTimeColumn()
     {
-        ClockIdentifier = DateTimeFormatter.ShortTime.Clock;
+        ClockIdentifier = "24HourClock";
     }
 
     /// <summary>

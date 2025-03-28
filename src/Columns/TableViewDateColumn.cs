@@ -2,7 +2,6 @@
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using System;
-using Windows.Globalization.DateTimeFormatting;
 using WinUI.TableView.Controls;
 using WinUI.TableView.Extensions;
 using WinUI.TableView.Helpers;
@@ -17,14 +16,6 @@ namespace WinUI.TableView;
 [StyleTypedProperty(Property = nameof(EditingElementStyle), StyleTargetType = typeof(TableViewDatePicker))]
 public partial class TableViewDateColumn : TableViewBoundColumn
 {
-    /// <summary>
-    /// Initializes a new instance of the TableViewDateColumn class.
-    /// </summary>
-    public TableViewDateColumn()
-    {
-        DateFormat = DateTimeFormatter.ShortDate.Patterns[0];
-    }
-
     /// <summary>
     /// Generates a TextBlock element for the cell.
     /// </summary>
@@ -230,5 +221,5 @@ public partial class TableViewDateColumn : TableViewBoundColumn
     /// <summary>
     /// Identifies the DateFormat dependency property.
     /// </summary>
-    public static readonly DependencyProperty DateFormatProperty = DependencyProperty.Register(nameof(DateFormat), typeof(string), typeof(TableViewDateColumn), new PropertyMetadata(default));
+    public static readonly DependencyProperty DateFormatProperty = DependencyProperty.Register(nameof(DateFormat), typeof(string), typeof(TableViewDateColumn), new PropertyMetadata("shortdate"));
 }

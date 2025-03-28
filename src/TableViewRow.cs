@@ -25,10 +25,12 @@ public partial class TableViewRow : ListViewItem
     private TableView? _tableView;
     private ListViewItemPresenter? _itemPresenter;
     private TableViewCellsPresenter? _cellPresenter;
-    private bool _ensureCells = true;
     private Border? _selectionBackground;
+#if WINDOWS
+    private bool _ensureCells = true;
     private Brush? _cellPresenterBackground;
-    private Brush? _cellPresenterForeground;
+    private Brush? _cellPresenterForeground; 
+#endif
 
     /// <summary>
     /// Initializes a new instance of the TableViewRow class.
@@ -39,12 +41,15 @@ public partial class TableViewRow : ListViewItem
 
         SizeChanged += OnSizeChanged;
         Loaded += TableViewRow_Loaded;
+#if WINDOWS
         ContextRequested += OnContextRequested;
         RegisterPropertyChangedCallback(IsSelectedProperty, delegate { OnIsSelectedChanged(); });
+#endif
         RegisterPropertyChangedCallback(ForegroundProperty, delegate { OnForegroundChanged(); });
         RegisterPropertyChangedCallback(BackgroundProperty, delegate { OnBackgroundChanged(); });
     }
 
+#if WINDOWS
     /// <summary>
     /// Handles the ContextRequested event.
     /// </summary>
@@ -57,18 +62,19 @@ public partial class TableViewRow : ListViewItem
             TableView?.ShowRowContext(this, position);
         }
     }
+#endif
 
     /// <summary>
     /// Determines if the context request is from a cell.
     /// </summary>
     private bool IsContextRequestedFromCell(Windows.Foundation.Point position)
     {
-        if (_cellPresenter is null) return false;
+        if (CellPresenter is null) return false;
 
-        var transform = _cellPresenter.TransformToVisual(this).Inverse;
+        var transform = CellPresenter.TransformToVisual(this).Inverse;
         var point = transform.TransformPoint(position);
-        var transformedPoint = _cellPresenter.TransformToVisual(null).TransformPoint(point);
-        return VisualTreeHelper.FindElementsInHostCoordinates(transformedPoint, _cellPresenter)
+        var transformedPoint = CellPresenter.TransformToVisual(null).TransformPoint(point);
+        return VisualTreeHelper.FindElementsInHostCoordinates(transformedPoint, CellPresenter)
                                .OfType<TableViewCell>()
                                .Any();
     }
@@ -76,8 +82,14 @@ public partial class TableViewRow : ListViewItem
     /// <summary>
     /// Handles the IsSelected property changed.
     /// </summary>
+#if WINDOWS
     private void OnIsSelectedChanged()
     {
+#else
+    protected override void OnIsSelectedChanged()
+    {
+        base.OnIsSelectedChanged();
+#endif
         DispatcherQueue.TryEnqueue(() =>
         {
             if (IsSelected && TableView?.SelectionMode is not ListViewSelectionMode.Multiple)
@@ -109,8 +121,10 @@ public partial class TableViewRow : ListViewItem
     /// </summary>
     private void OnForegroundChanged()
     {
+#if WINDOWS
         _cellPresenterForeground = Foreground;
-        EnsureAlternateColors();
+        EnsureAlternateColors(); 
+#endif
     }
 
     /// <summary>
@@ -118,8 +132,10 @@ public partial class TableViewRow : ListViewItem
     /// </summary>
     private void OnBackgroundChanged()
     {
+#if WINDOWS
         _cellPresenterBackground = Background;
-        EnsureAlternateColors();
+        EnsureAlternateColors(); 
+#endif
     }
 
     /// <summary>
@@ -137,6 +153,10 @@ public partial class TableViewRow : ListViewItem
     {
         base.OnApplyTemplate();
 
+#if WINDOWS
+        _cellPresenterBackground = Background;
+        _cellPresenterForeground = Foreground; 
+#endif
         _itemPresenter = GetTemplateChild("Root") as ListViewItemPresenter;
 
         if (_itemPresenter is not null)
@@ -156,18 +176,21 @@ public partial class TableViewRow : ListViewItem
     protected override void OnContentChanged(object oldContent, object newContent)
     {
         base.OnContentChanged(oldContent, newContent);
-
+#if WINDOWS
         if (_ensureCells)
         {
             EnsureCells();
         }
         else
         {
-            foreach (var cell in Cells)
-            {
-                cell.RefreshElement();
-            }
+#endif
+        foreach (var cell in Cells)
+        {
+            cell.RefreshElement();
         }
+#if WINDOWS
+        }
+#endif
 
         _tableView?.EnsureAlternateRowColors();
     }
@@ -204,6 +227,7 @@ public partial class TableViewRow : ListViewItem
         }
     }
 
+#if WINDOWS
     /// <summary>
     /// Ensures cells are created for the row.
     /// </summary>
@@ -214,19 +238,16 @@ public partial class TableViewRow : ListViewItem
             return;
         }
 
-        _cellPresenter = ContentTemplateRoot as TableViewCellsPresenter;
-
-        if (_cellPresenter is not null)
+        if (CellPresenter is not null)
         {
-            _cellPresenterBackground = Background;
-            _cellPresenterForeground = Foreground;
-            _cellPresenter.Children.Clear();
+            CellPresenter.Children.Clear();
 
             AddCells(TableView.Columns.VisibleColumns);
         }
 
         _ensureCells = false;
-    }
+    } 
+#endif
 
     /// <summary>
     /// Handles the SizeChanged event.
@@ -252,9 +273,9 @@ public partial class TableViewRow : ListViewItem
         {
             RemoveCells(oldItems);
         }
-        else if (e.Action == NotifyCollectionChangedAction.Reset && _cellPresenter is not null)
+        else if (e.Action == NotifyCollectionChangedAction.Reset && CellPresenter is not null)
         {
-            _cellPresenter.Children.Clear();
+            CellPresenter.Children.Clear();
         }
     }
 
@@ -320,14 +341,14 @@ public partial class TableViewRow : ListViewItem
     /// </summary>
     private void RemoveCells(IEnumerable<TableViewColumn> columns)
     {
-        if (_cellPresenter is not null)
+        if (CellPresenter is not null)
         {
             foreach (var column in columns)
             {
-                var cell = _cellPresenter.Children.OfType<TableViewCell>().FirstOrDefault(x => x.Column == column);
+                var cell = CellPresenter.Children.OfType<TableViewCell>().FirstOrDefault(x => x.Column == column);
                 if (cell is not null)
                 {
-                    _cellPresenter.Children.Remove(cell);
+                    CellPresenter.Children.Remove(cell);
                 }
             }
         }
@@ -338,7 +359,7 @@ public partial class TableViewRow : ListViewItem
     /// </summary>
     private void AddCells(IEnumerable<TableViewColumn> columns, int index = -1)
     {
-        if (_cellPresenter is not null && TableView is not null)
+        if (CellPresenter is not null && TableView is not null)
         {
             foreach (var column in columns)
             {
@@ -352,9 +373,9 @@ public partial class TableViewRow : ListViewItem
                     Style = column.CellStyle ?? TableView.CellStyle
                 };
 
-                index = Math.Min(index, _cellPresenter.Children.Count);
+                index = Math.Min(index, CellPresenter.Children.Count);
                 index = Math.Max(index, 0); // handles -ve index.
-                _cellPresenter.Children.Insert(index, cell);
+                CellPresenter.Children.Insert(index, cell);
                 index++;
             }
         }
@@ -481,7 +502,7 @@ public partial class TableViewRow : ListViewItem
             }
         }
 
-        _cellPresenter?.EnsureGridLines();
+        CellPresenter?.EnsureGridLines();
     }
 
     /// <summary>
@@ -489,37 +510,39 @@ public partial class TableViewRow : ListViewItem
     /// </summary>
     internal void EnsureLayout()
     {
-        if (_cellPresenter is not null && TableView is not null)
+        if (CellPresenter is not null && TableView is not null)
         {
-            _cellPresenter.Padding = ((ListView)TableView).SelectionMode is ListViewSelectionMode.Multiple
+            CellPresenter.Padding = ((ListView)TableView).SelectionMode is ListViewSelectionMode.Multiple
                                      ? new Thickness(16, 0, 16, 0)
                                      : new Thickness(20, 0, 16, 0);
         }
     }
 
+#if WINDOWS
     /// <summary>
     /// Ensures alternate colors are applied to the row.
     /// </summary>
     internal void EnsureAlternateColors()
     {
-        if (TableView is null || _cellPresenter is null) return;
+        if (TableView is null || CellPresenter is null) return;
 
-        _cellPresenter.Background =
+        CellPresenter.Background =
             Index % 2 == 1 && TableView.AlternateRowBackground is not null ? TableView.AlternateRowBackground : _cellPresenterBackground;
 
-        _cellPresenter.Foreground =
+        CellPresenter.Foreground =
             Index % 2 == 1 && TableView.AlternateRowForeground is not null ? TableView.AlternateRowForeground : _cellPresenterForeground;
-    }
+    } 
+#endif
 
     /// <summary>
     /// Gets the list of cells in the row.
     /// </summary>
-    internal IList<TableViewCell> Cells => _cellPresenter?.Cells ?? [];
+    internal IList<TableViewCell> Cells => CellPresenter?.Cells ?? [];
 
     /// <summary>
     /// Gets the index of the row.
     /// </summary>
-    public int Index => TableView?.IndexFromContainer(this) ?? -1;
+    public int Index => TableView?.Items.IndexOf(this) ?? -1;
 
     /// <summary>
     /// Gets or sets the TableView associated with the row.
@@ -535,6 +558,24 @@ public partial class TableViewRow : ListViewItem
                 _tableView = value;
                 OnTableViewChanged();
             }
+        }
+    }
+
+    public TableViewCellsPresenter? CellPresenter
+    {
+        get
+        {
+            if (_cellPresenter is null)
+            {
+#if WINDOWS
+                _cellPresenter = ContentTemplateRoot as TableViewCellsPresenter; 
+#else
+                _cellPresenter = this.FindDescendant<TableViewCellsPresenter>();
+#endif
+            }
+
+
+            return _cellPresenter;
         }
     }
 }

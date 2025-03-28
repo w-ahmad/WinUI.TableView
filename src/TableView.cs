@@ -70,7 +70,9 @@ public partial class TableView : ListView
         {
             SelectedCellRanges.RemoveWhere(slots =>
             {
+#if WINDOWS
                 slots.RemoveWhere(slot => SelectedRanges.Any(range => range.IsInRange(slot.Row)));
+#endif
                 return slots.Count == 0;
             });
         }
@@ -100,7 +102,7 @@ public partial class TableView : ListView
     protected override DependencyObject GetContainerForItemOverride()
     {
         var row = new TableViewRow { TableView = this };
-        
+
         row.SetBinding(HeightProperty, new Binding
         {
             Path = new PropertyPath($"{nameof(TableViewRow.TableView)}.{nameof(RowHeight)}"),
@@ -359,12 +361,14 @@ public partial class TableView : ListView
 
         if (SelectedItems.Any() || SelectedCells.Count != 0)
         {
+#if WINDOWS
             slots = SelectedRanges.SelectMany(x => Enumerable.Range(x.FirstIndex, (int)x.Length))
-                                  .SelectMany(r => Enumerable.Range(0, Columns.VisibleColumns.Count)
-                                                             .Select(c => new TableViewCellSlot(r, c)))
-                                  .Concat(SelectedCells)
-                                  .OrderBy(x => x.Row)
-                                  .ThenByDescending(x => x.Column);
+                                     .SelectMany(r => Enumerable.Range(0, Columns.VisibleColumns.Count)
+                                                                .Select(c => new TableViewCellSlot(r, c)))
+                                     .Concat(SelectedCells)
+                                     .OrderBy(x => x.Row)
+                                     .ThenByDescending(x => x.Column); 
+#endif
         }
         else if (CurrentCellSlot.HasValue)
         {
@@ -455,7 +459,7 @@ public partial class TableView : ListView
     /// </summary>
     /// <param name="separator">The character used to separate cell values.</param>
     /// <param name="minColumn">Min index column.</param>
-    /// /// <param name="minColumn">Max index column.</param>
+    /// <param name="maxColumn">Max index column.</param>
     /// <returns>A string of all headers content separated by the specified character.</returns>
     private string GetHeadersContent(char separator, int minColumn, int maxColumn)
     {
@@ -570,7 +574,7 @@ public partial class TableView : ListView
     /// <summary>
     /// Handles the ItemsSource property changed event.
     /// </summary>
-    private void OnItemsSourceChanged(DependencyPropertyChangedEventArgs e)
+    private void ItemsSourceChanged(DependencyPropertyChangedEventArgs e)
     {
         var defer = _collectionView.DeferRefresh();
         {
@@ -611,6 +615,7 @@ public partial class TableView : ListView
             return;
         }
 
+#if WINDOWS
         try
         {
             var hWnd = Win32Interop.GetWindowFromWindowId(XamlRoot.ContentIslandEnvironment.AppWindowId);
@@ -627,6 +632,9 @@ public partial class TableView : ListView
             await tw.WriteAsync(content);
         }
         catch { }
+#else
+        await Task.CompletedTask;
+#endif
     }
 
     /// <summary>
@@ -651,6 +659,7 @@ public partial class TableView : ListView
             return;
         }
 
+#if WINDOWS
         try
         {
             var hWnd = Win32Interop.GetWindowFromWindowId(XamlRoot.ContentIslandEnvironment.AppWindowId);
@@ -666,7 +675,10 @@ public partial class TableView : ListView
             using var tw = new StreamWriter(stream);
             await tw.WriteAsync(content);
         }
-        catch { }
+        catch { } 
+#else
+        await Task.CompletedTask;
+#endif
     }
 
     /// <summary>
@@ -695,6 +707,7 @@ public partial class TableView : ListView
     /// </summary>
     private void ApplyItemsClip()
     {
+#if WINDOWS
         if (_scrollViewer is null || ItemsPanelRoot is null) return;
 
         Canvas.SetZIndex(ItemsPanelRoot, -1);
@@ -709,6 +722,7 @@ public partial class TableView : ListView
         itemsPanelVisual.Clip = contentClip;
         contentClip.TopInset = (float)Math.Max(-_scrollViewer.VerticalOffset, 0);
         contentClip.StartAnimation("TopInset", expressionClipAnimation);
+#endif
     }
 
     /// <summary>
@@ -800,7 +814,9 @@ public partial class TableView : ListView
                     break;
                 case ListViewSelectionMode.Multiple:
                 case ListViewSelectionMode.Extended:
-                    SelectRange(new ItemIndexRange(0, (uint)Items.Count));
+#if WINDOWS
+                    SelectRange(new ItemIndexRange(0, (uint)Items.Count)); 
+#endif
                     break;
             }
         }
@@ -860,7 +876,9 @@ public partial class TableView : ListView
                 break;
             case ListViewSelectionMode.Multiple:
             case ListViewSelectionMode.Extended:
-                DeselectRange(new ItemIndexRange(0, (uint)Items.Count));
+#if WINDOWS
+                DeselectRange(new ItemIndexRange(0, (uint)Items.Count)); 
+#endif
                 break;
         }
     }
@@ -927,6 +945,7 @@ public partial class TableView : ListView
     /// </summary>
     private void SelectRows(TableViewCellSlot slot, bool shiftKey)
     {
+#if WINDOWS
         var selectionRange = SelectedRanges.FirstOrDefault(x => x.IsInRange(slot.Row));
         SelectionStartRowIndex ??= slot.Row;
         CurrentRowIndex = slot.Row;
@@ -967,7 +986,8 @@ public partial class TableView : ListView
                 var row = await ScrollRowIntoView(slot.Row);
                 row?.Focus(FocusState.Programmatic);
             });
-        }
+        } 
+#endif
     }
 
     /// <summary>
@@ -1281,13 +1301,15 @@ public partial class TableView : ListView
     /// </summary>
     internal void EnsureAlternateRowColors()
     {
+#if WINDOWS
         DispatcherQueue.TryEnqueue(() =>
         {
             foreach (var row in _rows)
             {
                 row.EnsureAlternateColors();
             }
-        });
+        }); 
+#endif
     }
 
     /// <summary>
@@ -1312,6 +1334,7 @@ public partial class TableView : ListView
         }
     }
 
+#if WINDOWS
     /// <summary>
     /// Shows the context flyout for the specified row.
     /// </summary>
@@ -1326,7 +1349,7 @@ public partial class TableView : ListView
 
             RowContextFlyout.ShowAt(presenter, new FlyoutShowOptions
             {
-                ShowMode = FlyoutShowMode.Standard,
+                ShowMode = FlyoutShowMode.Standard, 
                 Placement = RowContextFlyout.Placement,
                 Position = position
             });
@@ -1345,12 +1368,13 @@ public partial class TableView : ListView
         {
             CellContextFlyout.ShowAt(cell, new FlyoutShowOptions
             {
-                ShowMode = FlyoutShowMode.Standard,
+                ShowMode = FlyoutShowMode.Standard, 
                 Placement = CellContextFlyout.Placement,
                 Position = position
             });
         }
     }
+#endif
 
     public virtual void OnSorting(TableViewSortingEventArgs eventArgs)
     {
@@ -1391,6 +1415,7 @@ public partial class TableView : ListView
     /// </summary>
     public event DependencyPropertyChangedEventHandler? IsReadOnlyChanged;
 
+#if WINDOWS
     /// <summary>
     /// Event triggered when the row context flyout is opening.
     /// </summary>
@@ -1399,7 +1424,8 @@ public partial class TableView : ListView
     /// <summary>
     /// Event triggered when the cell context flyout is opening.
     /// </summary>
-    public event EventHandler<TableViewCellContextFlyoutEventArgs>? CellContextFlyoutOpening;
+    public event EventHandler<TableViewCellContextFlyoutEventArgs>? CellContextFlyoutOpening; 
+#endif
 
     /// <summary>
     /// Occurs when a sorting is being applied to a column in the TableView.

@@ -2,7 +2,8 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="using:WinUI.TableView"
                     xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
-                    xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors">
+                    xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
+                    xmlns:win="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
 
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/Resources.xaml" />
@@ -14,7 +15,7 @@
                 Value="False" />
         <Setter Property="TabNavigation"
                 Value="Cycle" />
-        <Setter Property="IsSwipeEnabled"
+        <win:Setter Property="IsSwipeEnabled"
                 Value="False" />
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility"
                 Value="Auto" />
@@ -22,15 +23,15 @@
                 Value="Auto" />
         <Setter Property="ScrollViewer.HorizontalScrollMode"
                 Value="Auto" />
-        <Setter Property="ScrollViewer.IsHorizontalRailEnabled"
+        <win:Setter Property="ScrollViewer.IsHorizontalRailEnabled"
                 Value="True" />
         <Setter Property="ScrollViewer.VerticalScrollMode"
                 Value="Enabled" />
-        <Setter Property="ScrollViewer.IsVerticalRailEnabled"
+        <win:Setter Property="ScrollViewer.IsVerticalRailEnabled"
                 Value="True" />
         <Setter Property="ScrollViewer.ZoomMode"
                 Value="Disabled" />
-        <Setter Property="ScrollViewer.IsDeferredScrollingEnabled"
+        <win:Setter Property="ScrollViewer.IsDeferredScrollingEnabled"
                 Value="False" />
         <Setter Property="ScrollViewer.BringIntoViewOnFocusChange"
                 Value="True" />
@@ -52,16 +53,16 @@
                 Value="{ThemeResource TableViewHorizontalGridLineStrokeThickness}" />
         <Setter Property="VerticalGridLinesStrokeThickness"
                 Value="{ThemeResource TableViewVerticalGridLineStrokeThickness}" />
-        <Setter Property="ItemContainerTransitions">
-            <Setter.Value>
+        <win:Setter Property="ItemContainerTransitions">
+            <win:Setter.Value>
                 <TransitionCollection>
                     <AddDeleteThemeTransition />
                     <ContentThemeTransition />
                     <ReorderThemeTransition />
                     <EntranceThemeTransition IsStaggeringEnabled="False" />
                 </TransitionCollection>
-            </Setter.Value>
-        </Setter>
+            </win:Setter.Value>
+        </win:Setter>
         <Setter Property="ItemsPanel">
             <Setter.Value>
                 <ItemsPanelTemplate>
@@ -87,16 +88,16 @@
                                       TabNavigation="{TemplateBinding TabNavigation}"
                                       HorizontalScrollMode="{TemplateBinding ScrollViewer.HorizontalScrollMode}"
                                       HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
-                                      IsHorizontalScrollChainingEnabled="{TemplateBinding ScrollViewer.IsHorizontalScrollChainingEnabled}"
+                                      win:IsHorizontalScrollChainingEnabled="{TemplateBinding ScrollViewer.IsHorizontalScrollChainingEnabled}"
                                       VerticalScrollMode="{TemplateBinding ScrollViewer.VerticalScrollMode}"
                                       VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}"
-                                      IsVerticalScrollChainingEnabled="{TemplateBinding ScrollViewer.IsVerticalScrollChainingEnabled}"
-                                      IsHorizontalRailEnabled="{TemplateBinding ScrollViewer.IsHorizontalRailEnabled}"
-                                      IsVerticalRailEnabled="{TemplateBinding ScrollViewer.IsVerticalRailEnabled}"
+                                      win:IsVerticalScrollChainingEnabled="{TemplateBinding ScrollViewer.IsVerticalScrollChainingEnabled}"
+                                      win:IsHorizontalRailEnabled="{TemplateBinding ScrollViewer.IsHorizontalRailEnabled}"
+                                      win:IsVerticalRailEnabled="{TemplateBinding ScrollViewer.IsVerticalRailEnabled}"
                                       ZoomMode="{TemplateBinding ScrollViewer.ZoomMode}"
-                                      IsDeferredScrollingEnabled="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}"
+                                      win:IsDeferredScrollingEnabled="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}"
                                       BringIntoViewOnFocusChange="{TemplateBinding ScrollViewer.BringIntoViewOnFocusChange}"
-                                      AutomationProperties.AccessibilityView="Raw">
+                                      win:AutomationProperties.AccessibilityView="Raw">
                             <ItemsPresenter Padding="{TemplateBinding Padding}">
                                 <ItemsPresenter.Header>
                                     <local:TableViewHeaderRow x:Name="HeaderRow" 
