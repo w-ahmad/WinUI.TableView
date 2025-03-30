@@ -110,7 +110,7 @@ public partial class TableViewTimePicker : Control
     {
         if (_timeText is null) return;
 
-        var formatter = ClockIdentifier is "24HourClock" ? DateTimeFormatHelper._24HourClockFormatter : DateTimeFormatHelper._12HourClockFormatter;
+        var formatter = DateTimeFormatHelper.GetDateTimeFormatter("shortime", ClockIdentifier);
 
         _timeText.Text = SelectedTime switch
         {

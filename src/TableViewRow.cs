@@ -542,7 +542,7 @@ public partial class TableViewRow : ListViewItem
     /// <summary>
     /// Gets the index of the row.
     /// </summary>
-    public int Index => TableView?.Items.IndexOf(this) ?? -1;
+    public int Index => TableView?.IndexFromContainer(this) ?? -1;
 
     /// <summary>
     /// Gets or sets the TableView associated with the row.
@@ -573,7 +573,6 @@ public partial class TableViewRow : ListViewItem
                 _cellPresenter = this.FindDescendant<TableViewCellsPresenter>();
 #endif
             }
-
 
             return _cellPresenter;
         }

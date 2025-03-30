@@ -7,7 +7,6 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.System;

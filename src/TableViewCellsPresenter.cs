@@ -92,7 +92,7 @@ public partial class TableViewCellsPresenter : Control
     public IList<TableViewCell> Cells =>
 
 #if WINDOWS
-    _stackPanel?.Children.OfType<TableViewCell>().ToList()!;
+        _stackPanel?.Children.OfType<TableViewCell>().ToList()!;
 #else
         _itemsControl?.FindDescendants().OfType<TableViewCell>().ToList()!;
 #endif
