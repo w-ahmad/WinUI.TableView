@@ -1094,7 +1094,8 @@ public partial class TableView : ListView
     /// <summary>
     /// Scrolls the specified cell slot into view.
     /// </summary>
-    internal async Task<TableViewCell> ScrollCellIntoView(TableViewCellSlot slot)
+    /// <param name="slot">The cell slot to scroll into view.</param>
+    public async Task<TableViewCell> ScrollCellIntoView(TableViewCellSlot slot)
     {
         if (_scrollViewer is null || !slot.IsValid(this)) return default!;
 
@@ -1155,7 +1156,8 @@ public partial class TableView : ListView
     /// <summary>
     /// Scrolls the specified row into view.
     /// </summary>
-    private async Task<TableViewRow?> ScrollRowIntoView(int index)
+    /// <param name="index">The index of the row to scroll into view.</param>
+    public async Task<TableViewRow?> ScrollRowIntoView(int index)
     {
         if (_scrollViewer is null) return default!;
 
