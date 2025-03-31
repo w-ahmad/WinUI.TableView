@@ -97,7 +97,7 @@ public partial class TableViewTimeColumn : TableViewBoundColumn
             }
         }
 
-        return default;
+        return typeof(TimeSpan);
     }
 
     /// <summary>

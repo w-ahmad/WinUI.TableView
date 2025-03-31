@@ -103,7 +103,7 @@ public partial class TableViewDateColumn : TableViewBoundColumn
             }
         }
 
-        return default;
+        return typeof(DateTimeOffset);
     }
 
     /// <summary>
