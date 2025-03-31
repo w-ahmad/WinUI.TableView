@@ -16,7 +16,6 @@ public  partial class TableViewFilterItem : INotifyPropertyChanged
     /// </summary>
     /// <param name="isSelected">Indicates whether the filter item is selected.</param>
     /// <param name="value">The value of the filter item.</param>
-    /// <param name="optionsFlyoutViewModel">The ViewModel for the options flyout.</param>
     public TableViewFilterItem(bool isSelected, object value)
     {
         IsSelected = isSelected;

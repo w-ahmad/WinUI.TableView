@@ -125,6 +125,7 @@ public partial class TableView
     /// </summary>
     public static readonly DependencyProperty VerticalGridLinesStrokeProperty = DependencyProperty.Register(nameof(VerticalGridLinesStroke), typeof(Brush), typeof(TableView), new PropertyMetadata(default, OnGridLinesPropertyChanged));
 
+#if WINDOWS
     /// <summary>
     /// Identifies the AlternateRowForeground dependency property.
     /// </summary>
@@ -144,7 +145,7 @@ public partial class TableView
     /// Identifies the CellContextFlyout dependency property.
     /// </summary>
     public static readonly DependencyProperty CellContextFlyoutProperty = DependencyProperty.Register(nameof(CellContextFlyout), typeof(FlyoutBase), typeof(TableView), new PropertyMetadata(null));
-
+#endif
     /// <summary>
     /// Identifies the ColumnHeaderStyle dependency property.
     /// </summary>
@@ -430,6 +431,7 @@ public partial class TableView
         set => SetValue(HorizontalGridLinesStrokeProperty, value);
     }
 
+#if WINDOWS
     /// <summary>
     /// Gets or sets the background brush for alternate rows.
     /// </summary>
@@ -465,6 +467,7 @@ public partial class TableView
         get => (FlyoutBase?)GetValue(CellContextFlyoutProperty);
         set => SetValue(CellContextFlyoutProperty, value);
     }
+#endif
 
     /// <summary>
     /// Gets or sets the style applied to all column headers.
@@ -491,7 +494,7 @@ public partial class TableView
     {
         if (d is TableView tableView)
         {
-            tableView.OnItemsSourceChanged(e);
+            tableView.ItemsSourceChanged(e);
             tableView.SelectedCellRanges.Clear();
             tableView.OnCellSelectionChanged();
         }

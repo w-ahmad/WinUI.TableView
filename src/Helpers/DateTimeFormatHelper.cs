@@ -1,7 +1,9 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using Windows.Globalization.DateTimeFormatting;
 using Windows.System.UserProfile;
 using WinUI.TableView.Extensions;
@@ -9,36 +11,13 @@ using WinUI.TableView.Extensions;
 namespace WinUI.TableView.Helpers;
 
 /// <summary>
-/// Provides helper methods for formatting Date&Time values.
+/// Provides helper methods for formatting Date and Time values.
 /// </summary>
 internal static class DateTimeFormatHelper
 {
     private const string _12HourClock = "12HourClock";
     private const string _24HourClock = "24HourClock";
-
-    /// <summary>
-    /// Gets the DateTimeFormatter for 12-hour clock format.
-    /// </summary>
-    internal static DateTimeFormatter _12HourClockFormatter { get; } = GetClockFormatter(_12HourClock);
-
-    /// <summary>
-    /// Gets the DateTimeFormatter for 24-hour clock format.
-    /// </summary>
-    internal static DateTimeFormatter _24HourClockFormatter { get; } = GetClockFormatter(_24HourClock);
-
-    /// <summary>
-    /// Gets a DateTimeFormatter for the specified clock format.
-    /// </summary>
-    /// <param name="clock">The clock format ("12HourClock" or "24HourClock").</param>
-    /// <returns>A DateTimeFormatter for the specified clock format.</returns>
-    private static DateTimeFormatter GetClockFormatter(string clock)
-    {
-        var languages = GlobalizationPreferences.Languages;
-        var geographicRegion = GlobalizationPreferences.HomeGeographicRegion;
-        var calendar = GlobalizationPreferences.Calendars[0];
-
-        return new DateTimeFormatter("shorttime", languages, geographicRegion, calendar, clock);
-    }
+    private static readonly Dictionary<(string Format, string? Clock), DateTimeFormatter> _formatters = [];
 
     /// <summary>
     /// Sets the formatted text for a TextBlock based on its value and format.
@@ -53,7 +32,7 @@ internal static class DateTimeFormatHelper
         {
             if (value is not null && format is _12HourClock or _24HourClock)
             {
-                var formatter = format is _24HourClock ? _24HourClockFormatter : _12HourClockFormatter;
+                var formatter = GetDateTimeFormatter("shorttime", format);
                 var dateTimeOffset = value switch
                 {
                     TimeSpan timeSpan => timeSpan.ToDateTimeOffset(),
@@ -67,7 +46,8 @@ internal static class DateTimeFormatHelper
             }
             else if (value is not null)
             {
-                var formatter = new DateTimeFormatter(format);
+                var formatter = GetDateTimeFormatter(format);
+
                 var dateTimeOffset = value switch
                 {
                     DateOnly dateOnly => dateOnly.ToDateTimeOffset(),
@@ -88,6 +68,29 @@ internal static class DateTimeFormatHelper
             Debug.WriteLine($"Unable to format value. Error: {ex.Message}");
             throw;
         }
+    }
+
+    /// <summary>
+    /// Gets a DateTimeFormatter for the specified format and clock.
+    /// </summary>
+    internal static DateTimeFormatter GetDateTimeFormatter(string strFormat, string? strClock = null)
+    {
+        if (_formatters.TryGetValue((strFormat, strClock), out var cacheFormatter))
+        {
+            return cacheFormatter;
+        }
+
+        var formatter = new DateTimeFormatter(strFormat);
+        var result = new DateTimeFormatter(
+             strFormat,
+             formatter.Languages,
+             formatter.GeographicRegion,
+             formatter.Calendar,
+             strClock ?? formatter.Clock);
+
+        _formatters[(strFormat, strClock)] = result;
+
+        return result;
     }
 
     /// <summary>

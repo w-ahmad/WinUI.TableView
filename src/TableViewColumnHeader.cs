@@ -40,6 +40,7 @@ public partial class TableViewColumnHeader : ContentControl
     private CheckBox? _selectAllCheckBox;
     private OptionsFlyoutViewModel _optionsFlyoutViewModel = default!;
     private bool _resizeStarted;
+    private double _resizeStartingWidth;
     private bool _resizePreviousStarted;
 
     /// <summary>
@@ -203,7 +204,11 @@ public partial class TableViewColumnHeader : ContentControl
         if (menuItem?.FindDescendant<AutoSuggestBox>(x => x.Name == "SearchBox") is { } searchBox)
         {
             searchBox.PlaceholderText = TableViewLocalizedStrings.SearchBoxPlaceholder;
-            searchBox.PreviewKeyDown += OnSearchBoxKeyDown;
+#if WINDOWS
+            searchBox.PreviewKeyDown += OnSearchBoxKeyDown; 
+#else
+            searchBox.KeyDown += OnSearchBoxKeyDown;
+#endif
         }
 
         SetFilterButtonVisibility();
@@ -389,11 +394,13 @@ public partial class TableViewColumnHeader : ContentControl
         if (IsSizingCursor && CanResize && IsCursorInRightResizeArea(e))
         {
             _resizeStarted = true;
+            _resizeStartingWidth = ActualWidth;
             CapturePointer(e.Pointer);
         }
-        else if (IsSizingCursor && IsCursorInLeftResizeArea(e))
+        else if (IsSizingCursor && IsCursorInLeftResizeArea(e) && _headerRow?.GetPreviousHeader(this) is { Column: { } } header)
         {
             _resizePreviousStarted = true;
+            _resizeStartingWidth = header.ActualWidth;
             CapturePointer(e.Pointer);
         }
     }
@@ -409,7 +416,8 @@ public partial class TableViewColumnHeader : ContentControl
 
         if (_resizeStarted)
         {
-            var width = e.Position.X;
+            var width = _resizeStartingWidth + e.Cumulative.Translation.X;
+
             var minWidth = Column.MinWidth ?? _tableView.MinColumnWidth;
             var maxWidth = Column.MaxWidth ?? _tableView.MaxColumnWidth;
 
@@ -422,7 +430,7 @@ public partial class TableViewColumnHeader : ContentControl
         {
             var minWidth = header.Column.MinWidth ?? _tableView.MinColumnWidth;
             var maxWidth = header.Column.MaxWidth ?? _tableView.MaxColumnWidth;
-            var width = header.Column.ActualWidth + e.Position.X;
+            var width = _resizeStartingWidth + e.Cumulative.Translation.X;
 
             width = width < minWidth ? minWidth : width;
             width = width > maxWidth ? maxWidth : width;

@@ -3,11 +3,12 @@ using SD = WinUI.TableView.SortDirection;
 
 namespace WinUI.TableView;
 
+/// <summary>
 /// Represents a column in a TableView.
 /// </summary>
 [StyleTypedProperty(Property = nameof(HeaderStyle), StyleTargetType = typeof(TableViewColumnHeader))]
 [StyleTypedProperty(Property = nameof(CellStyle), StyleTargetType = typeof(TableViewCell))]
-public abstract class TableViewColumn : DependencyObject
+public abstract partial class TableViewColumn : DependencyObject
 {
     private TableViewColumnHeader? _headerControl;
     private double _desiredWidth;
@@ -393,7 +394,7 @@ public abstract class TableViewColumn : DependencyObject
     /// <summary>
     /// Identifies the CellStyle dependency property.
     /// </summary>
-    public static readonly DependencyProperty CellStyleProperty = DependencyProperty.Register(nameof(CellStyle), typeof(Style), typeof(TableView), new PropertyMetadata(null, OnCellStyleChanged));
+    public static readonly DependencyProperty CellStyleProperty = DependencyProperty.Register(nameof(CellStyle), typeof(Style), typeof(TableViewColumn), new PropertyMetadata(null, OnCellStyleChanged));
 
     /// <summary>
     /// Identifies the Header dependency property.
