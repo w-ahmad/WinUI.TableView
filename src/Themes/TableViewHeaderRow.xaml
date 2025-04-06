@@ -68,6 +68,7 @@
                                     CornerRadius="4,0,0,0"
                                     Visibility="Collapsed"
                                     IsTabStop="False"
+                                    HorizontalAlignment="Stretch"
                                     VerticalAlignment="Stretch">
                                 <FontIcon Opacity="0.5"
                                           Glyph="&#xE788;"
