@@ -1303,7 +1303,6 @@ public partial class TableView : ListView
     /// </summary>
     internal void EnsureAlternateRowColors()
     {
-#if WINDOWS
         DispatcherQueue.TryEnqueue(() =>
         {
             foreach (var row in _rows)
@@ -1311,7 +1310,6 @@ public partial class TableView : ListView
                 row.EnsureAlternateColors();
             }
         }); 
-#endif
     }
 
     /// <summary>

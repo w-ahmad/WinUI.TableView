@@ -125,7 +125,6 @@ public partial class TableView
     /// </summary>
     public static readonly DependencyProperty VerticalGridLinesStrokeProperty = DependencyProperty.Register(nameof(VerticalGridLinesStroke), typeof(Brush), typeof(TableView), new PropertyMetadata(default, OnGridLinesPropertyChanged));
 
-#if WINDOWS
     /// <summary>
     /// Identifies the AlternateRowForeground dependency property.
     /// </summary>
@@ -136,6 +135,7 @@ public partial class TableView
     /// </summary>
     public static readonly DependencyProperty AlternateRowBackgroundProperty = DependencyProperty.Register(nameof(AlternateRowBackground), typeof(Brush), typeof(TableView), new PropertyMetadata(null, OnAlternateRowColorChanged));
 
+#if WINDOWS
     /// <summary>
     /// Identifies the RowContextFlyout dependency property.
     /// </summary>
@@ -431,7 +431,6 @@ public partial class TableView
         set => SetValue(HorizontalGridLinesStrokeProperty, value);
     }
 
-#if WINDOWS
     /// <summary>
     /// Gets or sets the background brush for alternate rows.
     /// </summary>
@@ -450,6 +449,7 @@ public partial class TableView
         set => SetValue(AlternateRowForegroundProperty, value);
     }
 
+#if WINDOWS
     /// <summary>
     /// Gets or sets the context flyout for rows.
     /// </summary>

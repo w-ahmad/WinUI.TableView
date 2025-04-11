@@ -26,11 +26,9 @@ public partial class TableViewRow : ListViewItem
     private ListViewItemPresenter? _itemPresenter;
     private TableViewCellsPresenter? _cellPresenter;
     private Border? _selectionBackground;
-#if WINDOWS
     private bool _ensureCells = true;
     private Brush? _cellPresenterBackground;
-    private Brush? _cellPresenterForeground; 
-#endif
+    private Brush? _cellPresenterForeground;
 
     /// <summary>
     /// Initializes a new instance of the TableViewRow class.
@@ -121,10 +119,8 @@ public partial class TableViewRow : ListViewItem
     /// </summary>
     private void OnForegroundChanged()
     {
-#if WINDOWS
         _cellPresenterForeground = Foreground;
-        EnsureAlternateColors(); 
-#endif
+        EnsureAlternateColors();
     }
 
     /// <summary>
@@ -132,10 +128,8 @@ public partial class TableViewRow : ListViewItem
     /// </summary>
     private void OnBackgroundChanged()
     {
-#if WINDOWS
         _cellPresenterBackground = Background;
-        EnsureAlternateColors(); 
-#endif
+        EnsureAlternateColors();
     }
 
     /// <summary>
@@ -153,10 +147,8 @@ public partial class TableViewRow : ListViewItem
     {
         base.OnApplyTemplate();
 
-#if WINDOWS
         _cellPresenterBackground = Background;
-        _cellPresenterForeground = Foreground; 
-#endif
+        _cellPresenterForeground = Foreground;
         _itemPresenter = GetTemplateChild("Root") as ListViewItemPresenter;
 
         if (_itemPresenter is not null)
@@ -184,10 +176,10 @@ public partial class TableViewRow : ListViewItem
         else
         {
 #endif
-        foreach (var cell in Cells)
-        {
-            cell.RefreshElement();
-        }
+            foreach (var cell in Cells)
+            {
+                cell.RefreshElement();
+            }
 #if WINDOWS
         }
 #endif
@@ -243,8 +235,8 @@ public partial class TableViewRow : ListViewItem
             CellPresenter.Children.Clear();
 
             AddCells(TableView.Columns.VisibleColumns);
-        _ensureCells = false;
-    } 
+            _ensureCells = false;
+        }
     }
 
     /// <summary>
@@ -516,7 +508,6 @@ public partial class TableViewRow : ListViewItem
         }
     }
 
-#if WINDOWS
     /// <summary>
     /// Ensures alternate colors are applied to the row.
     /// </summary>
@@ -529,8 +520,7 @@ public partial class TableViewRow : ListViewItem
 
         CellPresenter.Foreground =
             Index % 2 == 1 && TableView.AlternateRowForeground is not null ? TableView.AlternateRowForeground : _cellPresenterForeground;
-    } 
-#endif
+    }
 
     /// <summary>
     /// Gets the list of cells in the row.
