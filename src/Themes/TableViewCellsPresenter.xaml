@@ -22,24 +22,15 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
+
                             <StackPanel x:Name="StackPanel"
                                         Grid.Column="1"
-                                        Orientation="Horizontal" />
-
-                            <ItemsControl x:Name="ItemsControl"
-                                          Grid.Column="1"
-                                          Visibility="Collapsed">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <StackPanel Orientation="Horizontal" />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <local:TableViewCell />
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
+                                        Orientation="Horizontal">
+                                <!--This is just dummy textblock. It would be removed at runtime-->
+                                <TextBlock Margin="16,0"
+                                           Text="{Binding}" 
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
 
                             <Rectangle x:Name="VerticalGridLine"
                                        Width="1"

@@ -227,27 +227,25 @@ public partial class TableViewRow : ListViewItem
         }
     }
 
-#if WINDOWS
     /// <summary>
     /// Ensures cells are created for the row.
     /// </summary>
-    private void EnsureCells()
+    internal void EnsureCells()
     {
         if (TableView is null)
         {
             return;
         }
 
-        if (CellPresenter is not null)
+        if (CellPresenter is { Children: { } } && (_ensureCells || _cellPresenter != CellPresenter))
         {
+            _cellPresenter = CellPresenter;
             CellPresenter.Children.Clear();
 
             AddCells(TableView.Columns.VisibleColumns);
-        }
-
         _ensureCells = false;
     } 
-#endif
+    }
 
     /// <summary>
     /// Handles the SizeChanged event.
@@ -561,20 +559,10 @@ public partial class TableViewRow : ListViewItem
         }
     }
 
-    public TableViewCellsPresenter? CellPresenter
-    {
-        get
-        {
-            if (_cellPresenter is null)
-            {
+    public TableViewCellsPresenter? CellPresenter =>
 #if WINDOWS
-                _cellPresenter = ContentTemplateRoot as TableViewCellsPresenter; 
+            ContentTemplateRoot as TableViewCellsPresenter; 
 #else
-                _cellPresenter = this.FindDescendant<TableViewCellsPresenter>();
+            this.FindDescendant<TableViewCellsPresenter>();
 #endif
-            }
-
-            return _cellPresenter;
-        }
-    }
 }

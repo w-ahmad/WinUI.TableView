@@ -15,7 +15,6 @@ namespace WinUI.TableView;
 public partial class TableViewCellsPresenter : Control
 {
     private StackPanel? _stackPanel;
-    private ItemsControl? _itemsControl;
     private Rectangle? _v_gridLine;
     private Rectangle? _h_gridLine;
 
@@ -32,7 +31,6 @@ public partial class TableViewCellsPresenter : Control
         base.OnApplyTemplate();
 
         _stackPanel = GetTemplateChild("StackPanel") as StackPanel;
-        _itemsControl = GetTemplateChild("ItemsControl") as ItemsControl;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
         _h_gridLine = GetTemplateChild("HorizontalGridLine") as Rectangle;
 
@@ -40,13 +38,8 @@ public partial class TableViewCellsPresenter : Control
         TableView = TableViewRow?.TableView;
 
 #if !WINDOWS
-        if (_itemsControl is not null)
-        {
-            _itemsControl.Visibility = Visibility.Visible;
-            _itemsControl.ItemsSource = TableView?.Columns.VisibleColumns;
-        }
+        TableView?.EnsureCells();  
 #endif
-
         EnsureGridLines();
     }
 
@@ -89,13 +82,7 @@ public partial class TableViewCellsPresenter : Control
     /// <summary>
     /// Gets the list of cells in the presenter.
     /// </summary>
-    public IList<TableViewCell> Cells =>
-
-#if WINDOWS
-        _stackPanel?.Children.OfType<TableViewCell>().ToList()!;
-#else
-        _itemsControl?.FindDescendants().OfType<TableViewCell>().ToList()!;
-#endif
+    public IList<TableViewCell> Cells => _stackPanel?.Children.OfType<TableViewCell>().ToList()!;
 
     /// <summary>
     /// Gets or sets the TableViewRow associated with the presenter.

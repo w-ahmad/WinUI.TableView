@@ -56,29 +56,14 @@ public partial class TableViewCell : ContentControl
     }
 #endif
 
-#if !WINDOWS
-    protected override void OnDataContextChanged()
-    {
-        base.OnDataContextChanged();
-
-        if (DataContext is TableViewColumn column)
-        {
-            Column = column;
-            Width = column.ActualWidth;
-            Style = column.CellStyle ?? TableView?.CellStyle;
-        }
-    }
-#endif
 
     /// <summary>
     /// Handles the Loaded event.
     /// </summary>
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-#if WINDOWS
         InvalidateMeasure();
         ApplySelectionState();
-#endif
     }
 
     protected override void OnApplyTemplate()
@@ -89,23 +74,7 @@ public partial class TableViewCell : ContentControl
         _selectionBorder = GetTemplateChild("SelectionBorder") as Border;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
 
-#if WINDOWS
         EnsureGridLines();
-#else
-        if (this.FindAscendant<TableViewRow>() is { TableView: { } } row)
-        {
-            Row = row;
-            TableView = row.TableView;
-            Index = Column is not null ? TableView.Columns.VisibleColumns.IndexOf(Column) : -1;
-            DataContext = Row?.Content;
-
-            EnsureGridLines();
-            SetElement();
-
-            InvalidateMeasure();
-            ApplySelectionState();
-        }
-#endif
     }
 
     protected override Size MeasureOverride(Size availableSize)
@@ -342,10 +311,6 @@ public partial class TableViewCell : ContentControl
     /// </summary>
     internal void SetElement()
     {
-#if !WINDOWS
-        if (_contentPresenter is null) return; 
-#endif
-
         var element = Column?.GenerateElement(this, Row?.Content);
 
         if (element is not null && Column is TableViewBoundColumn { ElementStyle: { } } boundColumn)

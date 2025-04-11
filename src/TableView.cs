@@ -1336,6 +1336,16 @@ public partial class TableView : ListView
         }
     }
 
+#if !WINDOWS
+    internal void EnsureCells()
+    {
+        foreach (var row in _rows)
+        {
+            row.EnsureCells();
+        }
+    } 
+#endif
+
 #if WINDOWS
     /// <summary>
     /// Shows the context flyout for the specified row.
