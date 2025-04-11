@@ -1097,7 +1097,7 @@ public partial class TableView : ListView
         DispatcherQueue.TryEnqueue(() =>
         {
             var oldSelection = SelectedCells;
-            SelectedCells = new HashSet<TableViewCellSlot>(SelectedCellRanges.SelectMany(x => x));
+            SelectedCells = [.. SelectedCellRanges.SelectMany(x => x)];
 
             var rowIndexes = oldSelection.Select(x => x.Row).Concat(SelectedCells.Select(x => x.Row)).Distinct();
 
