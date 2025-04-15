@@ -28,14 +28,40 @@
                                                 Value="Visible" />
                                     </VisualState.Setters>
                                 </VisualState>
+                                <VisualState x:Name="SelectAllButtonDisabled">
+                                    <VisualState.Setters>
+                                        <Setter Target="selectAllButton.IsEnabled"
+                                                Value="False" />
+                                        <Setter Target="selectAllButton.Visibility"
+                                                Value="Visible" />
+                                    </VisualState.Setters>
+                                </VisualState>
                                 <VisualState x:Name="OptionsButton">
                                     <VisualState.Setters>
                                         <Setter Target="optionsButton.Visibility"
                                                 Value="Visible" />
                                     </VisualState.Setters>
                                 </VisualState>
+                                <VisualState x:Name="OptionsButtonDisabled">
+                                    <VisualState.Setters>
+                                        <Setter Target="optionsButton.IsEnabled"
+                                                Value="False" />
+                                        <Setter Target="optionsButton.Visibility"
+                                                Value="Visible" />
+                                    </VisualState.Setters>
+                                </VisualState>
                                 <VisualState x:Name="SelectAllCheckBox">
                                     <VisualState.Setters>
+                                        <Setter Target="selectAllCheckBox.Visibility"
+                                                Value="Visible" />
+                                        <Setter Target="cornerButtonColumn.Width"
+                                                Value="40" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="SelectAllCheckBoxDisabled">
+                                    <VisualState.Setters>
+                                        <Setter Target="selectAllCheckBox.IsEnabled"
+                                                Value="False" />
                                         <Setter Target="selectAllCheckBox.Visibility"
                                                 Value="Visible" />
                                         <Setter Target="cornerButtonColumn.Width"

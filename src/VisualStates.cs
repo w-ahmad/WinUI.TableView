@@ -277,6 +277,11 @@ internal static class VisualStates
     /// Select all button state
     /// </summary>
     public const string StateSelectAllButton = "SelectAllButton";
+    
+    /// <summary>
+    /// Select all button disabled state
+    /// </summary>
+    public const string StateSelectAllButtonDisabled = "SelectAllButtonDisabled";
 
     /// <summary>
     /// Select all checkbox state
@@ -284,9 +289,19 @@ internal static class VisualStates
     public const string StateSelectAllCheckBox = "SelectAllCheckBox";
 
     /// <summary>
+    /// Select all checkbox disabled state
+    /// </summary>
+    public const string StateSelectAllCheckBoxDisabled = "SelectAllCheckBoxDisabled";
+
+    /// <summary>
     /// Options button state
     /// </summary>
     public const string StateOptionsButton = "OptionsButton";
+    
+    /// <summary>
+    /// Options button disabled state
+    /// </summary>
+    public const string StateOptionsButtonDisabled = "OptionsButtonDisabled";
 
     /// <summary>
     /// Select all button state group

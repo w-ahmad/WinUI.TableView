@@ -150,7 +150,6 @@ public partial class TableView : ListView
         if (e.Key is VirtualKey.F2 && currentCell is not null && !IsEditing)
         {
             currentCell.PrepareForEdit();
-            IsEditing = true;
             e.Handled = true;
         }
         else if (e.Key is VirtualKey.Escape && currentCell is not null && IsEditing)
@@ -367,7 +366,7 @@ public partial class TableView : ListView
                                                                 .Select(c => new TableViewCellSlot(r, c)))
                                      .Concat(SelectedCells)
                                      .OrderBy(x => x.Row)
-                                     .ThenByDescending(x => x.Column); 
+                                     .ThenByDescending(x => x.Column);
 #endif
         }
         else if (CurrentCellSlot.HasValue)
@@ -675,7 +674,7 @@ public partial class TableView : ListView
             using var tw = new StreamWriter(stream);
             await tw.WriteAsync(content);
         }
-        catch { } 
+        catch { }
 #else
         await Task.CompletedTask;
 #endif
@@ -815,7 +814,7 @@ public partial class TableView : ListView
                 case ListViewSelectionMode.Multiple:
                 case ListViewSelectionMode.Extended:
 #if WINDOWS
-                    SelectRange(new ItemIndexRange(0, (uint)Items.Count)); 
+                    SelectRange(new ItemIndexRange(0, (uint)Items.Count));
 #endif
                     break;
             }
@@ -877,7 +876,7 @@ public partial class TableView : ListView
             case ListViewSelectionMode.Multiple:
             case ListViewSelectionMode.Extended:
 #if WINDOWS
-                DeselectRange(new ItemIndexRange(0, (uint)Items.Count)); 
+                DeselectRange(new ItemIndexRange(0, (uint)Items.Count));
 #endif
                 break;
         }
@@ -986,7 +985,7 @@ public partial class TableView : ListView
                 var row = await ScrollRowIntoView(slot.Row);
                 row?.Focus(FocusState.Programmatic);
             });
-        } 
+        }
 #endif
     }
 
@@ -1309,7 +1308,7 @@ public partial class TableView : ListView
             {
                 row.EnsureAlternateColors();
             }
-        }); 
+        });
     }
 
     /// <summary>
@@ -1341,7 +1340,7 @@ public partial class TableView : ListView
         {
             row.EnsureCells();
         }
-    } 
+    }
 #endif
 
 #if WINDOWS
@@ -1359,7 +1358,7 @@ public partial class TableView : ListView
 
             RowContextFlyout.ShowAt(presenter, new FlyoutShowOptions
             {
-                ShowMode = FlyoutShowMode.Standard, 
+                ShowMode = FlyoutShowMode.Standard,
                 Placement = RowContextFlyout.Placement,
                 Position = position
             });
@@ -1378,13 +1377,32 @@ public partial class TableView : ListView
         {
             CellContextFlyout.ShowAt(cell, new FlyoutShowOptions
             {
-                ShowMode = FlyoutShowMode.Standard, 
+                ShowMode = FlyoutShowMode.Standard,
                 Placement = CellContextFlyout.Placement,
                 Position = position
             });
         }
     }
 #endif
+
+    /// <summary>
+    /// Sets the state of the corner button.
+    /// </summary>
+    internal void UpdateCornerButtonState()
+    {
+        _headerRow?.SetCornerButtonState();
+
+        DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low,() =>
+        {
+            if (SelectionMode is ListViewSelectionMode.Multiple && SelectionUnit is not TableViewSelectionUnit.Cell)
+            {
+                foreach (var row in _rows)
+                {
+                    row.UpdateSelectCheckMarkOpacity();
+                }
+            }
+        });
+    }
 
     public virtual void OnSorting(TableViewSortingEventArgs eventArgs)
     {
@@ -1434,7 +1452,7 @@ public partial class TableView : ListView
     /// <summary>
     /// Event triggered when the cell context flyout is opening.
     /// </summary>
-    public event EventHandler<TableViewCellContextFlyoutEventArgs>? CellContextFlyoutOpening; 
+    public event EventHandler<TableViewCellContextFlyoutEventArgs>? CellContextFlyoutOpening;
 #endif
 
     /// <summary>

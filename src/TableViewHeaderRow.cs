@@ -20,8 +20,11 @@ namespace WinUI.TableView;
 [TemplateVisualState(Name = VisualStates.StateNormal, GroupName = VisualStates.GroupCommon)]
 [TemplateVisualState(Name = VisualStates.StateNoButton, GroupName = VisualStates.GroupCornerButton)]
 [TemplateVisualState(Name = VisualStates.StateSelectAllButton, GroupName = VisualStates.GroupCornerButton)]
+[TemplateVisualState(Name = VisualStates.StateSelectAllButtonDisabled, GroupName = VisualStates.GroupCornerButton)]
 [TemplateVisualState(Name = VisualStates.StateSelectAllCheckBox, GroupName = VisualStates.GroupCornerButton)]
+[TemplateVisualState(Name = VisualStates.StateSelectAllCheckBoxDisabled, GroupName = VisualStates.GroupCornerButton)]
 [TemplateVisualState(Name = VisualStates.StateOptionsButton, GroupName = VisualStates.GroupCornerButton)]
+[TemplateVisualState(Name = VisualStates.StateOptionsButtonDisabled, GroupName = VisualStates.GroupCornerButton)]
 public partial class TableViewHeaderRow : Control
 {
     private Button? _optionsButton;
@@ -81,11 +84,11 @@ public partial class TableViewHeaderRow : Control
         if (GetTemplateChild("cornerButtonColumn") is ColumnDefinition cornerButtonColumn)
         {
             cornerButtonColumn.MinWidth = 20;
-        } 
+        }
 #endif
 
         SetExportOptionsVisibility();
-        SetSelectAllButtonState();
+        SetCornerButtonState();
         EnsureGridLines();
     }
 
@@ -355,24 +358,24 @@ public partial class TableViewHeaderRow : Control
     /// <summary>
     /// Sets the state of the select all button.
     /// </summary>
-    private void SetSelectAllButtonState()
+    internal void SetCornerButtonState()
     {
+        var stateName = VisualStates.StateNoButton;
+
         if (TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple })
         {
-            VisualStates.GoToState(this, false, VisualStates.StateSelectAllCheckBox);
+            stateName = TableView.IsEditing ? VisualStates.StateSelectAllCheckBoxDisabled : VisualStates.StateSelectAllCheckBox;
         }
         else if (TableView is { CornerButtonMode: TableViewCornerButtonMode.Options })
         {
-            VisualStates.GoToState(this, false, VisualStates.StateOptionsButton);
+            stateName = TableView.IsEditing ? VisualStates.StateOptionsButtonDisabled : VisualStates.StateOptionsButton;
         }
         else if (TableView is { CornerButtonMode: TableViewCornerButtonMode.SelectAll })
         {
-            VisualStates.GoToState(this, false, VisualStates.StateSelectAllButton);
+            stateName = TableView.IsEditing ? VisualStates.StateSelectAllButtonDisabled : VisualStates.StateSelectAllButton;
         }
-        else
-        {
-            VisualStates.GoToState(this, false, VisualStates.StateNoButton);
-        }
+
+        VisualStates.GoToState(this, false, stateName);
     }
 
     /// <summary>
@@ -486,12 +489,6 @@ public partial class TableViewHeaderRow : Control
             newTableView.Items.VectorChanged += delegate { OnTableViewSelectionChanged(); };
             newTableView.Columns.CollectionChanged += OnTableViewColumnsCollectionChanged;
             newTableView.Columns.ColumnPropertyChanged += OnColumnPropertyChanged;
-
-            _callbackTokens[ListViewBase.SelectionModeProperty] =
-                newTableView.RegisterPropertyChangedCallback(ListViewBase.SelectionModeProperty, delegate { SetSelectAllButtonState(); });
-
-            _callbackTokens[TableView.CornerButtonModeProperty] =
-                newTableView.RegisterPropertyChangedCallback(TableView.CornerButtonModeProperty, delegate { SetSelectAllButtonState(); });
 
             _callbackTokens[TableView.ItemsSourceProperty] =
                 newTableView.RegisterPropertyChangedCallback(TableView.ItemsSourceProperty, delegate { OnTableViewSelectionChanged(); });

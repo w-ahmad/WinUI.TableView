@@ -60,7 +60,6 @@ public partial class TableViewRow : ListViewItem
             TableView?.ShowRowContext(this, position);
         }
     }
-#endif
 
     /// <summary>
     /// Determines if the context request is from a cell.
@@ -76,6 +75,7 @@ public partial class TableViewRow : ListViewItem
                                .OfType<TableViewCell>()
                                .Any();
     }
+#endif
 
     /// <summary>
     /// Handles the IsSelected property changed.
@@ -189,7 +189,10 @@ public partial class TableViewRow : ListViewItem
 
     protected override void OnPointerPressed(PointerRoutedEventArgs e)
     {
-        base.OnPointerPressed(e);
+        if (TableView is { IsEditing: false })
+        {
+            base.OnPointerPressed(e);
+        }
 
         if (!KeyboardHelper.IsShiftKeyDown() && TableView is not null)
         {
@@ -522,6 +525,16 @@ public partial class TableViewRow : ListViewItem
             Index % 2 == 1 && TableView.AlternateRowForeground is not null ? TableView.AlternateRowForeground : _cellPresenterForeground;
     }
 
+    internal void UpdateSelectCheckMarkOpacity()
+    {
+        var fontIcon = this.FindDescendant<FontIcon>(x => x.Parent is Border);
+
+        if (fontIcon?.Parent is Border border)
+        {
+            border.Opacity = TableView?.IsEditing is true ? 0.3 : 1;
+        }
+    }
+
     /// <summary>
     /// Gets the list of cells in the row.
     /// </summary>
@@ -551,7 +564,7 @@ public partial class TableViewRow : ListViewItem
 
     public TableViewCellsPresenter? CellPresenter =>
 #if WINDOWS
-            ContentTemplateRoot as TableViewCellsPresenter; 
+            ContentTemplateRoot as TableViewCellsPresenter;
 #else
             this.FindDescendant<TableViewCellsPresenter>();
 #endif
