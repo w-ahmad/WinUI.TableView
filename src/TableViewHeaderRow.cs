@@ -1,8 +1,8 @@
-﻿using CommunityToolkit.WinUI;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 using System;
@@ -62,7 +62,7 @@ public partial class TableViewHeaderRow : Control
 
         if (GetTemplateChild("selectAllButton") is Button selectAllButton)
         {
-            selectAllButton.Tapped += delegate { TableView.SelectAllSafe(); };
+            selectAllButton.Tapped += OnSelectAllButtonClicked;
         }
 
         if (_selectAllCheckBox is not null)
@@ -376,11 +376,19 @@ public partial class TableViewHeaderRow : Control
     }
 
     /// <summary>
+    /// Handles the SelectAllButton clicked event.
+    /// </summary>
+    private void OnSelectAllButtonClicked(object sender, TappedRoutedEventArgs e)
+    {
+        TableView?.SelectAll();
+    }
+
+    /// <summary>
     /// Handles the Checked event for the select all checkbox.
     /// </summary>
     private void OnSelectAllCheckBoxChecked(object sender, RoutedEventArgs e)
     {
-        TableView?.SelectAllSafe();
+        TableView?.SelectAll();
     }
 
     /// <summary>
