@@ -83,11 +83,6 @@ public partial class TableViewRow : ListViewItem
 #if WINDOWS
     private void OnIsSelectedChanged()
     {
-#else
-    protected override void OnIsSelectedChanged()
-    {
-        base.OnIsSelectedChanged();
-#endif
         DispatcherQueue.TryEnqueue(() =>
         {
             if (IsSelected && TableView?.SelectionMode is not ListViewSelectionMode.Multiple)
@@ -113,6 +108,7 @@ public partial class TableViewRow : ListViewItem
             }
         });
     }
+#endif
 
     /// <summary>
     /// Handles the Foreground property changed.
@@ -503,12 +499,14 @@ public partial class TableViewRow : ListViewItem
     /// </summary>
     internal void EnsureLayout()
     {
+#if WINDOWS
         if (CellPresenter is not null && TableView is not null)
         {
             CellPresenter.Padding = ((ListView)TableView).SelectionMode is ListViewSelectionMode.Multiple
                                      ? new Thickness(16, 0, 16, 0)
                                      : new Thickness(20, 0, 16, 0);
-        }
+        }  
+#endif
     }
 
     /// <summary>

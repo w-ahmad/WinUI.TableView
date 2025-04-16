@@ -362,11 +362,14 @@ public partial class TableViewHeaderRow : Control
     {
         var stateName = VisualStates.StateNoButton;
 
+#if WINDOWS
         if (TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple })
         {
             stateName = TableView.IsEditing ? VisualStates.StateSelectAllCheckBoxDisabled : VisualStates.StateSelectAllCheckBox;
         }
-        else if (TableView is { CornerButtonMode: TableViewCornerButtonMode.Options })
+        else  
+#endif
+        if (TableView is { CornerButtonMode: TableViewCornerButtonMode.Options })
         {
             stateName = TableView.IsEditing ? VisualStates.StateOptionsButtonDisabled : VisualStates.StateOptionsButton;
         }
