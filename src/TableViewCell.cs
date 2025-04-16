@@ -252,8 +252,6 @@ public partial class TableViewCell : ContentControl
         if (!IsReadOnly && TableView is not null && !TableView.IsEditing && !Column?.UseSingleElement is true)
         {
             PrepareForEdit();
-
-            TableView.IsEditing = true;
         }
     }
 
@@ -287,6 +285,7 @@ public partial class TableViewCell : ContentControl
             }
 
             TableView.IsEditing = false;
+            TableView.UpdateCornerButtonState();
             TableView.MakeSelection(Slot, shiftKey, ctrlKey);
         }
     }
@@ -341,6 +340,7 @@ public partial class TableViewCell : ContentControl
         if (TableView is not null)
         {
             TableView.IsEditing = true;
+            TableView.UpdateCornerButtonState();
         }
     }
 
