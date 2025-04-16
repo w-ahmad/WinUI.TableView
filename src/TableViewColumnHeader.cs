@@ -201,6 +201,13 @@ public partial class TableViewColumnHeader : ContentControl
             _selectAllCheckBox.Unchecked += OnSelectAllCheckBoxUnchecked;
         }
 
+#if !WINDOWS
+        if (menuItem?.FindDescendant<ListView>(x => x.Name is "FilterItemsList") is { } filterItemsList)
+        {
+            filterItemsList.Margin = new Thickness(12, 0, 0, 0);
+        }
+#endif
+
         if (menuItem?.FindDescendant<AutoSuggestBox>(x => x.Name == "SearchBox") is { } searchBox)
         {
             searchBox.PlaceholderText = TableViewLocalizedStrings.SearchBoxPlaceholder;

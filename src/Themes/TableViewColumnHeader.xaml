@@ -166,7 +166,8 @@
                                                                 <CheckBox x:Name="SelectAllCheckBox"
                                                                           Margin="12,8,12,1" />
                                                             </Border>
-                                                            <ListView Grid.Row="2"
+                                                            <ListView x:Name="FilterItemsList"
+                                                                      Grid.Row="2"
                                                                       SelectionMode="None"
                                                                       ItemsSource="{Binding FilterItems}">
                                                                 <ListView.ItemContainerStyle>
