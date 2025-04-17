@@ -284,10 +284,11 @@ public partial class TableViewCell : ContentControl
                 TableView.DeselectCell(Slot);
             }
 
-            TableView.IsEditing = false;
-            TableView.UpdateCornerButtonState();
             TableView.MakeSelection(Slot, shiftKey, ctrlKey);
         }
+
+        TableView.SetIsEditing(false);
+        TableView.UpdateCornerButtonState();
     }
 
     /// <summary>
@@ -339,7 +340,7 @@ public partial class TableViewCell : ContentControl
 
         if (TableView is not null)
         {
-            TableView.IsEditing = true;
+            TableView.SetIsEditing(true);
             TableView.UpdateCornerButtonState();
         }
     }

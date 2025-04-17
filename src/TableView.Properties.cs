@@ -209,7 +209,7 @@ public partial class TableView
     /// <summary>
     /// Gets or sets a value indicating whether the TableView is in editing mode.
     /// </summary>
-    internal bool IsEditing { get; set; }
+    internal bool IsEditing { get; private set; }
 
     /// <summary>
     /// Gets the width of the selection indicator.

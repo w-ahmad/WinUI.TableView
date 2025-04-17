@@ -154,8 +154,8 @@ public partial class TableView : ListView
         }
         else if (e.Key is VirtualKey.Escape && currentCell is not null && IsEditing)
         {
+            SetIsEditing(false);
             currentCell?.SetElement();
-            IsEditing = false;
             e.Handled = true;
         }
         else if (e.Key is VirtualKey.Space && currentCell is not null && CurrentCellSlot.HasValue && !IsEditing)
@@ -1392,7 +1392,7 @@ public partial class TableView : ListView
     {
         _headerRow?.SetCornerButtonState();
 
-        DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low,() =>
+        DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
         {
             if (SelectionMode is ListViewSelectionMode.Multiple && SelectionUnit is not TableViewSelectionUnit.Cell)
             {
@@ -1402,6 +1402,17 @@ public partial class TableView : ListView
                 }
             }
         });
+    }
+
+    internal void SetIsEditing(bool value)
+    {
+        if (IsEditing == value)
+        {
+            return;
+        }
+
+        IsEditing = value;
+        UpdateCornerButtonState();
     }
 
     public virtual void OnSorting(TableViewSortingEventArgs eventArgs)

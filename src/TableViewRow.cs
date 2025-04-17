@@ -19,6 +19,7 @@ public partial class TableViewRow : ListViewItem
 {
     private const string Selection_Indictor = nameof(Selection_Indictor);
     private const string Selection_Background = nameof(Selection_Background);
+    private const string Check_Mark = "\uE73E";
     private Thickness _focusVisualMargin = new(1);
     private Thickness _selectionBackgroundMargin = new(4, 2, 4, 2);
 
@@ -525,7 +526,7 @@ public partial class TableViewRow : ListViewItem
 
     internal void UpdateSelectCheckMarkOpacity()
     {
-        var fontIcon = this.FindDescendant<FontIcon>(x => x.Parent is Border);
+        var fontIcon = this.FindDescendant<FontIcon>(x => x.Glyph == Check_Mark);
 
         if (fontIcon?.Parent is Border border)
         {
