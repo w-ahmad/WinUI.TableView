@@ -38,7 +38,9 @@ public partial class TableViewCellsPresenter : Control
         TableView = TableViewRow?.TableView;
 
 #if !WINDOWS
-        TableView?.EnsureCells();  
+        TableView?.EnsureCells();
+#else
+        TableViewRow?.EnsureCells();
 #endif
         EnsureGridLines();
     }

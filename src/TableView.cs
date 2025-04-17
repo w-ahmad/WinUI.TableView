@@ -1334,13 +1334,16 @@ public partial class TableView : ListView
     }
 
 #if !WINDOWS
+    /// <summary>
+    /// Ensures the cells are created.
+    /// </summary>
     internal void EnsureCells()
     {
         foreach (var row in _rows)
         {
             row.EnsureCells();
         }
-    }
+    } 
 #endif
 
 #if WINDOWS
