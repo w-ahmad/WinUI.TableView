@@ -42,6 +42,7 @@ public partial class TableViewColumnHeader : ContentControl
     private bool _resizeStarted;
     private double _resizeStartingWidth;
     private bool _resizePreviousStarted;
+    private TextBox? _searchBox;
 
     /// <summary>
     /// Initializes a new instance of the TableViewColumnHeader class.
@@ -125,10 +126,17 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     private void ApplyFilter()
     {
-        if (_tableView is not null)
+        if (_selectAllCheckBox?.IsChecked is true && string.IsNullOrEmpty(_searchBox?.Text))
         {
-            _tableView.FilterHandler.SelectedValues[Column!] = _optionsFlyoutViewModel.SelectedValues;
-            _tableView.FilterHandler?.ApplyFilter(Column!);
+            ClearFilter();
+        }
+        else if (_tableView is not null)
+        {
+            _optionsFlyoutViewModel.SelectedValues = [.. _optionsFlyoutViewModel.FilterItems.Where(x => x.IsSelected).Select(x => x.Value)];
+            {
+                _tableView.FilterHandler.SelectedValues[Column!] = _optionsFlyoutViewModel.SelectedValues;
+                _tableView.FilterHandler?.ApplyFilter(Column!);
+            }
         }
     }
 
@@ -186,7 +194,7 @@ public partial class TableViewColumnHeader : ContentControl
         }
 
         _optionsFlyout.Opening += OnOptionsFlyoutOpening;
-        _optionsFlyout.Closed += (s, e) => _optionsFlyoutViewModel.ClearFilterText();
+        _optionsFlyout.Closed += OnOptionsFlyoutClosed;
         _optionsButton.Tapped += OnOptionsButtonTaped;
         _optionsButton.DataContext = _optionsFlyoutViewModel = new OptionsFlyoutViewModel(_tableView, this);
 
@@ -208,13 +216,15 @@ public partial class TableViewColumnHeader : ContentControl
         }
 #endif
 
-        if (menuItem?.FindDescendant<AutoSuggestBox>(x => x.Name == "SearchBox") is { } searchBox)
+        if (menuItem?.FindDescendant<TextBox>(x => x.Name == "SearchBox") is { } searchBox)
         {
-            searchBox.PlaceholderText = TableViewLocalizedStrings.SearchBoxPlaceholder;
+            _searchBox = searchBox;
+            _searchBox.PlaceholderText = TableViewLocalizedStrings.SearchBoxPlaceholder;
+            _searchBox.TextChanged += OnSearchBoxTextChanged;
 #if WINDOWS
-            searchBox.PreviewKeyDown += OnSearchBoxKeyDown; 
+            _searchBox.PreviewKeyDown += OnSearchBoxKeyDown; 
 #else
-            searchBox.KeyDown += OnSearchBoxKeyDown;
+            _searchBox.KeyDown += OnSearchBoxKeyDown;
 #endif
         }
 
@@ -223,11 +233,22 @@ public partial class TableViewColumnHeader : ContentControl
     }
 
     /// <summary>
+    /// Handles the TextChanged event for the search box.
+    /// </summary>
+    private void OnSearchBoxTextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_tableView?.FilterHandler is not null)
+        {
+            _optionsFlyoutViewModel.FilterItems = _tableView.FilterHandler.GetFilterItems(Column!, _searchBox!.Text);
+        }
+    }
+
+    /// <summary>
     /// Handles the KeyDown event for the search box.
     /// </summary>
     private void OnSearchBoxKeyDown(object sender, KeyRoutedEventArgs e)
     {
-        if (e.Key == VirtualKey.Enter && _optionsFlyoutViewModel is { FilterText.Length: > 0 })
+        if (e.Key == VirtualKey.Enter && _searchBox?.Text.Length > 0)
         {
             _optionsFlyoutViewModel.OkCommand.Execute(null);
 
@@ -256,11 +277,28 @@ public partial class TableViewColumnHeader : ContentControl
     /// <summary>
     /// Handles the Opening event for the options flyout.
     /// </summary>
-    private void OnOptionsFlyoutOpening(object? sender, object e)
+    private async void OnOptionsFlyoutOpening(object? sender, object e)
     {
         if (_tableView?.FilterHandler is not null)
         {
             _optionsFlyoutViewModel.FilterItems = _tableView.FilterHandler.GetFilterItems(Column!, null);
+        }
+
+        if (_searchBox is not null)
+        {
+            await Task.Delay(100);
+            await FocusManager.TryFocusAsync(_searchBox, FocusState.Programmatic);
+        }
+    }
+
+    /// <summary>
+    /// Handles the Closed event for the options flyout.
+    /// </summary>
+    private void OnOptionsFlyoutClosed(object? sender, object e)
+    {
+        if (_searchBox is not null)
+        {
+            _searchBox.Text = string.Empty;
         }
     }
 

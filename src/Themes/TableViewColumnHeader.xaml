@@ -98,7 +98,7 @@
                                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                               HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
 
-                            <Grid HorizontalAlignment="Right">                                
+                            <Grid HorizontalAlignment="Right">
                                 <FontIcon x:Name="SortIcon"
                                           FontSize="10"
                                           Margin="0,2,0,0"
@@ -157,9 +157,7 @@
                                                                 <RowDefinition Height="Auto" />
                                                                 <RowDefinition Height="*" />
                                                             </Grid.RowDefinitions>
-                                                            <AutoSuggestBox x:Name="SearchBox"
-                                                                            QueryIcon="Find"
-                                                                            Text="{Binding FilterText, Mode=TwoWay}" />
+                                                            <TextBox x:Name="SearchBox" />
                                                             <Border Grid.Row="1"
                                                                     BorderThickness="0,0,0,1"
                                                                     BorderBrush="{ThemeResource MenuFlyoutSeparatorBackground}">
@@ -200,14 +198,18 @@
                                             <MenuFlyoutItem>
                                                 <MenuFlyoutItem.Template>
                                                     <ControlTemplate TargetType="MenuFlyoutItem">
-                                                        <Grid Margin="12,4" 
+                                                        <Grid Margin="12,4"
                                                               ColumnSpacing="16">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="*" />
                                                                 <ColumnDefinition Width="*" />
                                                             </Grid.ColumnDefinitions>
-                                                            <Button Command="{Binding OkCommand}" HorizontalAlignment="Stretch" Style="{StaticResource AccentButtonStyle}" />
-                                                            <Button Command="{Binding CancelCommand}" Grid.Column="1" HorizontalAlignment="Stretch" />
+                                                            <Button Command="{Binding OkCommand}"
+                                                                    HorizontalAlignment="Stretch"
+                                                                    Style="{StaticResource AccentButtonStyle}" />
+                                                            <Button Command="{Binding CancelCommand}"
+                                                                    Grid.Column="1"
+                                                                    HorizontalAlignment="Stretch" />
                                                         </Grid>
                                                     </ControlTemplate>
                                                 </MenuFlyoutItem.Template>

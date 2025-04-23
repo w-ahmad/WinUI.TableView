@@ -52,16 +52,7 @@ public partial class TableViewColumnHeader
             OkCommand.ExecuteRequested += delegate
             {
                 ColumnHeader.HideFlyout();
-
-                if (ColumnHeader!._selectAllCheckBox!.IsChecked is true && string.IsNullOrEmpty(FilterText))
-                {
-                    ColumnHeader.ClearFilter();
-                }
-                else
-                {
-                    SelectedValues = FilterItems.Where(x => x.IsSelected).Select(x => x.Value).ToList();
-                    ColumnHeader.ApplyFilter();
-                }
+                ColumnHeader.ApplyFilter();
             };
 
             CancelCommand.ExecuteRequested += delegate { ColumnHeader.HideFlyout(); };
@@ -104,16 +95,6 @@ public partial class TableViewColumnHeader
         }
 
         /// <summary>
-        /// Clears the filter text.
-        /// </summary>
-        internal void ClearFilterText()
-        {
-            _canFilter = false;
-            FilterText = default;
-            _canFilter = true;
-        }
-
-        /// <summary>
         /// Gets the TableView associated with the ViewModel.
         /// </summary>
         public TableView TableView { get; }
@@ -122,30 +103,6 @@ public partial class TableViewColumnHeader
         /// Gets the TableViewColumnHeader associated with the ViewModel.
         /// </summary>
         public TableViewColumnHeader ColumnHeader { get; }
-
-        /// <summary>
-        /// Gets or sets the filter text.
-        /// </summary>
-        public string? FilterText
-        {
-            get => _filterText;
-            set
-            {
-                _filterText = value;
-                OnFilterItemsSearchTextChanged();
-                OnPropertyChanged();
-            }
-        }
-
-        /// <summary>
-        /// Handles the filter items search text changed event.
-        /// </summary>
-        private void OnFilterItemsSearchTextChanged()
-        {
-            if (!_canFilter) return;
-
-            FilterItems = TableView.FilterHandler.GetFilterItems(ColumnHeader.Column!, FilterText);
-        }
 
         /// <summary>
         /// Gets or sets the filter items.
@@ -168,7 +125,7 @@ public partial class TableViewColumnHeader
         /// <summary>
         /// Gets the selected values for the filter.
         /// </summary>
-        public List<object> SelectedValues { get; private set; } = [];
+        public List<object> SelectedValues { get; set; } = [];
 
         /// <summary>
         /// Sets the state of the select all checkbox.
@@ -220,7 +177,7 @@ public partial class TableViewColumnHeader
         /// <summary>
         /// Gets the command to sort in descending order.
         /// </summary>
-        public StandardUICommand SortDescendingCommand { get; } = new() { Label = TableViewLocalizedStrings.SortDescending};
+        public StandardUICommand SortDescendingCommand { get; } = new() { Label = TableViewLocalizedStrings.SortDescending };
 
         /// <summary>
         /// Gets the command to clear sorting.
@@ -235,7 +192,7 @@ public partial class TableViewColumnHeader
         /// <summary>
         /// Gets the command to confirm the filter.
         /// </summary>
-        public StandardUICommand OkCommand { get; } = new() { Label = TableViewLocalizedStrings.Ok};
+        public StandardUICommand OkCommand { get; } = new() { Label = TableViewLocalizedStrings.Ok };
 
         /// <summary>
         /// Gets the command to cancel the filter.
