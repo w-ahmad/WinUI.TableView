@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$([MSBuild]::GetTargetPlatformIdentifier($(TargetFramework)))' != 'windows'">
-    <PackageReference Include="Uno.WinUI" Version="5.5.95" />    
+    <PackageReference Include="Uno.WinUI" Version="5.6.91" />    
   </ItemGroup>
 
   <ItemGroup Condition="'$([MSBuild]::GetTargetPlatformIdentifier($(TargetFramework)))' == 'windows'">
@@ -38,7 +38,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <Description>TableView control for WinUI.</Description>
-    <PackageTags>WinUI, WinAppSDK, Windows, XAML, TableView, DataGrid</PackageTags>
+    <PackageTags>WinUI, WinAppSDK, Windows, UNO, XAML, TableView, DataGrid</PackageTags>
     <Product>WinUI TableView Control</Product>
     <RepositoryUrl>https://github.com/w-ahmad/WinUI.TableView</RepositoryUrl>
     <PackageProjectUrl>https://github.com/w-ahmad/WinUI.TableView</PackageProjectUrl>
