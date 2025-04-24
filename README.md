@@ -1,18 +1,14 @@
 
 # WinUI.TableView
 
-`WinUI.TableView` is a lightweight and fast data grid control made for WinUI apps. It is easy to use, and capable of handling large number of items with a focus on performance. It's derived from `ListView` so you will experience fluent look and feel in your project. It comes with all the essential features you need, plus extras like an Excel like column filter, options buttons (for columns and the TableView) and easy data export.
+**WinUI.TableView** is a lightweight and fast data grid control made for [WinUI](https://learn.microsoft.com/en-us/windows/apps/winui/winui3) apps and now supports the [Uno Platform](https://platform.uno/docs/index.html). It is easy to use, and capable of handling large numbers of items with a focus on performance. It's derived from `ListView` so you will experience fluent look and feel in your project. It comes with all the essential features you need, plus extras like an Excel like column filter, options buttons (for columns and the TableView) and easy data export.
 
 [![ci-build](https://github.com/w-ahmad/WinUI.TableView/actions/workflows/ci-build.yml/badge.svg)](https://github.com/w-ahmad/WinUI.TableView/actions/workflows/ci-build.yml)
 [![cd-build](https://github.com/w-ahmad/WinUI.TableView/actions/workflows/cd-build.yml/badge.svg)](https://github.com/w-ahmad/WinUI.TableView/actions/workflows/cd-build.yml)
 [![nuget](https://img.shields.io/nuget/v/WinUI.TableView)](https://www.nuget.org/packages/WinUI.TableView/)
 [![nuget](https://img.shields.io/nuget/dt/WinUI.TableView)](https://www.nuget.org/packages/WinUI.TableView/)
 
-## Contributors
-[![ci-build](https://contrib.rocks/image?repo=w-ahmad/WinUI.TableView)](https://github.com/w-ahmad/WinUI.TableView/graphs/contributors)
-
-##
-[WinUI.TableView SampleApp](https://github.com/w-ahmad/WinUI.TableView.SampleApp)
+### [SampleApp](https://github.com/w-ahmad/WinUI.TableView.SampleApp)
 
 ![WinUI TableView SampleApp](https://raw.githubusercontent.com/w-ahmad/WinUI.TableView.SampleApp/main/WinUI.TableView%20SampleApp.gif)
 
@@ -25,8 +21,21 @@
 - **Sorting**: Offers built in column sorting.
 - **Excel-like Column Filter**: TableView allows you to filter data within columns with an excel like flyout to enhance data exploration and analysis.
 - **Export functionality**: Built-in export functionality to export data to CSV format. This feature can be enabled by setting the `ShowExportOptions = true`.
+- **Grid Lines**: Display grid lines to improve data visibility and organization.
+- **Localization**: Support for multiple languages to enhance usability for global audiences.
+- **Alternate Row Colors**: Apply alternate row coloring for better readability and aesthetics.
+- **Cell & Row Context Flyout**: Provides context flyouts for cells and rows to allow quick actions. *(not available on uno)*
+
+## Uno Platform Support
+
+`WinUI.TableView` is compatible with the Uno Platform(WASM, Desktop), enabling you to use the control across multiple platforms.
 
 ## Getting Started
+
+### 1: Install NuGet Package
+Install the `WinUI.TableView` NuGet package in your Uno Platform project:
+```bash
+Install-Package WinUI.TableView
 
 ### 1: Install NuGet package to your project
 
@@ -53,12 +62,12 @@ In your `MainWindow.xaml`, add the `WinUI.TableView` control:
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    xmlns:tableView="using:WinUI.TableView">
+    xmlns:tv="using:WinUI.TableView">
 
     <Grid>
-        <tableView:TableView x:Name="MyTableView"
-                             ItemsSource="{x:Bind ViewModel.Items}"
-                             AutoGenerateColumns="True" />
+        <tv:TableView x:Name="MyTableView"
+            ItemsSource="{x:Bind ViewModel.Items}"
+            AutoGenerateColumns="True" />
     </Grid>
 </Window>
 ```
@@ -151,7 +160,11 @@ You can customize the appearance and behavior of the `TableView` by modifying it
 - **Column Customization**: Define custom columns based on data types.
 - **Is ReadOnly**: You can make any column or the TableView itself read only.
 - **Sorting and Filtering**: Enable sorting and filtering on specific columns or for the all columns.
-- **TableView Options**: Turn on or off options flyout for the TableView based on your requirements.
+- **Corner Button Mode**: Use the `CornerButtonMode` property to configure the corner button's behavior. You can select from:
+  - `None`: No corner button.
+  - `SelectAll`: Displays a "Select All" button.
+  - `Options`: Displays an options menu.
+- **Column Header and Cell Styles**: Customize the styles for column headers and cells to match your application's theme or specific design requirements.
 
 ```xml
 <tv:TableView x:Name="MyTableView"
@@ -190,6 +203,10 @@ You can customize the appearance and behavior of the `TableView` by modifying it
 ## Contributing
 
 Contributions are welcome from the community! If you find any issues or have suggestions for improvements, please submit them through the GitHub issue tracker or consider making a pull request.
+
+#### Contributors
+[![ci-build](https://contrib.rocks/image?repo=w-ahmad/WinUI.TableView)](https://github.com/w-ahmad/WinUI.TableView/graphs/contributors)
+
 
 ## License
 
