@@ -32,23 +32,16 @@
 
 ## Getting Started
 
-### 1: Install NuGet Package
-Install the `WinUI.TableView` NuGet package in your Uno Platform project:
-```bash
-Install-Package WinUI.TableView
+### 1. Create a New WinUI3 or Uno Project
 
-### 1: Install NuGet package to your project
+If you don't already have a WinUI 3 project or Uno prject, create one in Visual Studio.
 
-You can install the `WinUI.TableView` NuGet package using the NuGet Package Manager or by running the following command in the Package Manager Console:
+### 2: Install NuGet Package
+Inatall `WinUI.TableView` NuGet package to your app with your preferred method. Here is the one using NuGet Package Manager:
 
 ```bash
 Install-Package WinUI.TableView
 ```
-
-### 2. Create a New WinUI 3 Project
-
-If you don't already have a WinUI 3 project, create one in Visual Studio.
-
 ### 3. Add `WinUI.TableView` to Your XAML
 
 In your `MainWindow.xaml`, add the `WinUI.TableView` control:
@@ -66,8 +59,7 @@ In your `MainWindow.xaml`, add the `WinUI.TableView` control:
 
     <Grid>
         <tv:TableView x:Name="MyTableView"
-            ItemsSource="{x:Bind ViewModel.Items}"
-            AutoGenerateColumns="True" />
+            ItemsSource="{x:Bind ViewModel.Items}" />
     </Grid>
 </Window>
 ```
@@ -101,6 +93,7 @@ public class MainViewModel
         {
             new Item { Name = "Item 1", Price = 10.0, Quantity = 1 },
             new Item { Name = "Item 2", Price = 15.0, Quantity = 2 },
+            new Item { Name = "Item 3", Price = 20.0, Quantity = 3 },
             // Add more items here
         };
     }
