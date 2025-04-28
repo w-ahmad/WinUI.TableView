@@ -77,6 +77,11 @@ public partial class TableView : ListView
 
         SetCurrentCell(null);
         OnCellSelectionChanged();
+
+        if (SelectedIndex > 0)
+        {
+            DispatcherQueue.TryEnqueue(async () => await ScrollRowIntoView(SelectedIndex));
+        }
     }
 
     protected override void PrepareContainerForItemOverride(DependencyObject element, object item)
@@ -1333,7 +1338,7 @@ public partial class TableView : ListView
         {
             row.EnsureCells();
         }
-    } 
+    }
 #endif
 
 #if WINDOWS
