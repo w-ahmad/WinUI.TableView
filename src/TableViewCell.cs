@@ -236,10 +236,17 @@ public partial class TableViewCell : ContentControl
 
         if (_scrollViewer is { })
         {
+#if WINDOWS
             var transform = _scrollViewer.TransformToVisual(this).Inverse;
             var point = transform.TransformPoint(position);
             var transformedPoint = _scrollViewer.TransformToVisual(null).TransformPoint(point);
             return VisualTreeHelper.FindElementsInHostCoordinates(transformedPoint, _scrollViewer)
+#else
+            return VisualTreeHelper.FindElementsInHostCoordinates(position, _scrollViewer, true)
+                                   .OfType<ContentPresenter>()
+                                   .Where(x => x.Name is "Content")
+                                   .Select(x => x.FindAscendant<TableViewCell>() is { } cell ? cell : default)
+#endif
                                    .OfType<TableViewCell>()
                                    .FirstOrDefault();
         }

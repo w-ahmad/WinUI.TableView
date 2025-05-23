@@ -70,9 +70,7 @@ public partial class TableView : ListView
         {
             SelectedCellRanges.RemoveWhere(slots =>
             {
-#if WINDOWS
                 slots.RemoveWhere(slot => SelectedRanges.Any(range => range.IsInRange(slot.Row)));
-#endif
                 return slots.Count == 0;
             });
         }
@@ -360,14 +358,12 @@ public partial class TableView : ListView
 
         if (SelectedItems.Any() || SelectedCells.Count != 0)
         {
-#if WINDOWS
             slots = SelectedRanges.SelectMany(x => Enumerable.Range(x.FirstIndex, (int)x.Length))
-                                     .SelectMany(r => Enumerable.Range(0, Columns.VisibleColumns.Count)
-                                                                .Select(c => new TableViewCellSlot(r, c)))
-                                     .Concat(SelectedCells)
-                                     .OrderBy(x => x.Row)
-                                     .ThenByDescending(x => x.Column);
-#endif
+                                  .SelectMany(r => Enumerable.Range(0, Columns.VisibleColumns.Count)
+                                                                     .Select(c => new TableViewCellSlot(r, c)))
+                                  .Concat(SelectedCells)
+                                  .OrderBy(x => x.Row)
+                                  .ThenByDescending(x => x.Column);
         }
         else if (CurrentCellSlot.HasValue)
         {
@@ -813,9 +809,7 @@ public partial class TableView : ListView
                     break;
                 case ListViewSelectionMode.Multiple:
                 case ListViewSelectionMode.Extended:
-#if WINDOWS
                     SelectRange(new ItemIndexRange(0, (uint)Items.Count));
-#endif
                     break;
             }
         }
@@ -875,9 +869,7 @@ public partial class TableView : ListView
                 break;
             case ListViewSelectionMode.Multiple:
             case ListViewSelectionMode.Extended:
-#if WINDOWS
                 DeselectRange(new ItemIndexRange(0, (uint)Items.Count));
-#endif
                 break;
         }
     }
@@ -925,9 +917,9 @@ public partial class TableView : ListView
             {
                 SelectRows(slot, shiftKey);
                 LastSelectionUnit = TableViewSelectionUnit.Row;
-            }
-            else
-            {
+                }
+                else
+                {
                 SelectCells(slot, shiftKey);
                 LastSelectionUnit = TableViewSelectionUnit.Cell;
             }
@@ -944,7 +936,6 @@ public partial class TableView : ListView
     /// </summary>
     private void SelectRows(TableViewCellSlot slot, bool shiftKey)
     {
-#if WINDOWS
         var selectionRange = SelectedRanges.FirstOrDefault(x => x.IsInRange(slot.Row));
         SelectionStartRowIndex ??= slot.Row;
         CurrentRowIndex = slot.Row;
@@ -952,14 +943,14 @@ public partial class TableView : ListView
         if (selectionRange is not null)
         {
             DeselectRange(selectionRange);
-        }
+        } 
 
         if (shiftKey && SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended)
         {
             var min = Math.Min(SelectionStartRowIndex.Value, slot.Row);
             var max = Math.Max(SelectionStartRowIndex.Value, slot.Row);
 
-            SelectRange(new ItemIndexRange(min, (uint)(max - min) + 1));
+            SelectRange(new ItemIndexRange(min, (uint)(max - min) + 1)); 
         }
         else
         {
@@ -972,7 +963,7 @@ public partial class TableView : ListView
             {
                 SelectRange(new ItemIndexRange(slot.Row, 1));
             }
-        }
+            }
 
         if (!IsReadOnly && slot.IsValid(this))
         {
@@ -986,7 +977,6 @@ public partial class TableView : ListView
                 row?.Focus(FocusState.Programmatic);
             });
         }
-#endif
     }
 
     /// <summary>
