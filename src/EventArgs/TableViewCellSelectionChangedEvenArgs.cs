@@ -6,27 +6,27 @@ namespace WinUI.TableView;
 /// <summary>
 /// Provides data for the cell selection changed event.
 /// </summary>
-internal class TableViewCellSelectionChangedEvenArgs : EventArgs
+public class TableViewCellSelectionChangedEventArgs : EventArgs
 {
     /// <summary>
-    /// Initializes a new instance of the TableViewCellSelectionChangedEvenArgs class.
+    /// Initializes a new instance of the TableViewCellSelectionChangedEventArgs class.
     /// </summary>
-    /// <param name="oldSelection">The old selection of cells.</param>
-    /// <param name="newSelection">The new selection of cells.</param>
-    public TableViewCellSelectionChangedEvenArgs(HashSet<TableViewCellSlot> oldSelection,
-                                                 HashSet<TableViewCellSlot> newSelection)
+    /// <param name="removedCells">The list that contains the cells that were unselected.</param>
+    /// <param name="addedCells">The list that contains the cells that were selected.</param>
+    public TableViewCellSelectionChangedEventArgs(IList<TableViewCellSlot> removedCells,
+                                                  IList<TableViewCellSlot> addedCells)
     {
-        OldSelection = oldSelection;
-        NewSelection = newSelection;
+        RemovedCells = removedCells;
+        AddedCells = addedCells;
     }
 
     /// <summary>
-    /// Gets the old selection of cells.
+    /// Gets a list that contains the cells that were unselected.
     /// </summary>
-    public HashSet<TableViewCellSlot> OldSelection { get; }
+    public IList<TableViewCellSlot> RemovedCells { get; }
 
     /// <summary>
-    /// Gets the new selection of cells.
+    /// Gets a list that contains the cells that were selected.
     /// </summary>
-    public HashSet<TableViewCellSlot> NewSelection { get; }
+    public IList<TableViewCellSlot> AddedCells { get; }
 }

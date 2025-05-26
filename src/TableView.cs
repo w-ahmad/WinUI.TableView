@@ -1101,8 +1101,22 @@ public partial class TableView : ListView
                 row?.ApplyCellsSelectionState();
             }
 
-            SelectedCellsChanged?.Invoke(this, new TableViewCellSelectionChangedEvenArgs(oldSelection, SelectedCells));
+            InvokeCellSelectionChangedEvent(oldSelection);
         });
+    }
+
+    /// <summary>
+    /// Invokes the <see cref="CellSelectionChanged"/> event to notify subscribers of changes in the selected cells.
+    /// </summary>
+    private void InvokeCellSelectionChangedEvent(HashSet<TableViewCellSlot> oldSelection)
+    {
+        var removedCells = oldSelection.Except(SelectedCells).ToList();
+        var addedCells = SelectedCells.Except(oldSelection).ToList();
+
+        if (removedCells.Count > 0 || addedCells.Count > 0)
+        {
+            CellSelectionChanged?.Invoke(this, new TableViewCellSelectionChangedEventArgs(removedCells, addedCells));
+        }
     }
 
     /// <summary>
@@ -1475,9 +1489,9 @@ public partial class TableView : ListView
     public event EventHandler<TableViewClearSortingEventArgs>? ClearSorting;
 
     /// <summary>
-    /// Internal event triggered when selected cells change.
+    /// Event triggered when selected cells change.
     /// </summary>
-    internal event EventHandler<TableViewCellSelectionChangedEvenArgs>? SelectedCellsChanged;
+    public event EventHandler<TableViewCellSelectionChangedEventArgs>? CellSelectionChanged;
 
     /// <summary>
     /// Internal event triggered when the current cell changes.
