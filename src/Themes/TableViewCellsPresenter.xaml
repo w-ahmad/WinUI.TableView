@@ -34,13 +34,15 @@
 
                             <Rectangle x:Name="VerticalGridLine"
                                        Width="1"
-                                       VerticalAlignment="Stretch" />
+                                       VerticalAlignment="Stretch"
+                                       IsHitTestVisible="False" />
                         </Grid>
 
                         <Rectangle x:Name="HorizontalGridLine"
                                    Grid.Row="1"
                                    Margin="-24,0,0,0"
-                                   HorizontalAlignment="Stretch" />
+                                   HorizontalAlignment="Stretch"
+                                   IsHitTestVisible="False" />
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>

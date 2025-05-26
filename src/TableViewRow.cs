@@ -500,14 +500,26 @@ public partial class TableViewRow : ListViewItem
     /// </summary>
     internal void EnsureLayout()
     {
-#if WINDOWS
         if (CellPresenter is not null && TableView is not null)
         {
             CellPresenter.Padding = ((ListView)TableView).SelectionMode is ListViewSelectionMode.Multiple
+#if WINDOWS
                                      ? new Thickness(16, 0, 16, 0)
-                                     : new Thickness(20, 0, 16, 0);
-        }  
+#else
+                                     ? new Thickness(8, 0, 16, 0)
 #endif
+                                     : new Thickness(20, 0, 16, 0);
+#if !WINDOWS
+        var multiSelectSquare = this.FindDescendant<Border>(x => x.Name is "MultiSelectSquare");
+        if (multiSelectSquare is not null)
+        {
+            multiSelectSquare.Opacity = 0.5;
+            multiSelectSquare.CornerRadius = new CornerRadius(4);
+            multiSelectSquare.BorderThickness = new Thickness(1);
+            multiSelectSquare.Margin = new Thickness(10, 0, 0, 0);
+        }
+#endif
+        }
     }
 
     /// <summary>
