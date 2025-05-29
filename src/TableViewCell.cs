@@ -309,7 +309,7 @@ public partial class TableViewCell : ContentControl
 
         if ((Content ?? ContentTemplateRoot) is UIElement editingElement)
         {
-            editingElement.Focus(FocusState.Programmatic);
+            editingElement.Focus(FocusState.Pointer);
         }
     }
 
