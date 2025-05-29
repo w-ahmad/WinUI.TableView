@@ -39,9 +39,9 @@ public partial class TableViewTimePicker : Control
         UpdateTimeText();
     }
 
-    protected override void OnTapped(TappedRoutedEventArgs e)
+    protected override void OnPointerPressed(PointerRoutedEventArgs e)
     {
-        base.OnTapped(e);
+        base.OnPointerPressed(e);
 
         ShowFlyout();
     }
@@ -110,7 +110,7 @@ public partial class TableViewTimePicker : Control
     {
         if (_timeText is null) return;
 
-        var formatter = DateTimeFormatHelper.GetDateTimeFormatter("shortime", ClockIdentifier);
+        var formatter = DateTimeFormatHelper.GetDateTimeFormatter("shorttime", ClockIdentifier);
 
         _timeText.Text = SelectedTime switch
         {
