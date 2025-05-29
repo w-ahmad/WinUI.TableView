@@ -326,6 +326,14 @@ public partial class TableViewCell : ContentControl
         }
 
         Content = element;
+
+#if !WINDOWS
+        DispatcherQueue.TryEnqueue(async () =>
+        {
+            await Task.Delay(20);
+            Focus(FocusState.Pointer);
+        });
+#endif
     }
 
     /// <summary>
