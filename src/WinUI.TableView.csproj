@@ -5,8 +5,8 @@
       net9.0;
       net8.0-windows10.0.19041.0;
       net9.0-windows10.0.19041.0;
-    </TargetFrameworks>
-    <Nullable>enable</Nullable>
+    </TargetFrameworks> 
+    <Nullable>enable</Nullable> 
   </PropertyGroup>
 
   <PropertyGroup Condition="'$([MSBuild]::GetTargetPlatformIdentifier($(TargetFramework)))' == 'windows'">
@@ -16,9 +16,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.WinUI.Behaviors" Version="8.1.240916" />
+    <PackageReference Include="CommunityToolkit.WinUI.Behaviors" Version="8.2.250402" />
+    <!--CommunityToolkit.WinUI.Behaviors version 8.2 is not supported on .net8.0 so let's downgrade it-->
+    <PackageReference Update="CommunityToolkit.WinUI.Behaviors" Version="8.1.240916" Condition="'$(TargetFramework)' == 'net8.0'" />
   </ItemGroup>
-
+  
   <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) != 'windows'">
     <PackageReference Include="Uno.WinUI" Version="5.6.91" />
   </ItemGroup>
@@ -26,7 +28,7 @@
   <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.250108002" />
   </ItemGroup>
-
+  
   <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) != 'windows'">
     <Page Include="**\*.xaml" Exclude="bin\**\*.xaml;obj\**\*.xaml" />
     <Compile Update="**\*.xaml.cs">
