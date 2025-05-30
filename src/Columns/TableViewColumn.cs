@@ -34,9 +34,9 @@ public abstract partial class TableViewColumn : DependencyObject
     /// <summary>
     /// Refreshes the display element for the cell.
     /// </summary>
-    /// <param name="tableViewCell">The cell for which the element is refreshed.</param>
+    /// <param name="cell">The cell for which the element is refreshed.</param>
     /// <param name="dataItem">The data item associated with the cell.</param>
-    public virtual void RefreshElement(TableViewCell tableViewCell, object? dataItem) { }
+    public virtual void RefreshElement(TableViewCell cell, object? dataItem) { }
 
     /// <summary>
     /// Updates the state of the element for the cell.
