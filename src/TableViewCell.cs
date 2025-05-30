@@ -310,7 +310,7 @@ public partial class TableViewCell : ContentControl
 
         await Task.Delay(20);
 
-        if ((Content ?? ContentTemplateRoot) is UIElement editingElement)
+        if (Content is UIElement { IsHitTestVisible: true } editingElement)
         {
             editingElement.Focus(FocusState.Pointer);
         }
@@ -368,7 +368,7 @@ public partial class TableViewCell : ContentControl
     /// </summary>
     internal void RefreshElement()
     {
-        Column?.RefreshElement(this, Content);
+        Column?.RefreshElement(this, Row?.Content);
     }
 
     /// <summary>
@@ -383,18 +383,19 @@ public partial class TableViewCell : ContentControl
     /// <summary>
     /// Applies the current cell state to the cell.
     /// </summary>
-    internal void ApplyCurrentCellState()
+    internal async void ApplyCurrentCellState()
     {
         var stateName = IsCurrent ? VisualStates.StateCurrent : VisualStates.StateRegular;
         VisualStates.GoToState(this, false, stateName);
 
         if (IsCurrent)
         {
-            Focus(FocusState.Programmatic);
+            Focus(FocusState.Pointer);
 
-            if ((Content ?? ContentTemplateRoot) is UIElement { IsHitTestVisible: true, IsTabStop: true } element)
+            await Task.Delay(20);
+            if (Content is UIElement { IsHitTestVisible: true } element)
             {
-                element.Focus(FocusState.Programmatic);
+                element.Focus(FocusState.Pointer);
             }
         }
     }
