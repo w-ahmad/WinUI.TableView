@@ -179,8 +179,11 @@ public partial class TableViewCell : ContentControl
     {
         base.OnTapped(e);
 
-        MakeSelection();
-        e.Handled = true;
+         if (TableView?.SelectionUnit is not TableViewSelectionUnit.Row || TableView.CurrentCellSlot != Slot)
+         {
+             MakeSelection();
+             e.Handled = true;
+         }
     }
 
     protected override void OnPointerPressed(PointerRoutedEventArgs e)
