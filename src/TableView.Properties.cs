@@ -155,6 +155,11 @@ public partial class TableView
     /// Identifies the CellStyle dependency property.
     /// </summary>
     public static readonly DependencyProperty CellStyleProperty = DependencyProperty.Register(nameof(CellStyle), typeof(Style), typeof(TableView), new PropertyMetadata(null, OnCellStyleChanged));
+    
+    /// <summary>
+    /// Identifies the CurrentCellSlot dependency property.
+    /// </summary>
+    public static readonly DependencyProperty CurrentCellSlotProperty = DependencyProperty.Register(nameof(CurrentCellSlot), typeof(TableViewCellSlot?), typeof(TableView), new PropertyMetadata(default, OnCurrentCellSlotChanged));
 
     /// <summary>
     /// Gets the collection view associated with the TableView.
@@ -177,9 +182,13 @@ public partial class TableView
     internal TableViewSelectionUnit LastSelectionUnit { get; set; }
 
     /// <summary>
-    /// Gets or sets the current cell slot.
+    /// Gets or sets the current cell slot associated with the table view.
     /// </summary>
-    internal TableViewCellSlot? CurrentCellSlot { get; set; }
+    public TableViewCellSlot? CurrentCellSlot
+    {
+        get => (TableViewCellSlot?)GetValue(CurrentCellSlotProperty);
+        set => SetValue(CurrentCellSlotProperty, value);
+    }
 
     /// <summary>
     /// Gets or sets the selection start cell slot.
@@ -579,7 +588,7 @@ public partial class TableView
                 || tableView.SelectionUnit is TableViewSelectionUnit.Row)
                 && tableView.IsReadOnly)
             {
-                tableView.SetCurrentCell(null);
+                tableView.CurrentCellSlot = null;
             }
         }
     }
@@ -680,6 +689,18 @@ public partial class TableView
         {
             tableView.EnsureCellsStyle();
         }
+    }
+
+    private static async void OnCurrentCellSlotChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not TableView tableView) return;
+
+        tableView.CurrentCellChanged?.Invoke(d, e);
+
+        var oldSlot = e.OldValue as TableViewCellSlot?;
+        var newSlot = e.NewValue as TableViewCellSlot?;
+
+        await tableView.OnCurrentCellChanged(oldSlot, newSlot);
     }
 
     /// <summary>

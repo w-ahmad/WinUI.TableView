@@ -75,7 +75,7 @@ public partial class TableView : ListView
             });
         }
 
-        SetCurrentCell(null);
+        CurrentCellSlot = null;
         OnCellSelectionChanged();
 
         if (SelectedIndex > 0)
@@ -192,7 +192,7 @@ public partial class TableView : ListView
             if (isEditing && currentCell is not null)
             {
                 currentCell = GetCellFromSlot(newSlot);
-                currentCell.PrepareForEdit();
+                currentCell?.PrepareForEdit();
             }
 
             e.Handled = true;
@@ -803,7 +803,7 @@ public partial class TableView : ListView
         if (SelectionUnit is TableViewSelectionUnit.Cell)
         {
             SelectAllCells();
-            SetCurrentCell(null);
+            CurrentCellSlot = null;
         }
         else
         {
@@ -886,7 +886,7 @@ public partial class TableView : ListView
     {
         SelectedCellRanges.Clear();
         OnCellSelectionChanged();
-        SetCurrentCell(null);
+        CurrentCellSlot = null;
     }
 
     /// <summary>
@@ -922,9 +922,9 @@ public partial class TableView : ListView
             {
                 SelectRows(slot, shiftKey);
                 LastSelectionUnit = TableViewSelectionUnit.Row;
-                }
-                else
-                {
+            }
+            else
+            {
                 SelectCells(slot, shiftKey);
                 LastSelectionUnit = TableViewSelectionUnit.Cell;
             }
@@ -932,7 +932,7 @@ public partial class TableView : ListView
         else if (!IsReadOnly)
         {
             SelectionStartCellSlot = slot;
-            DispatcherQueue.TryEnqueue(() => SetCurrentCell(slot));
+            CurrentCellSlot = slot;
         }
     }
 
@@ -948,14 +948,14 @@ public partial class TableView : ListView
         if (selectionRange is not null)
         {
             DeselectRange(selectionRange);
-        } 
+        }
 
         if (shiftKey && SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended)
         {
             var min = Math.Min(SelectionStartRowIndex.Value, slot.Row);
             var max = Math.Max(SelectionStartRowIndex.Value, slot.Row);
 
-            SelectRange(new ItemIndexRange(min, (uint)(max - min) + 1)); 
+            SelectRange(new ItemIndexRange(min, (uint)(max - min) + 1));
         }
         else
         {
@@ -968,11 +968,11 @@ public partial class TableView : ListView
             {
                 SelectRange(new ItemIndexRange(slot.Row, 1));
             }
-            }
+        }
 
         if (!IsReadOnly && slot.IsValid(this))
         {
-            DispatcherQueue.TryEnqueue(() => SetCurrentCell(slot));
+            CurrentCellSlot = slot;
         }
         else
         {
@@ -1033,7 +1033,7 @@ public partial class TableView : ListView
 
         SelectedCellRanges.Add(selectionRange);
         OnCellSelectionChanged();
-        DispatcherQueue.TryEnqueue(() => SetCurrentCell(slot));
+        CurrentCellSlot = slot;
     }
 
     /// <summary>
@@ -1049,38 +1049,32 @@ public partial class TableView : ListView
             SelectedCellRanges.Remove(selectionRange);
         }
 
-        SetCurrentCell(slot);
+        CurrentCellSlot = slot;
         OnCellSelectionChanged();
     }
 
     /// <summary>
-    /// Sets the current cell based on the specified cell slot.
+    /// Handles changes to the current cell in the table view.
     /// </summary>
-    internal async void SetCurrentCell(TableViewCellSlot? slot)
+    private async Task OnCurrentCellChanged(TableViewCellSlot? oldSlot, TableViewCellSlot? newSlot)
     {
-        if (slot == CurrentCellSlot)
+        if (oldSlot == newSlot)
         {
             return;
         }
 
-        var oldSlot = CurrentCellSlot;
-        var currentCell = oldSlot.HasValue ? GetCellFromSlot(oldSlot.Value) : default;
-        currentCell?.SetElement();
-        CurrentCellSlot = slot;
-
-        if (oldSlot is { })
+        if (oldSlot.HasValue)
         {
-            var row = _rows.FirstOrDefault(x => x.Index == oldSlot.Value.Row);
-            row?.ApplyCurrentCellState(oldSlot.Value);
-        }
-
-        if (slot is { })
-        {
-            var cell = await ScrollCellIntoView(slot.Value);
+            var cell = GetCellFromSlot(oldSlot.Value);
+            cell?.SetElement();
             cell?.ApplyCurrentCellState();
         }
 
-        CurrentCellChanged?.Invoke(this, new TableViewCurrentCellChangedEventArgs(oldSlot, slot));
+        if (newSlot.HasValue)
+        {
+            var cell = await ScrollCellIntoView(newSlot.Value);
+            cell?.ApplyCurrentCellState();
+        }
     }
 
     /// <summary>
@@ -1101,8 +1095,22 @@ public partial class TableView : ListView
                 row?.ApplyCellsSelectionState();
             }
 
-            SelectedCellsChanged?.Invoke(this, new TableViewCellSelectionChangedEvenArgs(oldSelection, SelectedCells));
+            InvokeCellSelectionChangedEvent(oldSelection);
         });
+    }
+
+    /// <summary>
+    /// Invokes the <see cref="CellSelectionChanged"/> event to notify subscribers of changes in the selected cells.
+    /// </summary>
+    private void InvokeCellSelectionChangedEvent(HashSet<TableViewCellSlot> oldSelection)
+    {
+        var removedCells = oldSelection.Except(SelectedCells).ToList();
+        var addedCells = SelectedCells.Except(oldSelection).ToList();
+
+        if (removedCells.Count > 0 || addedCells.Count > 0)
+        {
+            CellSelectionChanged?.Invoke(this, new TableViewCellSelectionChangedEventArgs(removedCells, addedCells));
+        }
     }
 
     /// <summary>
@@ -1227,9 +1235,9 @@ public partial class TableView : ListView
     /// <summary>
     /// Gets the cell based on the specified cell slot.
     /// </summary>
-    internal TableViewCell GetCellFromSlot(TableViewCellSlot slot)
+    internal TableViewCell? GetCellFromSlot(TableViewCellSlot slot)
     {
-        return slot.IsValid(this) && ContainerFromIndex(slot.Row) is TableViewRow row ? row.Cells[slot.Column] : default!;
+        return slot.IsValid(this) && ContainerFromIndex(slot.Row) is TableViewRow row ? row.Cells[slot.Column] : default;
     }
 
     /// <summary>
@@ -1475,12 +1483,12 @@ public partial class TableView : ListView
     public event EventHandler<TableViewClearSortingEventArgs>? ClearSorting;
 
     /// <summary>
-    /// Internal event triggered when selected cells change.
+    /// Event triggered when selected cells change.
     /// </summary>
-    internal event EventHandler<TableViewCellSelectionChangedEvenArgs>? SelectedCellsChanged;
+    public event EventHandler<TableViewCellSelectionChangedEventArgs>? CellSelectionChanged;
 
     /// <summary>
-    /// Internal event triggered when the current cell changes.
+    /// Event triggered when the current cell changes.
     /// </summary>
-    internal event EventHandler<TableViewCurrentCellChangedEventArgs>? CurrentCellChanged;
+    public event DependencyPropertyChangedEventHandler? CurrentCellChanged;
 }
