@@ -22,7 +22,7 @@
   </ItemGroup>
   
   <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) != 'windows'">
-    <PackageReference Include="Uno.WinUI" Version="5.6.91" />
+    <PackageReference Include="Uno.WinUI" Version="6.0.465" />
   </ItemGroup>
   
   <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
