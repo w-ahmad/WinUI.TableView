@@ -38,7 +38,9 @@ public class TableViewNumberColumn : TableViewBoundColumn
     {
         var numberBox = new NumberBox();
         numberBox.SetBinding(NumberBox.ValueProperty, Binding);
-
+#if !WINDOWS
+        numberBox.DataContext = dataItem;
+#endif
         return numberBox;
     }
 }

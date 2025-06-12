@@ -36,7 +36,9 @@ public class TableViewTextColumn : TableViewBoundColumn
     {
         var textBox = new TextBox();
         textBox.SetBinding(TextBox.TextProperty, Binding);
-
+#if !WINDOWS
+        textBox.DataContext = dataItem;
+#endif
         return textBox;
     }
 }
