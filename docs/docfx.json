@@ -1,0 +1,58 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
+  "metadata": [
+    {
+      "src": [
+        {
+          "src": "../src",
+          "files": [
+            "WinUI.TableView.csproj"
+          ]
+        }
+      ],
+      "dest": "api",
+      "filter": "filterConfig.yml",
+      "memberLayout": "samePage",
+      "properties": {
+        "TargetFramework": "net8.0-windows10.0.19041.0"
+      },
+      "disableGitFeatures": false,
+      "disableDefaultFilter": false
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "**/*.{md,yml}"
+        ],
+        "exclude": [
+          "_site/**"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "images/**"
+        ]
+      }
+    ],
+    "output": "../artifacts/_site",
+    "template": [
+      "default",
+      "modern"
+    ],
+    "globalMetadata": {
+      "_appName": "WinUI.TableView",
+      "_appTitle": "WinUI.TableView",
+      "_enableSearch": true,
+      "_disableNextArticle": true,
+      "pdf": false
+    },
+    "postProcessors": [
+      "ExtractSearchIndex"
+    ],
+    "disableGitFeatures": false
+  }
+}

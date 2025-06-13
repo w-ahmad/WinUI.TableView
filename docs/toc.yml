@@ -1,0 +1,10 @@
+- name: Docs
+  href: docs/
+- name: API Reference
+  href: api/
+- name: Sponsor this Project
+  href: https://patreon.com/wahmad
+- name: GitHub
+  href: https://github.com/w-ahmad/WinUI.TableView
+- name: NuGet Package
+  href: https://www.nuget.org/packages/WinUI.TableView/    

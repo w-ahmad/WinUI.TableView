@@ -1,0 +1,7 @@
+### YamlMime:ManagedReference
+
+apiRules:
+- exclude:
+      uidRegex: ^System
+- exclude:
+      uidRegex: ^Microsoft
