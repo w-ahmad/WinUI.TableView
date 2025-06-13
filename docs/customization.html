@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title> | WinUI.TableView </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content=" | WinUI.TableView ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/w-ahmad/WinUI.TableView/blob/main/docs/docs/customization.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="WinUI.TableView">
+            WinUI.TableView
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+
+<h2 id="customization">Customization</h2>
+<p>You can customize the appearance and behavior of the <code>TableView</code> by modifying its properties, templates, and styles. For example:</p>
+<ul>
+<li><strong>Column Customization</strong>: Define custom columns based on data types.</li>
+<li><strong>Is ReadOnly</strong>: You can make any column or the TableView itself read only.</li>
+<li><strong>Sorting and Filtering</strong>: Enable sorting and filtering on specific columns or for the all columns.</li>
+<li><strong>Corner Button Mode</strong>: Use the <code>CornerButtonMode</code> property to configure the corner button's behavior. You can select from:
+<ul>
+<li><code>None</code>: No corner button.</li>
+<li><code>SelectAll</code>: Displays a &quot;Select All&quot; button.</li>
+<li><code>Options</code>: Displays an options menu.</li>
+</ul>
+</li>
+<li><strong>Column Header and Cell Styles</strong>: Customize the styles for column headers and cells to match your application's theme or specific design requirements.</li>
+</ul>
+<pre><code class="lang-xml">&lt;tv:TableView x:Name=&quot;MyTableView&quot;
+              ItemsSource=&quot;{x:Bind ViewModel.Items}&quot;
+              AutoGenerateColumns=&quot;False&quot;
+              xmlns:tv=&quot;using:WinUI.TableView&quot;&gt;
+    &lt;tv:TableView.Columns&gt;
+        &lt;tv:TableViewTextColumn Header=&quot;Name&quot; Binding=&quot;{Binding Name}&quot; /&gt;
+        &lt;tv:TableViewNumberColumn Header=&quot;Price&quot; Binding=&quot;{Binding Price}&quot; /&gt;
+        &lt;tv:TableViewTemplateColumn Header=&quot;Quantity&quot;&gt;
+            &lt;tv:TableViewTemplateColumn.CellTemplate&gt;
+                &lt;DataTemplate&gt;
+                    &lt;TextBlock Text=&quot;{Binding Quantity}&quot; /&gt;
+                &lt;/DataTemplate&gt;
+            &lt;/tv:TableViewTemplateColumn.CellTemplate&gt;
+            &lt;tv:TableViewTemplateColumn.EditingTemplate&gt;
+                &lt;DataTemplate&gt;
+                    &lt;NumberBox Value=&quot;{Binding Quantity, Mode=TwoWay}&quot; /&gt;
+                &lt;/DataTemplate&gt;
+            &lt;/tv:TableViewTemplateColumn.EditingTemplate&gt;
+        &lt;/tv:TableViewTemplateColumn&gt;
+    &lt;/tv:TableView.Columns&gt;
+&lt;/tv:TableView&gt;
+</code></pre>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/w-ahmad/WinUI.TableView/blob/main/docs/docs/customization.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

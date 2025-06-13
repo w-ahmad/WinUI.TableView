@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class TableViewComboBoxColumn | WinUI.TableView </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class TableViewComboBoxColumn | WinUI.TableView ">
+      
+      <meta name="description" content="Represents a column in a TableView that displays a ComboBox.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/w-ahmad/WinUI.TableView/new/main/apiSpec/new?filename=WinUI_TableView_TableViewComboBoxColumn.md&amp;value=---%0Auid%3A%20WinUI.TableView.TableViewComboBoxColumn%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="WinUI.TableView">
+            WinUI.TableView
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="WinUI.TableView.TableViewComboBoxColumn">
+
+
+
+  <h1 id="WinUI_TableView_TableViewComboBoxColumn" data-uid="WinUI.TableView.TableViewComboBoxColumn" class="text-break">
+Class TableViewComboBoxColumn  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewComboBoxColumn.cs/#L11"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="WinUI.html">WinUI</a>.<a class="xref" href="WinUI.TableView.html">TableView</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>WinUI.TableView.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Represents a column in a TableView that displays a ComboBox.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[StyleTypedProperty(Property = &quot;ElementStyle&quot;, StyleTargetType = typeof(TextBlock))]
+[StyleTypedProperty(Property = &quot;EditingElementStyle&quot;, StyleTargetType = typeof(ComboBox))]
+public class TableViewComboBoxColumn : TableViewBoundColumn, IWinRTObject</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><span class="xref">object</span></div>
+      <div><span class="xref">DependencyObject</span></div>
+      <div><a class="xref" href="WinUI.TableView.TableViewColumn.html">TableViewColumn</a></div>
+      <div><a class="xref" href="WinUI.TableView.TableViewBoundColumn.html">TableViewBoundColumn</a></div>
+      <div><span class="xref">TableViewComboBoxColumn</span></div>
+    </dd>
+  </dl>
+
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><span class="xref">IWinRTObject</span></div>
+    </dd>
+  </dl>
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewBoundColumn.html#WinUI_TableView_TableViewBoundColumn_GetCellContent_System_Object_">TableViewBoundColumn.GetCellContent(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewBoundColumn.html#WinUI_TableView_TableViewBoundColumn_Binding">TableViewBoundColumn.Binding</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewBoundColumn.html#WinUI_TableView_TableViewBoundColumn_ElementStyle">TableViewBoundColumn.ElementStyle</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewBoundColumn.html#WinUI_TableView_TableViewBoundColumn_EditingElementStyle">TableViewBoundColumn.EditingElementStyle</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewBoundColumn.html#WinUI_TableView_TableViewBoundColumn_ElementStyleProperty">TableViewBoundColumn.ElementStyleProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewBoundColumn.html#WinUI_TableView_TableViewBoundColumn_EditingElementStyleProperty">TableViewBoundColumn.EditingElementStyleProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_RefreshElement_WinUI_TableView_TableViewCell_System_Object_">TableViewColumn.RefreshElement(TableViewCell, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_UpdateElementState_WinUI_TableView_TableViewCell_System_Object_">TableViewColumn.UpdateElementState(TableViewCell, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_Header">TableViewColumn.Header</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_Width">TableViewColumn.Width</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_MinWidth">TableViewColumn.MinWidth</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_MaxWidth">TableViewColumn.MaxWidth</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_ActualWidth">TableViewColumn.ActualWidth</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_CanResize">TableViewColumn.CanResize</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_IsReadOnly">TableViewColumn.IsReadOnly</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_HeaderStyle">TableViewColumn.HeaderStyle</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_CellStyle">TableViewColumn.CellStyle</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_HeaderControl">TableViewColumn.HeaderControl</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_Visibility">TableViewColumn.Visibility</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_Tag">TableViewColumn.Tag</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_CanSort">TableViewColumn.CanSort</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_CanFilter">TableViewColumn.CanFilter</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_IsAutoGenerated">TableViewColumn.IsAutoGenerated</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_UseSingleElement">TableViewColumn.UseSingleElement</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_SortDirection">TableViewColumn.SortDirection</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_IsFiltered">TableViewColumn.IsFiltered</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_TableView">TableViewColumn.TableView</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_HeaderStyleProperty">TableViewColumn.HeaderStyleProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_CellStyleProperty">TableViewColumn.CellStyleProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_HeaderProperty">TableViewColumn.HeaderProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_WidthProperty">TableViewColumn.WidthProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_MinWidthProperty">TableViewColumn.MinWidthProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_MaxWidthProperty">TableViewColumn.MaxWidthProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_ActualWidthProperty">TableViewColumn.ActualWidthProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_CanResizeProperty">TableViewColumn.CanResizeProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_IsReadOnlyProperty">TableViewColumn.IsReadOnlyProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_VisibilityProperty">TableViewColumn.VisibilityProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_TagProperty">TableViewColumn.TagProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_CanSortProperty">TableViewColumn.CanSortProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_CanFilterProperty">TableViewColumn.CanFilterProperty</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="WinUI_TableView_TableViewComboBoxColumn_DisplayMemberPathProperty" data-uid="WinUI.TableView.TableViewComboBoxColumn.DisplayMemberPathProperty">
+  DisplayMemberPathProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewComboBoxColumn.cs/#L138"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the DisplayMemberPath dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty DisplayMemberPathProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableViewComboBoxColumn_IsEditableProperty" data-uid="WinUI.TableView.TableViewComboBoxColumn.IsEditableProperty">
+  IsEditableProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewComboBoxColumn.cs/#L148"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the IsEditable dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty IsEditableProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableViewComboBoxColumn_ItemsSourceProperty" data-uid="WinUI.TableView.TableViewComboBoxColumn.ItemsSourceProperty">
+  ItemsSourceProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewComboBoxColumn.cs/#L143"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the ItemsSource dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty ItemsSourceProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableViewComboBoxColumn_SelectedValuePathProperty" data-uid="WinUI.TableView.TableViewComboBoxColumn.SelectedValuePathProperty">
+  SelectedValuePathProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewComboBoxColumn.cs/#L133"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the SelectedValuePath dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty SelectedValuePathProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="WinUI_TableView_TableViewComboBoxColumn_DisplayMemberPath_" data-uid="WinUI.TableView.TableViewComboBoxColumn.DisplayMemberPath*"></a>
+
+  <h3 id="WinUI_TableView_TableViewComboBoxColumn_DisplayMemberPath" data-uid="WinUI.TableView.TableViewComboBoxColumn.DisplayMemberPath">
+  DisplayMemberPath
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewComboBoxColumn.cs/#L74"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the path to the display member for the ComboBox.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string? DisplayMemberPath { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">string</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableViewComboBoxColumn_IsEditable_" data-uid="WinUI.TableView.TableViewComboBoxColumn.IsEditable*"></a>
+
+  <h3 id="WinUI_TableView_TableViewComboBoxColumn_IsEditable" data-uid="WinUI.TableView.TableViewComboBoxColumn.IsEditable">
+  IsEditable
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewComboBoxColumn.cs/#L92"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets a value indicating whether the ComboBox is editable.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsEditable { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">bool</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableViewComboBoxColumn_ItemsSource_" data-uid="WinUI.TableView.TableViewComboBoxColumn.ItemsSource*"></a>
+
+  <h3 id="WinUI_TableView_TableViewComboBoxColumn_ItemsSource" data-uid="WinUI.TableView.TableViewComboBoxColumn.ItemsSource">
+  ItemsSource
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewComboBoxColumn.cs/#L65"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the items source for the ComboBox.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public object? ItemsSource { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">object</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableViewComboBoxColumn_SelectedValueBinding_" data-uid="WinUI.TableView.TableViewComboBoxColumn.SelectedValueBinding*"></a>
+
+  <h3 id="WinUI_TableView_TableViewComboBoxColumn_SelectedValueBinding" data-uid="WinUI.TableView.TableViewComboBoxColumn.SelectedValueBinding">
+  SelectedValueBinding
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewComboBoxColumn.cs/#L117"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the binding for the selected value property of the ComboBox.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual Binding SelectedValueBinding { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">Binding</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableViewComboBoxColumn_SelectedValuePath_" data-uid="WinUI.TableView.TableViewComboBoxColumn.SelectedValuePath*"></a>
+
+  <h3 id="WinUI_TableView_TableViewComboBoxColumn_SelectedValuePath" data-uid="WinUI.TableView.TableViewComboBoxColumn.SelectedValuePath">
+  SelectedValuePath
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewComboBoxColumn.cs/#L83"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the path to the selected value for the ComboBox.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string? SelectedValuePath { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">string</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableViewComboBoxColumn_TextBinding_" data-uid="WinUI.TableView.TableViewComboBoxColumn.TextBinding*"></a>
+
+  <h3 id="WinUI_TableView_TableViewComboBoxColumn_TextBinding" data-uid="WinUI.TableView.TableViewComboBoxColumn.TextBinding">
+  TextBinding
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewComboBoxColumn.cs/#L101"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the binding for the text property of the ComboBox.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual Binding TextBinding { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">Binding</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="WinUI_TableView_TableViewComboBoxColumn_GenerateEditingElement_" data-uid="WinUI.TableView.TableViewComboBoxColumn.GenerateEditingElement*"></a>
+
+  <h3 id="WinUI_TableView_TableViewComboBoxColumn_GenerateEditingElement_WinUI_TableView_TableViewCell_System_Object_" data-uid="WinUI.TableView.TableViewComboBoxColumn.GenerateEditingElement(WinUI.TableView.TableViewCell,System.Object)">
+  GenerateEditingElement(TableViewCell, object?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewComboBoxColumn.cs/#L40"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Generates a ComboBox element for editing the cell.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override FrameworkElement GenerateEditingElement(TableViewCell cell, object? dataItem)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cell</code> <a class="xref" href="WinUI.TableView.TableViewCell.html">TableViewCell</a></dt>
+    <dd><p>The cell for which the editing element is generated.</p>
+</dd>
+    <dt><code>dataItem</code> <span class="xref">object</span></dt>
+    <dd><p>The data item associated with the cell.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><span class="xref">FrameworkElement</span></dt>
+    <dd><p>A ComboBox element.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableViewComboBoxColumn_GenerateElement_" data-uid="WinUI.TableView.TableViewComboBoxColumn.GenerateElement*"></a>
+
+  <h3 id="WinUI_TableView_TableViewComboBoxColumn_GenerateElement_WinUI_TableView_TableViewCell_System_Object_" data-uid="WinUI.TableView.TableViewComboBoxColumn.GenerateElement(WinUI.TableView.TableViewCell,System.Object)">
+  GenerateElement(TableViewCell, object?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewComboBoxColumn.cs/#L24"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Generates a TextBlock element for the cell.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override FrameworkElement GenerateElement(TableViewCell cell, object? dataItem)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cell</code> <a class="xref" href="WinUI.TableView.TableViewCell.html">TableViewCell</a></dt>
+    <dd><p>The cell for which the element is generated.</p>
+</dd>
+    <dt><code>dataItem</code> <span class="xref">object</span></dt>
+    <dd><p>The data item associated with the cell.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><span class="xref">FrameworkElement</span></dt>
+    <dd><p>A TextBlock element.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewComboBoxColumn.cs/#L11" class="edit-link">Edit this page</a>
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
