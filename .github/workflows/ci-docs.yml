@@ -1,0 +1,45 @@
+name: ci-docs
+
+on:
+  push:
+    branches: main
+  pull_request:
+    branches: main
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4.1.4
+  
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Install DocFX
+      run: dotnet tool update -g docfx
+
+    - name: Add DocFX to PATH
+      run: echo "${HOME}/.dotnet/tools" >> $GITHUB_PATH
+
+    - name: Build documentation
+      run: docfx docs/docfx.json
+
+    - name: Publish Documentation
+      env:
+        ACCESS_TOKEN: ${{ secrets.PAT_DOCS }}
+        BRANCH: gh-pages
+        DOCSFOLDER: artifacts/_site
+      shell: cmd
+      run: |
+         cd  %DOCSFOLDER%
+         git init
+         git config --local user.name "%GITHUB_ACTOR%"
+         git config --local user.email "%GITHUB_ACTOR%@users.noreply.github.com"
+         git config --local core.autocrlf false
+         git add .
+         git commit -m "docs update from commit %GITHUB_SHA%"
+         git push --force https://%ACCESS_TOKEN%@github.com/%GITHUB_REPOSITORY%.git master:%BRANCH%
+         rmdir .git /S /Q
