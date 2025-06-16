@@ -1349,11 +1349,10 @@ public partial class TableView : ListView
     }
 #endif
 
-#if WINDOWS
     /// <summary>
     /// Shows the context flyout for the specified row.
     /// </summary>
-    internal void ShowRowContext(TableViewRow row, Point position)
+    internal bool ShowRowContext(TableViewRow row, Point position)
     {
         var eventArgs = new TableViewRowContextFlyoutEventArgs(row.Index, row, row.Content, RowContextFlyout);
         RowContextFlyoutOpening?.Invoke(this, eventArgs);
@@ -1362,19 +1361,25 @@ public partial class TableView : ListView
         {
             var presenter = row.FindDescendant<ListViewItemPresenter>();
 
-            RowContextFlyout.ShowAt(presenter, new FlyoutShowOptions
+            RowContextFlyout.ShowAt(row, new FlyoutShowOptions
             {
-                ShowMode = FlyoutShowMode.Standard,
+#if WINDOWS
+                ShowMode = FlyoutShowMode.Standard, 
+#endif
                 Placement = RowContextFlyout.Placement,
                 Position = position
             });
+
+            return true;
         }
+
+        return false;
     }
 
     /// <summary>
     /// Shows the context flyout for the specified cell.
     /// </summary>
-    internal void ShowCellContext(TableViewCell cell, Point position)
+    internal bool ShowCellContext(TableViewCell cell, Point position)
     {
         var eventArgs = new TableViewCellContextFlyoutEventArgs(cell.Slot, cell, cell.Row?.Content!, CellContextFlyout);
         CellContextFlyoutOpening?.Invoke(this, eventArgs);
@@ -1383,13 +1388,18 @@ public partial class TableView : ListView
         {
             CellContextFlyout.ShowAt(cell, new FlyoutShowOptions
             {
-                ShowMode = FlyoutShowMode.Standard,
+#if WINDOWS
+                ShowMode = FlyoutShowMode.Standard, 
+#endif
                 Placement = CellContextFlyout.Placement,
                 Position = position
             });
+
+            return true;
         }
+
+        return false;
     }
-#endif
 
     /// <summary>
     /// Sets the state of the corner button.
@@ -1460,7 +1470,6 @@ public partial class TableView : ListView
     /// </summary>
     public event DependencyPropertyChangedEventHandler? IsReadOnlyChanged;
 
-#if WINDOWS
     /// <summary>
     /// Event triggered when the row context flyout is opening.
     /// </summary>
@@ -1470,7 +1479,6 @@ public partial class TableView : ListView
     /// Event triggered when the cell context flyout is opening.
     /// </summary>
     public event EventHandler<TableViewCellContextFlyoutEventArgs>? CellContextFlyoutOpening;
-#endif
 
     /// <summary>
     /// Occurs when a sorting is being applied to a column in the TableView.

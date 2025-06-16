@@ -43,18 +43,23 @@ public partial class TableViewCell : ContentControl
 #endif
     }
 
-#if WINDOWS
+
+#if !WINDOWS
+    protected override void OnRightTapped(RightTappedRoutedEventArgs e)
+    {
+        base.OnRightTapped(e);
+
+        var position = e.GetPosition(this);
+#else
     /// <summary>
     /// Handles the ContextRequested event.
     /// </summary>
-    private void OnContextRequested(UIElement sender, ContextRequestedEventArgs args)
+    private void OnContextRequested(UIElement sender, ContextRequestedEventArgs e)
     {
-        if (TableView is not null && args.TryGetPosition(sender, out var position))
-        {
-            TableView.ShowCellContext(this, position);
-        }
-    }
+        if (!e.TryGetPosition(sender, out var position)) return;
 #endif
+        e.Handled = TableView?.ShowCellContext(this, position) is true;
+    }
 
 
     /// <summary>
@@ -179,11 +184,11 @@ public partial class TableViewCell : ContentControl
     {
         base.OnTapped(e);
 
-         if (TableView?.SelectionUnit is not TableViewSelectionUnit.Row || TableView.CurrentCellSlot != Slot)
-         {
-             MakeSelection();
-             e.Handled = true;
-         }
+        if (TableView?.SelectionUnit is not TableViewSelectionUnit.Row || TableView.CurrentCellSlot != Slot)
+        {
+            MakeSelection();
+            e.Handled = true;
+        }
     }
 
     protected override void OnPointerPressed(PointerRoutedEventArgs e)

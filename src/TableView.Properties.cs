@@ -135,7 +135,6 @@ public partial class TableView
     /// </summary>
     public static readonly DependencyProperty AlternateRowBackgroundProperty = DependencyProperty.Register(nameof(AlternateRowBackground), typeof(Brush), typeof(TableView), new PropertyMetadata(null, OnAlternateRowColorChanged));
 
-#if WINDOWS
     /// <summary>
     /// Identifies the RowContextFlyout dependency property.
     /// </summary>
@@ -145,7 +144,6 @@ public partial class TableView
     /// Identifies the CellContextFlyout dependency property.
     /// </summary>
     public static readonly DependencyProperty CellContextFlyoutProperty = DependencyProperty.Register(nameof(CellContextFlyout), typeof(FlyoutBase), typeof(TableView), new PropertyMetadata(null));
-#endif
     /// <summary>
     /// Identifies the ColumnHeaderStyle dependency property.
     /// </summary>
@@ -155,7 +153,7 @@ public partial class TableView
     /// Identifies the CellStyle dependency property.
     /// </summary>
     public static readonly DependencyProperty CellStyleProperty = DependencyProperty.Register(nameof(CellStyle), typeof(Style), typeof(TableView), new PropertyMetadata(null, OnCellStyleChanged));
-    
+
     /// <summary>
     /// Identifies the CurrentCellSlot dependency property.
     /// </summary>
@@ -461,7 +459,6 @@ public partial class TableView
         set => SetValue(AlternateRowForegroundProperty, value);
     }
 
-#if WINDOWS
     /// <summary>
     /// Gets or sets the context flyout for rows.
     /// </summary>
@@ -479,7 +476,6 @@ public partial class TableView
         get => (FlyoutBase?)GetValue(CellContextFlyoutProperty);
         set => SetValue(CellContextFlyoutProperty, value);
     }
-#endif
 
     /// <summary>
     /// Gets or sets the style applied to all column headers.

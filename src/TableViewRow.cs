@@ -48,35 +48,22 @@ public partial class TableViewRow : ListViewItem
         RegisterPropertyChangedCallback(BackgroundProperty, delegate { OnBackgroundChanged(); });
     }
 
-#if WINDOWS
+#if !WINDOWS
+    protected override void OnRightTapped(RightTappedRoutedEventArgs e)
+    {
+        base.OnRightTapped(e);
+
+        var position = e.GetPosition(this);
+#else
     /// <summary>
     /// Handles the ContextRequested event.
     /// </summary>
-    private void OnContextRequested(UIElement sender, ContextRequestedEventArgs args)
+    private void OnContextRequested(UIElement sender, ContextRequestedEventArgs e)
     {
-        if (args.TryGetPosition(sender, out var position))
-        {
-            if (IsContextRequestedFromCell(position) && TableView?.CellContextFlyout is not null) return;
-
-            TableView?.ShowRowContext(this, position);
-        }
-    }
-
-    /// <summary>
-    /// Determines if the context request is from a cell.
-    /// </summary>
-    private bool IsContextRequestedFromCell(Windows.Foundation.Point position)
-    {
-        if (CellPresenter is null) return false;
-
-        var transform = CellPresenter.TransformToVisual(this).Inverse;
-        var point = transform.TransformPoint(position);
-        var transformedPoint = CellPresenter.TransformToVisual(null).TransformPoint(point);
-        return VisualTreeHelper.FindElementsInHostCoordinates(transformedPoint, CellPresenter)
-                               .OfType<TableViewCell>()
-                               .Any();
-    }
+        if (!e.TryGetPosition(sender, out var position)) return;
 #endif
+        e.Handled = TableView?.ShowRowContext(this, position) is true;
+    }
 
     /// <summary>
     /// Handles the IsSelected property changed.
@@ -173,10 +160,10 @@ public partial class TableViewRow : ListViewItem
         else
         {
 #endif
-            foreach (var cell in Cells)
-            {
-                cell.RefreshElement();
-            }
+        foreach (var cell in Cells)
+        {
+            cell.RefreshElement();
+        }
 #if WINDOWS
         }
 #endif
@@ -510,14 +497,14 @@ public partial class TableViewRow : ListViewItem
 #endif
                                      : new Thickness(20, 0, 16, 0);
 #if !WINDOWS
-        var multiSelectSquare = this.FindDescendant<Border>(x => x.Name is "MultiSelectSquare");
-        if (multiSelectSquare is not null)
-        {
-            multiSelectSquare.Opacity = 0.5;
-            multiSelectSquare.CornerRadius = new CornerRadius(4);
-            multiSelectSquare.BorderThickness = new Thickness(1);
-            multiSelectSquare.Margin = new Thickness(10, 0, 0, 0);
-        }
+            var multiSelectSquare = this.FindDescendant<Border>(x => x.Name is "MultiSelectSquare");
+            if (multiSelectSquare is not null)
+            {
+                multiSelectSquare.Opacity = 0.5;
+                multiSelectSquare.CornerRadius = new CornerRadius(4);
+                multiSelectSquare.BorderThickness = new Thickness(1);
+                multiSelectSquare.Margin = new Thickness(10, 0, 0, 0);
+            }
 #endif
         }
     }
