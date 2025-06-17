@@ -67,11 +67,7 @@ public partial class TableViewHeaderRow
 
         private void ExecuteCopyCommand(XamlUICommand sender, ExecuteRequestedEventArgs e)
         {
-#if WINDOWS
-            var focusedElement = FocusManager.GetFocusedElement(TableView.XamlRoot); 
-#else
-            var focusedElement = FocusManager.GetFocusedElement();
-#endif
+            var focusedElement = FocusManager.GetFocusedElement(TableView.XamlRoot!); 
             if (focusedElement is FrameworkElement { Parent: TableViewCell })
             {
                 return;

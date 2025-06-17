@@ -15,8 +15,6 @@ public partial class TableViewColumnHeader
     private partial class OptionsFlyoutViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
-        private string? _filterText;
-        private bool _canFilter = true;
         private IList<TableViewFilterItem> _filterItems = [];
         private bool _canSetState = true;
 
