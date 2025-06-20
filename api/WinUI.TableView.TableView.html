@@ -1,0 +1,3289 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class TableView | WinUI.TableView </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class TableView | WinUI.TableView ">
+      
+      <meta name="description" content="Represents a control that displays data in customizable table-like interface.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="WinUI.TableView">
+            WinUI.TableView
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="WinUI.TableView.TableView">
+
+
+
+  <h1 id="WinUI_TableView_TableView" data-uid="WinUI.TableView.TableView" class="text-break">
+Class TableView  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="WinUI.html">WinUI</a>.<a class="xref" href="WinUI.TableView.html">TableView</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>WinUI.TableView.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Represents a control that displays data in customizable table-like interface.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[StyleTypedProperty(Property = &quot;ColumnHeaderStyle&quot;, StyleTargetType = typeof(TableViewColumnHeader))]
+[StyleTypedProperty(Property = &quot;CellStyle&quot;, StyleTargetType = typeof(TableViewCell))]
+[WinRTRuntimeClassName(&quot;Microsoft.UI.Xaml.IUIElementOverrides&quot;)]
+[WinRTExposedType(typeof(WinUI_TableView_TableViewWinRTTypeDetails))]
+public class TableView : ListView, IWinRTObject</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><span class="xref">object</span></div>
+      <div><span class="xref">DependencyObject</span></div>
+      <div><span class="xref">UIElement</span></div>
+      <div><span class="xref">FrameworkElement</span></div>
+      <div><span class="xref">Control</span></div>
+      <div><span class="xref">ItemsControl</span></div>
+      <div><span class="xref">Selector</span></div>
+      <div><span class="xref">ListViewBase</span></div>
+      <div><span class="xref">ListView</span></div>
+      <div><span class="xref">TableView</span></div>
+    </dd>
+  </dl>
+
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><span class="xref">IWinRTObject</span></div>
+    </dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="WinUI_TableView_TableView__ctor_" data-uid="WinUI.TableView.TableView.#ctor*"></a>
+
+  <h3 id="WinUI_TableView_TableView__ctor" data-uid="WinUI.TableView.TableView.#ctor">
+  TableView()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L46"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initializes a new instance of the TableView class.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TableView()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="WinUI_TableView_TableView_AlternateRowBackgroundProperty" data-uid="WinUI.TableView.TableView.AlternateRowBackgroundProperty">
+  AlternateRowBackgroundProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L136"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the AlternateRowBackground dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty AlternateRowBackgroundProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_AlternateRowForegroundProperty" data-uid="WinUI.TableView.TableView.AlternateRowForegroundProperty">
+  AlternateRowForegroundProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L131"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the AlternateRowForeground dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty AlternateRowForegroundProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_AutoGenerateColumnsProperty" data-uid="WinUI.TableView.TableView.AutoGenerateColumnsProperty">
+  AutoGenerateColumnsProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L56"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the AutoGenerateColumns dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty AutoGenerateColumnsProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_CanFilterColumnsProperty" data-uid="WinUI.TableView.TableView.CanFilterColumnsProperty">
+  CanFilterColumnsProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L81"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the CanFilterColumns dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty CanFilterColumnsProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_CanResizeColumnsProperty" data-uid="WinUI.TableView.TableView.CanResizeColumnsProperty">
+  CanResizeColumnsProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L71"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the CanResizeColumns dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty CanResizeColumnsProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_CanSortColumnsProperty" data-uid="WinUI.TableView.TableView.CanSortColumnsProperty">
+  CanSortColumnsProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L76"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the CanSortColumns dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty CanSortColumnsProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_CellContextFlyoutProperty" data-uid="WinUI.TableView.TableView.CellContextFlyoutProperty">
+  CellContextFlyoutProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L146"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the CellContextFlyout dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty CellContextFlyoutProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_CellStyleProperty" data-uid="WinUI.TableView.TableView.CellStyleProperty">
+  CellStyleProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L155"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the CellStyle dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty CellStyleProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_ColumnHeaderStyleProperty" data-uid="WinUI.TableView.TableView.ColumnHeaderStyleProperty">
+  ColumnHeaderStyleProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L150"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the ColumnHeaderStyle dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty ColumnHeaderStyleProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_CornerButtonModeProperty" data-uid="WinUI.TableView.TableView.CornerButtonModeProperty">
+  CornerButtonModeProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L66"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the CornerButtonMode dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty CornerButtonModeProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_CurrentCellSlotProperty" data-uid="WinUI.TableView.TableView.CurrentCellSlotProperty">
+  CurrentCellSlotProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L160"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the CurrentCellSlot dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty CurrentCellSlotProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_GridLinesVisibilityProperty" data-uid="WinUI.TableView.TableView.GridLinesVisibilityProperty">
+  GridLinesVisibilityProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L106"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the GridLinesVisibility dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty GridLinesVisibilityProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_HeaderGridLinesVisibilityProperty" data-uid="WinUI.TableView.TableView.HeaderGridLinesVisibilityProperty">
+  HeaderGridLinesVisibilityProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L101"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the HeaderGridLinesVisibility dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty HeaderGridLinesVisibilityProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_HeaderRowHeightProperty" data-uid="WinUI.TableView.TableView.HeaderRowHeightProperty">
+  HeaderRowHeightProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L31"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the HeaderRowHeight dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty HeaderRowHeightProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_HorizontalGridLinesStrokeProperty" data-uid="WinUI.TableView.TableView.HorizontalGridLinesStrokeProperty">
+  HorizontalGridLinesStrokeProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L121"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the HorizontalGridLinesStroke dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty HorizontalGridLinesStrokeProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_HorizontalGridLinesStrokeThicknessProperty" data-uid="WinUI.TableView.TableView.HorizontalGridLinesStrokeThicknessProperty">
+  HorizontalGridLinesStrokeThicknessProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L111"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the HorizontalGridLinesStrokeThickness dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty HorizontalGridLinesStrokeThicknessProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_IsReadOnlyProperty" data-uid="WinUI.TableView.TableView.IsReadOnlyProperty">
+  IsReadOnlyProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L61"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the IsReadOnly dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty IsReadOnlyProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_ItemsSourceProperty" data-uid="WinUI.TableView.TableView.ItemsSourceProperty">
+  ItemsSourceProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L21"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the ItemsSource dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty ItemsSourceProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_MaxColumnWidthProperty" data-uid="WinUI.TableView.TableView.MaxColumnWidthProperty">
+  MaxColumnWidthProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L91"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the MaxColumnWidth dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty MaxColumnWidthProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_MinColumnWidthProperty" data-uid="WinUI.TableView.TableView.MinColumnWidthProperty">
+  MinColumnWidthProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L86"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the MinColumnWidth dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty MinColumnWidthProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_RowContextFlyoutProperty" data-uid="WinUI.TableView.TableView.RowContextFlyoutProperty">
+  RowContextFlyoutProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L141"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the RowContextFlyout dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty RowContextFlyoutProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_RowHeightProperty" data-uid="WinUI.TableView.TableView.RowHeightProperty">
+  RowHeightProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L36"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the RowHeight dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty RowHeightProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_RowMaxHeightProperty" data-uid="WinUI.TableView.TableView.RowMaxHeightProperty">
+  RowMaxHeightProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L41"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the RowMaxHeight dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty RowMaxHeightProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_RowMinHeightProperty" data-uid="WinUI.TableView.TableView.RowMinHeightProperty">
+  RowMinHeightProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L46"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the RowMinHeight dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty RowMinHeightProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_SelectionModeProperty" data-uid="WinUI.TableView.TableView.SelectionModeProperty">
+  SelectionModeProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L26"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the SelectionMode dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty SelectionModeProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_SelectionUnitProperty" data-uid="WinUI.TableView.TableView.SelectionUnitProperty">
+  SelectionUnitProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L96"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the SelectionUnit dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty SelectionUnitProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_ShowExportOptionsProperty" data-uid="WinUI.TableView.TableView.ShowExportOptionsProperty">
+  ShowExportOptionsProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L51"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the ShowExportOptions dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty ShowExportOptionsProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_VerticalGridLinesStrokeProperty" data-uid="WinUI.TableView.TableView.VerticalGridLinesStrokeProperty">
+  VerticalGridLinesStrokeProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L126"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the VerticalGridLinesStroke dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty VerticalGridLinesStrokeProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_VerticalGridLinesStrokeThicknessProperty" data-uid="WinUI.TableView.TableView.VerticalGridLinesStrokeThicknessProperty">
+  VerticalGridLinesStrokeThicknessProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L116"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the VerticalGridLinesStrokeThickness dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty VerticalGridLinesStrokeThicknessProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="WinUI_TableView_TableView_AlternateRowBackground_" data-uid="WinUI.TableView.TableView.AlternateRowBackground*"></a>
+
+  <h3 id="WinUI_TableView_TableView_AlternateRowBackground" data-uid="WinUI.TableView.TableView.AlternateRowBackground">
+  AlternateRowBackground
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L447"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the background brush for alternate rows.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Brush AlternateRowBackground { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">Brush</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_AlternateRowForeground_" data-uid="WinUI.TableView.TableView.AlternateRowForeground*"></a>
+
+  <h3 id="WinUI_TableView_TableView_AlternateRowForeground" data-uid="WinUI.TableView.TableView.AlternateRowForeground">
+  AlternateRowForeground
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L456"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the foreground brush for alternate rows.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Brush AlternateRowForeground { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">Brush</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_AutoGenerateColumns_" data-uid="WinUI.TableView.TableView.AutoGenerateColumns*"></a>
+
+  <h3 id="WinUI_TableView_TableView_AutoGenerateColumns" data-uid="WinUI.TableView.TableView.AutoGenerateColumns">
+  AutoGenerateColumns
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L312"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets a value indicating whether to auto-generate columns.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool AutoGenerateColumns { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">bool</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_CanFilterColumns_" data-uid="WinUI.TableView.TableView.CanFilterColumns*"></a>
+
+  <h3 id="WinUI_TableView_TableView_CanFilterColumns" data-uid="WinUI.TableView.TableView.CanFilterColumns">
+  CanFilterColumns
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L357"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets a value indicating whether columns can be filtered. This will overridden by the individual column.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool CanFilterColumns { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">bool</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_CanResizeColumns_" data-uid="WinUI.TableView.TableView.CanResizeColumns*"></a>
+
+  <h3 id="WinUI_TableView_TableView_CanResizeColumns" data-uid="WinUI.TableView.TableView.CanResizeColumns">
+  CanResizeColumns
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L339"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets a value indicating whether columns can be resized. This will override what is set on individual column.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool CanResizeColumns { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">bool</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_CanSortColumns_" data-uid="WinUI.TableView.TableView.CanSortColumns*"></a>
+
+  <h3 id="WinUI_TableView_TableView_CanSortColumns" data-uid="WinUI.TableView.TableView.CanSortColumns">
+  CanSortColumns
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L348"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets a value indicating whether columns can be sorted. This will overridden by individual column.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool CanSortColumns { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">bool</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_CellContextFlyout_" data-uid="WinUI.TableView.TableView.CellContextFlyout*"></a>
+
+  <h3 id="WinUI_TableView_TableView_CellContextFlyout" data-uid="WinUI.TableView.TableView.CellContextFlyout">
+  CellContextFlyout
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L474"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the context flyout for cells.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public FlyoutBase? CellContextFlyout { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">FlyoutBase</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_CellStyle_" data-uid="WinUI.TableView.TableView.CellStyle*"></a>
+
+  <h3 id="WinUI_TableView_TableView_CellStyle" data-uid="WinUI.TableView.TableView.CellStyle">
+  CellStyle
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L492"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the style applied to all cells.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Style CellStyle { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">Style</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_CollectionView_" data-uid="WinUI.TableView.TableView.CollectionView*"></a>
+
+  <h3 id="WinUI_TableView_TableView_CollectionView" data-uid="WinUI.TableView.TableView.CollectionView">
+  CollectionView
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L165"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the collection view associated with the TableView.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ICollectionView CollectionView { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">ICollectionView</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_ColumnHeaderStyle_" data-uid="WinUI.TableView.TableView.ColumnHeaderStyle*"></a>
+
+  <h3 id="WinUI_TableView_TableView_ColumnHeaderStyle" data-uid="WinUI.TableView.TableView.ColumnHeaderStyle">
+  ColumnHeaderStyle
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L483"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the style applied to all column headers.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Style ColumnHeaderStyle { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">Style</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_Columns_" data-uid="WinUI.TableView.TableView.Columns*"></a>
+
+  <h3 id="WinUI_TableView_TableView_Columns" data-uid="WinUI.TableView.TableView.Columns">
+  Columns
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L244"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the collection of columns in the TableView.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TableViewColumnsCollection Columns { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="WinUI.TableView.TableViewColumnsCollection.html">TableViewColumnsCollection</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_CornerButtonMode_" data-uid="WinUI.TableView.TableView.CornerButtonMode*"></a>
+
+  <h3 id="WinUI_TableView_TableView_CornerButtonMode" data-uid="WinUI.TableView.TableView.CornerButtonMode">
+  CornerButtonMode
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L330"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the mode of the corner button.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TableViewCornerButtonMode CornerButtonMode { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="WinUI.TableView.TableViewCornerButtonMode.html">TableViewCornerButtonMode</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_CurrentCellSlot_" data-uid="WinUI.TableView.TableView.CurrentCellSlot*"></a>
+
+  <h3 id="WinUI_TableView_TableView_CurrentCellSlot" data-uid="WinUI.TableView.TableView.CurrentCellSlot">
+  CurrentCellSlot
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L185"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the current cell slot associated with the table view.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TableViewCellSlot? CurrentCellSlot { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="WinUI.TableView.TableViewCellSlot.html">TableViewCellSlot</a>?</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_FilterDescriptions_" data-uid="WinUI.TableView.TableView.FilterDescriptions*"></a>
+
+  <h3 id="WinUI_TableView_TableView_FilterDescriptions" data-uid="WinUI.TableView.TableView.FilterDescriptions">
+  FilterDescriptions
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L175"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the collection of filter descriptions applied to the items.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IList&lt;FilterDescription&gt; FilterDescriptions { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">IList</span>&lt;<a class="xref" href="WinUI.TableView.FilterDescription.html">FilterDescription</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_FilterHandler_" data-uid="WinUI.TableView.TableView.FilterHandler*"></a>
+
+  <h3 id="WinUI_TableView_TableView_FilterHandler" data-uid="WinUI.TableView.TableView.FilterHandler">
+  FilterHandler
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L229"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the filter handler for the TableView.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IColumnFilterHandler FilterHandler { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="WinUI.TableView.IColumnFilterHandler.html">IColumnFilterHandler</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_GridLinesVisibility_" data-uid="WinUI.TableView.TableView.GridLinesVisibility*"></a>
+
+  <h3 id="WinUI_TableView_TableView_GridLinesVisibility" data-uid="WinUI.TableView.TableView.GridLinesVisibility">
+  GridLinesVisibility
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L402"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the visibility of grid lines in the body rows.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TableViewGridLinesVisibility GridLinesVisibility { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="WinUI.TableView.TableViewGridLinesVisibility.html">TableViewGridLinesVisibility</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_HeaderGridLinesVisibility_" data-uid="WinUI.TableView.TableView.HeaderGridLinesVisibility*"></a>
+
+  <h3 id="WinUI_TableView_TableView_HeaderGridLinesVisibility" data-uid="WinUI.TableView.TableView.HeaderGridLinesVisibility">
+  HeaderGridLinesVisibility
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L393"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the visibility of grid lines in the header row.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TableViewGridLinesVisibility HeaderGridLinesVisibility { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="WinUI.TableView.TableViewGridLinesVisibility.html">TableViewGridLinesVisibility</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_HeaderRowHeight_" data-uid="WinUI.TableView.TableView.HeaderRowHeight*"></a>
+
+  <h3 id="WinUI_TableView_TableView_HeaderRowHeight" data-uid="WinUI.TableView.TableView.HeaderRowHeight">
+  HeaderRowHeight
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L249"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the height of the header row.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public double HeaderRowHeight { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">double</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_HorizontalGridLinesStroke_" data-uid="WinUI.TableView.TableView.HorizontalGridLinesStroke*"></a>
+
+  <h3 id="WinUI_TableView_TableView_HorizontalGridLinesStroke" data-uid="WinUI.TableView.TableView.HorizontalGridLinesStroke">
+  HorizontalGridLinesStroke
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L438"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the brush used to draw horizontal grid lines.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Brush HorizontalGridLinesStroke { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">Brush</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_HorizontalGridLinesStrokeThickness_" data-uid="WinUI.TableView.TableView.HorizontalGridLinesStrokeThickness*"></a>
+
+  <h3 id="WinUI_TableView_TableView_HorizontalGridLinesStrokeThickness" data-uid="WinUI.TableView.TableView.HorizontalGridLinesStrokeThickness">
+  HorizontalGridLinesStrokeThickness
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L420"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the thickness of horizontal grid lines.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public double HorizontalGridLinesStrokeThickness { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">double</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_IsFiltered_" data-uid="WinUI.TableView.TableView.IsFiltered*"></a>
+
+  <h3 id="WinUI_TableView_TableView_IsFiltered" data-uid="WinUI.TableView.TableView.IsFiltered">
+  IsFiltered
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L234"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets a value indicating whether the TableView items are filtered.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsFiltered { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">bool</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_IsReadOnly_" data-uid="WinUI.TableView.TableView.IsReadOnly*"></a>
+
+  <h3 id="WinUI_TableView_TableView_IsReadOnly" data-uid="WinUI.TableView.TableView.IsReadOnly">
+  IsReadOnly
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L321"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets a value indicating whether the TableView is read-only. This will override what is set on individual column.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsReadOnly { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">bool</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_IsSorted_" data-uid="WinUI.TableView.TableView.IsSorted*"></a>
+
+  <h3 id="WinUI_TableView_TableView_IsSorted" data-uid="WinUI.TableView.TableView.IsSorted">
+  IsSorted
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L239"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets a value indicating whether the TableView items are sorted.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsSorted { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">bool</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_ItemsSource_" data-uid="WinUI.TableView.TableView.ItemsSource*"></a>
+
+  <h3 id="WinUI_TableView_TableView_ItemsSource" data-uid="WinUI.TableView.TableView.ItemsSource">
+  ItemsSource
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L285"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets an object source used to generate the content of the TableView.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IList? ItemsSource { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">IList</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_MaxColumnWidth_" data-uid="WinUI.TableView.TableView.MaxColumnWidth*"></a>
+
+  <h3 id="WinUI_TableView_TableView_MaxColumnWidth" data-uid="WinUI.TableView.TableView.MaxColumnWidth">
+  MaxColumnWidth
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L375"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the maximum width of columns. This can be override by setting MaxWidth on individual column.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public double MaxColumnWidth { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">double</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_MinColumnWidth_" data-uid="WinUI.TableView.TableView.MinColumnWidth*"></a>
+
+  <h3 id="WinUI_TableView_TableView_MinColumnWidth" data-uid="WinUI.TableView.TableView.MinColumnWidth">
+  MinColumnWidth
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L366"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the minimum width of columns. This can be overridden by the individual column.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public double MinColumnWidth { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">double</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_RowContextFlyout_" data-uid="WinUI.TableView.TableView.RowContextFlyout*"></a>
+
+  <h3 id="WinUI_TableView_TableView_RowContextFlyout" data-uid="WinUI.TableView.TableView.RowContextFlyout">
+  RowContextFlyout
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L465"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the context flyout for rows.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public FlyoutBase? RowContextFlyout { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">FlyoutBase</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_RowHeight_" data-uid="WinUI.TableView.TableView.RowHeight*"></a>
+
+  <h3 id="WinUI_TableView_TableView_RowHeight" data-uid="WinUI.TableView.TableView.RowHeight">
+  RowHeight
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L258"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the height of the rows.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public double RowHeight { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">double</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_RowMaxHeight_" data-uid="WinUI.TableView.TableView.RowMaxHeight*"></a>
+
+  <h3 id="WinUI_TableView_TableView_RowMaxHeight" data-uid="WinUI.TableView.TableView.RowMaxHeight">
+  RowMaxHeight
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L267"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the maximum height of the rows.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public double RowMaxHeight { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">double</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_RowMinHeight_" data-uid="WinUI.TableView.TableView.RowMinHeight*"></a>
+
+  <h3 id="WinUI_TableView_TableView_RowMinHeight" data-uid="WinUI.TableView.TableView.RowMinHeight">
+  RowMinHeight
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L276"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the minimum height of the rows.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public double RowMinHeight { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">double</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_SelectionMode_" data-uid="WinUI.TableView.TableView.SelectionMode*"></a>
+
+  <h3 id="WinUI_TableView_TableView_SelectionMode" data-uid="WinUI.TableView.TableView.SelectionMode">
+  SelectionMode
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L294"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the selection mode for the TableView.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ListViewSelectionMode SelectionMode { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">ListViewSelectionMode</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_SelectionUnit_" data-uid="WinUI.TableView.TableView.SelectionUnit*"></a>
+
+  <h3 id="WinUI_TableView_TableView_SelectionUnit" data-uid="WinUI.TableView.TableView.SelectionUnit">
+  SelectionUnit
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L384"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the selection unit for the TableView.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TableViewSelectionUnit SelectionUnit { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="WinUI.TableView.TableViewSelectionUnit.html">TableViewSelectionUnit</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_ShowExportOptions_" data-uid="WinUI.TableView.TableView.ShowExportOptions*"></a>
+
+  <h3 id="WinUI_TableView_TableView_ShowExportOptions" data-uid="WinUI.TableView.TableView.ShowExportOptions">
+  ShowExportOptions
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L303"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets a value indicating whether to show export options.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool ShowExportOptions { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">bool</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_SortDescriptions_" data-uid="WinUI.TableView.TableView.SortDescriptions*"></a>
+
+  <h3 id="WinUI_TableView_TableView_SortDescriptions" data-uid="WinUI.TableView.TableView.SortDescriptions">
+  SortDescriptions
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L170"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the collection of sort descriptions applied to the items.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IList&lt;SortDescription&gt; SortDescriptions { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">IList</span>&lt;<a class="xref" href="WinUI.TableView.SortDescription.html">SortDescription</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_VerticalGridLinesStroke_" data-uid="WinUI.TableView.TableView.VerticalGridLinesStroke*"></a>
+
+  <h3 id="WinUI_TableView_TableView_VerticalGridLinesStroke" data-uid="WinUI.TableView.TableView.VerticalGridLinesStroke">
+  VerticalGridLinesStroke
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L429"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the brush used to draw vertical grid lines.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Brush VerticalGridLinesStroke { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">Brush</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_VerticalGridLinesStrokeThickness_" data-uid="WinUI.TableView.TableView.VerticalGridLinesStrokeThickness*"></a>
+
+  <h3 id="WinUI_TableView_TableView_VerticalGridLinesStrokeThickness" data-uid="WinUI.TableView.TableView.VerticalGridLinesStrokeThickness">
+  VerticalGridLinesStrokeThickness
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.Properties.cs/#L411"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the thickness of vertical grid lines.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public double VerticalGridLinesStrokeThickness { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">double</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="WinUI_TableView_TableView_ClearAllFilters_" data-uid="WinUI.TableView.TableView.ClearAllFilters*"></a>
+
+  <h3 id="WinUI_TableView_TableView_ClearAllFilters" data-uid="WinUI.TableView.TableView.ClearAllFilters">
+  ClearAllFilters()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L779"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Clears all filters applied to the items.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void ClearAllFilters()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_ClearAllSorting_" data-uid="WinUI.TableView.TableView.ClearAllSorting*"></a>
+
+  <h3 id="WinUI_TableView_TableView_ClearAllSorting" data-uid="WinUI.TableView.TableView.ClearAllSorting">
+  ClearAllSorting()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L746"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Clears all sorting applied to the items.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void ClearAllSorting()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_DeselectAll_" data-uid="WinUI.TableView.TableView.DeselectAll*"></a>
+
+  <h3 id="WinUI_TableView_TableView_DeselectAll" data-uid="WinUI.TableView.TableView.DeselectAll">
+  DeselectAll()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L859"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Deselects all rows or cells in the TableView.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void DeselectAll()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_GetAllContent_" data-uid="WinUI.TableView.TableView.GetAllContent*"></a>
+
+  <h3 id="WinUI_TableView_TableView_GetAllContent_System_Boolean_System_Char_" data-uid="WinUI.TableView.TableView.GetAllContent(System.Boolean,System.Char)">
+  GetAllContent(bool, char)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L387"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns all the cells' content as a string, optionally including headers, with values separated by the given character.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string GetAllContent(bool includeHeaders, char separator = &#39;\t&#39;)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>includeHeaders</code> <span class="xref">bool</span></dt>
+    <dd><p>Whether to include headers in the output.</p>
+</dd>
+    <dt><code>separator</code> <span class="xref">char</span></dt>
+    <dd><p>The character used to separate cell values (default is tab).</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><span class="xref">string</span></dt>
+    <dd><p>A string of all cell content separated by the specified character.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_GetCellsContent_" data-uid="WinUI.TableView.TableView.GetCellsContent*"></a>
+
+  <h3 id="WinUI_TableView_TableView_GetCellsContent_System_Collections_Generic_IEnumerable_WinUI_TableView_TableViewCellSlot__System_Boolean_System_Char_" data-uid="WinUI.TableView.TableView.GetCellsContent(System.Collections.Generic.IEnumerable{WinUI.TableView.TableViewCellSlot},System.Boolean,System.Char)">
+  GetCellsContent(IEnumerable&lt;TableViewCellSlot&gt;, bool, char)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L416"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns specified cells' content as a string, optionally including headers, with values separated by the given character.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string GetCellsContent(IEnumerable&lt;TableViewCellSlot&gt; slots, bool includeHeaders, char separator = &#39;\t&#39;)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>slots</code> <span class="xref">IEnumerable</span>&lt;<a class="xref" href="WinUI.TableView.TableViewCellSlot.html">TableViewCellSlot</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>includeHeaders</code> <span class="xref">bool</span></dt>
+    <dd><p>Whether to include headers in the output.</p>
+</dd>
+    <dt><code>separator</code> <span class="xref">char</span></dt>
+    <dd><p>The character used to separate cell values.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><span class="xref">string</span></dt>
+    <dd><p>A string of specified cell content separated by the specified character.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_GetContainerForItemOverride_" data-uid="WinUI.TableView.TableView.GetContainerForItemOverride*"></a>
+
+  <h3 id="WinUI_TableView_TableView_GetContainerForItemOverride" data-uid="WinUI.TableView.TableView.GetContainerForItemOverride">
+  GetContainerForItemOverride()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L105"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Creates or identifies the element that is used to display the given item.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override DependencyObject GetContainerForItemOverride()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyObject</span></dt>
+    <dd><p>The element that is used to display the given item.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_GetRowsContent_" data-uid="WinUI.TableView.TableView.GetRowsContent*"></a>
+
+  <h3 id="WinUI_TableView_TableView_GetRowsContent_System_Int32___System_Boolean_System_Char_" data-uid="WinUI.TableView.TableView.GetRowsContent(System.Int32[],System.Boolean,System.Char)">
+  GetRowsContent(int[], bool, char)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L400"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns specified rows' content as a string, optionally including headers, with values separated by the given character.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string GetRowsContent(int[] rows, bool includeHeaders, char separator = &#39;\t&#39;)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>rows</code> <span class="xref">int</span>[]</dt>
+    <dd></dd>
+    <dt><code>includeHeaders</code> <span class="xref">bool</span></dt>
+    <dd><p>Whether to include headers in the output.</p>
+</dd>
+    <dt><code>separator</code> <span class="xref">char</span></dt>
+    <dd><p>The character used to separate cell values.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><span class="xref">string</span></dt>
+    <dd><p>A string of specified row content separated by the specified character.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_GetSelectedContent_" data-uid="WinUI.TableView.TableView.GetSelectedContent*"></a>
+
+  <h3 id="WinUI_TableView_TableView_GetSelectedContent_System_Boolean_System_Char_" data-uid="WinUI.TableView.TableView.GetSelectedContent(System.Boolean,System.Char)">
+  GetSelectedContent(bool, char)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L360"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the selected cells' or rows' content as a string, optionally including headers, with values separated by the given character.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string GetSelectedContent(bool includeHeaders, char separator = &#39;\t&#39;)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>includeHeaders</code> <span class="xref">bool</span></dt>
+    <dd><p>Whether to include headers in the output.</p>
+</dd>
+    <dt><code>separator</code> <span class="xref">char</span></dt>
+    <dd><p>The character used to separate cell values (default is tab).</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><span class="xref">string</span></dt>
+    <dd><p>A string of selected cell content separated by the specified character.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_OnApplyTemplate_" data-uid="WinUI.TableView.TableView.OnApplyTemplate*"></a>
+
+  <h3 id="WinUI_TableView_TableView_OnApplyTemplate" data-uid="WinUI.TableView.TableView.OnApplyTemplate">
+  OnApplyTemplate()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L254"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Invoked whenever application code or internal processes (such as a rebuilding layout pass) call ApplyTemplate. In simplest terms, this means the method is called just before a UI element displays in your app. Override this method to influence the default post-template logic of a class.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void OnApplyTemplate()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_OnAutoGeneratingColumn_" data-uid="WinUI.TableView.TableView.OnAutoGeneratingColumn*"></a>
+
+  <h3 id="WinUI_TableView_TableView_OnAutoGeneratingColumn_WinUI_TableView_TableViewAutoGeneratingColumnEventArgs_" data-uid="WinUI.TableView.TableView.OnAutoGeneratingColumn(WinUI.TableView.TableViewAutoGeneratingColumnEventArgs)">
+  OnAutoGeneratingColumn(TableViewAutoGeneratingColumnEventArgs)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L539"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Called before the AutoGeneratingColumn event occurs.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void OnAutoGeneratingColumn(TableViewAutoGeneratingColumnEventArgs args)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>args</code> <a class="xref" href="WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.html">TableViewAutoGeneratingColumnEventArgs</a></dt>
+    <dd><p>Cancelable event args.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_OnClearSorting_" data-uid="WinUI.TableView.TableView.OnClearSorting*"></a>
+
+  <h3 id="WinUI_TableView_TableView_OnClearSorting_WinUI_TableView_TableViewClearSortingEventArgs_" data-uid="WinUI.TableView.TableView.OnClearSorting(WinUI.TableView.TableViewClearSortingEventArgs)">
+  OnClearSorting(TableViewClearSortingEventArgs)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L1443"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Called before the ClearSorting event occurs.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void OnClearSorting(TableViewClearSortingEventArgs eventArgs)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>eventArgs</code> <a class="xref" href="WinUI.TableView.TableViewClearSortingEventArgs.html">TableViewClearSortingEventArgs</a></dt>
+    <dd><p>The event data.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_OnCopyToClipboard_" data-uid="WinUI.TableView.TableView.OnCopyToClipboard*"></a>
+
+  <h3 id="WinUI_TableView_TableView_OnCopyToClipboard_WinUI_TableView_TableViewCopyToClipboardEventArgs_" data-uid="WinUI.TableView.TableView.OnCopyToClipboard(WinUI.TableView.TableViewCopyToClipboardEventArgs)">
+  OnCopyToClipboard(TableViewCopyToClipboardEventArgs)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L349"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Called before the CopyToClipboard event occurs.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void OnCopyToClipboard(TableViewCopyToClipboardEventArgs args)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>args</code> <a class="xref" href="WinUI.TableView.TableViewCopyToClipboardEventArgs.html">TableViewCopyToClipboardEventArgs</a></dt>
+    <dd><p>Handleable event args.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_OnExportAllContent_" data-uid="WinUI.TableView.TableView.OnExportAllContent*"></a>
+
+  <h3 id="WinUI_TableView_TableView_OnExportAllContent_WinUI_TableView_TableViewExportContentEventArgs_" data-uid="WinUI.TableView.TableView.OnExportAllContent(WinUI.TableView.TableViewExportContentEventArgs)">
+  OnExportAllContent(TableViewExportContentEventArgs)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L688"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Called before the ExportAllContent event occurs.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void OnExportAllContent(TableViewExportContentEventArgs args)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>args</code> <a class="xref" href="WinUI.TableView.TableViewExportContentEventArgs.html">TableViewExportContentEventArgs</a></dt>
+    <dd><p>Handleable event args.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_OnExportSelectedContent_" data-uid="WinUI.TableView.TableView.OnExportSelectedContent*"></a>
+
+  <h3 id="WinUI_TableView_TableView_OnExportSelectedContent_WinUI_TableView_TableViewExportContentEventArgs_" data-uid="WinUI.TableView.TableView.OnExportSelectedContent(WinUI.TableView.TableViewExportContentEventArgs)">
+  OnExportSelectedContent(TableViewExportContentEventArgs)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L644"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Called before the ExportSelectedContent event occurs.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void OnExportSelectedContent(TableViewExportContentEventArgs args)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>args</code> <a class="xref" href="WinUI.TableView.TableViewExportContentEventArgs.html">TableViewExportContentEventArgs</a></dt>
+    <dd><p>Handleable event args.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_OnKeyDown_" data-uid="WinUI.TableView.TableView.OnKeyDown*"></a>
+
+  <h3 id="WinUI_TableView_TableView_OnKeyDown_Microsoft_UI_Xaml_Input_KeyRoutedEventArgs_" data-uid="WinUI.TableView.TableView.OnKeyDown(Microsoft.UI.Xaml.Input.KeyRoutedEventArgs)">
+  OnKeyDown(KeyRoutedEventArgs)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L132"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Called before the KeyDown event occurs.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void OnKeyDown(KeyRoutedEventArgs e)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>e</code> <span class="xref">KeyRoutedEventArgs</span></dt>
+    <dd><p>The data for the event.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_OnSorting_" data-uid="WinUI.TableView.TableView.OnSorting*"></a>
+
+  <h3 id="WinUI_TableView_TableView_OnSorting_WinUI_TableView_TableViewSortingEventArgs_" data-uid="WinUI.TableView.TableView.OnSorting(WinUI.TableView.TableViewSortingEventArgs)">
+  OnSorting(TableViewSortingEventArgs)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L1434"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void OnSorting(TableViewSortingEventArgs eventArgs)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>eventArgs</code> <a class="xref" href="WinUI.TableView.TableViewSortingEventArgs.html">TableViewSortingEventArgs</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_PrepareContainerForItemOverride_" data-uid="WinUI.TableView.TableView.PrepareContainerForItemOverride*"></a>
+
+  <h3 id="WinUI_TableView_TableView_PrepareContainerForItemOverride_Microsoft_UI_Xaml_DependencyObject_System_Object_" data-uid="WinUI.TableView.TableView.PrepareContainerForItemOverride(Microsoft.UI.Xaml.DependencyObject,System.Object)">
+  PrepareContainerForItemOverride(DependencyObject, object)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L87"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Prepares the specified element to display the specified item.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void PrepareContainerForItemOverride(DependencyObject element, object item)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>element</code> <span class="xref">DependencyObject</span></dt>
+    <dd><p>The element that's used to display the specified item.</p>
+</dd>
+    <dt><code>item</code> <span class="xref">object</span></dt>
+    <dd><p>The item to display.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_RefreshFilter_" data-uid="WinUI.TableView.TableView.RefreshFilter*"></a>
+
+  <h3 id="WinUI_TableView_TableView_RefreshFilter" data-uid="WinUI.TableView.TableView.RefreshFilter">
+  RefreshFilter()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L787"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Refreshes all applied filters.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void RefreshFilter()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_ScrollCellIntoView_" data-uid="WinUI.TableView.TableView.ScrollCellIntoView*"></a>
+
+  <h3 id="WinUI_TableView_TableView_ScrollCellIntoView_WinUI_TableView_TableViewCellSlot_" data-uid="WinUI.TableView.TableView.ScrollCellIntoView(WinUI.TableView.TableViewCellSlot)">
+  ScrollCellIntoView(TableViewCellSlot)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L1120"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Scrolls the specified cell slot into view.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;TableViewCell&gt; ScrollCellIntoView(TableViewCellSlot slot)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>slot</code> <a class="xref" href="WinUI.TableView.TableViewCellSlot.html">TableViewCellSlot</a></dt>
+    <dd><p>The cell slot to scroll into view.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><span class="xref">Task</span>&lt;<a class="xref" href="WinUI.TableView.TableViewCell.html">TableViewCell</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableView_ScrollRowIntoView_" data-uid="WinUI.TableView.TableView.ScrollRowIntoView*"></a>
+
+  <h3 id="WinUI_TableView_TableView_ScrollRowIntoView_System_Int32_" data-uid="WinUI.TableView.TableView.ScrollRowIntoView(System.Int32)">
+  ScrollRowIntoView(int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L1182"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Scrolls the specified row into view.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;TableViewRow?&gt; ScrollRowIntoView(int index)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>index</code> <span class="xref">int</span></dt>
+    <dd><p>The index of the row to scroll into view.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><span class="xref">Task</span>&lt;<a class="xref" href="WinUI.TableView.TableViewRow.html">TableViewRow</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="events">Events
+</h2>
+
+
+
+  <h3 id="WinUI_TableView_TableView_AutoGeneratingColumn" data-uid="WinUI.TableView.TableView.AutoGeneratingColumn">
+  AutoGeneratingColumn
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L1451"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Event triggered when a column is auto-generating.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public event EventHandler&lt;TableViewAutoGeneratingColumnEventArgs&gt;? AutoGeneratingColumn</code></pre>
+  </div>
+
+
+
+
+
+
+  <h4 class="section">Event Type</h4>
+  <dl class="parameters">
+    <dt><span class="xref">EventHandler</span>&lt;<a class="xref" href="WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.html">TableViewAutoGeneratingColumnEventArgs</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_CellContextFlyoutOpening" data-uid="WinUI.TableView.TableView.CellContextFlyoutOpening">
+  CellContextFlyoutOpening
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L1481"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Event triggered when the cell context flyout is opening.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public event EventHandler&lt;TableViewCellContextFlyoutEventArgs&gt;? CellContextFlyoutOpening</code></pre>
+  </div>
+
+
+
+
+
+
+  <h4 class="section">Event Type</h4>
+  <dl class="parameters">
+    <dt><span class="xref">EventHandler</span>&lt;<a class="xref" href="WinUI.TableView.TableViewCellContextFlyoutEventArgs.html">TableViewCellContextFlyoutEventArgs</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_CellSelectionChanged" data-uid="WinUI.TableView.TableView.CellSelectionChanged">
+  CellSelectionChanged
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L1496"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Event triggered when selected cells change.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public event EventHandler&lt;TableViewCellSelectionChangedEventArgs&gt;? CellSelectionChanged</code></pre>
+  </div>
+
+
+
+
+
+
+  <h4 class="section">Event Type</h4>
+  <dl class="parameters">
+    <dt><span class="xref">EventHandler</span>&lt;<a class="xref" href="WinUI.TableView.TableViewCellSelectionChangedEventArgs.html">TableViewCellSelectionChangedEventArgs</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_ClearSorting" data-uid="WinUI.TableView.TableView.ClearSorting">
+  ClearSorting
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L1491"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Occurs when sorting is cleared from a column in the TableView.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public event EventHandler&lt;TableViewClearSortingEventArgs&gt;? ClearSorting</code></pre>
+  </div>
+
+
+
+
+
+
+  <h4 class="section">Event Type</h4>
+  <dl class="parameters">
+    <dt><span class="xref">EventHandler</span>&lt;<a class="xref" href="WinUI.TableView.TableViewClearSortingEventArgs.html">TableViewClearSortingEventArgs</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_CopyToClipboard" data-uid="WinUI.TableView.TableView.CopyToClipboard">
+  CopyToClipboard
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L1466"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Event triggered when copying selected rows or cell content to the clipboard.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public event EventHandler&lt;TableViewCopyToClipboardEventArgs&gt;? CopyToClipboard</code></pre>
+  </div>
+
+
+
+
+
+
+  <h4 class="section">Event Type</h4>
+  <dl class="parameters">
+    <dt><span class="xref">EventHandler</span>&lt;<a class="xref" href="WinUI.TableView.TableViewCopyToClipboardEventArgs.html">TableViewCopyToClipboardEventArgs</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_CurrentCellChanged" data-uid="WinUI.TableView.TableView.CurrentCellChanged">
+  CurrentCellChanged
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L1501"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Event triggered when the current cell changes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public event DependencyPropertyChangedEventHandler? CurrentCellChanged</code></pre>
+  </div>
+
+
+
+
+
+
+  <h4 class="section">Event Type</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyPropertyChangedEventHandler</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_ExportAllContent" data-uid="WinUI.TableView.TableView.ExportAllContent">
+  ExportAllContent
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L1456"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Event triggered when exporting all rows content.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public event EventHandler&lt;TableViewExportContentEventArgs&gt;? ExportAllContent</code></pre>
+  </div>
+
+
+
+
+
+
+  <h4 class="section">Event Type</h4>
+  <dl class="parameters">
+    <dt><span class="xref">EventHandler</span>&lt;<a class="xref" href="WinUI.TableView.TableViewExportContentEventArgs.html">TableViewExportContentEventArgs</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_ExportSelectedContent" data-uid="WinUI.TableView.TableView.ExportSelectedContent">
+  ExportSelectedContent
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L1461"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Event triggered when exporting selected rows or cells content.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public event EventHandler&lt;TableViewExportContentEventArgs&gt;? ExportSelectedContent</code></pre>
+  </div>
+
+
+
+
+
+
+  <h4 class="section">Event Type</h4>
+  <dl class="parameters">
+    <dt><span class="xref">EventHandler</span>&lt;<a class="xref" href="WinUI.TableView.TableViewExportContentEventArgs.html">TableViewExportContentEventArgs</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_IsReadOnlyChanged" data-uid="WinUI.TableView.TableView.IsReadOnlyChanged">
+  IsReadOnlyChanged
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L1471"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Event triggered when the IsReadOnly property changes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public event DependencyPropertyChangedEventHandler? IsReadOnlyChanged</code></pre>
+  </div>
+
+
+
+
+
+
+  <h4 class="section">Event Type</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyPropertyChangedEventHandler</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_RowContextFlyoutOpening" data-uid="WinUI.TableView.TableView.RowContextFlyoutOpening">
+  RowContextFlyoutOpening
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L1476"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Event triggered when the row context flyout is opening.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public event EventHandler&lt;TableViewRowContextFlyoutEventArgs&gt;? RowContextFlyoutOpening</code></pre>
+  </div>
+
+
+
+
+
+
+  <h4 class="section">Event Type</h4>
+  <dl class="parameters">
+    <dt><span class="xref">EventHandler</span>&lt;<a class="xref" href="WinUI.TableView.TableViewRowContextFlyoutEventArgs.html">TableViewRowContextFlyoutEventArgs</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableView_Sorting" data-uid="WinUI.TableView.TableView.Sorting">
+  Sorting
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableView.cs/#L1486"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Occurs when a sorting is being applied to a column in the TableView.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public event EventHandler&lt;TableViewSortingEventArgs&gt;? Sorting</code></pre>
+  </div>
+
+
+
+
+
+
+  <h4 class="section">Event Type</h4>
+  <dl class="parameters">
+    <dt><span class="xref">EventHandler</span>&lt;<a class="xref" href="WinUI.TableView.TableViewSortingEventArgs.html">TableViewSortingEventArgs</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
