@@ -14,20 +14,20 @@ public abstract class TableViewBoundColumn : TableViewColumn
     private Type? _listType;
     private string? _propertyPath;
     private Binding _binding = new();
-    private (PropertyInfo, object?)[]? _propertyInfo;
+    private (MemberInfo, object?)[]? _memberInfo;
 
     public override object? GetCellContent(object? dataItem)
     {
         if (dataItem is null) return null;
 
-        if (_propertyInfo is null || dataItem.GetType() != _listType)
+        if (_memberInfo is null || dataItem.GetType() != _listType)
         {
             _listType = dataItem.GetType();
-            dataItem = dataItem.GetValue(_listType, PropertyPath, out _propertyInfo);
+            dataItem = dataItem.GetValue(_listType, PropertyPath, out _memberInfo);
         }
         else
         {
-            dataItem = dataItem.GetValue(_propertyInfo);
+            dataItem = dataItem.GetValue(_memberInfo);
         }
 
         if (Binding?.Converter is not null)
