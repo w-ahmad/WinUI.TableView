@@ -34,12 +34,12 @@ public class ColumnFilterHandler : IColumnFilterHandler
             foreach (var item in collectionView)
             {
                 var value = column.GetCellContent(item);
-                filterValues.Add(value);
+                filterValues.Add(IsBlank(value) ? null : value);
             }
 
-            return filterValues.Select(value =>
+            return [.. filterValues.Select(value =>
             {
-                value = string.IsNullOrWhiteSpace(value?.ToString()) ? TableViewLocalizedStrings.BlankFilterValue : value;
+                value ??= TableViewLocalizedStrings.BlankFilterValue;
                 var isSelected = !column.IsFiltered || !string.IsNullOrEmpty(searchText) ||
                   (column.IsFiltered && SelectedValues[column].Contains(value));
 
@@ -48,12 +48,20 @@ public class ColumnFilterHandler : IColumnFilterHandler
                       ? new TableViewFilterItem(isSelected, value)
                       : null;
 
-            }).OfType<TableViewFilterItem>()
-              .ToList();
+            }).OfType<TableViewFilterItem>()];
         }
 
         return [];
     }
+
+    private static bool IsBlank(object? value)
+    {
+        return value == null ||
+               value == DBNull.Value ||
+               (value is string str && string.IsNullOrWhiteSpace(str)) ||
+               (value is Guid guid && guid == Guid.Empty);
+    }
+
 
     public virtual void ApplyFilter(TableViewColumn column)
     {
@@ -107,7 +115,7 @@ public class ColumnFilterHandler : IColumnFilterHandler
     public virtual bool Filter(TableViewColumn column, object? item)
     {
         var value = column.GetCellContent(item);
-        value = string.IsNullOrWhiteSpace(value?.ToString()) ? TableViewLocalizedStrings.BlankFilterValue : value;
+        value = IsBlank(value) ? TableViewLocalizedStrings.BlankFilterValue : value!;
         return SelectedValues[column].Contains(value);
     }
 
