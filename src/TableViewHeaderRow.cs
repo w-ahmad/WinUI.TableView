@@ -181,7 +181,7 @@ public partial class TableViewHeaderRow : Control
         {
             foreach (var column in columns)
             {
-                var header = _headersStackPanel.Children.OfType<TableViewColumnHeader>().FirstOrDefault(x => x == column.HeaderControl);
+                var header = _headersStackPanel.Children.OfType<TableViewColumnHeader>().FirstOrDefault(x => x.Column == column);
                 if (header is not null)
                 {
                     _headersStackPanel.Children.Remove(header);
