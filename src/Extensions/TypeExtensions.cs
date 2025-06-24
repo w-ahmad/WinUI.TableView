@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -111,7 +113,7 @@ internal static class TypeExtensions
     public static bool IsPrimitive(this Type? dataType)
     {
         return dataType is not null &&
-            (dataType.GetTypeInfo().IsPrimitive ||
+            (dataType.IsPrimitive ||
              dataType == typeof(string) ||
              dataType == typeof(decimal) ||
              dataType == typeof(DateTime));
@@ -123,5 +125,52 @@ internal static class TypeExtensions
     public static bool IsInheritedFromIComparable(this Type type)
     {
         return type.GetInterfaces().Any(i => i == typeof(IComparable));
+    }
+
+    private static Type? FindGenericType(Type definition, Type type)
+    {
+        var definitionTypeInfo = definition.GetTypeInfo();
+
+        while (type != null && type != typeof(object))
+        {
+            var typeTypeInfo = type.GetTypeInfo();
+
+            if (typeTypeInfo.IsGenericType && type.GetGenericTypeDefinition() == definition)
+            {
+                return type;
+            }
+
+            if (definitionTypeInfo.IsInterface)
+            {
+                foreach (var type2 in typeTypeInfo.ImplementedInterfaces)
+                {
+                    var type3 = FindGenericType(definition, type2);
+                    if (type3 != null)
+                    {
+                        return type3;
+                    }
+                }
+            }
+
+            type = typeTypeInfo.BaseType!;
+        }
+
+        return null;
+    }
+
+    internal static Type GetEnumerableItemType(this Type enumerableType)
+    {
+        var type = FindGenericType(typeof(IEnumerable<>), enumerableType);
+        if (type != null)
+        {
+            return type.GetGenericArguments()[0];
+        }
+
+        return enumerableType;
+    }
+
+    internal static bool IsEnumerableType(this Type enumerableType)
+    {
+        return FindGenericType(typeof(IEnumerable<>), enumerableType) != null;
     }
 }

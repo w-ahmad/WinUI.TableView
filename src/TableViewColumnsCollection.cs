@@ -21,7 +21,9 @@ public partial class TableViewColumnsCollection : ObservableCollection<TableView
     /// <summary>
     /// Gets the list of visible columns in the collection.
     /// </summary>
-    internal IList<TableViewColumn> VisibleColumns => Items.Where(x => x.Visibility == Visibility.Visible).ToList();
+    internal IList<TableViewColumn> VisibleColumns =>
+        [.. Items.Where(x => x.Visibility == Visibility.Visible)
+                 .OrderBy(x => x.Order ?? 0)];
 
     protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
     {

@@ -204,6 +204,15 @@ public abstract partial class TableViewColumn : DependencyObject
         set => SetValue(CanFilterProperty, value);
     }
 
+    /// <summary>
+    /// Gets or sets the order in which this column should be displayed.
+    /// </summary>
+    public int? Order
+    {
+        get => (int?)GetValue(OrderProperty);
+        set => SetValue(OrderProperty, value);
+    }
+
     internal TableViewColumnsCollection? OwningCollection { get; set; }
 
     /// <summary>
@@ -293,69 +302,32 @@ public abstract partial class TableViewColumn : DependencyObject
     /// <summary>
     /// Handles changes to the Width property.
     /// </summary>
-    private static void OnWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableViewColumn column && column.OwningCollection is { })
+        if (d is TableViewColumn { OwningCollection: { } } column)
         {
-            column.OwningCollection.HandleColumnPropertyChanged(column, nameof(Width));
+            if (e.Property == CellStyleProperty)
+                column.OwningCollection.HandleColumnPropertyChanged(column, nameof(CellStyle));
+            else if (e.Property == WidthProperty)
+                column.OwningCollection.HandleColumnPropertyChanged(column, nameof(Width));
+            else if (e.Property == MinWidthProperty)
+                column.OwningCollection.HandleColumnPropertyChanged(column, nameof(MinWidth));
+            else if (e.Property == MaxWidthProperty)
+                column.OwningCollection.HandleColumnPropertyChanged(column, nameof(MaxWidth));
+            else if (e.Property == ActualWidthProperty)
+                column.OwningCollection.HandleColumnPropertyChanged(column, nameof(ActualWidth));
+            else if (e.Property == IsReadOnlyProperty)
+                column.OwningCollection.HandleColumnPropertyChanged(column, nameof(IsReadOnly));
+            else if (e.Property == VisibilityProperty)
+                column.OwningCollection.HandleColumnPropertyChanged(column, nameof(Visibility));
+            else if (e.Property == OrderProperty)
+                column.OwningCollection.HandleColumnPropertyChanged(column, nameof(Order));
         }
     }
 
     /// <summary>
-    /// Handles changes to the MinWidth property.
+    /// Handles changes to the CanFilter property.
     /// </summary>
-    private static void OnMinWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is TableViewColumn column && column.OwningCollection is { })
-        {
-            column.OwningCollection.HandleColumnPropertyChanged(column, nameof(MinWidth));
-        }
-    }
-
-    /// <summary>
-    /// Handles changes to the MaxWidth property.
-    /// </summary>
-    private static void OnMaxWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is TableViewColumn column && column.OwningCollection is { })
-        {
-            column.OwningCollection.HandleColumnPropertyChanged(column, nameof(MaxWidth));
-        }
-    }
-
-    /// <summary>
-    /// Handles changes to the ActualWidth property.
-    /// </summary>
-    private static void OnActualWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is TableViewColumn column && column.OwningCollection is { })
-        {
-            column.OwningCollection.HandleColumnPropertyChanged(column, nameof(ActualWidth));
-        }
-    }
-
-    /// <summary>
-    /// Handles changes to the IsReadOnly property.
-    /// </summary>
-    private static void OnIsReadOnlyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is TableViewColumn column && column.OwningCollection is { })
-        {
-            column.OwningCollection.HandleColumnPropertyChanged(column, nameof(IsReadOnly));
-        }
-    }
-
-    /// <summary>
-    /// Handles changes to the Visibility property.
-    /// </summary>
-    private static void OnVisibilityChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is TableViewColumn column && column.OwningCollection is { })
-        {
-            column.OwningCollection.HandleColumnPropertyChanged(column, nameof(Visibility));
-        }
-    }
-
     private static void OnCanFilterChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is TableViewColumn column && column.HeaderControl is not null)
@@ -376,17 +348,6 @@ public abstract partial class TableViewColumn : DependencyObject
     }
 
     /// <summary>
-    /// Handles changes to the CellStyle property.
-    /// </summary>
-    private static void OnCellStyleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is TableViewColumn column && column.OwningCollection is { })
-        {
-            column.OwningCollection.HandleColumnPropertyChanged(column, nameof(CellStyle));
-        }
-    }
-
-    /// <summary>
     /// Identifies the HeaderStyle dependency property.
     /// </summary>
     public static readonly DependencyProperty HeaderStyleProperty = DependencyProperty.Register(nameof(HeaderStyle), typeof(Style), typeof(TableViewColumn), new PropertyMetadata(null, OnHeaderStyleChanged));
@@ -394,7 +355,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// <summary>
     /// Identifies the CellStyle dependency property.
     /// </summary>
-    public static readonly DependencyProperty CellStyleProperty = DependencyProperty.Register(nameof(CellStyle), typeof(Style), typeof(TableViewColumn), new PropertyMetadata(null, OnCellStyleChanged));
+    public static readonly DependencyProperty CellStyleProperty = DependencyProperty.Register(nameof(CellStyle), typeof(Style), typeof(TableViewColumn), new PropertyMetadata(null, OnPropertyChanged));
 
     /// <summary>
     /// Identifies the Header dependency property.
@@ -404,22 +365,22 @@ public abstract partial class TableViewColumn : DependencyObject
     /// <summary>
     /// Identifies the Width dependency property.
     /// </summary>
-    public static readonly DependencyProperty WidthProperty = DependencyProperty.Register(nameof(Width), typeof(GridLength), typeof(TableViewColumn), new PropertyMetadata(GridLength.Auto, OnWidthChanged));
+    public static readonly DependencyProperty WidthProperty = DependencyProperty.Register(nameof(Width), typeof(GridLength), typeof(TableViewColumn), new PropertyMetadata(GridLength.Auto, OnPropertyChanged));
 
     /// <summary>
     /// Identifies the MinWidth dependency property.
     /// </summary>
-    public static readonly DependencyProperty MinWidthProperty = DependencyProperty.Register(nameof(MinWidth), typeof(double?), typeof(TableViewColumn), new PropertyMetadata(default, OnMinWidthChanged));
+    public static readonly DependencyProperty MinWidthProperty = DependencyProperty.Register(nameof(MinWidth), typeof(double?), typeof(TableViewColumn), new PropertyMetadata(default, OnPropertyChanged));
 
     /// <summary>
     /// Identifies the MaxWidth dependency property.
     /// </summary>
-    public static readonly DependencyProperty MaxWidthProperty = DependencyProperty.Register(nameof(MaxWidth), typeof(double?), typeof(TableViewColumn), new PropertyMetadata(default, OnMaxWidthChanged));
+    public static readonly DependencyProperty MaxWidthProperty = DependencyProperty.Register(nameof(MaxWidth), typeof(double?), typeof(TableViewColumn), new PropertyMetadata(default, OnPropertyChanged));
 
     /// <summary>
     /// Identifies the ActualWidth dependency property.
     /// </summary>
-    public static readonly DependencyProperty ActualWidthProperty = DependencyProperty.Register(nameof(ActualWidth), typeof(double), typeof(TableViewColumn), new PropertyMetadata(0d, OnActualWidthChanged));
+    public static readonly DependencyProperty ActualWidthProperty = DependencyProperty.Register(nameof(ActualWidth), typeof(double), typeof(TableViewColumn), new PropertyMetadata(0d, OnPropertyChanged));
 
     /// <summary>
     /// Identifies the CanResize dependency property.
@@ -429,12 +390,12 @@ public abstract partial class TableViewColumn : DependencyObject
     /// <summary>
     /// Identifies the IsReadOnly dependency property.
     /// </summary>
-    public static readonly DependencyProperty IsReadOnlyProperty = DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(TableViewColumn), new PropertyMetadata(false, OnIsReadOnlyChanged));
+    public static readonly DependencyProperty IsReadOnlyProperty = DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(TableViewColumn), new PropertyMetadata(false, OnPropertyChanged));
 
     /// <summary>
     /// Identifies the Visibility dependency property.
     /// </summary>
-    public static readonly DependencyProperty VisibilityProperty = DependencyProperty.Register(nameof(Visibility), typeof(Visibility), typeof(TableViewColumn), new PropertyMetadata(Visibility.Visible, OnVisibilityChanged));
+    public static readonly DependencyProperty VisibilityProperty = DependencyProperty.Register(nameof(Visibility), typeof(Visibility), typeof(TableViewColumn), new PropertyMetadata(Visibility.Visible, OnPropertyChanged));
 
     /// <summary>
     /// Identifies the Tag dependency property.
@@ -450,4 +411,9 @@ public abstract partial class TableViewColumn : DependencyObject
     /// Identifies the CanFilter dependency property.
     /// </summary>
     public static readonly DependencyProperty CanFilterProperty = DependencyProperty.Register(nameof(CanFilter), typeof(bool), typeof(TableViewColumn), new PropertyMetadata(true, OnCanFilterChanged));
+
+    /// <summary>
+    /// Identifies the Order dependency property.
+    /// </summary>
+    public static readonly DependencyProperty OrderProperty = DependencyProperty.Register(nameof(Order), typeof(int?), typeof(TableViewColumn), new PropertyMetadata(null, OnPropertyChanged));
 }
