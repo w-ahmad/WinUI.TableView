@@ -99,7 +99,7 @@ public partial class TableViewHeaderRow : Control
     {
         if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems?.OfType<TableViewColumn>() is IEnumerable<TableViewColumn> newItems)
         {
-            AddHeaders(newItems.Where(x => x.Visibility == Visibility.Visible), e.NewStartingIndex);
+            AddHeaders(newItems.Where(x => x.Visibility == Visibility.Visible));
         }
         else if (e.Action == NotifyCollectionChangedAction.Remove && e.OldItems?.OfType<TableViewColumn>() is IEnumerable<TableViewColumn> oldItems)
         {
@@ -120,12 +120,17 @@ public partial class TableViewHeaderRow : Control
         {
             if (e.Column.Visibility == Visibility.Visible)
             {
-                AddHeaders([e.Column], e.Index);
+                AddHeaders([e.Column]);
             }
             else
             {
                 RemoveHeaders([e.Column]);
             }
+        }
+        else if (e.PropertyName is nameof(TableViewColumn.Order) && e.Column.Visibility is Visibility.Visible)
+        {
+            RemoveHeaders([e.Column]);
+            AddHeaders([e.Column]);
         }
         else if (e.PropertyName is nameof(TableViewColumn.Width) or
                                    nameof(TableViewColumn.MinWidth) or
@@ -188,19 +193,19 @@ public partial class TableViewHeaderRow : Control
     /// <summary>
     /// Adds headers for the specified columns.
     /// </summary>
-    private void AddHeaders(IEnumerable<TableViewColumn> columns, int index = -1)
+    private void AddHeaders(IEnumerable<TableViewColumn> columns)
     {
-        if (_headersStackPanel is not null)
+        if (TableView is not null && _headersStackPanel is not null)
         {
             foreach (var column in columns)
             {
                 var header = new TableViewColumnHeader { DataContext = column, Column = column };
                 column.HeaderControl = header;
 
+                var index = TableView.Columns.VisibleColumns.IndexOf(column);
                 index = Math.Min(index, _headersStackPanel.Children.Count);
                 index = Math.Max(index, 0); // handles -ve index;
                 _headersStackPanel.Children.Insert(index, header);
-                index++;
 
                 header.SetBinding(ContentControl.ContentProperty,
                                   new Binding { Path = new PropertyPath(nameof(TableViewColumn.Header)) });
@@ -498,7 +503,7 @@ public partial class TableViewHeaderRow : Control
     /// <summary>
     /// Gets the list of headers in the header row.
     /// </summary>
-    public IList<TableViewColumnHeader> Headers => _headersStackPanel!.Children.OfType<TableViewColumnHeader>().ToList();
+    public IList<TableViewColumnHeader> Headers => [.. _headersStackPanel?.Children.OfType<TableViewColumnHeader>() ?? []];
 
     /// <summary>
     /// Gets or sets the TableView associated with the header row.

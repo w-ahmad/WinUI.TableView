@@ -160,10 +160,10 @@ public partial class TableViewRow : ListViewItem
         else
         {
 #endif
-        foreach (var cell in Cells)
-        {
-            cell.RefreshElement();
-        }
+            foreach (var cell in Cells)
+            {
+                cell.RefreshElement();
+            }
 #if WINDOWS
         }
 #endif
@@ -244,7 +244,7 @@ public partial class TableViewRow : ListViewItem
     {
         if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems?.OfType<TableViewColumn>() is IEnumerable<TableViewColumn> newItems)
         {
-            AddCells(newItems.Where(x => x.Visibility == Visibility.Visible), e.NewStartingIndex);
+            AddCells(newItems.Where(x => x.Visibility == Visibility.Visible));
         }
         else if (e.Action == NotifyCollectionChangedAction.Remove && e.OldItems?.OfType<TableViewColumn>() is IEnumerable<TableViewColumn> oldItems)
         {
@@ -265,12 +265,17 @@ public partial class TableViewRow : ListViewItem
         {
             if (e.Column.Visibility == Visibility.Visible)
             {
-                AddCells([e.Column], e.Index);
+                AddCells([e.Column]);
             }
             else
             {
                 RemoveCells([e.Column]);
             }
+        }
+        else if (e.PropertyName is nameof(TableViewColumn.Order) && e.Column.Visibility is Visibility.Visible)
+        {
+            RemoveCells([e.Column]);
+            AddCells([e.Column]);
         }
         else if (e.PropertyName is nameof(TableViewColumn.ActualWidth))
         {
@@ -334,7 +339,7 @@ public partial class TableViewRow : ListViewItem
     /// <summary>
     /// Adds cells for the specified columns.
     /// </summary>
-    private void AddCells(IEnumerable<TableViewColumn> columns, int index = -1)
+    private void AddCells(IEnumerable<TableViewColumn> columns)
     {
         if (CellPresenter is not null && TableView is not null)
         {
@@ -350,10 +355,10 @@ public partial class TableViewRow : ListViewItem
                     Style = column.CellStyle ?? TableView.CellStyle
                 };
 
+                var index = TableView.Columns.VisibleColumns.IndexOf(column);
                 index = Math.Min(index, CellPresenter.Children.Count);
                 index = Math.Max(index, 0); // handles -ve index.
                 CellPresenter.Children.Insert(index, cell);
-                index++;
             }
         }
     }
