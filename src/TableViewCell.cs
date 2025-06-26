@@ -84,27 +84,13 @@ public partial class TableViewCell : ContentControl
 
     protected override Size MeasureOverride(Size availableSize)
     {
-        if ((Content ?? ContentTemplateRoot) is FrameworkElement element)
+        if (Content is FrameworkElement element)
         {
             var v_GridLineStrokeThickness = TableView?.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
                                             || TableView?.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
                                             ? TableView.VerticalGridLinesStrokeThickness : 0;
 #if WINDOWS
             #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860
-            if (Column is TableViewTemplateColumn)
-            {
-                if (element is ContentControl contentControl &&
-                   (contentControl.Content ?? contentControl.ContentTemplateRoot) is FrameworkElement contentElement)
-                {
-                    element = contentElement;
-                }
-                else
-                {
-                    return base.MeasureOverride(availableSize);
-                }
-            }
-
-
             var contentWidth = Column?.ActualWidth ?? 0d;
             contentWidth -= element.Margin.Left;
             contentWidth -= element.Margin.Right;
