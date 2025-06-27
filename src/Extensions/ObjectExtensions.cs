@@ -12,21 +12,18 @@ internal static class ObjectExtensions
     /// Gets the value of a property from an object using a sequence of property info and index pairs.
     /// </summary>
     /// <param name="obj">The object from which to get the value.</param>
-    /// <param name="members">An array of member info and index pairs.</param>
+    /// <param name="pis">An array of property info and index pairs.</param>
     /// <returns>The value of the property, or null if the object is null.</returns>
-    internal static object? GetValue(this object? obj, (MemberInfo info, object? index)[] members)
+    internal static object? GetValue(this object? obj, (PropertyInfo pi, object? index)[] pis)
     {
-        foreach (var (info, index) in members)
+        foreach (var pi in pis)
         {
             if (obj is null)
             {
                 break;
             }
 
-            if (info is PropertyInfo pi)
-                obj = index is not null ? pi.GetValue(obj, [index]) : pi.GetValue(obj);
-            else if (info is MethodInfo mi)
-                obj = index is not null ? mi.Invoke(obj, [index]) : mi.Invoke(obj, []);
+            obj = pi.index is not null ? pi.pi.GetValue(obj, [pi.index]) : pi.pi.GetValue(obj);
         }
 
         return obj;
@@ -38,19 +35,19 @@ internal static class ObjectExtensions
     /// <param name="obj">The object from which to get the value.</param>
     /// <param name="type">The type of the object.</param>
     /// <param name="path">The property path.</param>
-    /// <param name="members">An array of member info and index pairs.</param>
+    /// <param name="pis">An array of property info and index pairs.</param>
     /// <returns>The value of the property, or null if the object is null.</returns>
-    internal static object? GetValue(this object? obj, Type? type, string? path, out (MemberInfo info, object? index)[] members)
+    internal static object? GetValue(this object? obj, Type? type, string? path, out (PropertyInfo pi, object? index)[] pis)
     {
         var parts = path?.Split('.');
 
         if (parts is null)
         {
-            members = [];
+            pis = [];
             return obj;
         }
 
-        members = new (MemberInfo, object?)[parts.Length];
+        pis = new (PropertyInfo, object?)[parts.Length];
 
         for (var i = 0; i < parts.Length; i++)
         {
@@ -62,22 +59,16 @@ internal static class ObjectExtensions
                 part = "Item";
             }
 
-            if (type?.GetProperty(part) is { } pi)
+            var pi = type?.GetProperty(part);
+            if (pi is not null)
             {
-                members[i] = (pi, index);
+                pis[i] = (pi, index);
                 obj = index is not null ? pi?.GetValue(obj, [index]) : pi?.GetValue(obj);
                 type = obj?.GetType();
             }
-            else if (type?.IsArray is true && type.GetMethod("GetValue", [typeof(int)]) is { } mi)
-            {
-                members[i] = (mi, index);
-                obj = index is not null ? mi?.Invoke(obj, [index]) : mi?.Invoke(obj, []);
-                type = obj?.GetType();
-
-            }
             else
             {
-                members = null!;
+                pis = null!;
                 return null;
             }
         }
