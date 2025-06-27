@@ -28,7 +28,17 @@ public partial class TableView
     /// <summary>
     /// Identifies the HeaderRowHeight dependency property.
     /// </summary>
-    public static readonly DependencyProperty HeaderRowHeightProperty = DependencyProperty.Register(nameof(HeaderRowHeight), typeof(double), typeof(TableView), new PropertyMetadata(32d, OnHeaderRowHeightChanged));
+    public static readonly DependencyProperty HeaderRowHeightProperty = DependencyProperty.Register(nameof(HeaderRowHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.NaN, OnHeaderRowHeightChanged));
+
+    /// <summary>
+    /// Identifies the HeaderRowMaxHeight dependency property.
+    /// </summary>
+    public static readonly DependencyProperty HeaderRowMaxHeightProperty = DependencyProperty.Register(nameof(HeaderRowMaxHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.PositiveInfinity, OnHeaderRowHeightChanged));
+
+    /// <summary>
+    /// Identifies the HeaderRowMinHeight dependency property.
+    /// </summary>
+    public static readonly DependencyProperty HeaderRowMinHeightProperty = DependencyProperty.Register(nameof(HeaderRowMinHeight), typeof(double), typeof(TableView), new PropertyMetadata(32d, OnHeaderRowHeightChanged));
 
     /// <summary>
     /// Identifies the RowHeight dependency property.
@@ -250,6 +260,24 @@ public partial class TableView
     {
         get => (double)GetValue(HeaderRowHeightProperty);
         set => SetValue(HeaderRowHeightProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the max height of the header row.
+    /// </summary>
+    public double HeaderRowMaxHeight
+    {
+        get => (double)GetValue(HeaderRowMaxHeightProperty);
+        set => SetValue(HeaderRowMaxHeightProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the min height of the header row.
+    /// </summary>
+    public double HeaderRowMinHeight
+    {
+        get => (double)GetValue(HeaderRowMinHeightProperty);
+        set => SetValue(HeaderRowMinHeightProperty, value);
     }
 
     /// <summary>
