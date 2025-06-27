@@ -33,7 +33,7 @@ public partial class TableView
     /// <summary>
     /// Identifies the RowHeight dependency property.
     /// </summary>
-    public static readonly DependencyProperty RowHeightProperty = DependencyProperty.Register(nameof(RowHeight), typeof(double), typeof(TableView), new PropertyMetadata(40d));
+    public static readonly DependencyProperty RowHeightProperty = DependencyProperty.Register(nameof(RowHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.NaN));
 
     /// <summary>
     /// Identifies the RowMaxHeight dependency property.
