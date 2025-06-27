@@ -29,6 +29,7 @@ public partial class TableViewCell : ContentControl
     private ContentPresenter? _contentPresenter;
     private Border? _selectionBorder;
     private Rectangle? _v_gridLine;
+    private TableViewCellsPresenter? _cellPresenter;
 
     /// <summary>
     /// Initializes a new instance of the TableViewCell class.
@@ -42,7 +43,6 @@ public partial class TableViewCell : ContentControl
         ContextRequested += OnContextRequested;
 #endif
     }
-
 
 #if !WINDOWS
     protected override void OnRightTapped(RightTappedRoutedEventArgs e)
@@ -84,62 +84,77 @@ public partial class TableViewCell : ContentControl
 
     protected override Size MeasureOverride(Size availableSize)
     {
-        if (Content is FrameworkElement element)
+        if (Column is not null && Row is not null && _contentPresenter is not null && Content is FrameworkElement element)
         {
-            var v_GridLineStrokeThickness = TableView?.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
-                                            || TableView?.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
-                                            ? TableView.VerticalGridLinesStrokeThickness : 0;
+#if WINDOWS
+            #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860           
+            element.MaxWidth = double.PositiveInfinity;
+            element.MaxHeight = double.PositiveInfinity;
+            #endregion
+#endif
+            element.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+
+            var desiredWidth = element.DesiredSize.Width;
+            desiredWidth += Padding.Left;
+            desiredWidth += Padding.Right;
+            desiredWidth += BorderThickness.Left;
+            desiredWidth += BorderThickness.Right;
+            desiredWidth += _selectionBorder?.BorderThickness.Right ?? 0;
+            desiredWidth += _selectionBorder?.BorderThickness.Left ?? 0;
+            desiredWidth += _v_gridLine?.ActualWidth ?? 0d;
+
+            Column.DesiredWidth = Math.Max(Column.DesiredWidth, desiredWidth);
+
 #if WINDOWS
             #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860
-            var contentWidth = Column?.ActualWidth ?? 0d;
+            var contentWidth = Column.ActualWidth;
             contentWidth -= element.Margin.Left;
             contentWidth -= element.Margin.Right;
             contentWidth -= Padding.Left;
             contentWidth -= Padding.Right;
             contentWidth -= BorderThickness.Left;
             contentWidth -= BorderThickness.Right;
-            contentWidth -= _selectionBorder?.BorderThickness.Right ?? 0;
             contentWidth -= _selectionBorder?.BorderThickness.Left ?? 0;
-            contentWidth -= v_GridLineStrokeThickness;
+            contentWidth -= _selectionBorder?.BorderThickness.Right ?? 0;
+            contentWidth -= _v_gridLine?.ActualWidth ?? 0d;
 
-            element.MaxWidth = double.PositiveInfinity;
-            #endregion
-#endif
-            element.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            var rowHeight = Row.Height is double.NaN ? double.PositiveInfinity : Row.Height;
+            var rowMaxHeight = Row.MaxHeight;
+            var contentHeight = Math.Min(rowHeight, rowMaxHeight);
+            contentHeight -= element.Margin.Top;
+            contentHeight -= element.Margin.Bottom;
+            contentHeight -= Padding.Top;
+            contentHeight -= Padding.Bottom;
+            contentHeight -= BorderThickness.Top;
+            contentHeight -= BorderThickness.Bottom;
+            contentHeight -= _selectionBorder?.BorderThickness.Top ?? 0;
+            contentHeight -= _selectionBorder?.BorderThickness.Bottom ?? 0;
+            contentHeight -= GetHorizonalGridlineHeight();
 
-            if (Column is not null)
+            if (contentWidth < 0 || contentHeight < 0)
             {
-                var desiredWidth = element.DesiredSize.Width;
-                desiredWidth += Padding.Left;
-                desiredWidth += Padding.Right;
-                desiredWidth += BorderThickness.Left;
-                desiredWidth += BorderThickness.Right;
-                desiredWidth += _selectionBorder?.BorderThickness.Right ?? 0;
-                desiredWidth += _selectionBorder?.BorderThickness.Left ?? 0;
-                desiredWidth += v_GridLineStrokeThickness;
-
-                Column.DesiredWidth = Math.Max(Column.DesiredWidth, desiredWidth);
+                _contentPresenter.Visibility = Visibility.Collapsed;
             }
-
-#if WINDOWS
-            #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860
-            if (_contentPresenter is not null)
+            else
             {
-                if (contentWidth < 0)
-                {
-                    _contentPresenter.Visibility = Visibility.Collapsed;
-                }
-                else
-                {
-                    element.MaxWidth = contentWidth;
-                    _contentPresenter.Visibility = Visibility.Visible;
-                }
+                element.MaxWidth = contentWidth;
+                element.MaxHeight = contentHeight;
+                _contentPresenter.Visibility = Visibility.Visible;
             }
             #endregion
 #endif
         }
 
         return base.MeasureOverride(availableSize);
+    }
+
+    /// <summary>
+    /// Retrieves the height of the horizontal gridline.
+    /// </summary>
+    private double GetHorizonalGridlineHeight()
+    {
+        _cellPresenter ??= this?.FindAscendant<TableViewCellsPresenter>();
+        return _cellPresenter?.GetHorizonalGridlineHeight() ?? 0d;
     }
 
     protected override void OnPointerEntered(PointerRoutedEventArgs e)
