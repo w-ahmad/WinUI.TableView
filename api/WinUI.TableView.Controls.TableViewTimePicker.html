@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class TableViewTimePicker | WinUI.TableView </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class TableViewTimePicker | WinUI.TableView ">
+      
+      <meta name="description" content="Represents a time editing element for the TableViewTimeColumn.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="WinUI.TableView">
+            WinUI.TableView
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="WinUI.TableView.Controls.TableViewTimePicker">
+
+
+
+  <h1 id="WinUI_TableView_Controls_TableViewTimePicker" data-uid="WinUI.TableView.Controls.TableViewTimePicker" class="text-break">
+Class TableViewTimePicker  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="WinUI.html">WinUI</a>.<a class="xref" href="WinUI.TableView.html">TableView</a>.<a class="xref" href="WinUI.TableView.Controls.html">Controls</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>WinUI.TableView.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Represents a time editing element for the TableViewTimeColumn.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[WinRTRuntimeClassName(&quot;Microsoft.UI.Xaml.IUIElementOverrides&quot;)]
+[WinRTExposedType(typeof(WinUI_TableView_Controls_TableViewTimePickerWinRTTypeDetails))]
+public class TableViewTimePicker : Control, IWinRTObject</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><span class="xref">object</span></div>
+      <div><span class="xref">DependencyObject</span></div>
+      <div><span class="xref">UIElement</span></div>
+      <div><span class="xref">FrameworkElement</span></div>
+      <div><span class="xref">Control</span></div>
+      <div><span class="xref">TableViewTimePicker</span></div>
+    </dd>
+  </dl>
+
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><span class="xref">IWinRTObject</span></div>
+    </dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="WinUI_TableView_Controls_TableViewTimePicker__ctor_" data-uid="WinUI.TableView.Controls.TableViewTimePicker.#ctor*"></a>
+
+  <h3 id="WinUI_TableView_Controls_TableViewTimePicker__ctor" data-uid="WinUI.TableView.Controls.TableViewTimePicker.#ctor">
+  TableViewTimePicker()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Controls/TableViewTimePicker.cs/#L23"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initializes a new instance of the TableViewTimePicker class.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TableViewTimePicker()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="WinUI_TableView_Controls_TableViewTimePicker_ClockIdentifierProperty" data-uid="WinUI.TableView.Controls.TableViewTimePicker.ClockIdentifierProperty">
+  ClockIdentifierProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Controls/TableViewTimePicker.cs/#L220"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the ClockIdentifier dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty ClockIdentifierProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_Controls_TableViewTimePicker_MinuteIncrementProperty" data-uid="WinUI.TableView.Controls.TableViewTimePicker.MinuteIncrementProperty">
+  MinuteIncrementProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Controls/TableViewTimePicker.cs/#L205"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the MinuteIncrement dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty MinuteIncrementProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_Controls_TableViewTimePicker_PlaceholderTextProperty" data-uid="WinUI.TableView.Controls.TableViewTimePicker.PlaceholderTextProperty">
+  PlaceholderTextProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Controls/TableViewTimePicker.cs/#L215"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the PlaceholderText dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty PlaceholderTextProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_Controls_TableViewTimePicker_SelectedTimeProperty" data-uid="WinUI.TableView.Controls.TableViewTimePicker.SelectedTimeProperty">
+  SelectedTimeProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Controls/TableViewTimePicker.cs/#L210"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the SelectedTime dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty SelectedTimeProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="WinUI_TableView_Controls_TableViewTimePicker_ClockIdentifier_" data-uid="WinUI.TableView.Controls.TableViewTimePicker.ClockIdentifier*"></a>
+
+  <h3 id="WinUI_TableView_Controls_TableViewTimePicker_ClockIdentifier" data-uid="WinUI.TableView.Controls.TableViewTimePicker.ClockIdentifier">
+  ClockIdentifier
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Controls/TableViewTimePicker.cs/#L187"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the clock identifier for the time picker.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string ClockIdentifier { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">string</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_Controls_TableViewTimePicker_MinuteIncrement_" data-uid="WinUI.TableView.Controls.TableViewTimePicker.MinuteIncrement*"></a>
+
+  <h3 id="WinUI_TableView_Controls_TableViewTimePicker_MinuteIncrement" data-uid="WinUI.TableView.Controls.TableViewTimePicker.MinuteIncrement">
+  MinuteIncrement
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Controls/TableViewTimePicker.cs/#L196"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the minute increment for the time picker.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int MinuteIncrement { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">int</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_Controls_TableViewTimePicker_PlaceholderText_" data-uid="WinUI.TableView.Controls.TableViewTimePicker.PlaceholderText*"></a>
+
+  <h3 id="WinUI_TableView_Controls_TableViewTimePicker_PlaceholderText" data-uid="WinUI.TableView.Controls.TableViewTimePicker.PlaceholderText">
+  PlaceholderText
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Controls/TableViewTimePicker.cs/#L178"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the placeholder text for the time picker.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string? PlaceholderText { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">string</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_Controls_TableViewTimePicker_SelectedTime_" data-uid="WinUI.TableView.Controls.TableViewTimePicker.SelectedTime*"></a>
+
+  <h3 id="WinUI_TableView_Controls_TableViewTimePicker_SelectedTime" data-uid="WinUI.TableView.Controls.TableViewTimePicker.SelectedTime">
+  SelectedTime
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Controls/TableViewTimePicker.cs/#L169"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the selected time.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public object? SelectedTime { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">object</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="WinUI_TableView_Controls_TableViewTimePicker_OnApplyTemplate_" data-uid="WinUI.TableView.Controls.TableViewTimePicker.OnApplyTemplate*"></a>
+
+  <h3 id="WinUI_TableView_Controls_TableViewTimePicker_OnApplyTemplate" data-uid="WinUI.TableView.Controls.TableViewTimePicker.OnApplyTemplate">
+  OnApplyTemplate()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Controls/TableViewTimePicker.cs/#L33"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Invoked whenever application code or internal processes (such as a rebuilding layout pass) call ApplyTemplate. In simplest terms, this means the method is called just before a UI element displays in your app. Override this method to influence the default post-template logic of a class.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void OnApplyTemplate()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_Controls_TableViewTimePicker_OnKeyDown_" data-uid="WinUI.TableView.Controls.TableViewTimePicker.OnKeyDown*"></a>
+
+  <h3 id="WinUI_TableView_Controls_TableViewTimePicker_OnKeyDown_Microsoft_UI_Xaml_Input_KeyRoutedEventArgs_" data-uid="WinUI.TableView.Controls.TableViewTimePicker.OnKeyDown(Microsoft.UI.Xaml.Input.KeyRoutedEventArgs)">
+  OnKeyDown(KeyRoutedEventArgs)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Controls/TableViewTimePicker.cs/#L49"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Called before the KeyDown event occurs.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void OnKeyDown(KeyRoutedEventArgs e)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>e</code> <span class="xref">KeyRoutedEventArgs</span></dt>
+    <dd><p>The data for the event.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_Controls_TableViewTimePicker_OnPointerPressed_" data-uid="WinUI.TableView.Controls.TableViewTimePicker.OnPointerPressed*"></a>
+
+  <h3 id="WinUI_TableView_Controls_TableViewTimePicker_OnPointerPressed_Microsoft_UI_Xaml_Input_PointerRoutedEventArgs_" data-uid="WinUI.TableView.Controls.TableViewTimePicker.OnPointerPressed(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)">
+  OnPointerPressed(PointerRoutedEventArgs)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Controls/TableViewTimePicker.cs/#L42"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Called before the PointerPressed event occurs.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void OnPointerPressed(PointerRoutedEventArgs e)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>e</code> <span class="xref">PointerRoutedEventArgs</span></dt>
+    <dd><p>Event data for the event.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
