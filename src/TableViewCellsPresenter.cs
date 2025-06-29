@@ -77,6 +77,14 @@ public partial class TableViewCellsPresenter : Control
     }
 
     /// <summary>
+    /// Retrieves the height of the horizontal gridline.
+    /// </summary>
+    internal double GetHorizonalGridlineHeight()
+    {
+        return _h_gridLine?.ActualHeight ?? 0d;
+    }
+
+    /// <summary>
     /// Gets the collection of child elements.
     /// </summary>
     internal UIElementCollection Children => _stackPanel?.Children!;
