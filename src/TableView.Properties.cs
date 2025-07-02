@@ -551,7 +551,7 @@ public partial class TableView
         {
             if (tableView.AutoGenerateColumns)
             {
-                tableView.GenerateColumns();
+                tableView.EnsureAutoColumns(true);
             }
             else
             {

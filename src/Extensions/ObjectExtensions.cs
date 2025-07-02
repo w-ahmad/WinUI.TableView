@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections;
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -161,16 +162,77 @@ internal static partial class ObjectExtensions
     /// <returns></returns>
     public static bool IsNumeric(this object obj)
     {
-        return obj is byte 
-                   or sbyte 
-                   or short 
-                   or ushort 
+        return obj is byte
+                   or sbyte
+                   or short
+                   or ushort
                    or int
                    or uint
                    or long
-                   or ulong 
-                   or float 
-                   or double 
+                   or ulong
+                   or float
+                   or double
                    or decimal;
+    }
+
+    internal static Type? GetItemType(this IEnumerable list)
+    {
+        var listType = list.GetType();
+        Type? itemType = null;
+        var isICustomTypeProvider = false;
+
+        // If it's a generic enumerable, get the generic type.
+
+        // Unfortunately, if data source is fed from a bare IEnumerable, TypeHelper will report an element type of object,
+        // which is not particularly interesting.  It is dealt with it further on.
+        itemType = listType.GetEnumerableItemType();
+
+        if (itemType != null)
+        {
+            isICustomTypeProvider = typeof(ICustomTypeProvider).IsAssignableFrom(itemType);
+        }
+
+        // Bare IEnumerables mean that result type will be object.  In that case, try to get something more interesting.
+        // Or, if the itemType implements ICustomTypeProvider, try to retrieve the custom type from one of the object instances.
+        if (itemType == null || itemType == typeof(object) || isICustomTypeProvider)
+        {
+            // No type was located yet. Does the list have anything in it?
+            Type? firstItemType = null;
+            var en = list.GetEnumerator();
+            if (en.MoveNext() && en.Current != null)
+            {
+                firstItemType = en.Current.GetCustomOrCLRType();
+            }
+            else
+            {
+                firstItemType = list
+                    .Cast<object>() // cast to convert IEnumerable to IEnumerable<object>
+                    .Select(x => x.GetType()) // get the type
+                    .FirstOrDefault(); // get only the first thing to come out of the sequence, or null if empty
+            }
+
+            if (firstItemType != typeof(object))
+            {
+                return firstItemType;
+            }
+        }
+
+        // Couldn't get the CustomType because there were no items.
+        if (isICustomTypeProvider)
+        {
+            return null;
+        }
+
+        return itemType;
+    }
+
+    internal static Type? GetCustomOrCLRType(this object? instance)
+    {
+        if (instance is ICustomTypeProvider customTypeProvider)
+        {
+            return customTypeProvider.GetCustomType() ?? instance.GetType();
+        }
+
+        return instance?.GetType();
     }
 }

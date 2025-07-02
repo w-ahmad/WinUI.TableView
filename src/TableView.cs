@@ -37,6 +37,7 @@ public partial class TableView : ListView
     private TableViewHeaderRow? _headerRow;
     private ScrollViewer? _scrollViewer;
     private bool _shouldThrowSelectionModeChangedException;
+    private bool _ensureColumns = true;
     private readonly List<TableViewRow> _rows = [];
     private readonly CollectionView _collectionView = [];
 
@@ -260,18 +261,21 @@ public partial class TableView : ListView
 
         if (IsLoaded)
         {
-            while (ItemsPanelRoot is null) await Task.Delay(1);
+            while (ItemsPanelRoot is null) await Task.Yield();
 
             ApplyItemsClip();
             UpdateVerticalScrollBarMargin();
+            EnsureAutoColumns();
         }
     }
+
 
     /// <summary>
     /// Handles the Loaded event of the TableView control.
     /// </summary>
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
+        EnsureAutoColumns();
         ApplyItemsClip();
         UpdateVerticalScrollBarMargin();
     }
@@ -478,42 +482,37 @@ public partial class TableView : ListView
     /// </summary>
     private void GenerateColumns()
     {
-        var itemsSourceType = ItemsSource?.GetType();
-        if (itemsSourceType?.IsGenericType == true)
+        var dataType = ItemsSource?.GetItemType();
+        if (dataType is null || dataType.IsPrimitive())
         {
-            var dataType = itemsSourceType.GenericTypeArguments[0];
-            dataType = dataType.GetNonNullableType();
+            var columnArgs = GenerateColumn(dataType, null, "", dataType?.IsInheritedFromIComparable() is true);
+            OnAutoGeneratingColumn(columnArgs);
 
-            if (dataType.IsPrimitive())
+            if (!columnArgs.Cancel && columnArgs.Column is not null)
             {
-                var columnArgs = GenerateColumn(dataType, null, "", dataType.IsInheritedFromIComparable());
-                OnAutoGeneratingColumn(columnArgs);
+                Columns.Insert(Columns.Count, columnArgs.Column);
+            }
+        }
+        else
+        {
+            foreach (var propertyInfo in dataType.GetProperties())
+            {
+                var displayAttribute = propertyInfo.GetCustomAttributes().OfType<DisplayAttribute>().FirstOrDefault();
+                var autoGenerateField = displayAttribute?.GetAutoGenerateField();
+                if (autoGenerateField == false)
+                {
+                    continue;
+                }
 
+                var header = displayAttribute?.GetShortName() ?? propertyInfo.Name;
+                var canFilter = displayAttribute?.GetAutoGenerateFilter() is true or null;
+                var columnArgs = GenerateColumn(propertyInfo.PropertyType, propertyInfo.Name, header, canFilter);
+                OnAutoGeneratingColumn(columnArgs);
+                
                 if (!columnArgs.Cancel && columnArgs.Column is not null)
                 {
-                    Columns.Insert(Columns.Count, columnArgs.Column);
-                }
-            }
-            else
-            {
-                foreach (var propertyInfo in dataType.GetProperties())
-                {
-                    var displayAttribute = propertyInfo.GetCustomAttributes().OfType<DisplayAttribute>().FirstOrDefault();
-                    var autoGenerateField = displayAttribute?.GetAutoGenerateField();
-                    if (autoGenerateField == false)
-                    {
-                        continue;
-                    }
-
-                    var header = displayAttribute?.GetShortName() ?? propertyInfo.Name;
-                    var canFilter = displayAttribute?.GetAutoGenerateFilter() ?? true;
-                    var columnArgs = GenerateColumn(propertyInfo.PropertyType, propertyInfo.Name, header, canFilter);
-                    OnAutoGeneratingColumn(columnArgs);
-
-                    if (!columnArgs.Cancel && columnArgs.Column is not null)
-                    {
-                        Columns.Insert(displayAttribute?.GetOrder() ?? Columns.Count, columnArgs.Column);
-                    }
+                    columnArgs.Column.Order = displayAttribute?.GetOrder();
+                    Columns.Add(columnArgs.Column);
                 }
             }
         }
@@ -522,7 +521,7 @@ public partial class TableView : ListView
     /// <summary>
     /// Generates a column based on the property type.
     /// </summary>
-    private static TableViewAutoGeneratingColumnEventArgs GenerateColumn(Type propertyType, string? propertyName, string header, bool canFilter)
+    private static TableViewAutoGeneratingColumnEventArgs GenerateColumn(Type? propertyType, string? propertyName, string header, bool canFilter)
     {
         var newColumn = GetTableViewColumnFromType(propertyName, propertyType);
         newColumn.Header = header;
@@ -544,12 +543,16 @@ public partial class TableView : ListView
     /// <summary>
     /// Gets a TableViewColumn based on the property type.
     /// </summary>
-    private static TableViewBoundColumn GetTableViewColumnFromType(string? propertyName, Type type)
+    private static TableViewBoundColumn GetTableViewColumnFromType(string? propertyName, Type? type)
     {
         var binding = new Binding { Path = new PropertyPath(propertyName), Mode = BindingMode.TwoWay };
-        var column = (TableViewBoundColumn)new TableViewTextColumn();
+        TableViewBoundColumn column = new TableViewTextColumn { Binding = binding };
 
-        if (type.IsTimeSpan() || type.IsTimeOnly())
+        if (type is null)
+        {
+            return column;
+        }
+        else if (type.IsTimeSpan() || type.IsTimeOnly())
         {
             column = new TableViewTimeColumn();
         }
@@ -582,16 +585,26 @@ public partial class TableView : ListView
 
             if (e.NewValue is IList source)
             {
-                if (AutoGenerateColumns)
-                {
-                    RemoveAutoGeneratedColumns();
-                    GenerateColumns();
-                }
+                EnsureAutoColumns();
 
                 _collectionView.Source = source;
             }
         }
         defer.Complete();
+    }
+
+    /// <summary>
+    /// Ensures that columns are automatically generated based on the current state of the control.
+    /// </summary>
+    private void EnsureAutoColumns(bool force = false)
+    {
+        if ((_ensureColumns || force) && IsLoaded && AutoGenerateColumns && ItemsSource is not null)
+        {
+            RemoveAutoGeneratedColumns();
+            GenerateColumns();
+
+            _ensureColumns = false;
+        }
     }
 
     /// <summary>
@@ -1364,7 +1377,7 @@ public partial class TableView : ListView
             RowContextFlyout.ShowAt(row, new FlyoutShowOptions
             {
 #if WINDOWS
-                ShowMode = FlyoutShowMode.Standard, 
+                ShowMode = FlyoutShowMode.Standard,
 #endif
                 Placement = RowContextFlyout.Placement,
                 Position = position
@@ -1389,7 +1402,7 @@ public partial class TableView : ListView
             CellContextFlyout.ShowAt(cell, new FlyoutShowOptions
             {
 #if WINDOWS
-                ShowMode = FlyoutShowMode.Standard, 
+                ShowMode = FlyoutShowMode.Standard,
 #endif
                 Placement = CellContextFlyout.Placement,
                 Position = position
