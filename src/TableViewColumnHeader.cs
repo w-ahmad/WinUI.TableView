@@ -70,25 +70,30 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     private void DoSort(SD? direction, bool singleSorting = true)
     {
-        if (CanSort && Column is not null && _tableView is not null)
+        if (CanSort && Column is not null && _tableView is { CollectionView: CollectionView { } collectionView })
         {
-            if (singleSorting)
+            var defer = collectionView.DeferRefresh();
             {
-                _tableView.ClearAllSortingWithEvent();
+                if (singleSorting)
+                {
+                    _tableView.ClearAllSortingWithEvent();
+                }
+                else
+                {
+                    ClearSortingWithEvent();
+                }
+
+                if (direction is not null)
+                {
+                    var boundColumn = Column as TableViewBoundColumn;
+                    Column.SortDirection = direction;
+                    _tableView.SortDescriptions.Add(
+                        new ColumnSortDescription(Column!, boundColumn?.PropertyPath, direction.Value));
+
+                    _tableView.EnsureAlternateRowColors();
+                }
             }
-            else
-            {
-                ClearSortingWithEvent();
-            }
-
-            if (direction is null) return;
-
-            var boundColumn = Column as TableViewBoundColumn;
-            Column.SortDirection = direction;
-            _tableView.SortDescriptions.Add(
-                new ColumnSortDescription(Column!, boundColumn?.PropertyPath, direction.Value));
-
-            _tableView.EnsureAlternateRowColors();
+            defer.Complete();
         }
     }
 
@@ -222,7 +227,7 @@ public partial class TableViewColumnHeader : ContentControl
             _searchBox.PlaceholderText = TableViewLocalizedStrings.SearchBoxPlaceholder;
             _searchBox.TextChanged += OnSearchBoxTextChanged;
 #if WINDOWS
-            _searchBox.PreviewKeyDown += OnSearchBoxKeyDown; 
+            _searchBox.PreviewKeyDown += OnSearchBoxKeyDown;
 #else
             _searchBox.KeyDown += OnSearchBoxKeyDown;
 #endif
