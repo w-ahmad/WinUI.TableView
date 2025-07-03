@@ -508,7 +508,7 @@ public partial class TableView : ListView
                 var canFilter = displayAttribute?.GetAutoGenerateFilter() is true or null;
                 var columnArgs = GenerateColumn(propertyInfo.PropertyType, propertyInfo.Name, header, canFilter);
                 OnAutoGeneratingColumn(columnArgs);
-                
+
                 if (!columnArgs.Cancel && columnArgs.Column is not null)
                 {
                     columnArgs.Column.Order = displayAttribute?.GetOrder();
@@ -1132,31 +1132,39 @@ public partial class TableView : ListView
     /// <param name="slot">The cell slot to scroll into view.</param>
     public async Task<TableViewCell> ScrollCellIntoView(TableViewCellSlot slot)
     {
-        if (_scrollViewer is null || !slot.IsValid(this)) return default!;
+        if (_scrollViewer is null || !slot.IsValid(this) || await ScrollRowIntoView(slot.Row) is not { } row)
+            return default!;
 
-        var row = await ScrollRowIntoView(slot.Row);
         var (start, end) = GetColumnsInDisplay();
         var xOffset = 0d;
         var yOffset = _scrollViewer.VerticalOffset;
 
-        if (slot.Column < start)
-        {
-            for (var i = 0; i < slot.Column; i++)
-            {
-                xOffset += Columns.VisibleColumns[i].ActualWidth;
-            }
-        }
-        else if (slot.Column > end)
-        {
-            for (var i = 0; i <= slot.Column; i++)
-            {
-                xOffset += Columns.VisibleColumns[i].ActualWidth;
-            }
+        // Calculate the left and right edge of the cell
+        var cellLeft = Columns.VisibleColumns.Take(slot.Column).Sum(x => x.ActualWidth);
+        var cellWidth = Columns.VisibleColumns[slot.Column].ActualWidth;
+        var cellRight = cellLeft + cellWidth;
+        var viewportLeft = _scrollViewer.HorizontalOffset;
+        var viewportRight = viewportLeft + _scrollViewer.ViewportWidth - SelectionIndicatorWidth;
 
-            var change = xOffset - _scrollViewer.HorizontalOffset - (_scrollViewer.ViewportWidth - SelectionIndicatorWidth);
-            xOffset = _scrollViewer.HorizontalOffset + change;
+        // If cell is wider than the viewport, align left edge
+        if (cellWidth > _scrollViewer.ViewportWidth - SelectionIndicatorWidth)
+        {
+            xOffset = cellLeft;
         }
-        else if (row is not null)
+        // If cell is left of the viewport, scroll to its left edge
+        else if (cellLeft < viewportLeft)
+        {
+            xOffset = cellLeft;
+        }
+        // If cell is right of the viewport, scroll so its right edge is visible
+        else if (cellRight > viewportRight)
+        {
+            xOffset = cellRight - (_scrollViewer.ViewportWidth - SelectionIndicatorWidth);
+        }
+
+        // If cell is fully in view, just return
+        if ((cellLeft >= viewportLeft && cellRight <= viewportRight) ||
+            xOffset == _scrollViewer.HorizontalOffset)
         {
             return row.Cells.ElementAt(slot.Column);
         }
@@ -1176,8 +1184,7 @@ public partial class TableView : ListView
         try
         {
             _scrollViewer.ViewChanged += ViewChanged;
-            _scrollViewer.ChangeView(xOffset, yOffset, null, true);
-            _scrollViewer.ScrollToHorizontalOffset(xOffset);
+            _scrollViewer.ChangeView(xOffset, _scrollViewer.VerticalOffset, null, true);
             await tcs.Task;
         }
         finally
@@ -1196,6 +1203,7 @@ public partial class TableView : ListView
     {
         if (_scrollViewer is null) return default!;
 
+        var xOffset = _scrollViewer.HorizontalOffset;
         var item = Items[index];
         index = Items.IndexOf(item); // if the ItemsSource has duplicate items in it. ScrollIntoView will only bring first index of item.
         ScrollIntoView(item);
@@ -1203,13 +1211,15 @@ public partial class TableView : ListView
         var tries = 0;
         while (tries < 10)
         {
+            tries++;
+            await Task.Yield();
+
             if (ContainerFromIndex(index) is TableViewRow row)
             {
                 var transform = row.TransformToVisual(_scrollViewer);
                 var positionInScrollViewer = transform.TransformPoint(new Point(0, 0));
                 if ((index == 0 && _scrollViewer.VerticalOffset > 0) || (index > 0 && positionInScrollViewer.Y < HeaderRowHeight))
                 {
-                    var xOffset = _scrollViewer.HorizontalOffset;
                     var yOffset = index == 0 ? 0d : _scrollViewer.VerticalOffset - row.ActualHeight + positionInScrollViewer.Y + 8;
                     var tcs = new TaskCompletionSource<object?>();
 
@@ -1237,9 +1247,6 @@ public partial class TableView : ListView
 
                 return row;
             }
-
-            tries++;
-            await Task.Delay(1); // let the animation complete
         }
 
         return default;
