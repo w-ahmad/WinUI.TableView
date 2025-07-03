@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class TableViewTemplateColumn | WinUI.TableView </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class TableViewTemplateColumn | WinUI.TableView ">
+      
+      <meta name="description" content="Represents a column in a TableView that uses a DataTemplate for its content.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/w-ahmad/WinUI.TableView/new/main/apiSpec/new?filename=WinUI_TableView_TableViewTemplateColumn.md&amp;value=---%0Auid%3A%20WinUI.TableView.TableViewTemplateColumn%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="WinUI.TableView">
+            WinUI.TableView
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="WinUI.TableView.TableViewTemplateColumn">
+
+
+
+  <h1 id="WinUI_TableView_TableViewTemplateColumn" data-uid="WinUI.TableView.TableViewTemplateColumn" class="text-break">
+Class TableViewTemplateColumn  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewTemplateColumn.cs/#L9"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="WinUI.html">WinUI</a>.<a class="xref" href="WinUI.TableView.html">TableView</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>WinUI.TableView.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Represents a column in a TableView that uses a DataTemplate for its content.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class TableViewTemplateColumn : TableViewColumn, IWinRTObject</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><span class="xref">object</span></div>
+      <div><span class="xref">DependencyObject</span></div>
+      <div><a class="xref" href="WinUI.TableView.TableViewColumn.html">TableViewColumn</a></div>
+      <div><span class="xref">TableViewTemplateColumn</span></div>
+    </dd>
+  </dl>
+
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><span class="xref">IWinRTObject</span></div>
+    </dd>
+  </dl>
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_UpdateElementState_WinUI_TableView_TableViewCell_System_Object_">TableViewColumn.UpdateElementState(TableViewCell, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_GetCellContent_System_Object_">TableViewColumn.GetCellContent(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_Header">TableViewColumn.Header</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_Width">TableViewColumn.Width</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_MinWidth">TableViewColumn.MinWidth</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_MaxWidth">TableViewColumn.MaxWidth</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_ActualWidth">TableViewColumn.ActualWidth</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_CanResize">TableViewColumn.CanResize</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_IsReadOnly">TableViewColumn.IsReadOnly</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_HeaderStyle">TableViewColumn.HeaderStyle</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_CellStyle">TableViewColumn.CellStyle</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_HeaderControl">TableViewColumn.HeaderControl</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_Visibility">TableViewColumn.Visibility</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_Tag">TableViewColumn.Tag</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_CanSort">TableViewColumn.CanSort</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_CanFilter">TableViewColumn.CanFilter</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_Order">TableViewColumn.Order</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_IsAutoGenerated">TableViewColumn.IsAutoGenerated</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_UseSingleElement">TableViewColumn.UseSingleElement</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_SortDirection">TableViewColumn.SortDirection</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_IsFiltered">TableViewColumn.IsFiltered</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_TableView">TableViewColumn.TableView</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_HeaderStyleProperty">TableViewColumn.HeaderStyleProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_CellStyleProperty">TableViewColumn.CellStyleProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_HeaderProperty">TableViewColumn.HeaderProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_WidthProperty">TableViewColumn.WidthProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_MinWidthProperty">TableViewColumn.MinWidthProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_MaxWidthProperty">TableViewColumn.MaxWidthProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_ActualWidthProperty">TableViewColumn.ActualWidthProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_CanResizeProperty">TableViewColumn.CanResizeProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_IsReadOnlyProperty">TableViewColumn.IsReadOnlyProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_VisibilityProperty">TableViewColumn.VisibilityProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_TagProperty">TableViewColumn.TagProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_CanSortProperty">TableViewColumn.CanSortProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_CanFilterProperty">TableViewColumn.CanFilterProperty</a>
+    </div>
+    <div>
+      <a class="xref" href="WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_OrderProperty">TableViewColumn.OrderProperty</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="WinUI_TableView_TableViewTemplateColumn__ctor_" data-uid="WinUI.TableView.TableViewTemplateColumn.#ctor*"></a>
+
+  <h3 id="WinUI_TableView_TableViewTemplateColumn__ctor" data-uid="WinUI.TableView.TableViewTemplateColumn.#ctor">
+  TableViewTemplateColumn()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewTemplateColumn.cs/#L11"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TableViewTemplateColumn()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="WinUI_TableView_TableViewTemplateColumn_CellTemplateProperty" data-uid="WinUI.TableView.TableViewTemplateColumn.CellTemplateProperty">
+  CellTemplateProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewTemplateColumn.cs/#L91"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the CellTemplate dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty CellTemplateProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableViewTemplateColumn_CellTemplateSelectorProperty" data-uid="WinUI.TableView.TableViewTemplateColumn.CellTemplateSelectorProperty">
+  CellTemplateSelectorProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewTemplateColumn.cs/#L96"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the CellTemplateSelector dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty CellTemplateSelectorProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableViewTemplateColumn_EditingTemplateProperty" data-uid="WinUI.TableView.TableViewTemplateColumn.EditingTemplateProperty">
+  EditingTemplateProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewTemplateColumn.cs/#L101"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the EditingTemplate dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty EditingTemplateProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="WinUI_TableView_TableViewTemplateColumn_EditingTemplateSelectorProperty" data-uid="WinUI.TableView.TableViewTemplateColumn.EditingTemplateSelectorProperty">
+  EditingTemplateSelectorProperty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewTemplateColumn.cs/#L106"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Identifies the EditingTemplateSelector dependency property.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly DependencyProperty EditingTemplateSelectorProperty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DependencyProperty</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="WinUI_TableView_TableViewTemplateColumn_CellTemplate_" data-uid="WinUI.TableView.TableViewTemplateColumn.CellTemplate*"></a>
+
+  <h3 id="WinUI_TableView_TableViewTemplateColumn_CellTemplate" data-uid="WinUI.TableView.TableViewTemplateColumn.CellTemplate">
+  CellTemplate
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewTemplateColumn.cs/#L55"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the DataTemplate for the cell content.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DataTemplate? CellTemplate { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DataTemplate</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableViewTemplateColumn_CellTemplateSelector_" data-uid="WinUI.TableView.TableViewTemplateColumn.CellTemplateSelector*"></a>
+
+  <h3 id="WinUI_TableView_TableViewTemplateColumn_CellTemplateSelector" data-uid="WinUI.TableView.TableViewTemplateColumn.CellTemplateSelector">
+  CellTemplateSelector
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewTemplateColumn.cs/#L64"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the DataTemplateSelector for the cell content.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DataTemplateSelector? CellTemplateSelector { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DataTemplateSelector</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableViewTemplateColumn_EditingTemplate_" data-uid="WinUI.TableView.TableViewTemplateColumn.EditingTemplate*"></a>
+
+  <h3 id="WinUI_TableView_TableViewTemplateColumn_EditingTemplate" data-uid="WinUI.TableView.TableViewTemplateColumn.EditingTemplate">
+  EditingTemplate
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewTemplateColumn.cs/#L73"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the DataTemplate for the editing cell content.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DataTemplate? EditingTemplate { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DataTemplate</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableViewTemplateColumn_EditingTemplateSelector_" data-uid="WinUI.TableView.TableViewTemplateColumn.EditingTemplateSelector*"></a>
+
+  <h3 id="WinUI_TableView_TableViewTemplateColumn_EditingTemplateSelector" data-uid="WinUI.TableView.TableViewTemplateColumn.EditingTemplateSelector">
+  EditingTemplateSelector
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewTemplateColumn.cs/#L82"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the DataTemplateSelector for the editing cell content.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DataTemplateSelector? EditingTemplateSelector { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">DataTemplateSelector</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="WinUI_TableView_TableViewTemplateColumn_GenerateEditingElement_" data-uid="WinUI.TableView.TableViewTemplateColumn.GenerateEditingElement*"></a>
+
+  <h3 id="WinUI_TableView_TableViewTemplateColumn_GenerateEditingElement_WinUI_TableView_TableViewCell_System_Object_" data-uid="WinUI.TableView.TableViewTemplateColumn.GenerateEditingElement(WinUI.TableView.TableViewCell,System.Object)">
+  GenerateEditingElement(TableViewCell, object?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewTemplateColumn.cs/#L36"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Generates a ContentControl for editing the cell based on EditingTemplate and EditingTemplateSelector.
+If EditingTemplate or EditingTemplateSelector is not set, GenerateElement is used instead to generate the editing element.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override FrameworkElement GenerateEditingElement(TableViewCell cell, object? dataItem)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cell</code> <a class="xref" href="WinUI.TableView.TableViewCell.html">TableViewCell</a></dt>
+    <dd><p>The cell for which the editing element is generated.</p>
+</dd>
+    <dt><code>dataItem</code> <span class="xref">object</span></dt>
+    <dd><p>The data item associated with the cell.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><span class="xref">FrameworkElement</span></dt>
+    <dd><p>A ContentControl element.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableViewTemplateColumn_GenerateElement_" data-uid="WinUI.TableView.TableViewTemplateColumn.GenerateElement*"></a>
+
+  <h3 id="WinUI_TableView_TableViewTemplateColumn_GenerateElement_WinUI_TableView_TableViewCell_System_Object_" data-uid="WinUI.TableView.TableViewTemplateColumn.GenerateElement(WinUI.TableView.TableViewCell,System.Object)">
+  GenerateElement(TableViewCell, object?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewTemplateColumn.cs/#L23"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Generates a ContentControl for the cell based on CellTemplate and CellTemplateSelector.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override FrameworkElement GenerateElement(TableViewCell cell, object? dataItem)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cell</code> <a class="xref" href="WinUI.TableView.TableViewCell.html">TableViewCell</a></dt>
+    <dd><p>The cell for which the element is generated.</p>
+</dd>
+    <dt><code>dataItem</code> <span class="xref">object</span></dt>
+    <dd><p>The data item associated with the cell.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><span class="xref">FrameworkElement</span></dt>
+    <dd><p>A ContentControl element.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableViewTemplateColumn_RefreshElement_" data-uid="WinUI.TableView.TableViewTemplateColumn.RefreshElement*"></a>
+
+  <h3 id="WinUI_TableView_TableViewTemplateColumn_RefreshElement_WinUI_TableView_TableViewCell_System_Object_" data-uid="WinUI.TableView.TableViewTemplateColumn.RefreshElement(WinUI.TableView.TableViewCell,System.Object)">
+  RefreshElement(TableViewCell, object?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewTemplateColumn.cs/#L47"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Refreshes the display element for the cell.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void RefreshElement(TableViewCell cell, object? dataItem)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cell</code> <a class="xref" href="WinUI.TableView.TableViewCell.html">TableViewCell</a></dt>
+    <dd><p>The cell for which the element is refreshed.</p>
+</dd>
+    <dt><code>dataItem</code> <span class="xref">object</span></dt>
+    <dd><p>The data item associated with the cell.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/Columns/TableViewTemplateColumn.cs/#L9" class="edit-link">Edit this page</a>
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

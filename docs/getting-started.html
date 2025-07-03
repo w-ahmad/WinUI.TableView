@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title> | WinUI.TableView </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content=" | WinUI.TableView ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/w-ahmad/WinUI.TableView/blob/main/docs/docs/getting-started.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="WinUI.TableView">
+            WinUI.TableView
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+
+<h2 id="getting-started">Getting Started</h2>
+<h3 id="1-create-a-new-winui3-or-uno-project">1. Create a New WinUI3 or Uno Project</h3>
+<p>If you don't already have a WinUI 3 project or Uno prject, create one in Visual Studio.</p>
+<h3 id="2-install-nuget-package">2: Install NuGet Package</h3>
+<p>Inatall <code>WinUI.TableView</code> NuGet package to your app with your preferred method. Here is the one using NuGet Package Manager:</p>
+<pre><code class="lang-bash">Install-Package WinUI.TableView
+</code></pre>
+<h3 id="3-add-winuitableview-to-your-xaml">3. Add <code>WinUI.TableView</code> to Your XAML</h3>
+<p>In your <code>MainWindow.xaml</code>, add the <code>WinUI.TableView</code> control:</p>
+<pre><code class="lang-xaml">&lt;Window
+    x:Class=&quot;App1.MainWindow&quot;
+    xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;
+    xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
+    xmlns:local=&quot;using:App1&quot;
+    xmlns:d=&quot;http://schemas.microsoft.com/expression/blend/2008&quot;
+    xmlns:mc=&quot;http://schemas.openxmlformats.org/markup-compatibility/2006&quot;
+    mc:Ignorable=&quot;d&quot;
+    xmlns:tv=&quot;using:WinUI.TableView&quot;&gt;
+
+    &lt;Grid&gt;
+        &lt;tv:TableView x:Name=&quot;MyTableView&quot;
+            ItemsSource=&quot;{x:Bind ViewModel.Items}&quot; /&gt;
+    &lt;/Grid&gt;
+&lt;/Window&gt;
+</code></pre>
+<h3 id="4-bind-data-to-tableview">4. Bind Data to <code>TableView</code></h3>
+<p>In your <code>MainPage.xaml.cs</code>, set up the data context and bind data to the <code>TableView</code>:</p>
+<pre><code class="lang-csharp">public sealed partial class MainWindow : Window
+{
+    public MainViewModel ViewModel { get; } = new MainViewModel();
+
+    public MainWindow()
+    {
+        this.InitializeComponent();
+    }
+}
+</code></pre>
+<p>Create a simple <code>MainViewModel</code> with a collection of items to display:</p>
+<pre><code class="lang-csharp">public class MainViewModel
+{
+    public ObservableCollection&lt;Item&gt; Items { get; set; }
+
+    public MainViewModel()
+    {
+        Items = new ObservableCollection&lt;Item&gt;
+        {
+            new Item { Name = &quot;Item 1&quot;, Price = 10.0, Quantity = 1 },
+            new Item { Name = &quot;Item 2&quot;, Price = 15.0, Quantity = 2 },
+            new Item { Name = &quot;Item 3&quot;, Price = 20.0, Quantity = 3 },
+            // Add more items here
+        };
+    }
+}
+
+public class Item : INotifyPropertyChanged
+{
+    private string _name;
+    private double _price;
+    private int _quantity;
+
+    public string Name
+    {
+        get =&gt; _name;
+        set
+        {
+            _name = value;
+            OnPropertyChanged(nameof(Name));
+        }
+    }
+    public double Price
+    {
+        get =&gt; _price;
+        set
+        {
+            _price = value;
+            OnPropertyChanged(nameof(Price));
+        }
+    }
+    public int Quantity
+    {
+        get =&gt; _quantity;
+        set
+        {
+            _quantity = value;
+            OnPropertyChanged(nameof(Quantity));
+        }
+    }
+
+    private void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    public event PropertyChangedEventHandler PropertyChanged;
+}
+</code></pre>
+<h3 id="5-run-your-application">5. Run Your Application</h3>
+<p>Build and run your application. You should see the <code>TableView</code> populated with the rows and cells from your <code>ViewModel</code>.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/w-ahmad/WinUI.TableView/blob/main/docs/docs/getting-started.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

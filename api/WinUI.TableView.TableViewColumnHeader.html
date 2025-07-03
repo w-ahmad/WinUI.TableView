@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class TableViewColumnHeader | WinUI.TableView </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class TableViewColumnHeader | WinUI.TableView ">
+      
+      <meta name="description" content="Represents the header of a column in a TableView.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="WinUI.TableView">
+            WinUI.TableView
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="WinUI.TableView.TableViewColumnHeader">
+
+
+
+  <h1 id="WinUI_TableView_TableViewColumnHeader" data-uid="WinUI.TableView.TableViewColumnHeader" class="text-break">
+Class TableViewColumnHeader  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="WinUI.html">WinUI</a>.<a class="xref" href="WinUI.TableView.html">TableView</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>WinUI.TableView.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Represents the header of a column in a TableView.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[TemplateVisualState(Name = &quot;Normal&quot;, GroupName = &quot;CommonStates&quot;)]
+[TemplateVisualState(Name = &quot;PointerOver&quot;, GroupName = &quot;CommonStates&quot;)]
+[TemplateVisualState(Name = &quot;Pressed&quot;, GroupName = &quot;CommonStates&quot;)]
+[TemplateVisualState(Name = &quot;Focused&quot;, GroupName = &quot;FocusStates&quot;)]
+[TemplateVisualState(Name = &quot;Unfocused&quot;, GroupName = &quot;FocusStates&quot;)]
+[TemplateVisualState(Name = &quot;Unsorted&quot;, GroupName = &quot;SortStates&quot;)]
+[TemplateVisualState(Name = &quot;SortAscending&quot;, GroupName = &quot;SortStates&quot;)]
+[TemplateVisualState(Name = &quot;SortDescending&quot;, GroupName = &quot;SortStates&quot;)]
+[TemplateVisualState(Name = &quot;Filtered&quot;, GroupName = &quot;FilterStates&quot;)]
+[TemplateVisualState(Name = &quot;Unfiltered&quot;, GroupName = &quot;FilterStates&quot;)]
+[WinRTRuntimeClassName(&quot;Microsoft.UI.Xaml.IUIElementOverrides&quot;)]
+[WinRTExposedType(typeof(WinUI_TableView_TableViewCellWinRTTypeDetails))]
+public class TableViewColumnHeader : ContentControl, IWinRTObject</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><span class="xref">object</span></div>
+      <div><span class="xref">DependencyObject</span></div>
+      <div><span class="xref">UIElement</span></div>
+      <div><span class="xref">FrameworkElement</span></div>
+      <div><span class="xref">Control</span></div>
+      <div><span class="xref">ContentControl</span></div>
+      <div><span class="xref">TableViewColumnHeader</span></div>
+    </dd>
+  </dl>
+
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><span class="xref">IWinRTObject</span></div>
+    </dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="WinUI_TableView_TableViewColumnHeader__ctor_" data-uid="WinUI.TableView.TableViewColumnHeader.#ctor*"></a>
+
+  <h3 id="WinUI_TableView_TableViewColumnHeader__ctor" data-uid="WinUI.TableView.TableViewColumnHeader.#ctor">
+  TableViewColumnHeader()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableViewColumnHeader.cs/#L50"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initializes a new instance of the TableViewColumnHeader class.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TableViewColumnHeader()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="WinUI_TableView_TableViewColumnHeader_Column_" data-uid="WinUI.TableView.TableViewColumnHeader.Column*"></a>
+
+  <h3 id="WinUI_TableView_TableViewColumnHeader_Column" data-uid="WinUI.TableView.TableViewColumnHeader.Column">
+  Column
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableViewColumnHeader.cs/#L536"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or sets the column associated with the header.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TableViewColumn? Column { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="WinUI.TableView.TableViewColumn.html">TableViewColumn</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="WinUI_TableView_TableViewColumnHeader_OnApplyTemplate_" data-uid="WinUI.TableView.TableViewColumnHeader.OnApplyTemplate*"></a>
+
+  <h3 id="WinUI_TableView_TableViewColumnHeader_OnApplyTemplate" data-uid="WinUI.TableView.TableViewColumnHeader.OnApplyTemplate">
+  OnApplyTemplate()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableViewColumnHeader.cs/#L185"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Invoked whenever application code or internal processes (such as a rebuilding layout pass) call ApplyTemplate. In simplest terms, this means the method is called just before a UI element displays in your app. Override this method to influence the default post-template logic of a class.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void OnApplyTemplate()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableViewColumnHeader_OnDoubleTapped_" data-uid="WinUI.TableView.TableViewColumnHeader.OnDoubleTapped*"></a>
+
+  <h3 id="WinUI_TableView_TableViewColumnHeader_OnDoubleTapped_Microsoft_UI_Xaml_Input_DoubleTappedRoutedEventArgs_" data-uid="WinUI.TableView.TableViewColumnHeader.OnDoubleTapped(Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs)">
+  OnDoubleTapped(DoubleTappedRoutedEventArgs)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableViewColumnHeader.cs/#L393"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Called before the DoubleTapped event occurs.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void OnDoubleTapped(DoubleTappedRoutedEventArgs e)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>e</code> <span class="xref">DoubleTappedRoutedEventArgs</span></dt>
+    <dd><p>Event data for the event.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableViewColumnHeader_OnManipulationCompleted_" data-uid="WinUI.TableView.TableViewColumnHeader.OnManipulationCompleted*"></a>
+
+  <h3 id="WinUI_TableView_TableViewColumnHeader_OnManipulationCompleted_Microsoft_UI_Xaml_Input_ManipulationCompletedRoutedEventArgs_" data-uid="WinUI.TableView.TableViewColumnHeader.OnManipulationCompleted(Microsoft.UI.Xaml.Input.ManipulationCompletedRoutedEventArgs)">
+  OnManipulationCompleted(ManipulationCompletedRoutedEventArgs)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableViewColumnHeader.cs/#L492"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Called before the ManipulationCompleted event occurs.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void OnManipulationCompleted(ManipulationCompletedRoutedEventArgs e)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>e</code> <span class="xref">ManipulationCompletedRoutedEventArgs</span></dt>
+    <dd><p>Event data for the event.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableViewColumnHeader_OnManipulationDelta_" data-uid="WinUI.TableView.TableViewColumnHeader.OnManipulationDelta*"></a>
+
+  <h3 id="WinUI_TableView_TableViewColumnHeader_OnManipulationDelta_Microsoft_UI_Xaml_Input_ManipulationDeltaRoutedEventArgs_" data-uid="WinUI.TableView.TableViewColumnHeader.OnManipulationDelta(Microsoft.UI.Xaml.Input.ManipulationDeltaRoutedEventArgs)">
+  OnManipulationDelta(ManipulationDeltaRoutedEventArgs)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableViewColumnHeader.cs/#L458"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Called before the ManipulationDelta event occurs.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void OnManipulationDelta(ManipulationDeltaRoutedEventArgs e)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>e</code> <span class="xref">ManipulationDeltaRoutedEventArgs</span></dt>
+    <dd><p>Event data for the event.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableViewColumnHeader_OnPointerMoved_" data-uid="WinUI.TableView.TableViewColumnHeader.OnPointerMoved*"></a>
+
+  <h3 id="WinUI_TableView_TableViewColumnHeader_OnPointerMoved_Microsoft_UI_Xaml_Input_PointerRoutedEventArgs_" data-uid="WinUI.TableView.TableViewColumnHeader.OnPointerMoved(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)">
+  OnPointerMoved(PointerRoutedEventArgs)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableViewColumnHeader.cs/#L422"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Called before the PointerMoved event occurs.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void OnPointerMoved(PointerRoutedEventArgs e)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>e</code> <span class="xref">PointerRoutedEventArgs</span></dt>
+    <dd><p>Event data for the event.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableViewColumnHeader_OnPointerPressed_" data-uid="WinUI.TableView.TableViewColumnHeader.OnPointerPressed*"></a>
+
+  <h3 id="WinUI_TableView_TableViewColumnHeader_OnPointerPressed_Microsoft_UI_Xaml_Input_PointerRoutedEventArgs_" data-uid="WinUI.TableView.TableViewColumnHeader.OnPointerPressed(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)">
+  OnPointerPressed(PointerRoutedEventArgs)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableViewColumnHeader.cs/#L440"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Called before the PointerPressed event occurs.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void OnPointerPressed(PointerRoutedEventArgs e)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>e</code> <span class="xref">PointerRoutedEventArgs</span></dt>
+    <dd><p>Event data for the event.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableViewColumnHeader_OnPointerReleased_" data-uid="WinUI.TableView.TableViewColumnHeader.OnPointerReleased*"></a>
+
+  <h3 id="WinUI_TableView_TableViewColumnHeader_OnPointerReleased_Microsoft_UI_Xaml_Input_PointerRoutedEventArgs_" data-uid="WinUI.TableView.TableViewColumnHeader.OnPointerReleased(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)">
+  OnPointerReleased(PointerRoutedEventArgs)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableViewColumnHeader.cs/#L500"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Called before the PointerReleased event occurs.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void OnPointerReleased(PointerRoutedEventArgs e)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>e</code> <span class="xref">PointerRoutedEventArgs</span></dt>
+    <dd><p>Event data for the event.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="WinUI_TableView_TableViewColumnHeader_OnTapped_" data-uid="WinUI.TableView.TableViewColumnHeader.OnTapped*"></a>
+
+  <h3 id="WinUI_TableView_TableViewColumnHeader_OnTapped_Microsoft_UI_Xaml_Input_TappedRoutedEventArgs_" data-uid="WinUI.TableView.TableViewColumnHeader.OnTapped(Microsoft.UI.Xaml.Input.TappedRoutedEventArgs)">
+  OnTapped(TappedRoutedEventArgs)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/w-ahmad/WinUI.TableView/blob/main/src/TableViewColumnHeader.cs/#L156"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Called before the Tapped event occurs.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void OnTapped(TappedRoutedEventArgs e)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>e</code> <span class="xref">TappedRoutedEventArgs</span></dt>
+    <dd><p>Event data for the event.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
