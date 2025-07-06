@@ -24,7 +24,7 @@
 - **Grid Lines**: Display grid lines to improve data visibility and organization.
 - **Localization**: Support for multiple languages to enhance usability for global audiences.
 - **Alternate Row Colors**: Apply alternate row coloring for better readability and aesthetics.
-- **Cell & Row Context Flyout**: Provides context flyouts for cells and rows to allow quick actions. *(not available on uno)*
+- **Cell & Row Context Flyout**: Provides context flyouts for cells and rows to allow quick actions.
 
 ## Uno Platform Support
 
