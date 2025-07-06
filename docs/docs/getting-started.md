@@ -2,10 +2,10 @@
 
 ### 1. Create a New WinUI3
 
-If you don't already have a WinUI 3 project prject, create one in Visual Studio.
+If you don't already have a WinUI 3 project, create one in Visual Studio.
 
 ### 2: Install NuGet Package
-Inatall `WinUI.TableView` NuGet package to your app with your preferred method. Here is the one using NuGet Package Manager:
+Install [WinUI.TableView](https://www.nuget.org/packages/WinUI.TableView) NuGet package to your app with your preferred method. Here is the one using NuGet Package Manager:
 
 ```bash
 Install-Package WinUI.TableView
