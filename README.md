@@ -200,7 +200,15 @@ Contributions are welcome from the community! If you find any issues or have sug
 #### Contributors
 [![ci-build](https://contrib.rocks/image?repo=w-ahmad/WinUI.TableView)](https://github.com/w-ahmad/WinUI.TableView/graphs/contributors)
 
+## Support WinUI.TableView
 
+If this project saves you time or adds value to your work, please consider supporting its continued development.
+
+Your sponsorship helps cover development time, testing, and future improvements.
+
+👉 [Become a supporter on Patreon](https://patreon.com/wahmad) 
+
+Every contribution makes a difference — thank you!
 ## License
 
 This project is licensed under the [MIT License](https://github.com/w-ahmad/WinUI.TableView?tab=MIT-1-ov-file).
