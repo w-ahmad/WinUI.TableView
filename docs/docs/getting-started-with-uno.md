@@ -1,10 +1,12 @@
-## Getting Started
+# Getting Started
+
+This guide will walk you through the process of setting up and using WinUI.TableView in your Uno Platform application. Follow the steps below to quickly integrate a powerful and flexible DataGrid into your project.
 
 ### 1. Create a New Uno Project
 
 If you don't already have a Uno project, create one in Visual Studio.
 
-### 2: Install NuGet Package
+### 2. Install NuGet Package
 Install [WinUI.TableView](https://www.nuget.org/packages/WinUI.TableView) NuGet package to your app with your preferred method. Here is the one using NuGet Package Manager:
 
 ```bash

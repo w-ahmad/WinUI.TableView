@@ -1,4 +1,4 @@
-## Customization
+# Customization
 
 You can customize the appearance and behavior of the `TableView` by modifying its properties, templates, and styles. For example:
 
