@@ -148,10 +148,10 @@
     <value>Выберите время</value>
   </data>
   <data name="CopyCommandDescription" xml:space="preserve">
-    <value>Copy the selected row's content to clipboard.</value>
+    <value>Скопировать выбранные строки в буфер обмена</value>
   </data>
   <data name="CopyWithHeaders" xml:space="preserve">
-    <value>Copy with Headers</value>
+    <value>Копировать с заголовками</value>
   </data>
   <data name="CopyWithHeadersCommandDescription" xml:space="preserve">
     <value>Скопируйте содержимое выбранных строк в буфер обмена.</value>
@@ -163,7 +163,7 @@
     <value>Отменить выбор всех строк.</value>
   </data>
   <data name="ExportAll" xml:space="preserve">
-    <value>Export All to CSV</value>
+    <value>Экспортировать в CSV</value>
   </data>
   <data name="ExportSelected" xml:space="preserve">
     <value>Экспортировать всё в CSV</value>
