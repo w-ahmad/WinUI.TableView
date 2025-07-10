@@ -1,0 +1,672 @@
+{
+  "source_base_path": "D:/a/WinUI.TableView/WinUI.TableView/docs",
+  "xrefmap": "xrefmap.yml",
+  "files": [
+    {
+      "type": "Resource",
+      "output": {
+        "resource": {
+          "relative_path": "index.json"
+        }
+      }
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.ColumnFilterHandler.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.ColumnFilterHandler.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.ColumnFilterHandler",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.ColumnFilterHandler.yml\" sourcestartlinenumber=\"1\">Default implementation of the IColumnFilterHandler interface.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.Controls.TableViewDatePicker.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.Controls.TableViewDatePicker.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.Controls.TableViewDatePicker",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.Controls.TableViewDatePicker.yml\" sourcestartlinenumber=\"1\">Represents a date editing element for the TableViewDateColumn.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.Controls.TableViewTimePicker.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.Controls.TableViewTimePicker.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.Controls.TableViewTimePicker",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.Controls.TableViewTimePicker.yml\" sourcestartlinenumber=\"1\">Represents a time editing element for the TableViewTimeColumn.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.Controls.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.Controls.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.Controls",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.Extensions.ItemIndexRangeExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.Extensions.ItemIndexRangeExtensions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.Extensions.ItemIndexRangeExtensions",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.Extensions.ItemIndexRangeExtensions.yml\" sourcestartlinenumber=\"1\">Provides extension methods for the ItemIndexRange type.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.Extensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.Extensions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.Extensions",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.FilterDescription.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.FilterDescription.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.FilterDescription",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.FilterDescription.yml\" sourcestartlinenumber=\"1\">Describes a filter operation applied to TableView items.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.IColumnFilterHandler.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.IColumnFilterHandler.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.IColumnFilterHandler",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.IColumnFilterHandler.yml\" sourcestartlinenumber=\"1\">Interface for handling column filtering in a TableView.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.SortDescription.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.SortDescription.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.SortDescription",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.SortDescription.yml\" sourcestartlinenumber=\"1\">Describes a sort operation applied to TableView items.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.SortDirection.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.SortDirection.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.SortDirection",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.SortDirection.yml\" sourcestartlinenumber=\"1\">Sort direction enum</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableView.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableView.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableView",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableView.yml\" sourcestartlinenumber=\"1\">Represents a control that displays data in customizable table-like interface.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewAutoGeneratingColumnEventArgs",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.yml\" sourcestartlinenumber=\"1\">Provides data for the AutoGeneratingColumn event.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewBoundColumn.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewBoundColumn.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewBoundColumn",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewBoundColumn.yml\" sourcestartlinenumber=\"1\">Represents a column in a TableView that is bound to a data source.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewCell.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewCell.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewCell",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewCell.yml\" sourcestartlinenumber=\"1\">Represents a cell in a TableView.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewCellContextFlyoutEventArgs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewCellContextFlyoutEventArgs.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewCellContextFlyoutEventArgs",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewCellContextFlyoutEventArgs.yml\" sourcestartlinenumber=\"1\">Provides data for the CellContextFlyout event.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewCellSelectionChangedEventArgs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewCellSelectionChangedEventArgs.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewCellSelectionChangedEventArgs",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewCellSelectionChangedEventArgs.yml\" sourcestartlinenumber=\"1\">Provides data for the cell selection changed event.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewCellSlot.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewCellSlot.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewCellSlot",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewCellSlot.yml\" sourcestartlinenumber=\"1\">Represents a slot of a TableView cell, identified by its row and column indices.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewCellsPresenter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewCellsPresenter.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewCellsPresenter",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewCellsPresenter.yml\" sourcestartlinenumber=\"1\">Represents a presenter for the cells in a TableView row.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewCheckBoxColumn.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewCheckBoxColumn.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewCheckBoxColumn",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewCheckBoxColumn.yml\" sourcestartlinenumber=\"1\">Represents a column in a TableView that displays a CheckBox.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewClearSortingEventArgs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewClearSortingEventArgs.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewClearSortingEventArgs",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewClearSortingEventArgs.yml\" sourcestartlinenumber=\"1\">Provides data for the event that is raised when sorting is cleared from TableView.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewColumn.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewColumn.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewColumn",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewColumn.yml\" sourcestartlinenumber=\"1\">Represents a column in a TableView.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewColumnHeader.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewColumnHeader.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewColumnHeader",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewColumnHeader.yml\" sourcestartlinenumber=\"1\">Represents the header of a column in a TableView.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewColumnsCollection.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewColumnsCollection.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewColumnsCollection",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewColumnsCollection.yml\" sourcestartlinenumber=\"1\">Represents a collection of columns in a TableView.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewComboBoxColumn.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewComboBoxColumn.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewComboBoxColumn",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewComboBoxColumn.yml\" sourcestartlinenumber=\"1\">Represents a column in a TableView that displays a ComboBox.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewCopyToClipboardEventArgs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewCopyToClipboardEventArgs.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewCopyToClipboardEventArgs",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewCopyToClipboardEventArgs.yml\" sourcestartlinenumber=\"1\">Provides data for the CopyToClipboard event.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewCornerButtonMode.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewCornerButtonMode.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewCornerButtonMode",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewCornerButtonMode.yml\" sourcestartlinenumber=\"1\">Specifies the mode of the corner button in a TableView.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewDateColumn.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewDateColumn.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewDateColumn",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewDateColumn.yml\" sourcestartlinenumber=\"1\">Represents a column in a TableView that displays a date.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewExportContentEventArgs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewExportContentEventArgs.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewExportContentEventArgs",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewExportContentEventArgs.yml\" sourcestartlinenumber=\"1\">Provides data for the ExportContent event.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewFilterItem.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewFilterItem.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewFilterItem",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewFilterItem.yml\" sourcestartlinenumber=\"1\">Represents a filter item used in the options flyout of a TableViewColumnHeader.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewGridLinesVisibility.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewGridLinesVisibility.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewGridLinesVisibility",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewGridLinesVisibility.yml\" sourcestartlinenumber=\"1\">Specifies the visibility of grid lines in a TableView.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewHeaderRow.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewHeaderRow.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewHeaderRow",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewHeaderRow.yml\" sourcestartlinenumber=\"1\">Represents the header row in a TableView.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewNumberColumn.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewNumberColumn.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewNumberColumn",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewNumberColumn.yml\" sourcestartlinenumber=\"1\">Represents a column in a TableView that displays a number.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewRow.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewRow.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewRow",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewRow.yml\" sourcestartlinenumber=\"1\">Represents a row in a TableView.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewRowContextFlyoutEventArgs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewRowContextFlyoutEventArgs.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewRowContextFlyoutEventArgs",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewRowContextFlyoutEventArgs.yml\" sourcestartlinenumber=\"1\">Provides data for the RowContextFlyout event.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewSelectionUnit.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewSelectionUnit.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewSelectionUnit",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewSelectionUnit.yml\" sourcestartlinenumber=\"1\">Specifies the selection unit for a TableView.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewSortingEventArgs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewSortingEventArgs.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewSortingEventArgs",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewSortingEventArgs.yml\" sourcestartlinenumber=\"1\">Provides data for the event that is raised when a column is being sorted in a TableView.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewTemplateColumn.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewTemplateColumn.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewTemplateColumn",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewTemplateColumn.yml\" sourcestartlinenumber=\"1\">Represents a column in a TableView that uses a DataTemplate for its content.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewTextColumn.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewTextColumn.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewTextColumn",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewTextColumn.yml\" sourcestartlinenumber=\"1\">Represents a column in a TableView that displays text.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewTimeColumn.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewTimeColumn.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewTimeColumn",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewTimeColumn.yml\" sourcestartlinenumber=\"1\">Represents a column in a TableView that displays time.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.TableViewToggleSwitchColumn.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.TableViewToggleSwitchColumn.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView.TableViewToggleSwitchColumn",
+      "Summary": "<p sourcefile=\"api/WinUI.TableView.TableViewToggleSwitchColumn.yml\" sourcestartlinenumber=\"1\">Represents a column in a TableView that displays a ToggleSwitch.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/WinUI.TableView.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/WinUI.TableView.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "WinUI.TableView",
+      "Summary": null
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "api/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/toc.html"
+        },
+        ".json": {
+          "relative_path": "api/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/customization.md",
+      "output": {
+        ".html": {
+          "relative_path": "docs/customization.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/getting-started-with-uno.md",
+      "output": {
+        ".html": {
+          "relative_path": "docs/getting-started-with-uno.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/getting-started.md",
+      "output": {
+        ".html": {
+          "relative_path": "docs/getting-started.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "docs/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "docs/toc.html"
+        },
+        ".json": {
+          "relative_path": "docs/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "index.md",
+      "output": {
+        ".html": {
+          "relative_path": "index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "toc.html"
+        },
+        ".json": {
+          "relative_path": "toc.json"
+        }
+      },
+      "version": ""
+    }
+  ],
+  "groups": [
+    {
+      "xrefmap": "xrefmap.yml"
+    }
+  ]
+}
