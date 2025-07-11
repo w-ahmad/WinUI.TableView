@@ -1,6 +1,8 @@
+using Microsoft.UI.Xaml;
 using System;
 using System.Collections;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -16,145 +18,107 @@ internal static partial class ObjectExtensions
     private static partial Regex PropertyPathRegex();
 
     /// <summary>
-    /// Gets the value of a property from an object using a sequence of property info and index pairs.
+    /// Creates and returns a compiled lambda expression for accessing the property path on instances, with runtime type checking and casting support.
     /// </summary>
-    /// <param name="obj">The object from which to get the value.</param>
-    /// <param name="pis">An array of property info and index pairs.</param>
-    /// <returns>The value of the property, or null if the object is null.</returns>
-    internal static object? GetValue(this object? obj, (PropertyInfo pi, object? index)[] pis)
+    /// <param name="dataItem">The data item instance to use for runtime type evaluation.</param>
+    /// <param name="bindingPath">The binding path to access, e.g. "[0].SubPropertyArray[0].SubSubProperty".</param>
+    /// <returns>A compiled function that takes an instance and returns the property value, or null if the property path is invalid.</returns>
+    public static Func<object, object?>? GetFuncCompiledPropertyPath(this object dataItem, string bindingPath)
     {
-        foreach (var (pi, index) in pis)
+        try
         {
-            if (obj is null)
-                break;
+            // Build the property access expression chain with runtime type checking
+            var parameterObj = Expression.Parameter(typeof(object), "obj");
+            var propertyAccess = BuildPropertyPathExpressionTree(parameterObj, bindingPath, dataItem);
 
-            if (pi != null)
-            {
-                // Use property getter, with or without index
-                obj = index is not null ? pi.GetValue(obj, [index]) : pi.GetValue(obj);
-            }
-            else if (index is int i)
-            {
-                // Array
-                if (obj is Array arr)
-                {
-                    obj = arr.GetValue(i);
-                }
-                // IList
-                else if (obj is IList list)
-                {
-                    obj = list[i];
-                }
-                else
-                {
-                    // Not a supported indexer type
-                    return null;
-                }
-            }
-            else
-            {
-                // Not a supported path segment
-                return null;
-            }
+            // Compile the lambda expression
+            var lambda = Expression.Lambda<Func<object, object?>>(Expression.Convert(propertyAccess, typeof(object)), parameterObj);
+            var _compiledPropertyPath = lambda.Compile();
+            return _compiledPropertyPath;
         }
-
-        return obj;
+        catch
+        {
+            // If compilation fails, fall back to reflection-based approach
+            return null;
+        }
     }
 
     /// <summary>
-    /// Gets the value of a property from an object using a type and a property path.
+    /// Builds an expression tree for accessing a property path on the given instance expression, with runtime type checking and casting support.
     /// </summary>
-    /// <param name="obj">The object from which to get the value.</param>
-    /// <param name="type">The type of the object.</param>
-    /// <param name="path">The property path.</param>
-    /// <param name="pis">An array of property info and index pairs.</param>
-    /// <returns>The value of the property, or null if the object is null.</returns>
-    internal static object? GetValue(this object? obj, Type? type, string? path, out (PropertyInfo pi, object? index)[] pis)
+    /// <param name="parameterObj">The expression representing the instance parameter for which the binding path will be evaluated.</param>
+    /// <param name="bindingPath">The binding path to access.</param>
+    /// <param name="dataItem">The actual data item to use for runtime type evaluation, to help with any needed subclass type conversions.</param>
+    /// <returns>An expression that accesses the binding path from the </returns>
+    private static Expression BuildPropertyPathExpressionTree(ParameterExpression parameterObj, string bindingPath, object dataItem)
     {
-        if (obj == null || string.IsNullOrWhiteSpace(path) || type == null)
-        {
-            pis = [];
-            return obj;
-        }
+        Expression current = parameterObj;
 
-        var matches = PropertyPathRegex().Matches(path);
-        if (matches.Count == 0)
-        {
-            pis = [];
-            return obj;
-        }
+        // The function uses a generic object input parameter to allow for any type of data item,
+        // but we need to ensure that the runtime type matches the data item type that is inputted as example to be able to find members
+        if (current.Type != dataItem.GetType())
+            current = Expression.Convert(current, dataItem.GetType());
 
-        // Pre-size the steps array to the number of matches
-        pis = new (PropertyInfo, object?)[matches.Count];
-        int i = 0;
-        object? current = obj;
-        Type? currentType = type;
+        var matches = PropertyPathRegex().Matches(bindingPath);
 
         foreach (Match match in matches)
         {
             string part = match.Value;
-            object? index = null;
-            PropertyInfo? pi = null;
 
+            // Indexer
             if (part.StartsWith('[') && part.EndsWith(']'))
             {
-                // Indexer: [int] or [string]
-                string indexer = part[1..^1];
-                if (int.TryParse(indexer, out int intIndex))
-                    index = intIndex;
+                string stringIndex = part[1..^1];
+
+                // See if this is an integer index
+                if (int.TryParse(stringIndex, out int index))
+                {
+                    if (current.Type.IsArray)
+                    {
+                        current = Expression.ArrayIndex(current, Expression.Constant(index));
+                    }
+                    else
+                    {
+                        // Try to find an indexer property, with an int parameter
+                        var indexerProperty = current.Type.GetProperty("Item", [typeof(int)]) 
+                            ?? throw new ArgumentException($"Type '{current.Type.Name}' does not support integer indexing");
+                        current = Expression.Property(current, indexerProperty, Expression.Constant(index));
+                    }
+                }
                 else
-                    index = indexer;
-
-                // Try array
-                if (current is Array arr && index is int idx)
                 {
-                    current = arr.GetValue(idx);
-                    pis[i++] = (null!, idx);
-                    currentType = current?.GetType();
-                    continue;
+                    // Try to find an indexer property, with an string parameter
+                    var indexerProperty = current.Type.GetProperty("Item", [typeof(string)]) 
+                        ?? throw new ArgumentException($"Type '{current.Type.Name}' does not support string indexing");
+                    current = Expression.Property(current, indexerProperty, Expression.Constant(stringIndex));
                 }
-
-                // Try IList
-                if (current is IList list && index is int idx2)
-                {
-                    current = list[idx2];
-                    pis[i++] = (null!, idx2);
-                    currentType = current?.GetType();
-                    continue;
-                }
-
-                // Try to find a default indexer property "Item" (e.g., this[string]);
-                // Note that only single argument indexers of type int or string are currently support
-                pi = currentType?.GetProperty("Item", [index.GetType()]);
-                if (pi != null)
-                {
-                    current = pi.GetValue(current, [index]);
-                    pis[i++] = (pi, index);
-                    currentType = current?.GetType();
-                    continue;
-                }
-
-                // Not found
-                pis = null!;
-                return null;
             }
+            // Simple property access
             else
-            {
-                // Property access
-                pi = currentType?.GetProperty(part, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                if (pi == null)
-                {
-                    pis = null!;
-                    return null;
-                }
-                current = pi.GetValue(current);
-                pis[i++] = (pi, null);
-                currentType = current?.GetType();
+            {   
+                var propertyInfo = current.Type.GetProperty(part, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                    ?? throw new ArgumentException($"Property '{part}' not found on type '{current.Type.Name}'");
+                current = Expression.Property(current, propertyInfo);
             }
+
+            // Compile a lambda of the partial expression thus far (cast to object), to see if we need to add a cast
+            var lambdaTemp = Expression.Lambda<Func<object, object?>>(EnsureObjectCompatibleResult(current), parameterObj);
+            var funcCurrent = lambdaTemp.Compile();
+            // Evaluate this compiled function, to see if the result type is more specific than the current expression type. If so, cast to it
+            var result = funcCurrent(dataItem);
+            var runtimeType = result?.GetType() ?? current.Type;
+            if (current.Type != runtimeType && current.Type.IsAssignableFrom(runtimeType))
+                current = Expression.Convert(current, runtimeType);
         }
 
-        return current;
+        return EnsureObjectCompatibleResult(current);
     }
+
+    static Expression EnsureObjectCompatibleResult(Expression expression) => 
+        typeof(object).IsAssignableFrom(expression.Type) && !expression.Type.IsValueType
+            ? expression
+            : Expression.Convert(expression, typeof(object));
+
 
     /// <summary>
     /// Determines whether the specified object is numeric.
