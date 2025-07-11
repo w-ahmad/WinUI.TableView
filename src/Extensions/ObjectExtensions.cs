@@ -98,7 +98,7 @@ internal static partial class ObjectExtensions
 
             if (part.StartsWith('[') && part.EndsWith(']'))
             {
-                // Indexer: [index] or [key]
+                // Indexer: [int] or [string]
                 string indexer = part[1..^1];
                 if (int.TryParse(indexer, out int intIndex))
                     index = intIndex;
@@ -123,8 +123,9 @@ internal static partial class ObjectExtensions
                     continue;
                 }
 
-                // Try default indexer property (e.g., this[string])
-                pi = currentType?.GetProperty("Item");
+                // Try to find a default indexer property "Item" (e.g., this[string]);
+                // Note that only single argument indexers of type int or string are currently support
+                pi = currentType?.GetProperty("Item", [index.GetType()]);
                 if (pi != null)
                 {
                     current = pi.GetValue(current, [index]);
