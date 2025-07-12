@@ -28,11 +28,11 @@ internal static partial class ObjectExtensions
         try
         {
             // Build the property access expression chain with runtime type checking
-            var parameterObj = Expression.Parameter(typeof(object), "obj"); ;
-            var propertyAccess = BuildPropertyPathExpression(parameterObj, bindingPath, dataItem);
+            var parameterObj = Expression.Parameter(typeof(object), "obj");
+            var propertyAccess = BuildPropertyPathExpressionTree(parameterObj, bindingPath, dataItem);
 
             // Compile the lambda expression
-            var lambda = Expression.Lambda<Func<object, object?>>(propertyAccess, parameterObj);
+            var lambda = Expression.Lambda<Func<object, object?>>(Expression.Convert(propertyAccess, typeof(object)), parameterObj);
             var _compiledPropertyPath = lambda.Compile();
             return _compiledPropertyPath;
         }
@@ -50,7 +50,7 @@ internal static partial class ObjectExtensions
     /// <param name="bindingPath">The binding path to access.</param>
     /// <param name="dataItem">The actual data item to use for runtime type evaluation, to help with any needed subclass type conversions.</param>
     /// <returns>An expression that accesses the binding path from the </returns>
-    private static Expression BuildPropertyPathExpression(ParameterExpression parameterObj, string bindingPath, object dataItem)
+    private static Expression BuildPropertyPathExpressionTree(ParameterExpression parameterObj, string bindingPath, object dataItem)
     {
         Expression current = parameterObj;
 
@@ -80,7 +80,7 @@ internal static partial class ObjectExtensions
                     else
                     {
                         // Try to find an indexer property, with an int parameter
-                        var indexerProperty = current.Type.GetProperty("Item", new[] { typeof(int) }) 
+                        var indexerProperty = current.Type.GetProperty("Item", [typeof(int)]) 
                             ?? throw new ArgumentException($"Type '{current.Type.Name}' does not support integer indexing");
                         current = Expression.Property(current, indexerProperty, Expression.Constant(index));
                     }
@@ -88,7 +88,7 @@ internal static partial class ObjectExtensions
                 else
                 {
                     // Try to find an indexer property, with an string parameter
-                    var indexerProperty = current.Type.GetProperty("Item", new[] { typeof(string) }) 
+                    var indexerProperty = current.Type.GetProperty("Item", [typeof(string)]) 
                         ?? throw new ArgumentException($"Type '{current.Type.Name}' does not support string indexing");
                     current = Expression.Property(current, indexerProperty, Expression.Constant(stringIndex));
                 }
@@ -101,8 +101,8 @@ internal static partial class ObjectExtensions
                 current = Expression.Property(current, propertyInfo);
             }
 
-            // Compile a lambda of the partial expression thus far, to see if we need to add a cast
-            var lambdaTemp = Expression.Lambda<Func<object, object?>>(current, parameterObj);
+            // Compile a lambda of the partial expression thus far (cast to object), to see if we need to add a cast
+            var lambdaTemp = Expression.Lambda<Func<object, object?>>(EnsureObjectCompatibleResult(current), parameterObj);
             var funcCurrent = lambdaTemp.Compile();
             // Evaluate this compiled function, to see if the result type is more specific than the current expression type. If so, cast to it
             var result = funcCurrent(dataItem);
@@ -111,8 +111,14 @@ internal static partial class ObjectExtensions
                 current = Expression.Convert(current, runtimeType);
         }
 
-        return current;
+        return EnsureObjectCompatibleResult(current);
     }
+
+    static Expression EnsureObjectCompatibleResult(Expression expression) => 
+        typeof(object).IsAssignableFrom(expression.Type) && !expression.Type.IsValueType
+            ? expression
+            : Expression.Convert(expression, typeof(object));
+
 
     /// <summary>
     /// Determines whether the specified object is numeric.
