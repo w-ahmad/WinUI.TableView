@@ -151,7 +151,7 @@ public partial class TableView : ListView
     {
         var currentCell = CurrentCellSlot.HasValue ? GetCellFromSlot(CurrentCellSlot.Value) : default;
 
-        if (e.Key is VirtualKey.F2 && currentCell is not null && !IsEditing)
+        if (e.Key is VirtualKey.F2 && currentCell is { IsReadOnly: false } && !IsEditing)
         {
             currentCell.PrepareForEdit();
             e.Handled = true;
