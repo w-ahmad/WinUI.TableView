@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-2022
     steps:
     - name: Checkout
       uses: actions/checkout@v4.1.4
@@ -30,6 +30,7 @@ jobs:
         path: artifacts/_site
 
   publish-docs:
+    needs: [build]
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
