@@ -42,11 +42,13 @@ public class TableViewCheckBoxColumn : TableViewBoundColumn
         return checkBox;
     }
 
+    /// <inheritdoc/>
     public override FrameworkElement GenerateEditingElement(TableViewCell cell, object? dataItem)
     {
         throw new NotImplementedException();
     }
 
+    /// <inheritdoc/>
     public override void UpdateElementState(TableViewCell cell, object? dataItem)
     {
         if (cell?.Content is CheckBox checkBox)

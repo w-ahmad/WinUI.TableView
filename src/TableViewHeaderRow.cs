@@ -44,6 +44,7 @@ public partial class TableViewHeaderRow : Control
         DefaultStyleKey = typeof(TableViewHeaderRow);
     }
 
+    /// <inheritdoc/>
     protected override void OnApplyTemplate()
     {
         base.OnApplyTemplate();

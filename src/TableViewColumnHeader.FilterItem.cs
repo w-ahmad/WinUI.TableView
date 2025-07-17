@@ -7,6 +7,7 @@ namespace WinUI.TableView;
 /// </summary>
 public  partial class TableViewFilterItem : INotifyPropertyChanged
 {
+    /// <inheritdoc/>
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private bool _isSelected;

@@ -85,6 +85,7 @@ public partial class TableView : ListView
         }
     }
 
+    /// <inheritdoc/>
     protected override void PrepareContainerForItemOverride(DependencyObject element, object item)
     {
         base.PrepareContainerForItemOverride(element, item);
@@ -103,6 +104,8 @@ public partial class TableView : ListView
         });
     }
 
+
+    /// <inheritdoc/>
     protected override DependencyObject GetContainerForItemOverride()
     {
         var row = new TableViewRow { TableView = this };
@@ -130,6 +133,7 @@ public partial class TableView : ListView
         return row;
     }
 
+    /// <inheritdoc/>
     protected override void OnKeyDown(KeyRoutedEventArgs e)
     {
         var shiftKey = KeyboardHelper.IsShiftKeyDown();
@@ -252,6 +256,7 @@ public partial class TableView : ListView
         return false;
     }
 
+    /// <inheritdoc/>
     protected async override void OnApplyTemplate()
     {
         base.OnApplyTemplate();
@@ -398,6 +403,7 @@ public partial class TableView : ListView
     /// <summary>
     /// Returns specified rows' content as a string, optionally including headers, with values separated by the given character.
     /// </summary>
+    /// <param name="rows">Row indexes to get content for.</param>
     /// <param name="includeHeaders">Whether to include headers in the output.</param>
     /// <param name="separator">The character used to separate cell values.</param>
     /// <returns>A string of specified row content separated by the specified character.</returns>
@@ -414,6 +420,7 @@ public partial class TableView : ListView
     /// <summary>
     /// Returns specified cells' content as a string, optionally including headers, with values separated by the given character.
     /// </summary>
+    /// <param name="slots">Cell slots to get content for.</param>
     /// <param name="includeHeaders">Whether to include headers in the output.</param>
     /// <param name="separator">The character used to separate cell values.</param>
     /// <returns>A string of specified cell content separated by the specified character.</returns>
@@ -1451,6 +1458,7 @@ public partial class TableView : ListView
         UpdateCornerButtonState();
     }
 
+    /// <inheritdoc/>
     public virtual void OnSorting(TableViewSortingEventArgs eventArgs)
     {
         Sorting?.Invoke(this, eventArgs);

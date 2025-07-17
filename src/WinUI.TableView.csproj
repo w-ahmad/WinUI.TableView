@@ -43,6 +43,8 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <GenerateLibraryLayout>true</GenerateLibraryLayout>
     <Description>TableView/DataGrid control for WinUI.</Description>
     <PackageTags>WinUI, WinAppSDK, Windows, UNO, XAML, TableView, DataGrid</PackageTags>
     <Product>WinUI TableView Control</Product>

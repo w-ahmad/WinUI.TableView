@@ -153,6 +153,7 @@ public partial class TableViewColumnHeader : ContentControl
         _optionsFlyout?.Hide();
     }
 
+    /// <inheritdoc/>
     protected override void OnTapped(TappedRoutedEventArgs e)
     {
         if (CanSort && Column is not null && _tableView is not null && !IsSizingCursor)
@@ -182,6 +183,7 @@ public partial class TableViewColumnHeader : ContentControl
         };
     }
 
+    /// <inheritdoc/>
     protected override void OnApplyTemplate()
     {
         base.OnApplyTemplate();
@@ -390,6 +392,7 @@ public partial class TableViewColumnHeader : ContentControl
         return point.Position.X <= resizeArea && point.Position.Y < ActualHeight;
     }
 
+    /// <inheritdoc/>
     protected override void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
     {
         base.OnDoubleTapped(e);
@@ -419,6 +422,7 @@ public partial class TableViewColumnHeader : ContentControl
         }
     }
 
+    /// <inheritdoc/>
     protected override void OnPointerMoved(PointerRoutedEventArgs e)
     {
         base.OnPointerMoved(e);
@@ -437,6 +441,7 @@ public partial class TableViewColumnHeader : ContentControl
         }
     }
 
+    /// <inheritdoc/>
     protected override void OnPointerPressed(PointerRoutedEventArgs e)
     {
         base.OnPointerPressed(e);
@@ -455,6 +460,7 @@ public partial class TableViewColumnHeader : ContentControl
         }
     }
 
+    /// <inheritdoc/>
     protected override void OnManipulationDelta(ManipulationDeltaRoutedEventArgs e)
     {
         base.OnManipulationDelta(e);
@@ -489,6 +495,7 @@ public partial class TableViewColumnHeader : ContentControl
         }
     }
 
+    /// <inheritdoc/>
     protected override void OnManipulationCompleted(ManipulationCompletedRoutedEventArgs e)
     {
         base.OnManipulationCompleted(e);
@@ -497,6 +504,7 @@ public partial class TableViewColumnHeader : ContentControl
         _resizePreviousStarted = false;
     }
 
+    /// <inheritdoc/>
     protected override async void OnPointerReleased(PointerRoutedEventArgs e)
     {
         base.OnPointerReleased(e);

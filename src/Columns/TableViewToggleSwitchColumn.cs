@@ -40,11 +40,13 @@ public class TableViewToggleSwitchColumn : TableViewBoundColumn
         return toggleSwitch;
     }
 
+    /// <inheritdoc/>
     public override FrameworkElement GenerateEditingElement(TableViewCell cell, object? dataItem)
     {
         throw new NotImplementedException();
     }
 
+    /// <inheritdoc/>
     public override void UpdateElementState(TableViewCell cell, object? dataItem)
     {
         if (cell?.Content is ToggleSwitch toggleSwitch)

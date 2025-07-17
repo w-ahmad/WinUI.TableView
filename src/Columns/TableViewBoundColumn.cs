@@ -16,6 +16,7 @@ public abstract class TableViewBoundColumn : TableViewColumn
     private Binding _binding = new();
     private (PropertyInfo, object?)[]? _propertyInfo;
 
+    /// <inheritdoc/>
     public override object? GetCellContent(object? dataItem)
     {
         if (dataItem is null) return null;
