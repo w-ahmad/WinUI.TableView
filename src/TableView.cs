@@ -635,11 +635,9 @@ public partial class TableView : ListView
             return;
         }
 
-#if WINDOWS
         try
         {
-            var hWnd = Win32Interop.GetWindowFromWindowId(XamlRoot.ContentIslandEnvironment.AppWindowId);
-            if (await GetStorageFile(hWnd) is not { } file)
+            if (await GetStorageFile() is not { } file)
             {
                 return;
             }
@@ -652,9 +650,6 @@ public partial class TableView : ListView
             await tw.WriteAsync(content);
         }
         catch { }
-#else
-        await Task.CompletedTask;
-#endif
     }
 
     /// <summary>
@@ -679,11 +674,9 @@ public partial class TableView : ListView
             return;
         }
 
-#if WINDOWS
         try
         {
-            var hWnd = Win32Interop.GetWindowFromWindowId(XamlRoot.ContentIslandEnvironment.AppWindowId);
-            if (await GetStorageFile(hWnd) is not { } file)
+            if (await GetStorageFile() is not { } file)
             {
                 return;
             }
@@ -696,9 +689,6 @@ public partial class TableView : ListView
             await tw.WriteAsync(content);
         }
         catch { }
-#else
-        await Task.CompletedTask;
-#endif
     }
 
     /// <summary>
@@ -713,11 +703,14 @@ public partial class TableView : ListView
     /// <summary>
     /// Gets a storage file for saving the CSV.
     /// </summary>
-    private static async Task<StorageFile> GetStorageFile(IntPtr hWnd)
+    private async Task<StorageFile> GetStorageFile()
     {
         var savePicker = new FileSavePicker();
-        InitializeWithWindow.Initialize(savePicker, hWnd);
         savePicker.FileTypeChoices.Add("CSV (Comma delimited)", [".csv"]);
+#if WINDOWS
+        var hWnd = Win32Interop.GetWindowFromWindowId(XamlRoot.ContentIslandEnvironment.AppWindowId);
+        InitializeWithWindow.Initialize(savePicker, hWnd);
+#endif
 
         return await savePicker.PickSaveFileAsync();
     }
