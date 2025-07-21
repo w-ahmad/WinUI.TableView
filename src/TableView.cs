@@ -439,7 +439,8 @@ public partial class TableView : ListView
 
         if (includeHeaders)
         {
-            stringBuilder.AppendLine(GetHeadersContent(separator, minColumn, maxColumn));
+            stringBuilder.Append(GetHeadersContent(separator, minColumn, maxColumn));
+            stringBuilder.Append('\n');
         }
 
         foreach (var row in slots.Select(x => x.Row).Distinct())
@@ -458,9 +459,11 @@ public partial class TableView : ListView
                 stringBuilder.Append($"{column.GetCellContent(item)}{separator}");
             }
 
-            stringBuilder.Remove(stringBuilder.Length - 1, 1);
+            stringBuilder.Remove(stringBuilder.Length - 1, 1); // remove extra separator at the end of the line
             stringBuilder.Append('\n');
         }
+
+        stringBuilder.Remove(stringBuilder.Length - 1, 1); // remove extra line at the end
 
         return stringBuilder.ToString();
     }
@@ -480,6 +483,8 @@ public partial class TableView : ListView
             var column = Columns.VisibleColumns[col];
             stringBuilder.Append($"{column.Header}{separator}");
         }
+
+        stringBuilder.Remove(stringBuilder.Length - 1, 1); // remove extra separator at the end of the line
 
         return stringBuilder.ToString();
     }
