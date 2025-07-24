@@ -89,12 +89,11 @@ public partial class TableViewCell : ContentControl
     {
         if (Column is not null && Row is not null && _contentPresenter is not null && Content is FrameworkElement element)
         {
-#if WINDOWS
             #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860           
             element.MaxWidth = double.PositiveInfinity;
             element.MaxHeight = double.PositiveInfinity;
             #endregion
-#endif
+
             element.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
 
             var desiredWidth = element.DesiredSize.Width;
@@ -108,7 +107,6 @@ public partial class TableViewCell : ContentControl
 
             Column.DesiredWidth = Math.Max(Column.DesiredWidth, desiredWidth);
 
-#if WINDOWS
             #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860
             var contentWidth = Column.ActualWidth;
             contentWidth -= element.Margin.Left;
@@ -145,7 +143,6 @@ public partial class TableViewCell : ContentControl
                 _contentPresenter.Visibility = Visibility.Visible;
             }
             #endregion
-#endif
         }
 
         return base.MeasureOverride(availableSize);
