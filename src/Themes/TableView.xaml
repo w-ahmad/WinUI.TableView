@@ -103,6 +103,8 @@
                                     <local:TableViewHeaderRow x:Name="HeaderRow" 
                                                               IsTabStop="False"
                                                               Height="{TemplateBinding HeaderRowHeight}"
+                                                              MaxHeight="{TemplateBinding HeaderRowMaxHeight}"
+                                                              MinHeight="{TemplateBinding HeaderRowMinHeight}"
                                                               TableView="{Binding RelativeSource={RelativeSource TemplatedParent}}">
                                         <interactivity:Interaction.Behaviors>
                                             <behaviors:StickyHeaderBehavior />

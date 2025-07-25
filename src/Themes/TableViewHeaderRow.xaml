@@ -8,8 +8,6 @@
 
     <Style x:Key="DefaultTableViewHeaderRowStyle"
            TargetType="local:TableViewHeaderRow">
-        <Setter Property="Height"
-                Value="32" />
         <Setter Property="Background"
                 Value="{ThemeResource TableViewHeaderRowBackground}" />
         <Setter Property="Template">
