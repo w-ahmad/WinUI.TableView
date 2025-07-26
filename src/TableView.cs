@@ -1384,8 +1384,9 @@ public partial class TableView : ListView
 
         if (RowContextFlyout is not null && !eventArgs.Handled)
         {
-            var presenter = row.FindDescendant<ListViewItemPresenter>();
-
+#if !WINDOWS
+            RowContextFlyout.DataContext = row.Content;
+#endif
             RowContextFlyout.ShowAt(row, new FlyoutShowOptions
             {
 #if WINDOWS
@@ -1411,6 +1412,9 @@ public partial class TableView : ListView
 
         if (CellContextFlyout is not null && !eventArgs.Handled)
         {
+#if !WINDOWS
+            CellContextFlyout.DataContext = cell.Row?.Content;
+#endif
             CellContextFlyout.ShowAt(cell, new FlyoutShowOptions
             {
 #if WINDOWS
