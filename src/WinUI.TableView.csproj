@@ -40,7 +40,6 @@
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <PackageId>WinUI.TableView</PackageId>
-    <IncludeSymbols>true</IncludeSymbols>
     <DebugType>portable</DebugType>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
