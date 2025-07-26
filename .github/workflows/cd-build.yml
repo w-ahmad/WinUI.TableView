@@ -17,7 +17,10 @@ jobs:
 
     - name: 'Get Version'
       id: version
-      uses: battila7/get-version-action@v2.2.1
+      run: |
+        $version = $env:GITHUB_REF -replace '^refs/tags/v', ''
+        Write-Host "Extracted version: $version"
+        echo "version=$version" >> $env:GITHUB_OUTPUT
 
     - name: Build
       run: |
@@ -25,7 +28,7 @@ jobs:
                 /t:Build,Pack src/WinUI.TableView.csproj `
                 /p:Configuration=Release `
                 /p:Version=${{ steps.version.outputs.version-without-v }} `
-                /p:PackageReleaseNotes="https://github.com/w-ahmad/WinUI.TableView/releases/tag/v${{ steps.version.outputs.version-without-v }}"
+                /p:PackageReleaseNotes="https://github.com/w-ahmad/WinUI.TableView/releases/tag/v${{ steps.version.outputs.version }}"
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
@@ -36,4 +39,4 @@ jobs:
     - name: Push to NuGet
       run: |
         dotnet nuget push artifacts\NuGet\Release\*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
-        dotnet nuget push artifacts\NuGet\Release\*.snupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
+        
