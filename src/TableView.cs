@@ -753,7 +753,7 @@ public partial class TableView : ListView
             var verticalScrollBar = scrollViewer.FindDescendant<ScrollBar>(x => x.Name == "VerticalScrollBar");
             if (verticalScrollBar is not null)
             {
-                verticalScrollBar.Margin = new Thickness(0, HeaderRowHeight, 0, 0);
+                verticalScrollBar.Margin = new Thickness(0, _headerRow?.ActualHeight ?? 0, 0, 0);
             }
         }
     }
