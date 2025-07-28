@@ -1387,7 +1387,7 @@ public partial class TableView : ListView
 #if !WINDOWS
             RowContextFlyout.DataContext = row.Content;
 #endif
-            RowContextFlyout.ShowAt(row, new FlyoutShowOptions
+            RowContextFlyout.ShowAt(row.CellPresenter, new FlyoutShowOptions
             {
 #if WINDOWS
                 ShowMode = FlyoutShowMode.Standard,
