@@ -23,7 +23,7 @@ internal static partial class ObjectExtensions
     /// <param name="dataItem">The data item instance to use for runtime type evaluation.</param>
     /// <param name="bindingPath">The binding path to access, e.g. "[0].SubPropertyArray[0].SubSubProperty".</param>
     /// <returns>A compiled function that takes an instance and returns the property value, or null if the property path is invalid.</returns>
-    public static Func<object, object?>? GetFuncCompiledPropertyPath(this object dataItem, string bindingPath)
+    internal static Func<object, object?>? GetFuncCompiledPropertyPath(this object dataItem, string bindingPath)
     {
         try
         {
@@ -49,7 +49,7 @@ internal static partial class ObjectExtensions
     /// <param name="parameterObj">The expression representing the instance parameter for which the binding path will be evaluated.</param>
     /// <param name="bindingPath">The binding path to access.</param>
     /// <param name="dataItem">The actual data item to use for runtime type evaluation, to help with any needed subclass type conversions.</param>
-    /// <returns>An expression that accesses the binding path from the </returns>
+    /// <returns>An expression that accesses the property value specified by the binding path for the provided dataItem instance.</returns>
     private static Expression BuildPropertyPathExpressionTree(ParameterExpression parameterObj, string bindingPath, object dataItem)
     {
         Expression current = parameterObj;
@@ -114,7 +114,7 @@ internal static partial class ObjectExtensions
         return EnsureObjectCompatibleResult(current);
     }
 
-    static Expression EnsureObjectCompatibleResult(Expression expression) => 
+    private static Expression EnsureObjectCompatibleResult(Expression expression) => 
         typeof(object).IsAssignableFrom(expression.Type) && !expression.Type.IsValueType
             ? expression
             : Expression.Convert(expression, typeof(object));
