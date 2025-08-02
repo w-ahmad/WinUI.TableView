@@ -5,6 +5,8 @@ VisualStudioVersion = 17.8.34408.163
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinUI.TableView", "WinUI.TableView.csproj", "{D8CCAC00-5BB4-40A9-AB9D-C5FD1888B1B7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinUI.TableView.Tests", "..\tests\WinUI.TableView.Tests\WinUI.TableView.Tests.csproj", "{39643BCF-362F-47A0-A637-44C7127715DE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{D8CCAC00-5BB4-40A9-AB9D-C5FD1888B1B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D8CCAC00-5BB4-40A9-AB9D-C5FD1888B1B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D8CCAC00-5BB4-40A9-AB9D-C5FD1888B1B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39643BCF-362F-47A0-A637-44C7127715DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39643BCF-362F-47A0-A637-44C7127715DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39643BCF-362F-47A0-A637-44C7127715DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39643BCF-362F-47A0-A637-44C7127715DE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
