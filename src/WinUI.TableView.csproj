@@ -2,9 +2,6 @@
   <PropertyGroup>
     <TargetFrameworks>
       net8.0;
-      net9.0;
-      net8.0-windows10.0.19041.0;
-      net9.0-windows10.0.19041.0;
     </TargetFrameworks> 
     <Nullable>enable</Nullable> 
   </PropertyGroup>
