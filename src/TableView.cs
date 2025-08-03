@@ -79,9 +79,9 @@ public partial class TableView : ListView
         CurrentCellSlot = null;
         OnCellSelectionChanged();
 
-        if (SelectedItems?.Count <= 1)
+        if (SelectedItems?.Count == 1)
         {
-            DispatcherQueue.TryEnqueue(async () => await ScrollRowIntoView(base.SelectedIndex));
+            DispatcherQueue.TryEnqueue(async () => await ScrollRowIntoView(SelectedIndex));
         }
     }
 
