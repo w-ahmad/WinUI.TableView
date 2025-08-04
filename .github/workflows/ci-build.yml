@@ -30,16 +30,18 @@ jobs:
     - name: Setup VSTest
       uses: darenm/Setup-VSTest@v1
 
-    - name: Run Tests
+    - name: Build Tests
       run: |
         msbuild /restore `
                 /t:Build tests/WinUI.TableView.Tests.csproj `
                 /p:Platform=x64 `
                 /p:Configuration=Release `
                 /p:OutputPath=build
-
+                
+    - name: Run Tests
+      run: |
         vstest.console.exe tests\build\WinUI.TableView.Tests.build.appxrecipe --logger:"console;verbosity=normal" /InIsolation
-
+ 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
