@@ -62,9 +62,9 @@
   </PropertyGroup>
 
   <!-- Publish Properties -->
-  <PropertyGroup>
+  <!--<PropertyGroup>
     <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
     <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
     <PublishTrimmed>False</PublishTrimmed>
-  </PropertyGroup>
+  </PropertyGroup>-->
 </Project>
