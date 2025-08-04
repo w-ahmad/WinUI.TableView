@@ -36,7 +36,7 @@ jobs:
                 /t:Build tests/WinUI.TableView.Tests.csproj `
                 /p:Platform=x64 `
                 /p:Configuration=Release `
-                /p:Output=build
+                /p:OutputPath=build
 
         vstest.console.exe tests\build\WinUI.TableView.Tests.build.appxrecipe --logger:"console;verbosity=normal" /InIsolation
 
