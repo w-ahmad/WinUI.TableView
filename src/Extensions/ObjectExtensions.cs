@@ -23,6 +23,11 @@ internal static partial class ObjectExtensions
     /// <returns>The value of the property, or null if the object is null.</returns>
     internal static object? GetValue(this object? obj, (PropertyInfo pi, object? index)[] pis)
     {
+        if (pis is null || pis.Length == 0)
+        {
+            return null;
+        }
+
         foreach (var (pi, index) in pis)
         {
             if (obj is null)
@@ -33,22 +38,21 @@ internal static partial class ObjectExtensions
                 // Use property getter, with or without index
                 obj = index is not null ? pi.GetValue(obj, [index]) : pi.GetValue(obj);
             }
-            else if (index is int i)
+            else if (obj is IDictionary dictionary && dictionary.Contains(index!))
+            {
+                obj = dictionary[index!];
+            }
+            else if (index is int idx)
             {
                 // Array
-                if (obj is Array arr)
+                if (obj is Array arr && idx >= 0 && idx < arr.Length)
                 {
-                    obj = arr.GetValue(i);
+                    obj = arr.GetValue(idx);
                 }
                 // IList
-                else if (obj is IList list)
+                else if (obj is IList list && idx >= 0 && list.Count < idx)
                 {
-                    obj = list[i];
-                }
-                else
-                {
-                    // Not a supported indexer type
-                    return null;
+                    obj = list[idx];
                 }
             }
             else
@@ -86,96 +90,102 @@ internal static partial class ObjectExtensions
 
         // Pre-size the steps array to the number of matches
         pis = new (PropertyInfo, object?)[matches.Count];
-        int i = 0;
-        object? current = obj;
-        Type? currentType = type;
+        var i = 0;
 
         foreach (Match match in matches)
         {
-            string part = match.Value;
+            var part = match.Value;
             object? index = null;
-            PropertyInfo? pi = null;
 
             if (part.StartsWith('[') && part.EndsWith(']'))
             {
-                // Indexer: [int] or [string]
-                string indexer = part[1..^1];
-                if (int.TryParse(indexer, out int intIndex))
-                    index = intIndex;
-                else
-                    index = indexer;
+                index = part[1..^1];
 
-                // Try array
-                if (current is Array arr && index is int idx)
+                // Try IDictionary
+                if (obj is IDictionary dictionary && dictionary.Contains(index!))
                 {
-                    current = arr.GetValue(idx);
-                    pis[i++] = (null!, idx);
-                    currentType = current?.GetType();
+                    obj = dictionary[index!];
+                    pis[i++] = (null!, index);
+                    type = obj?.GetType();
                     continue;
                 }
-
-                // Try IList
-                if (current is IList list && index is int idx2)
+                else if (int.TryParse(part[1..^1], out var idx))
                 {
-                    current = list[idx2];
-                    pis[i++] = (null!, idx2);
-                    currentType = current?.GetType();
-                    continue;
+                    index = idx;
+
+                    // Try array
+                    if (obj is Array arr && idx >= 0 && idx < arr.Length)
+                    {
+                        obj = arr.GetValue(idx);
+                        pis[i++] = (null!, idx);
+                        type = obj?.GetType();
+                        continue;
+                    }
+                    // Try IList
+                    else if (obj is IList list && idx >= 0 && list.Count < idx)
+                    {
+                        obj = list[idx];
+                        pis[i++] = (null!, idx);
+                        type = obj?.GetType();
+                        continue;
+                    }
+
                 }
 
-                // Try to find a default indexer property "Item" (e.g., this[string]);
-                // Note that only single argument indexers of type int or string are currently support
-                pi = currentType?.GetProperty("Item", [index.GetType()]);
-                if (pi != null)
-                {
-                    current = pi.GetValue(current, [index]);
-                    pis[i++] = (pi, index);
-                    currentType = current?.GetType();
-                    continue;
-                }
+                part = "Item"; // Default indexer property name
+            }
 
-                // Not found
-                pis = null!;
-                return null;
+            if (TryGetPropertyValue(ref obj, ref type, part, index, out var pi))
+            {
+                pis[i++] = (pi!, index);
             }
             else
             {
-                // Property access
-                pi = currentType?.GetProperty(part, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                if (pi == null)
-                {
-                    pis = null!;
-                    return null;
-                }
-                current = pi.GetValue(current);
-                pis[i++] = (pi, null);
-                currentType = current?.GetType();
+                pis = null!;
+                return null;
             }
         }
 
-        return current;
+        static bool TryGetPropertyValue(ref object? obj, ref Type? type, string propertyName, object? index, out PropertyInfo? pi)
+        {
+            try
+            {
+                pi = index is null ? type?.GetProperty(propertyName) : type?.GetProperty(propertyName, [index.GetType()]);
+
+                if (pi != null)
+                {
+                    obj = index is null ? pi.GetValue(obj) : pi.GetValue(obj, [index]);
+                    type = obj?.GetType();
+
+                    return true;
+                }
+
+                return false;
+            }
+            catch
+            {
+                pi = null!;
+                return false;
+            }
+        }
+
+        return obj;
     }
 
     /// <summary>
-    /// Determines whether the specified object is numeric.
+    /// Determines the type of items contained within the specified <see cref="IEnumerable"/>.
     /// </summary>
-    /// <param name="obj"></param>
-    /// <returns></returns>
-    public static bool IsNumeric(this object obj)
-    {
-        return obj is byte
-                   or sbyte
-                   or short
-                   or ushort
-                   or int
-                   or uint
-                   or long
-                   or ulong
-                   or float
-                   or double
-                   or decimal;
-    }
-
+    /// <remarks>This method attempts to determine the item type of the provided <see cref="IEnumerable"/>
+    /// using the following strategies: <list type="bullet"> <item> If the <paramref name="list"/> is a generic
+    /// enumerable, the generic type is returned. </item> <item> If the item type implements <see
+    /// cref="ICustomTypeProvider"/>, the method may attempt to retrieve a custom type from the list's items. </item>
+    /// <item> If the item type cannot be determined directly, the method inspects the first item in the list to infer
+    /// its type. </item> </list> If the list is empty or the item type is <see cref="object"/>, the method may return
+    /// <see langword="null"/>.</remarks>
+    /// <param name="list">The <see cref="IEnumerable"/> instance to analyze.</param>
+    /// <returns>The <see cref="Type"/> of the items in the <paramref name="list"/>, or <see langword="null"/> if the type cannot
+    /// be determined. If the list is empty or contains items of type <see cref="object"/>, additional heuristics may be
+    /// applied to infer a more specific type.</returns>
     internal static Type? GetItemType(this IEnumerable list)
     {
         var listType = list.GetType();
@@ -227,6 +237,12 @@ internal static partial class ObjectExtensions
         return itemType;
     }
 
+    /// <summary>
+    /// Returns instance.GetCustomType() if the instance implements ICustomTypeProvider; otherwise,
+    /// returns instance.GetType().
+    /// </summary>
+    /// <param name="instance">Object to return the type of</param>
+    /// <returns>Type of the instance</returns>
     internal static Type? GetCustomOrCLRType(this object? instance)
     {
         if (instance is ICustomTypeProvider customTypeProvider)
