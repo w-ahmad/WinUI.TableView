@@ -25,19 +25,20 @@ jobs:
     - name: Build documentation
       run: docfx docs/docfx.json
 
-    - name: Publish Documentation
-      env:
-        ACCESS_TOKEN: ${{ secrets.PAT_DOCS }}
-        BRANCH: gh-pages
-        DOCSFOLDER: artifacts/_site
-      shell: cmd
-      run: |
-         cd  %DOCSFOLDER%
-         git init
-         git config --local user.name "%GITHUB_ACTOR%"
-         git config --local user.email "%GITHUB_ACTOR%@users.noreply.github.com"
-         git config --local core.autocrlf false
-         git add .
-         git commit -m "docs update from commit %GITHUB_SHA%"
-         git push --force https://%ACCESS_TOKEN%@github.com/%GITHUB_REPOSITORY%.git master:%BRANCH%
-         rmdir .git /S /Q
+    - uses: actions/upload-pages-artifact@v3
+      with:
+        path: artifacts/_site
+
+  publish-docs:
+    needs: [build]
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      pages: write
+      id-token: write
+    steps:
+    - id: deployment
+      uses: actions/deploy-pages@v4

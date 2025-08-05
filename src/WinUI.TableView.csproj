@@ -16,6 +16,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>WinUI.TableView.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="CommunityToolkit.WinUI.Behaviors" Version="8.2.250402" />
     <!--CommunityToolkit.WinUI.Behaviors version 8.2 is not supported on .net8.0 so let's downgrade it-->
     <PackageReference Update="CommunityToolkit.WinUI.Behaviors" Version="8.1.240916" Condition="'$(TargetFramework)' == 'net8.0'" />
@@ -27,6 +33,7 @@
   
   <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.250108002" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" PrivateAssets="all" />
   </ItemGroup>
   
   <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) != 'windows'">
@@ -39,9 +46,12 @@
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <PackageId>WinUI.TableView</PackageId>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <DebugType>portable</DebugType>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <GenerateLibraryLayout>true</GenerateLibraryLayout>
     <Description>TableView/DataGrid control for WinUI.</Description>
     <PackageTags>WinUI, WinAppSDK, Windows, UNO, XAML, TableView, DataGrid</PackageTags>
     <Product>WinUI TableView Control</Product>

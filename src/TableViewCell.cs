@@ -45,6 +45,7 @@ public partial class TableViewCell : ContentControl
     }
 
 #if !WINDOWS
+    /// <inheritdoc/>
     protected override void OnRightTapped(RightTappedRoutedEventArgs e)
     {
         base.OnRightTapped(e);
@@ -71,6 +72,7 @@ public partial class TableViewCell : ContentControl
         ApplySelectionState();
     }
 
+    /// <inheritdoc/>
     protected override void OnApplyTemplate()
     {
         base.OnApplyTemplate();
@@ -82,16 +84,16 @@ public partial class TableViewCell : ContentControl
         EnsureGridLines();
     }
 
+    /// <inheritdoc/>
     protected override Size MeasureOverride(Size availableSize)
     {
         if (Column is not null && Row is not null && _contentPresenter is not null && Content is FrameworkElement element)
         {
-#if WINDOWS
             #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860           
             element.MaxWidth = double.PositiveInfinity;
             element.MaxHeight = double.PositiveInfinity;
             #endregion
-#endif
+
             element.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
 
             var desiredWidth = element.DesiredSize.Width;
@@ -105,7 +107,6 @@ public partial class TableViewCell : ContentControl
 
             Column.DesiredWidth = Math.Max(Column.DesiredWidth, desiredWidth);
 
-#if WINDOWS
             #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860
             var contentWidth = Column.ActualWidth;
             contentWidth -= element.Margin.Left;
@@ -142,7 +143,6 @@ public partial class TableViewCell : ContentControl
                 _contentPresenter.Visibility = Visibility.Visible;
             }
             #endregion
-#endif
         }
 
         return base.MeasureOverride(availableSize);
@@ -157,6 +157,7 @@ public partial class TableViewCell : ContentControl
         return _cellPresenter?.GetHorizonalGridlineHeight() ?? 0d;
     }
 
+    /// <inheritdoc/>
     protected override void OnPointerEntered(PointerRoutedEventArgs e)
     {
         base.OnPointerEntered(e);
@@ -169,6 +170,7 @@ public partial class TableViewCell : ContentControl
         }
     }
 
+    /// <inheritdoc/>
     protected override void OnPointerExited(PointerRoutedEventArgs e)
     {
         base.OnPointerEntered(e);
@@ -181,6 +183,7 @@ public partial class TableViewCell : ContentControl
         }
     }
 
+    /// <inheritdoc/>
     protected override void OnTapped(TappedRoutedEventArgs e)
     {
         base.OnTapped(e);
@@ -192,6 +195,7 @@ public partial class TableViewCell : ContentControl
         }
     }
 
+    /// <inheritdoc/>
     protected override void OnPointerPressed(PointerRoutedEventArgs e)
     {
         base.OnPointerPressed(e);
@@ -204,6 +208,7 @@ public partial class TableViewCell : ContentControl
         }
     }
 
+    /// <inheritdoc/>
     protected override void OnPointerReleased(PointerRoutedEventArgs e)
     {
         base.OnPointerReleased(e);
@@ -220,6 +225,7 @@ public partial class TableViewCell : ContentControl
         e.Handled = true;
     }
 
+    /// <inheritdoc/>
     protected override void OnManipulationDelta(ManipulationDeltaRoutedEventArgs e)
     {
         base.OnManipulationDelta(e);
@@ -263,6 +269,7 @@ public partial class TableViewCell : ContentControl
         return null;
     }
 
+    /// <inheritdoc/>
     protected override void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
     {
         if (!IsReadOnly && TableView is not null && !TableView.IsEditing && !Column?.UseSingleElement is true)

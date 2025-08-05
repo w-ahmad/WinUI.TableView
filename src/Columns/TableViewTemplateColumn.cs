@@ -8,6 +8,9 @@ namespace WinUI.TableView;
 /// </summary>
 public class TableViewTemplateColumn : TableViewColumn
 {
+    /// <summary>
+    /// Initializes a new instance of the TableViewTemplateColumn class.
+    /// </summary>
     public TableViewTemplateColumn()
     {
         CanSort = false;
@@ -44,6 +47,7 @@ public class TableViewTemplateColumn : TableViewColumn
         return GenerateElement(cell, dataItem);
     }
 
+    /// <inheritdoc/>
     public override void RefreshElement(TableViewCell cell, object? dataItem)
     {
         cell.Content = GenerateElement(cell, dataItem);

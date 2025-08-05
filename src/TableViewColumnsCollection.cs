@@ -25,6 +25,7 @@ public partial class TableViewColumnsCollection : ObservableCollection<TableView
         [.. Items.Where(x => x.Visibility == Visibility.Visible)
                  .OrderBy(x => x.Order ?? 0)];
 
+    /// <inheritdoc/>
     protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
     {
         base.OnCollectionChanged(e);

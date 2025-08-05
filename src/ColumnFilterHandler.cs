@@ -20,6 +20,7 @@ public class ColumnFilterHandler : IColumnFilterHandler
         _tableView = tableView;
     }
 
+    /// <inheritdoc/>
     public virtual IList<TableViewFilterItem> GetFilterItems(TableViewColumn column, string? searchText = default)
     {
         if (column is { TableView.ItemsSource: { } })
@@ -62,7 +63,7 @@ public class ColumnFilterHandler : IColumnFilterHandler
                (value is Guid guid && guid == Guid.Empty);
     }
 
-
+    /// <inheritdoc/>
     public virtual void ApplyFilter(TableViewColumn column)
     {
         if (column is { TableView: { } })
@@ -88,6 +89,7 @@ public class ColumnFilterHandler : IColumnFilterHandler
         }
     }
 
+    /// <inheritdoc/>
     public virtual void ClearFilter(TableViewColumn? column)
     {
         if (column is { TableView: { } })
@@ -112,6 +114,7 @@ public class ColumnFilterHandler : IColumnFilterHandler
         }
     }
 
+    /// <inheritdoc/>
     public virtual bool Filter(TableViewColumn column, object? item)
     {
         var value = column.GetCellContent(item);
@@ -119,5 +122,6 @@ public class ColumnFilterHandler : IColumnFilterHandler
         return SelectedValues[column].Contains(value);
     }
 
+    /// <inheritdoc/>
     public IDictionary<TableViewColumn, IList<object>> SelectedValues { get; } = new Dictionary<TableViewColumn, IList<object>>();
 }

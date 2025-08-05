@@ -121,25 +121,19 @@ internal static partial class ObjectExtensions
 
 
     /// <summary>
-    /// Determines whether the specified object is numeric.
+    /// Determines the type of items contained within the specified <see cref="IEnumerable"/>.
     /// </summary>
-    /// <param name="obj"></param>
-    /// <returns></returns>
-    public static bool IsNumeric(this object obj)
-    {
-        return obj is byte
-                   or sbyte
-                   or short
-                   or ushort
-                   or int
-                   or uint
-                   or long
-                   or ulong
-                   or float
-                   or double
-                   or decimal;
-    }
-
+    /// <remarks>This method attempts to determine the item type of the provided <see cref="IEnumerable"/>
+    /// using the following strategies: <list type="bullet"> <item> If the <paramref name="list"/> is a generic
+    /// enumerable, the generic type is returned. </item> <item> If the item type implements <see
+    /// cref="ICustomTypeProvider"/>, the method may attempt to retrieve a custom type from the list's items. </item>
+    /// <item> If the item type cannot be determined directly, the method inspects the first item in the list to infer
+    /// its type. </item> </list> If the list is empty or the item type is <see cref="object"/>, the method may return
+    /// <see langword="null"/>.</remarks>
+    /// <param name="list">The <see cref="IEnumerable"/> instance to analyze.</param>
+    /// <returns>The <see cref="Type"/> of the items in the <paramref name="list"/>, or <see langword="null"/> if the type cannot
+    /// be determined. If the list is empty or contains items of type <see cref="object"/>, additional heuristics may be
+    /// applied to infer a more specific type.</returns>
     internal static Type? GetItemType(this IEnumerable list)
     {
         var listType = list.GetType();
@@ -191,6 +185,12 @@ internal static partial class ObjectExtensions
         return itemType;
     }
 
+    /// <summary>
+    /// Returns instance.GetCustomType() if the instance implements ICustomTypeProvider; otherwise,
+    /// returns instance.GetType().
+    /// </summary>
+    /// <param name="instance">Object to return the type of</param>
+    /// <returns>Type of the instance</returns>
     internal static Type? GetCustomOrCLRType(this object? instance)
     {
         if (instance is ICustomTypeProvider customTypeProvider)

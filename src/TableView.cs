@@ -85,6 +85,7 @@ public partial class TableView : ListView
         }
     }
 
+    /// <inheritdoc/>
     protected override void PrepareContainerForItemOverride(DependencyObject element, object item)
     {
         base.PrepareContainerForItemOverride(element, item);
@@ -103,6 +104,8 @@ public partial class TableView : ListView
         });
     }
 
+
+    /// <inheritdoc/>
     protected override DependencyObject GetContainerForItemOverride()
     {
         var row = new TableViewRow { TableView = this };
@@ -130,6 +133,7 @@ public partial class TableView : ListView
         return row;
     }
 
+    /// <inheritdoc/>
     protected override void OnKeyDown(KeyRoutedEventArgs e)
     {
         var shiftKey = KeyboardHelper.IsShiftKeyDown();
@@ -151,7 +155,7 @@ public partial class TableView : ListView
     {
         var currentCell = CurrentCellSlot.HasValue ? GetCellFromSlot(CurrentCellSlot.Value) : default;
 
-        if (e.Key is VirtualKey.F2 && currentCell is not null && !IsEditing)
+        if (e.Key is VirtualKey.F2 && currentCell is { IsReadOnly: false } && !IsEditing)
         {
             currentCell.PrepareForEdit();
             e.Handled = true;
@@ -252,6 +256,7 @@ public partial class TableView : ListView
         return false;
     }
 
+    /// <inheritdoc/>
     protected async override void OnApplyTemplate()
     {
         base.OnApplyTemplate();
@@ -398,6 +403,7 @@ public partial class TableView : ListView
     /// <summary>
     /// Returns specified rows' content as a string, optionally including headers, with values separated by the given character.
     /// </summary>
+    /// <param name="rows">Row indexes to get content for.</param>
     /// <param name="includeHeaders">Whether to include headers in the output.</param>
     /// <param name="separator">The character used to separate cell values.</param>
     /// <returns>A string of specified row content separated by the specified character.</returns>
@@ -414,6 +420,7 @@ public partial class TableView : ListView
     /// <summary>
     /// Returns specified cells' content as a string, optionally including headers, with values separated by the given character.
     /// </summary>
+    /// <param name="slots">Cell slots to get content for.</param>
     /// <param name="includeHeaders">Whether to include headers in the output.</param>
     /// <param name="separator">The character used to separate cell values.</param>
     /// <returns>A string of specified cell content separated by the specified character.</returns>
@@ -432,7 +439,8 @@ public partial class TableView : ListView
 
         if (includeHeaders)
         {
-            stringBuilder.AppendLine(GetHeadersContent(separator, minColumn, maxColumn));
+            stringBuilder.Append(GetHeadersContent(separator, minColumn, maxColumn));
+            stringBuilder.Append('\n');
         }
 
         foreach (var row in slots.Select(x => x.Row).Distinct())
@@ -451,9 +459,11 @@ public partial class TableView : ListView
                 stringBuilder.Append($"{column.GetCellContent(item)}{separator}");
             }
 
-            stringBuilder.Remove(stringBuilder.Length - 1, 1);
+            stringBuilder.Remove(stringBuilder.Length - 1, 1); // remove extra separator at the end of the line
             stringBuilder.Append('\n');
         }
+
+        stringBuilder.Remove(stringBuilder.Length - 1, 1); // remove extra line at the end
 
         return stringBuilder.ToString();
     }
@@ -473,6 +483,8 @@ public partial class TableView : ListView
             var column = Columns.VisibleColumns[col];
             stringBuilder.Append($"{column.Header}{separator}");
         }
+
+        stringBuilder.Remove(stringBuilder.Length - 1, 1); // remove extra separator at the end of the line
 
         return stringBuilder.ToString();
     }
@@ -628,11 +640,9 @@ public partial class TableView : ListView
             return;
         }
 
-#if WINDOWS
         try
         {
-            var hWnd = Win32Interop.GetWindowFromWindowId(XamlRoot.ContentIslandEnvironment.AppWindowId);
-            if (await GetStorageFile(hWnd) is not { } file)
+            if (await GetStorageFile() is not { } file)
             {
                 return;
             }
@@ -645,9 +655,6 @@ public partial class TableView : ListView
             await tw.WriteAsync(content);
         }
         catch { }
-#else
-        await Task.CompletedTask;
-#endif
     }
 
     /// <summary>
@@ -672,11 +679,9 @@ public partial class TableView : ListView
             return;
         }
 
-#if WINDOWS
         try
         {
-            var hWnd = Win32Interop.GetWindowFromWindowId(XamlRoot.ContentIslandEnvironment.AppWindowId);
-            if (await GetStorageFile(hWnd) is not { } file)
+            if (await GetStorageFile() is not { } file)
             {
                 return;
             }
@@ -689,9 +694,6 @@ public partial class TableView : ListView
             await tw.WriteAsync(content);
         }
         catch { }
-#else
-        await Task.CompletedTask;
-#endif
     }
 
     /// <summary>
@@ -706,11 +708,14 @@ public partial class TableView : ListView
     /// <summary>
     /// Gets a storage file for saving the CSV.
     /// </summary>
-    private static async Task<StorageFile> GetStorageFile(IntPtr hWnd)
+    private async Task<StorageFile> GetStorageFile()
     {
         var savePicker = new FileSavePicker();
-        InitializeWithWindow.Initialize(savePicker, hWnd);
         savePicker.FileTypeChoices.Add("CSV (Comma delimited)", [".csv"]);
+#if WINDOWS
+        var hWnd = Win32Interop.GetWindowFromWindowId(XamlRoot.ContentIslandEnvironment.AppWindowId);
+        InitializeWithWindow.Initialize(savePicker, hWnd);
+#endif
 
         return await savePicker.PickSaveFileAsync();
     }
@@ -748,7 +753,7 @@ public partial class TableView : ListView
             var verticalScrollBar = scrollViewer.FindDescendant<ScrollBar>(x => x.Name == "VerticalScrollBar");
             if (verticalScrollBar is not null)
             {
-                verticalScrollBar.Margin = new Thickness(0, HeaderRowHeight, 0, 0);
+                verticalScrollBar.Margin = new Thickness(0, _headerRow?.ActualHeight ?? 0, 0, 0);
             }
         }
     }
@@ -1379,9 +1384,10 @@ public partial class TableView : ListView
 
         if (RowContextFlyout is not null && !eventArgs.Handled)
         {
-            var presenter = row.FindDescendant<ListViewItemPresenter>();
-
-            RowContextFlyout.ShowAt(row, new FlyoutShowOptions
+#if !WINDOWS
+            RowContextFlyout.DataContext = row.Content;
+#endif
+            RowContextFlyout.ShowAt(row.CellPresenter, new FlyoutShowOptions
             {
 #if WINDOWS
                 ShowMode = FlyoutShowMode.Standard,
@@ -1406,6 +1412,9 @@ public partial class TableView : ListView
 
         if (CellContextFlyout is not null && !eventArgs.Handled)
         {
+#if !WINDOWS
+            CellContextFlyout.DataContext = cell.Row?.Content;
+#endif
             CellContextFlyout.ShowAt(cell, new FlyoutShowOptions
             {
 #if WINDOWS
@@ -1451,6 +1460,7 @@ public partial class TableView : ListView
         UpdateCornerButtonState();
     }
 
+    /// <inheritdoc/>
     public virtual void OnSorting(TableViewSortingEventArgs eventArgs)
     {
         Sorting?.Invoke(this, eventArgs);

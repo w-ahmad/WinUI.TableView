@@ -26,6 +26,7 @@ public partial class TableViewCellsPresenter : Control
         DefaultStyleKey = typeof(TableViewCellsPresenter);
     }
 
+    /// <inheritdoc/>
     protected override void OnApplyTemplate()
     {
         base.OnApplyTemplate();

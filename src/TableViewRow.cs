@@ -49,6 +49,7 @@ public partial class TableViewRow : ListViewItem
     }
 
 #if !WINDOWS
+    /// <inheritdoc/>
     protected override void OnRightTapped(RightTappedRoutedEventArgs e)
     {
         base.OnRightTapped(e);
@@ -65,10 +66,10 @@ public partial class TableViewRow : ListViewItem
         e.Handled = TableView?.ShowRowContext(this, position) is true;
     }
 
+#if WINDOWS
     /// <summary>
     /// Handles the IsSelected property changed.
     /// </summary>
-#if WINDOWS
     private void OnIsSelectedChanged()
     {
         DispatcherQueue.TryEnqueue(() =>
@@ -127,6 +128,7 @@ public partial class TableViewRow : ListViewItem
         EnsureLayout();
     }
 
+    /// <inheritdoc/>
     protected override void OnApplyTemplate()
     {
         base.OnApplyTemplate();
@@ -149,6 +151,7 @@ public partial class TableViewRow : ListViewItem
         }
     }
 
+    /// <inheritdoc/>
     protected override void OnContentChanged(object oldContent, object newContent)
     {
         base.OnContentChanged(oldContent, newContent);
@@ -171,6 +174,7 @@ public partial class TableViewRow : ListViewItem
         _tableView?.EnsureAlternateRowColors();
     }
 
+    /// <inheritdoc/>
     protected override void OnPointerPressed(PointerRoutedEventArgs e)
     {
         if (TableView is { IsEditing: false })
@@ -184,6 +188,7 @@ public partial class TableViewRow : ListViewItem
         }
     }
 
+    /// <inheritdoc/>
     protected override void OnPointerReleased(PointerRoutedEventArgs e)
     {
         base.OnPointerReleased(e);
@@ -195,6 +200,7 @@ public partial class TableViewRow : ListViewItem
         }
     }
 
+    /// <inheritdoc/>
     protected override void OnTapped(TappedRoutedEventArgs e)
     {
         base.OnTapped(e);
@@ -565,6 +571,7 @@ public partial class TableViewRow : ListViewItem
         }
     }
 
+    /// <inheritdoc/>
     public TableViewCellsPresenter? CellPresenter =>
 #if WINDOWS
             ContentTemplateRoot as TableViewCellsPresenter;

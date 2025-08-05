@@ -41,7 +41,8 @@
     "output": "../artifacts/_site",
     "template": [
       "default",
-      "modern"
+      "modern",
+      "template"
     ],
     "globalMetadata": {
       "_appName": "WinUI.TableView",

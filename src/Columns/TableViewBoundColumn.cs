@@ -17,6 +17,7 @@ public abstract class TableViewBoundColumn : TableViewColumn
 
     private Func<object, object?>? _funcCompiledPropertyPath;
 
+    /// <inheritdoc/>
     public override object? GetCellContent(object? dataItem)
     {
         if (dataItem is null) 

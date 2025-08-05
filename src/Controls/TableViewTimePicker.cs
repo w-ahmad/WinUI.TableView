@@ -30,6 +30,7 @@ public partial class TableViewTimePicker : Control
         ClockIdentifier = _flyout.ClockIdentifier;
     }
 
+    /// <inheritdoc/>
     protected override void OnApplyTemplate()
     {
         base.OnApplyTemplate();
@@ -39,6 +40,7 @@ public partial class TableViewTimePicker : Control
         UpdateTimeText();
     }
 
+    /// <inheritdoc/>
     protected override void OnPointerPressed(PointerRoutedEventArgs e)
     {
         base.OnPointerPressed(e);
@@ -46,6 +48,7 @@ public partial class TableViewTimePicker : Control
         ShowFlyout();
     }
 
+    /// <inheritdoc/>
     protected override void OnKeyDown(KeyRoutedEventArgs e)
     {
         base.OnKeyDown(e);
