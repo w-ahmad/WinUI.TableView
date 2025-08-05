@@ -170,6 +170,20 @@ public partial class TableView
     public static readonly DependencyProperty CurrentCellSlotProperty = DependencyProperty.Register(nameof(CurrentCellSlot), typeof(TableViewCellSlot?), typeof(TableView), new PropertyMetadata(default, OnCurrentCellSlotChanged));
 
     /// <summary>
+    /// Identifies the IsHeaderRightClickMenuEnabled dependency property.
+    /// </summary>
+    public static readonly DependencyProperty IsHeaderRightClickMenuEnabledProperty = DependencyProperty.Register(nameof(IsHeaderRightClickMenuEnabled), typeof(bool), typeof(TableView), new PropertyMetadata(false));
+
+    /// <summary>
+    /// Gets or sets a value indicating whether opening the OptionsMenu over header right-click is enabled.
+    /// </summary>
+    public bool IsHeaderRightClickMenuEnabled
+    {
+        get => (bool)GetValue(IsHeaderRightClickMenuEnabledProperty);
+        set => SetValue(IsHeaderRightClickMenuEnabledProperty, value);
+    }
+
+    /// <summary>
     /// Gets the collection view associated with the TableView.
     /// </summary>
     public ICollectionView CollectionView => _collectionView;

@@ -53,7 +53,7 @@ public partial class TableViewColumnHeader : ContentControl
         ManipulationMode = ManipulationModes.TranslateX;
         RegisterPropertyChangedCallback(WidthProperty, OnWidthChanged);
 
-        // Add right-click support
+        // Add IsHeaderRightClickMenuEnabled support
         RightTapped += OnRightTapped;
     }
 
@@ -69,10 +69,16 @@ public partial class TableViewColumnHeader : ContentControl
     }
 
     /// <summary>
-    /// Handles the RightTapped event to show the options flyout.
+    /// Handles the RightTapped event to show the OptionsMenu.
     /// </summary>
     private void OnRightTapped(object sender, RightTappedRoutedEventArgs e)
     {
+        // Check if right-click is enabled via TableView
+        if (_tableView?.IsHeaderRightClickMenuEnabled != true)
+        {
+            return;
+        }
+
         // Don't show menu if currently resizing column
         if (IsSizingCursor)
         {
