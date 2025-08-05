@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WinUI.TableView.Extensions;
@@ -10,147 +8,75 @@ namespace WinUI.TableView.Tests;
 public class ObjectExtensionsTests
 {
     [TestMethod]
-    public void GetValue_ShouldAccessSimpleNestedProperty_UsingPathString()
+    public void GetFuncCompiledPropertyPath_ShouldAccessSimpleNestedProperty()
     {
         var testItem = new TestItem { SubItems = [new() { SubSubItems = [new() { Name = "NestedValue" }] }] };
-        var result = testItem.GetValue(typeof(TestItem), "SubItems[0].SubSubItems[0].Name", out var _);
-        Assert.IsNotNull(result);
+        var func = testItem.GetFuncCompiledPropertyPath("SubItems[0].SubSubItems[0].Name");
+        Assert.IsNotNull(func);
+        var result = func(testItem);
         Assert.AreEqual("NestedValue", result);
     }
 
     [TestMethod]
-    public void GetValue_ShouldAccessSimpleNestedProperty_UsingParsedPath()
-    {
-        var testItem = new TestItem { SubItems = [new() { SubSubItems = [new() { Name = "NestedValue" }] }] };
-        testItem.GetValue(typeof(TestItem), "SubItems[0].SubSubItems[0].Name", out var pis);
-        var result = testItem.GetValue(pis);
-        Assert.IsNotNull(result);
-        Assert.AreEqual("NestedValue", result);
-    }
-
-    [TestMethod]
-    public void GetValue_ShouldAccessArrayElement_UsingPathString()
+    public void GetFuncCompiledPropertyPath_ShouldAccessArrayElement()
     {
         var testItem = new TestItem { IntArray = [10, 20, 30] };
-        var result = testItem.GetValue(typeof(TestItem), "IntArray[1]", out var _);
-        Assert.IsNotNull(result);
+        var func = testItem.GetFuncCompiledPropertyPath("IntArray[1]");
+        Assert.IsNotNull(func);
+        var result = func(testItem);
         Assert.AreEqual(20, result);
     }
 
     [TestMethod]
-    public void GetValue_ShouldAccessArrayElement_UsingParsedPath()
-    {
-        var testItem = new TestItem { IntArray = [10, 20, 30] };
-        testItem.GetValue(typeof(TestItem), "IntArray[1]", out var pis);
-        var result = testItem.GetValue(pis);
-        Assert.IsNotNull(result);
-        Assert.AreEqual(20, result);
-    }
-
-    [TestMethod]
-    public void GetValue_ShouldAccessDictionaryByStringKey_UsingPathString()
+    public void GetFuncCompiledPropertyPath_ShouldAccessDictionaryByStringKey()
     {
         var testItem = new TestItem { Dictionary1 = new() { { "key1", "value1" } } };
-        var result = testItem.GetValue(typeof(TestItem), "Dictionary1[key1]", out var _);
-        Assert.IsNotNull(result);
+        var func = testItem.GetFuncCompiledPropertyPath("Dictionary1[key1]");
+        Assert.IsNotNull(func);
+        var result = func(testItem);
         Assert.AreEqual("value1", result);
     }
 
     [TestMethod]
-    public void GetValue_ShouldAccessDictionaryByStringKey_UsingParsedPath()
-    {
-        var testItem = new TestItem { Dictionary1 = new() { { "key1", "value1" } } };
-        testItem.GetValue(typeof(TestItem), "Dictionary1[key1]", out var pis);
-        var result = testItem.GetValue(pis);
-        Assert.IsNotNull(result);
-        Assert.AreEqual("value1", result);
-    }
-
-    [TestMethod]
-    public void GetValue_ShouldAccessDictionaryByIntKey_UsingPathString()
+    public void GetFuncCompiledPropertyPath_ShouldAccessDictionaryByIntKey()
     {
         var testItem = new TestItem { Dictionary2 = new() { { 1, "value1" } } };
-        var result = testItem.GetValue(typeof(TestItem), "Dictionary2[1]", out var _);
-        Assert.IsNotNull(result);
+        var func = testItem.GetFuncCompiledPropertyPath("Dictionary2[1]");
+        Assert.IsNotNull(func);
+        var result = func(testItem);
         Assert.AreEqual("value1", result);
     }
 
     [TestMethod]
-    public void GetValue_ShouldAccessDictionaryByIntKey_UsingParsedPath()
-    {
-        var testItem = new TestItem { Dictionary2 = new() { { 1, "value1" } } };
-        testItem.GetValue(typeof(TestItem), "Dictionary2[1]", out var pis);
-        var result = testItem.GetValue(pis);
-        Assert.IsNotNull(result);
-        Assert.AreEqual("value1", result);
-    }
-
-    [TestMethod]
-    public void GetValue_ShouldReturnNull_ForInvalidProperty_UsingPathString()
+    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForInvalidProperty()
     {
         var testItem = new TestItem();
-        var result = testItem.GetValue(typeof(TestItem), "NonExistent.Property.Path", out var _);
-        Assert.IsNull(result);
+        var func = testItem.GetFuncCompiledPropertyPath("NonExistent.Property.Path");
+        Assert.IsNull(func);
     }
 
     [TestMethod]
-    public void GetValue_ShouldReturnNull_ForInvalidProperty_UsingParsedPath()
+    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForInvalidProperty2()
     {
         var testItem = new TestItem();
-        testItem.GetValue(typeof(TestItem), "NonExistent.Property.Path", out var pis);
-        var result = testItem.GetValue(pis);
-        Assert.IsNull(result);
+        var func = testItem.GetFuncCompiledPropertyPath("SubItems[0].SubSubItems[0].Invalid");
+        Assert.IsNull(func);
     }
 
     [TestMethod]
-    public void GetValue_ShouldReturnNull_ForInvalidProperty2_UsingPathString()
-    {
-        var testItem = new TestItem();
-        var result = testItem.GetValue(typeof(TestItem), "SubItems[0].SubSubItems[0].Invalid", out var _);
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
-    public void GetValue_ShouldReturnNull_ForInvalidProperty2_UsingParsedPath()
-    {
-        var testItem = new TestItem();
-        testItem.GetValue(typeof(TestItem), "SubItems[0].SubSubItems[0].Invalid", out var pis);
-        var result = testItem.GetValue(pis);
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
-    public void GetValue_ShouldReturnNull_ForInvalidProperty3_UsingPathString()
+    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForInvalidProperty3()
     {
         var testItem = new TestItem { SubItems = [new() { SubSubItems = [new() { Name = "NestedValue" }] }] };
-        var result = testItem.GetValue(typeof(TestItem), "SubItems[0].SubSubItems[0].Invalid", out var _);
-        Assert.IsNull(result);
+        var func = testItem.GetFuncCompiledPropertyPath("SubItems[0].SubSubItems[0].Invalid");
+        Assert.IsNull(func);
     }
 
     [TestMethod]
-    public void GetValue_ShouldReturnNull_ForInvalidProperty3_UsingParsedPath()
-    {
-        var testItem = new TestItem { SubItems = [new() { SubSubItems = [new() { Name = "NestedValue" }] }] };
-        testItem.GetValue(typeof(TestItem), "SubItems[0].SubSubItems[0].Invalid", out var pis);
-        var result = testItem.GetValue(pis);
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
-    public void GetValue_ShouldReturnNull_ForInvalidIndexer_UsingPathString()
+    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForInvalidIndexer()
     {
         var testItem = new TestItem();
-        var result = testItem.GetValue(typeof(TestItem), "Dictionary[123]", out var _);
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
-    public void GetValue_ShouldReturnNull_ForInvalidIndexer_UsingParsedPath()
-    {
-        var testItem = new TestItem();
-        testItem.GetValue(typeof(TestItem), "Dictionary[123]", out var pis);
-        var result = testItem.GetValue(pis);
-        Assert.IsNull(result);
+        var func = testItem.GetFuncCompiledPropertyPath("Dictionary[123]");
+        Assert.IsNull(func);
     }
 
     [TestMethod]
