@@ -66,34 +66,21 @@ public partial class TableViewColumnHeader : ContentControl
     }
 
     /// <summary>
-    /// Sorts the column in the specified direction.
+    /// Sorts the column in the specified direction using fast sorting.
     /// </summary>
     private void DoSort(SD? direction, bool singleSorting = true)
     {
-        if (CanSort && Column is not null && _tableView is { CollectionView: CollectionView { } collectionView })
+        if (CanSort && Column is not null && _tableView is not null)
         {
-            var defer = collectionView.DeferRefresh();
+            // UNIFIED PATH: Use the fast sorting as header clicks
+            if (direction is not null)
             {
-                if (singleSorting)
-                {
-                    _tableView.ClearAllSortingWithEvent();
-                }
-                else
-                {
-                    ClearSortingWithEvent();
-                }
-
-                if (direction is not null)
-                {
-                    var boundColumn = Column as TableViewBoundColumn;
-                    Column.SortDirection = direction;
-                    _tableView.SortDescriptions.Add(
-                        new ColumnSortDescription(Column!, boundColumn?.PropertyPath, direction.Value));
-
-                    _tableView.EnsureAlternateRowColors();
-                }
+                _tableView.FilterHandler.ApplyUnifiedSort(Column, direction.Value);
             }
-            defer.Complete();
+            else
+            {
+                _tableView.FilterHandler.ClearUnifiedSort(Column);
+            }
         }
     }
 
