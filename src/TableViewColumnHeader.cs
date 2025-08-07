@@ -71,14 +71,14 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     private void OnRightTapped(object sender, RightTappedRoutedEventArgs e)
     {
-        // Check if right-click is enabled via TableView or colmun is currently resizing
+        // Check if right-click is enabled via TableView or column is currently resizing
         if (_tableView?.UseRightClickForColumnFilter != true || IsSizingCursor)
         {
             return;
         }
 
         // Shows the button's flyout if options button is available and either filtering or sorting is enabled
-        if (_optionsButton is not null && (CanFilter || CanSort))
+        if (_optionsButton is not null && CanFilter)
         {
             _optionsButton.Flyout?.ShowAt(_optionsButton);            
             e.Handled = true;
