@@ -52,6 +52,7 @@ public partial class TableViewColumnHeader : ContentControl
         DefaultStyleKey = typeof(TableViewColumnHeader);
         ManipulationMode = ManipulationModes.TranslateX;
         RegisterPropertyChangedCallback(WidthProperty, OnWidthChanged);
+        RightTapped += OnRightTapped;
     }
 
     /// <summary>
@@ -62,6 +63,25 @@ public partial class TableViewColumnHeader : ContentControl
         if (Column is not null)
         {
             Column.ActualWidth = Width;
+        }
+    }
+
+    /// <summary>
+    /// Handles the RightTapped event.
+    /// </summary>
+    private void OnRightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        // Check if right-click is enabled via TableView or column is currently resizing
+        if (_tableView?.UseRightClickForColumnFilter != true || IsSizingCursor)
+        {
+            return;
+        }
+
+        // Shows the button's flyout if options button is available and filtering is enabled
+        if (_optionsButton is not null && CanFilter)
+        {
+            _optionsButton.Flyout?.ShowAt(_optionsButton);            
+            e.Handled = true;
         }
     }
 
