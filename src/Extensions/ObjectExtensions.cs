@@ -69,19 +69,27 @@ internal static partial class ObjectExtensions
             // Indexer
             if (part.StartsWith('[') && part.EndsWith(']'))
             {
-                string stringIndex = part[1..^1];
-                object index = int.TryParse(stringIndex, out int intIndex) ? intIndex : stringIndex;
+                object[] indices = GetIndices(part[1..^1]);
 
                 if (current.Type.IsArray)
                 {
-                    current = Expression.ArrayIndex(current, Expression.Constant(index));
+                    // Arrays only support single integer indexing
+                    if (!indices.All(idx => idx is int))
+                        throw new ArgumentException($"Arrays only support integer indexing, not the provided indexer [{part[1..^1]}]");
+
+                    var indexExpressions = indices.Select(Expression.Constant).ToArray();
+                    current = Expression.ArrayIndex(current, indexExpressions);
                 }
                 else
                 {
-                    // Try to find an indexer property, with the type of by indexAnyType.
-                    var indexerProperty = current.Type.GetProperty("Item", [index.GetType()]) 
-                        ?? throw new ArgumentException($"Type '{current.Type.Name}' does not support integer indexing");
-                    current = Expression.Property(current, indexerProperty, Expression.Constant(index));
+                    // Try to find an indexer property with the appropriate parameter types
+                    var indexerTypes = indices.Select(idx => idx.GetType()).ToArray();
+                    var indexerProperty = current.Type.GetProperty("Item", indexerTypes)
+                        ?? throw new ArgumentException($"Type '{current.Type.Name}' does not support indexing with types: {string.Join(", ", indexerTypes.Select(t => t.Name))}");
+
+                    // Create constant expressions for each index
+                    var indexExpressions = indices.Select(Expression.Constant).ToArray();
+                    current = Expression.Property(current, indexerProperty, indexExpressions);
                 }
             }
             // Simple property access
@@ -103,6 +111,22 @@ internal static partial class ObjectExtensions
         }
 
         return EnsureObjectCompatibleResult(current);
+    }
+
+    /// <summary>
+    /// Returns the indices from a (possible multi-dimensional) indexer that may be a mixture of integers and strings.
+    /// </summary>
+    private static object[] GetIndices(string stringIndexer)
+    {
+        // Split by comma and parse each indexer, removing whitespace
+        var indexerParts = stringIndexer.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                        .Select(s => s.Trim())
+                                        .ToArray();
+
+        // Parse each part into appropriate type (int or string)
+        return [.. indexerParts.Select(indexPart =>
+            int.TryParse(indexPart, out int intIndex) ? (object)intIndex : indexPart
+        )];
     }
 
     private static Expression EnsureObjectCompatibleResult(Expression expression) => 
