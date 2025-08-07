@@ -170,17 +170,17 @@ public partial class TableView
     public static readonly DependencyProperty CurrentCellSlotProperty = DependencyProperty.Register(nameof(CurrentCellSlot), typeof(TableViewCellSlot?), typeof(TableView), new PropertyMetadata(default, OnCurrentCellSlotChanged));
 
     /// <summary>
-    /// Identifies the IsHeaderRightClickMenuEnabled dependency property.
+    /// Identifies the UseRightClickForColumnFilter dependency property.
     /// </summary>
-    public static readonly DependencyProperty IsHeaderRightClickMenuEnabledProperty = DependencyProperty.Register(nameof(IsHeaderRightClickMenuEnabled), typeof(bool), typeof(TableView), new PropertyMetadata(false));
+    public static readonly DependencyProperty UseRightClickForColumnFilterProperty = DependencyProperty.Register(nameof(UseRightClickForColumnFilter), typeof(bool), typeof(TableView), new PropertyMetadata(false));
 
     /// <summary>
-    /// Gets or sets a value indicating whether opening the OptionsMenu over header right-click is enabled.
+    /// Gets or sets a value indicating whether opening the column filter over header right-click is enabled.
     /// </summary>
-    public bool IsHeaderRightClickMenuEnabled
+    public bool UseRightClickForColumnFilter
     {
-        get => (bool)GetValue(IsHeaderRightClickMenuEnabledProperty);
-        set => SetValue(IsHeaderRightClickMenuEnabledProperty, value);
+        get => (bool)GetValue(UseRightClickForColumnFilterProperty);
+        set => SetValue(UseRightClickForColumnFilterProperty, value);
     }
 
     /// <summary>
