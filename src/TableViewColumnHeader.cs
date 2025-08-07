@@ -77,7 +77,7 @@ public partial class TableViewColumnHeader : ContentControl
             return;
         }
 
-        // Shows the button's flyout if options button is available and either filtering or sorting is enabled
+        // Shows the button's flyout if options button is available and filtering is enabled
         if (_optionsButton is not null && CanFilter)
         {
             _optionsButton.Flyout?.ShowAt(_optionsButton);            
