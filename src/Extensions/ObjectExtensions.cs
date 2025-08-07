@@ -67,6 +67,7 @@ internal static partial class ObjectExtensions
         foreach (Match match in matches)
         {
             string part = match.Value;
+            Expression nextPropertyAccess;
 
             // Indexer
             if (part.StartsWith('[') && part.EndsWith(']'))
@@ -79,7 +80,7 @@ internal static partial class ObjectExtensions
                     if (!indices.All(idx => idx is int))
                         throw new ArgumentException($"Arrays only support integer indexing, not the provided indexer [{part[1..^1]}]");
 
-                    current = AddArrayAccessWithBoundsCheck(current, [.. indices.Select(index => (int)index)]);
+                    nextPropertyAccess = AddArrayAccessWithBoundsCheck(current, [.. indices.Select(index => (int)index)]);
                 }
                 else
                 {
@@ -90,16 +91,24 @@ internal static partial class ObjectExtensions
 
                     // Create constant expressions for each index
                     var indexExpressions = indices.Select(Expression.Constant).ToArray();
-                    current = Expression.Property(current, indexerProperty, indexExpressions);
+                    nextPropertyAccess = Expression.Property(current, indexerProperty, indexExpressions);
                 }
             }
             // Simple property access
             else
-            {   
+            {
                 var propertyInfo = current.Type.GetProperty(part, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                     ?? throw new ArgumentException($"Property '{part}' not found on type '{current.Type.Name}'");
-                current = Expression.Property(current, propertyInfo);
+                nextPropertyAccess = Expression.Property(current, propertyInfo);
             }
+
+            // Add null check: if current is null, return null; otherwise, evaluate the property access
+            var notNullCheck = Expression.NotEqual(current, Expression.Constant(null));
+            current = Expression.Condition(
+                notNullCheck,
+                nextPropertyAccess,
+                Expression.Constant(null, nextPropertyAccess.Type)
+            );
 
             // Compile a lambda of the partial expression thus far (cast to object), to see if we need to add a cast
             var lambdaTemp = Expression.Lambda<Func<object, object?>>(EnsureObjectCompatibleResult(current), parameterObj);
@@ -107,8 +116,8 @@ internal static partial class ObjectExtensions
             // Evaluate this compiled function, to see if the result type is more specific than the current expression type. If so, cast to it
             var result = funcCurrent(dataItem);
             var runtimeType = result?.GetType() ?? current.Type;
-            if (current.Type != runtimeType 
-                && current.Type.IsAssignableFrom(runtimeType) 
+            if (current.Type != runtimeType
+                && current.Type.IsAssignableFrom(runtimeType)
                 && !runtimeType.IsValueType // Avoid conversion for value types; the result could be null, causing System.NullReferenceException at runtime
                )
                 current = Expression.Convert(current, runtimeType);
@@ -151,9 +160,6 @@ internal static partial class ObjectExtensions
         if (indices.Length != rank)
             throw new ArgumentException($"Array of rank {rank} requires {rank} indices, but {indices.Length} were provided.");
 
-        // Null check on the input array
-        var notNullCheck = Expression.NotEqual(parameterArray, Expression.Constant(null));
-
         // Bounds check for each dimension
         Expression boundsCheck = null!;
         var getLengthMethod = typeof(Array).GetMethod("GetLength")!;
@@ -175,8 +181,7 @@ internal static partial class ObjectExtensions
         }
 
         // Return the conditional expression directly - this will cause the parent Func<> to return null
-        var expressionBlock = Expression.Condition(
-            Expression.AndAlso(notNullCheck, boundsCheck),  // null-check and bounds-check
+        var expressionBlock = Expression.Condition( boundsCheck,
             Expression.Convert(Expression.ArrayAccess(parameterArray, indexConstants), typeof(object)),
             Expression.Constant(null, typeof(object))
         );
