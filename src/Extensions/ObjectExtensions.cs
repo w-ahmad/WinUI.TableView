@@ -142,12 +142,17 @@ internal static partial class ObjectExtensions
         if (!current.Type.IsArray)
             throw new ArgumentException("Current expression must be an array.");
 
+        // Since array/indexer handling does various checks, it is more performant and readable to store the current expression in a variable
+        // which we will use as input to the block with array/indexer handling code.
+        var parameterArray = Expression.Parameter(current.Type, "array");
+        var assignArray = Expression.Assign(parameterArray, current);
+
         var rank = current.Type.GetArrayRank();
         if (indices.Length != rank)
             throw new ArgumentException($"Array of rank {rank} requires {rank} indices, but {indices.Length} were provided.");
 
         // Null check on the input array
-        var notNullCheck = Expression.NotEqual(current, Expression.Constant(null, current.Type));
+        var notNullCheck = Expression.NotEqual(parameterArray, Expression.Constant(null));
 
         // Bounds check for each dimension
         Expression boundsCheck = null!;
@@ -163,18 +168,26 @@ internal static partial class ObjectExtensions
             indexConstants[dimension] = indexConst;
 
             // GetLength method call for the current dimension
-            var lengthProp = Expression.Call(current, getLengthMethod, Expression.Constant(dimension));
+            var lengthProp = Expression.Call(parameterArray, getLengthMethod, Expression.Constant(dimension));
 
             var dimCheck = Expression.LessThan(indexConst, lengthProp);
             boundsCheck = boundsCheck == null ? dimCheck : Expression.AndAlso(boundsCheck, dimCheck);
         }
 
         // Return the conditional expression directly - this will cause the parent Func<> to return null
-        return Expression.Condition(
+        var expressionBlock = Expression.Condition(
             Expression.AndAlso(notNullCheck, boundsCheck),  // null-check and bounds-check
-            Expression.Convert(Expression.ArrayAccess(current, indexConstants), typeof(object)),
+            Expression.Convert(Expression.ArrayAccess(parameterArray, indexConstants), typeof(object)),
             Expression.Constant(null, typeof(object))
         );
+
+        // Add the block
+        return Expression.Block(
+            new[] { parameterArray },
+            assignArray,
+            expressionBlock
+            );
+
     }
 
     private static Expression EnsureObjectCompatibleResult(Expression expression) => 
