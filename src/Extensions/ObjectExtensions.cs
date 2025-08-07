@@ -1,4 +1,3 @@
-using Microsoft.UI.Xaml;
 using System;
 using System.Collections;
 using System.Linq;
@@ -31,10 +30,10 @@ internal static partial class ObjectExtensions
             var parameterObj = Expression.Parameter(typeof(object), "obj");
             var propertyAccess = BuildPropertyPathExpressionTree(parameterObj, bindingPath, dataItem);
 
-            // var strCode = propertyAccess.ToString();  // Uncomment to debug the expression tree
-
             // Compile the lambda expression
             var lambda = Expression.Lambda<Func<object, object?>>(Expression.Convert(propertyAccess, typeof(object)), parameterObj);
+            
+            // To debug, set a breakpoint below and inspect the "DebugView" property on "propertyAccess"
             var _compiledPropertyPath = lambda.Compile();
             return _compiledPropertyPath;
         }
@@ -57,8 +56,11 @@ internal static partial class ObjectExtensions
 
         // The function uses a generic object input parameter to allow for any type of data item,
         // but we need to ensure that the runtime type matches the data item type that is inputted as example to be able to find members
-        if (current.Type != dataItem.GetType())
-            current = Expression.Convert(current, dataItem.GetType());
+        {
+            var type = dataItem.GetType();
+            if (current.Type != type && !type.IsValueType)
+                current = Expression.Convert(current, dataItem.GetType());
+        }
 
         var matches = PropertyPathRegex().Matches(bindingPath);
 
@@ -77,8 +79,7 @@ internal static partial class ObjectExtensions
                     if (!indices.All(idx => idx is int))
                         throw new ArgumentException($"Arrays only support integer indexing, not the provided indexer [{part[1..^1]}]");
 
-                    var indexExpressions = indices.Select(Expression.Constant).ToArray();
-                    current = Expression.ArrayIndex(current, indexExpressions);
+                    current = AddArrayAccessWithBoundsCheck(current, [.. indices.Select(index => (int)index)]);
                 }
                 else
                 {
@@ -106,7 +107,10 @@ internal static partial class ObjectExtensions
             // Evaluate this compiled function, to see if the result type is more specific than the current expression type. If so, cast to it
             var result = funcCurrent(dataItem);
             var runtimeType = result?.GetType() ?? current.Type;
-            if (current.Type != runtimeType && current.Type.IsAssignableFrom(runtimeType))
+            if (current.Type != runtimeType 
+                && current.Type.IsAssignableFrom(runtimeType) 
+                && !runtimeType.IsValueType // Avoid conversion for value types; the result could be null, causing System.NullReferenceException at runtime
+               )
                 current = Expression.Convert(current, runtimeType);
         }
 
@@ -127,6 +131,50 @@ internal static partial class ObjectExtensions
         return [.. indexerParts.Select(indexPart =>
             int.TryParse(indexPart, out int intIndex) ? (object)intIndex : indexPart
         )];
+    }
+
+    /// <summary>
+    /// Adds array access to the current expression, given the inputted indices, and adds bounds checking; 
+    /// the code for this expression will return null if the indices are out of bounds.
+    /// </summary>
+    private static Expression AddArrayAccessWithBoundsCheck(Expression current, int[] indices)
+    {
+        if (!current.Type.IsArray)
+            throw new ArgumentException("Current expression must be an array.");
+
+        var rank = current.Type.GetArrayRank();
+        if (indices.Length != rank)
+            throw new ArgumentException($"Array of rank {rank} requires {rank} indices, but {indices.Length} were provided.");
+
+        // Null check on the input array
+        var notNullCheck = Expression.NotEqual(current, Expression.Constant(null, current.Type));
+
+        // Bounds check for each dimension
+        Expression boundsCheck = null!;
+        var getLengthMethod = typeof(Array).GetMethod("GetLength")!;
+        var indexConstants = new Expression[rank];
+        for (int dimension = 0; dimension < rank; dimension++)
+        {
+            var index = indices[dimension];
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(indices), $"Index for dimension {dimension} cannot be negative: {index}");
+
+            var indexConst = Expression.Constant(index);
+            indexConstants[dimension] = indexConst;
+
+            // GetLength method call for the current dimension
+            var lengthProp = Expression.Call(current, getLengthMethod, Expression.Constant(dimension));
+
+            var dimCheck = Expression.LessThan(indexConst, lengthProp);
+            boundsCheck = boundsCheck == null ? dimCheck : Expression.AndAlso(boundsCheck, dimCheck);
+        }
+
+        // Return the conditional expression directly - this will cause the parent Func<> to return null
+        return Expression.Condition(
+            Expression.AndAlso(notNullCheck, boundsCheck),  // null-check and bounds-check
+            Expression.Convert(Expression.ArrayAccess(current, indexConstants), typeof(object)),
+            Expression.Constant(null, typeof(object))
+        );
     }
 
     private static Expression EnsureObjectCompatibleResult(Expression expression) => 

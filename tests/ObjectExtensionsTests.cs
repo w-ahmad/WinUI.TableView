@@ -101,6 +101,30 @@ public class ObjectExtensionsTests
     }
 
     [TestMethod]
+    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForOutOfBoundsArrayIndex()
+    {
+        var testItem = new TestItem { IntArray = [10, 20, 30] };
+        var func = testItem.GetFuncCompiledPropertyPath("IntArray[2]");
+        Assert.IsNotNull(func);
+        var testItem2 = new TestItem { IntArray = [1] };
+        var result = func(testItem2);
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForOutOfBoundsMultiDimArrayIndex()
+    {
+        var testItem3x3 = new TestItem { Int2DArray = new int[,] { { 1, 2, 3 }, { 10, 20, 30 } } };
+        var func = testItem3x3.GetFuncCompiledPropertyPath("Int2DArray[2,2]");
+        Assert.IsNotNull(func);
+        var result = func(testItem3x3);
+
+        var testItem2x2 = new TestItem { Int2DArray = new int[,] { { 1, 2 }, { 10, 30 } } };
+        result = func(testItem2x2);
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
     public void GetItemType_ShouldReturnCorrectType_ForGenericEnumerable()
     {
         var list = new List<int> { 1, 2, 3 };
