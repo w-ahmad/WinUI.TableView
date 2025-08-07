@@ -31,6 +31,8 @@ internal static partial class ObjectExtensions
             var parameterObj = Expression.Parameter(typeof(object), "obj");
             var propertyAccess = BuildPropertyPathExpressionTree(parameterObj, bindingPath, dataItem);
 
+            // var strCode = propertyAccess.ToString();  // Uncomment to debug the expression tree
+
             // Compile the lambda expression
             var lambda = Expression.Lambda<Func<object, object?>>(Expression.Convert(propertyAccess, typeof(object)), parameterObj);
             var _compiledPropertyPath = lambda.Compile();
@@ -38,7 +40,6 @@ internal static partial class ObjectExtensions
         }
         catch
         {
-            // If compilation fails, fall back to reflection-based approach
             return null;
         }
     }
@@ -69,28 +70,18 @@ internal static partial class ObjectExtensions
             if (part.StartsWith('[') && part.EndsWith(']'))
             {
                 string stringIndex = part[1..^1];
+                object index = int.TryParse(stringIndex, out int intIndex) ? intIndex : stringIndex;
 
-                // See if this is an integer index
-                if (int.TryParse(stringIndex, out int index))
+                if (current.Type.IsArray)
                 {
-                    if (current.Type.IsArray)
-                    {
-                        current = Expression.ArrayIndex(current, Expression.Constant(index));
-                    }
-                    else
-                    {
-                        // Try to find an indexer property, with an int parameter
-                        var indexerProperty = current.Type.GetProperty("Item", [typeof(int)]) 
-                            ?? throw new ArgumentException($"Type '{current.Type.Name}' does not support integer indexing");
-                        current = Expression.Property(current, indexerProperty, Expression.Constant(index));
-                    }
+                    current = Expression.ArrayIndex(current, Expression.Constant(index));
                 }
                 else
                 {
-                    // Try to find an indexer property, with an string parameter
-                    var indexerProperty = current.Type.GetProperty("Item", [typeof(string)]) 
-                        ?? throw new ArgumentException($"Type '{current.Type.Name}' does not support string indexing");
-                    current = Expression.Property(current, indexerProperty, Expression.Constant(stringIndex));
+                    // Try to find an indexer property, with the type of by indexAnyType.
+                    var indexerProperty = current.Type.GetProperty("Item", [index.GetType()]) 
+                        ?? throw new ArgumentException($"Type '{current.Type.Name}' does not support integer indexing");
+                    current = Expression.Property(current, indexerProperty, Expression.Constant(index));
                 }
             }
             // Simple property access
