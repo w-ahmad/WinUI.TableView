@@ -101,6 +101,21 @@ public class ObjectExtensionsTests
     }
 
     [TestMethod]
+    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForInvalidDictionaryIndexer()
+    {
+        var testItem = new TestItem { Dictionary2 = new() { { 1, "value1" } } };
+        var func = testItem.GetFuncCompiledPropertyPath("Dictionary2[1]");
+        Assert.IsNotNull(func);
+
+        var result = func(testItem);
+        Assert.AreEqual("value1", result);
+
+        testItem = new TestItem { Dictionary2 = new() { { 2, "value2" } } };
+        result = func(testItem);
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
     public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForInvalidArrayIndex()
     {
         var testItem = new TestItem { SubItems = [new() { SubSubItems = [new() { Name = "NestedValue" }] }] };

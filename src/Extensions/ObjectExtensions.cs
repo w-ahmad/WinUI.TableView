@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -76,7 +77,7 @@ internal static partial class ObjectExtensions
 
                 if (current.Type.IsArray)
                 {
-                    // Arrays only support single integer indexing
+                    // Arrays only support integer indexing
                     if (!indices.All(idx => idx is int))
                         throw new ArgumentException($"Arrays only support integer indexing, not the provided indexer [{part[1..^1]}]");
 
@@ -84,14 +85,7 @@ internal static partial class ObjectExtensions
                 }
                 else
                 {
-                    // Try to find an indexer property with the appropriate parameter types
-                    var indexerTypes = indices.Select(idx => idx.GetType()).ToArray();
-                    var indexerProperty = current.Type.GetProperty("Item", indexerTypes)
-                        ?? throw new ArgumentException($"Type '{current.Type.Name}' does not support indexing with types: {string.Join(", ", indexerTypes.Select(t => t.Name))}");
-
-                    // Create constant expressions for each index
-                    var indexExpressions = indices.Select(Expression.Constant).ToArray();
-                    nextPropertyAccess = Expression.Property(current, indexerProperty, indexExpressions);
+                    nextPropertyAccess = AddIndexerAccessWithSafetyChecks(current, indices);
                 }
             }
             // Simple property access
@@ -132,7 +126,7 @@ internal static partial class ObjectExtensions
     private static object[] GetIndices(string stringIndexer)
     {
         // Split by comma and parse each indexer, removing whitespace
-        var indexerParts = stringIndexer.Split(',', StringSplitOptions.RemoveEmptyEntries)
+        var indexerParts = stringIndexer.Split(',')
                                         .Select(s => s.Trim())
                                         .ToArray();
 
@@ -146,7 +140,7 @@ internal static partial class ObjectExtensions
     /// Adds array access to the current expression, given the inputted indices, and adds bounds checking; 
     /// the code for this expression will return null if the indices are out of bounds.
     /// </summary>
-    private static Expression AddArrayAccessWithBoundsCheck(Expression current, int[] indices)
+    private static BlockExpression AddArrayAccessWithBoundsCheck(Expression current, int[] indices)
     {
         if (!current.Type.IsArray)
             throw new ArgumentException("Current expression must be an array.");
@@ -180,15 +174,16 @@ internal static partial class ObjectExtensions
             boundsCheck = boundsCheck == null ? dimCheck : Expression.AndAlso(boundsCheck, dimCheck);
         }
 
-        // Return the conditional expression directly - this will cause the parent Func<> to return null
-        var expressionBlock = Expression.Condition( boundsCheck,
+        // If bounds check is not satisfied, return null; otherwise, access the array element
+        var expressionBlock = Expression.Condition( 
+            boundsCheck,
             Expression.Convert(Expression.ArrayAccess(parameterArray, indexConstants), typeof(object)),
             Expression.Constant(null, typeof(object))
         );
 
         // Add the block
         return Expression.Block(
-            new[] { parameterArray },
+            [parameterArray],
             assignArray,
             expressionBlock
             );
@@ -200,6 +195,176 @@ internal static partial class ObjectExtensions
             ? expression
             : Expression.Convert(expression, typeof(object));
 
+    /// <summary>
+    /// Adds safe indexer access to the current expression, with appropriate bounds/key checking for various collection types.
+    /// Returns null if the indexer access would fail (out of bounds, missing key, etc.).
+    /// </summary>
+    private static Expression AddIndexerAccessWithSafetyChecks(Expression current, object[] indices)
+    {
+        var currentType = current.Type;
+        var parameter = Expression.Parameter(currentType, "collection");
+        var assignCurrent = Expression.Assign(parameter, current);
+
+        // Handle IDictionary<TKey, TValue> - use TryGetValue
+        if (TryCreateDictionaryTryGetExpression(currentType, parameter, indices, out var dictionaryExpr))
+        {
+            return Expression.Block([parameter], assignCurrent, dictionaryExpr);
+        }
+
+        // Handle (generic) IList and ICollection - bounds checking
+        if (TryCreateIListOrICollectionBoundsCheckExpression(currentType, parameter, indices, out var listExpr))
+        {
+            return Expression.Block([parameter], assignCurrent, listExpr);
+        }
+
+        // Handle generic indexers - check if indexer exists
+        if (TryCreateGenericIndexerExpression(currentType, parameter, indices, out var indexerExpr))
+        {
+            return Expression.Block([parameter], assignCurrent, indexerExpr);
+        }
+
+        // If no safe indexer can be created, return null
+        return Expression.Constant(null, typeof(object));
+    }
+
+    /// <summary>
+    /// Creates a TryGetValue expression for IDictionary types.
+    /// </summary>
+    private static bool TryCreateDictionaryTryGetExpression(Type type, ParameterExpression parameter, object[] indices, out Expression expression)
+    {
+        expression = null!;
+
+        if (indices.Length != 1)
+            return false;
+
+        // Find IDictionary<TKey, TValue> interface
+        var dictionaryInterface = type.GetInterfaces()
+            .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IDictionary<,>));
+
+        if (dictionaryInterface == null)
+            return false;  //apparently not a dictionary
+
+        var genericArgs = dictionaryInterface.GetGenericArguments();
+        var keyType = genericArgs[0];
+        var valueType = genericArgs[1];
+
+        // Check if the index type matches the key type
+        if (!keyType.IsAssignableFrom(indices[0].GetType()))
+        {
+            // Type mismatch - return an expression that always returns null
+            expression = Expression.Constant(null, typeof(object));
+            return true;
+        }
+
+        // Get TryGetValue method
+        var tryGetValueMethod = dictionaryInterface.GetMethod("TryGetValue");
+        if (tryGetValueMethod == null)
+            throw new InvalidOperationException($"The dictionary type {type} has no TryGetValue method");    // should not happen
+
+        // Create variables for the key and output value
+        var keyExpr = Expression.Constant(indices[0], keyType);
+        var valueVar = Expression.Parameter(valueType, "value");
+
+        // Call TryGetValue
+        var tryGetCall = Expression.Call(parameter, tryGetValueMethod, keyExpr, valueVar);
+
+        // Return value if found, null if not found
+        expression = Expression.Block(
+            [valueVar],
+            Expression.Condition(
+                tryGetCall,
+                Expression.Convert(valueVar, typeof(object)),
+                Expression.Constant(null, typeof(object))
+            )
+        );
+
+        return true;
+    }
+
+    /// <summary>
+    /// Creates a bounds-checked expression for IList and ICollection types.
+    /// </summary>
+    private static bool TryCreateIListOrICollectionBoundsCheckExpression(Type type, ParameterExpression parameter, object[] indices, out Expression expression)
+    {
+        expression = null!;
+
+        if (indices.Length != 1 || indices[0] is not int index)
+            return false;
+
+        // Try to find an indexer property with the appropriate parameter types
+        var indexerProperty = type.GetProperty("Item", [typeof(int)]);
+        if (indexerProperty == null)
+            return false;  // No indexer found
+
+        // Check for IList<T>
+        var listInterface = type.GetInterfaces()
+            .FirstOrDefault(i => i.IsGenericType && 
+                            ( i.GetGenericTypeDefinition() == typeof(IList<>) || 
+                              i.GetGenericTypeDefinition() == typeof(ICollection<>)
+                            ));
+
+        if (listInterface != null || 
+            typeof(IList).IsAssignableFrom(type) ||     // Does have an indexer
+            typeof(ICollection).IsAssignableFrom(type)  // Has no indexer, but we can still check bounds; since it derives from ICollection at the least, the indexer is expected to be aimed at the collection
+           )
+        {
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(indices), $"Index for (generic) IList/ICollection cannot be negative: {index}");
+
+            var countProperty = type.GetProperty("Count");
+
+            if (indexerProperty != null && countProperty != null)
+            {
+                var indexExpr = Expression.Constant(index);
+                var countExpr = Expression.Property(parameter, countProperty);
+                var boundsCheck = Expression.LessThan(indexExpr, countExpr);
+
+                expression = Expression.Condition(
+                    boundsCheck,
+                    Expression.Convert(Expression.Property(parameter, indexerProperty, indexExpr), typeof(object)),
+                    Expression.Constant(null, typeof(object))
+                );
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Creates an expression for generic indexers, with try-catch to handle potential exceptions.
+    /// Returns null if indexer access fails for any reason.
+    /// </summary>
+    private static bool TryCreateGenericIndexerExpression(Type type, ParameterExpression parameter, object[] indices, out Expression expression)
+    {
+        expression = null!;
+
+        // Try to find an indexer property with the appropriate parameter types
+        var indexerTypes = indices.Select(idx => idx.GetType()).ToArray();
+        var indexerProperty = type.GetProperty("Item", indexerTypes);
+
+        if (indexerProperty == null)
+            return false;
+
+        // Create constant expressions for each index
+        var indexExpressions = indices.Select(Expression.Constant).ToArray();
+
+        // Create the indexer access
+        var indexerAccess = Expression.Property(parameter, indexerProperty, indexExpressions);
+
+        // Wrap in try-catch to handle any exceptions that might occur during indexer access, due to non-existing keys or out-of-bounds indices
+        var tryBlock = Expression.Convert(indexerAccess, typeof(object));
+        var catchBlock = Expression.Constant(null, typeof(object));
+
+        // Create try-catch expression - return null for any exception
+        expression = Expression.TryCatch(
+            tryBlock,
+            Expression.Catch(typeof(Exception), catchBlock)
+        );
+
+        return true;
+    }
 
     /// <summary>
     /// Determines the type of items contained within the specified <see cref="IEnumerable"/>.
