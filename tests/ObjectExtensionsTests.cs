@@ -8,7 +8,17 @@ namespace WinUI.TableView.Tests;
 public class ObjectExtensionsTests
 {
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldAccessSimpleNestedProperty()
+    public void GetFuncCompiledPropertyPath_ShouldAccessSimpleProperty()
+    {
+        var testItem = new TestItem { Number = 7 };
+        var func = testItem.GetFuncCompiledPropertyPath("Number");
+        Assert.IsNotNull(func);
+        var result = func(testItem);
+        Assert.AreEqual(7, result);
+    }
+
+    [TestMethod]
+    public void GetFuncCompiledPropertyPath_ShouldAccessNestedProperty()
     {
         var testItem = new TestItem { SubItems = [new() { SubSubItems = [new() { Name = "NestedValue" }] }] };
         var func = testItem.GetFuncCompiledPropertyPath("SubItems[0].SubSubItems[0].Name");
@@ -214,6 +224,7 @@ public class ObjectExtensionsTests
 
     private class TestItem
     {
+        public int Number { get; set; } = 0;
         public List<SubItem> SubItems { get; set; } = [];
         public Dictionary<string, string> Dictionary1 { get; set; } = [];
         public Dictionary<int, string> Dictionary2 { get; set; } = [];

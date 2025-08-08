@@ -93,16 +93,25 @@ internal static partial class ObjectExtensions
             {
                 var propertyInfo = current.Type.GetProperty(part, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                     ?? throw new ArgumentException($"Property '{part}' not found on type '{current.Type.Name}'");
+
                 nextPropertyAccess = Expression.Property(current, propertyInfo);
             }
 
-            // Add null check: if current is null, return null; otherwise, evaluate the property access
-            var notNullCheck = Expression.NotEqual(current, Expression.Constant(null));
-            current = Expression.Condition(
-                notNullCheck,
-                nextPropertyAccess,
-                Expression.Constant(null, nextPropertyAccess.Type)
-            );
+            if (IsObjectCompatible(nextPropertyAccess.Type))
+            {
+                // Add null check: if current is null, stop and return null; otherwise, continue with the next access
+                var notNullCheck = Expression.NotEqual(current, Expression.Constant(null));
+                current = Expression.Condition(
+                    notNullCheck,
+                    nextPropertyAccess,
+                    Expression.Constant(null, nextPropertyAccess.Type)
+                );
+            }
+            else
+            {
+                // Value types cannot be null, so don't need to check for null, and we can directly assign the property access
+                current = nextPropertyAccess;
+            }
 
             // Compile a lambda of the partial expression thus far (cast to object), to see if we need to add a cast
             var lambdaTemp = Expression.Lambda<Func<object, object?>>(EnsureObjectCompatibleResult(current), parameterObj);
@@ -175,7 +184,7 @@ internal static partial class ObjectExtensions
         }
 
         // If bounds check is not satisfied, return null; otherwise, access the array element
-        var expressionBlock = Expression.Condition( 
+        var expressionBlock = Expression.Condition(
             boundsCheck,
             Expression.Convert(Expression.ArrayAccess(parameterArray, indexConstants), typeof(object)),
             Expression.Constant(null, typeof(object))
@@ -190,10 +199,10 @@ internal static partial class ObjectExtensions
 
     }
 
-    private static Expression EnsureObjectCompatibleResult(Expression expression) => 
-        typeof(object).IsAssignableFrom(expression.Type) && !expression.Type.IsValueType
-            ? expression
-            : Expression.Convert(expression, typeof(object));
+    private static Expression EnsureObjectCompatibleResult(Expression expression) =>
+        IsObjectCompatible(expression.Type) ? expression : Expression.Convert(expression, typeof(object));
+
+    private static bool IsObjectCompatible(Type typeToCheck) => typeof(object).IsAssignableFrom(typeToCheck) && !typeToCheck.IsValueType;
 
     /// <summary>
     /// Adds safe indexer access to the current expression, with appropriate bounds/key checking for various collection types.
@@ -298,12 +307,12 @@ internal static partial class ObjectExtensions
 
         // Check for IList<T>
         var listInterface = type.GetInterfaces()
-            .FirstOrDefault(i => i.IsGenericType && 
-                            ( i.GetGenericTypeDefinition() == typeof(IList<>) || 
+            .FirstOrDefault(i => i.IsGenericType &&
+                            (i.GetGenericTypeDefinition() == typeof(IList<>) ||
                               i.GetGenericTypeDefinition() == typeof(ICollection<>)
                             ));
 
-        if (listInterface != null || 
+        if (listInterface != null ||
             typeof(IList).IsAssignableFrom(type) ||     // Does have an indexer
             typeof(ICollection).IsAssignableFrom(type)  // Has no indexer, but we can still check bounds; since it derives from ICollection at the least, the indexer is expected to be aimed at the collection
            )
