@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WinUI.TableView.Extensions;
@@ -165,6 +166,106 @@ public class ObjectExtensionsTests
     }
 
     [TestMethod]
+    public void GetFuncCompiledPropertyPath_ShouldAccessListByIndex()
+    {
+        var testItem = new TestItem { StringList = ["item0", "item1", "item2"] };
+        var func = testItem.GetFuncCompiledPropertyPath("StringList[1]");
+        Assert.IsNotNull(func);
+        var result = func(testItem);
+        Assert.AreEqual("item1", result);
+    }
+
+    [TestMethod]
+    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForOutOfBoundsListIndex()
+    {
+        var testItem = new TestItem { StringList = ["item0", "item1", "item2"] };
+        var func = testItem.GetFuncCompiledPropertyPath("StringList[2]");
+        Assert.IsNotNull(func);
+        var result = func(testItem);
+        Assert.AreEqual("item2", result);
+
+        // Test with different data that has fewer items - should return null
+        testItem = new TestItem { StringList = ["item0"] };
+        result = func(testItem);
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForDictionaryKeyTypeMismatch()
+    {
+        // Dictionary<string, string> accessed with int key
+        var testItem = new TestItem { Dictionary1 = new() { { "key1", "value1" } } };
+        var func = testItem.GetFuncCompiledPropertyPath("Dictionary1[123]"); // int key for string-keyed dictionary
+        Assert.IsNotNull(func);
+        var result = func(testItem);
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void GetFuncCompiledPropertyPath_ShouldAccessValueTypeProperty()
+    {
+        var testItem = new TestItem { ValueTypeStruct = new TestStruct { Value = 42 } };
+        var func = testItem.GetFuncCompiledPropertyPath("ValueTypeStruct.Value");
+        Assert.IsNotNull(func);
+        var result = func(testItem);
+        Assert.AreEqual(42, result);
+    }
+
+    [TestMethod]
+    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForNegativeArrayIndex()
+    {
+        var testItem = new TestItem { IntArray = [10, 20, 30] };
+        var func = testItem.GetFuncCompiledPropertyPath("IntArray[-1]");
+        Assert.IsNull(func); // Should fail during expression building
+    }
+
+    [TestMethod]
+    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForNegativeListIndex()
+    {
+        var testItem = new TestItem { StringList = ["item0", "item1"] };
+        var func = testItem.GetFuncCompiledPropertyPath("StringList[-1]");
+        Assert.IsNull(func); // Should fail during expression building
+    }
+
+    [TestMethod]
+    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForWrongArrayDimensions()
+    {
+        var testItem = new TestItem { Int2DArray = new int[,] { { 1, 2 }, { 3, 4 } } };
+        var func = testItem.GetFuncCompiledPropertyPath("Int2DArray[1]"); // 2D array with 1D index
+        Assert.IsNull(func); // Should fail during expression building
+    }
+
+    [TestMethod]
+    public void GetFuncCompiledPropertyPath_ShouldAccessNonGenericList()
+    {
+        var testItem = new TestItem { NonGenericList = new System.Collections.ArrayList { "item0", "item1", "item2" } };
+        var func = testItem.GetFuncCompiledPropertyPath("NonGenericList[1]");
+        Assert.IsNotNull(func);
+        var result = func(testItem);
+        Assert.AreEqual("item1", result);
+    }
+
+    [TestMethod]
+    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForOutOfBoundsNonGenericList()
+    {
+        var testItem = new TestItem { NonGenericList = new System.Collections.ArrayList { "item0" } };
+        var func = testItem.GetFuncCompiledPropertyPath("NonGenericList[5]");
+        Assert.IsNotNull(func);
+        var result = func(testItem);
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForEmptyList()
+    {
+        var testItem = new TestItem { StringList = [] };
+        var func = testItem.GetFuncCompiledPropertyPath("StringList[0]");
+        Assert.IsNotNull(func);
+        var result = func(testItem);
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
     public void GetItemType_ShouldReturnCorrectType_ForGenericEnumerable()
     {
         var list = new List<int> { 1, 2, 3 };
@@ -225,11 +326,14 @@ public class ObjectExtensionsTests
     private class TestItem
     {
         public int Number { get; set; } = 0;
+        public TestStruct ValueTypeStruct { get; set; }
+        public IList NonGenericList { get; set; } = new ArrayList();
         public List<SubItem> SubItems { get; set; } = [];
         public Dictionary<string, string> Dictionary1 { get; set; } = [];
         public Dictionary<int, string> Dictionary2 { get; set; } = [];
         public int[] IntArray { get; set; } = [];
         public int[,] Int2DArray { get; set; } = new int[0, 0];
+        public List<string> StringList { get; set; } = [];
 
         // Multi-dimensional indexer
         private readonly Dictionary<(int, string), string> _multiIndex = new();
@@ -239,4 +343,10 @@ public class ObjectExtensionsTests
             set => _multiIndex[(i, key)] = value;
         }
     }
+
+    public struct TestStruct
+    {
+        public int Value { get; set; }
+    }
 }
+
