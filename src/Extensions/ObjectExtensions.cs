@@ -29,14 +29,14 @@ internal static partial class ObjectExtensions
         {
             // Build the property access expression chain with runtime type checking
             var parameterObj = Expression.Parameter(typeof(object), "obj");
-            var propertyAccess = BuildPropertyPathExpressionTree(parameterObj, bindingPath, dataItem);
+            var expressionTree = BuildPropertyPathExpressionTree(parameterObj, bindingPath, dataItem);
 
-            // Compile the lambda expression
-            var lambda = Expression.Lambda<Func<object, object?>>(Expression.Convert(propertyAccess, typeof(object)), parameterObj);
+            if (NeedToConvert(expressionTree.Type, typeof(object)))
+                expressionTree = Expression.Convert(expressionTree, typeof(object));
             
-            // To debug, set a breakpoint below and inspect the "DebugView" property on "propertyAccess"
-            var _compiledPropertyPath = lambda.Compile();
-            return _compiledPropertyPath;
+            // Compile the lambda expression
+            var lambda = Expression.Lambda<Func<object, object?>>(expressionTree, parameterObj);
+            return lambda.Compile();   // To DEBUG, set a breakpoint here and inspect the "DebugView" property on the variable "lambda"
         }
         catch
         {
@@ -58,8 +58,8 @@ internal static partial class ObjectExtensions
         // The function uses a generic object input parameter to allow for any type of data item,
         // but we need to ensure that the runtime type matches the data item type that is inputted as example to be able to find members
         {
-            var type = dataItem.GetType();
-            if (current.Type != type && !type.IsValueType)
+            var typeActual = dataItem.GetType();
+            if (current.Type != typeActual && !typeActual.IsValueType)
                 current = Expression.Convert(current, dataItem.GetType());
         }
 
@@ -97,7 +97,12 @@ internal static partial class ObjectExtensions
                 nextPropertyAccess = Expression.Property(current, propertyInfo);
             }
 
-            if (IsObjectCompatible(nextPropertyAccess.Type))
+            if (nextPropertyAccess.Type.IsValueType && !nextPropertyAccess.Type.IsNullableType())
+            {
+                // Value types cannot be null, so don't need to check for null, and we can directly assign the property access
+                current = nextPropertyAccess;
+            }
+            else
             {
                 // Add null check: if current is null, stop and return null; otherwise, continue with the next access
                 var notNullCheck = Expression.NotEqual(current, Expression.Constant(null));
@@ -107,27 +112,33 @@ internal static partial class ObjectExtensions
                     Expression.Constant(null, nextPropertyAccess.Type)
                 );
             }
-            else
-            {
-                // Value types cannot be null, so don't need to check for null, and we can directly assign the property access
-                current = nextPropertyAccess;
-            }
 
-            // Compile a lambda of the partial expression thus far (cast to object), to see if we need to add a cast
-            var lambdaTemp = Expression.Lambda<Func<object, object?>>(EnsureObjectCompatibleResult(current), parameterObj);
-            var funcCurrent = lambdaTemp.Compile();
-            // Evaluate this compiled function, to see if the result type is more specific than the current expression type. If so, cast to it
-            var result = funcCurrent(dataItem);
-            var runtimeType = result?.GetType() ?? current.Type;
-            if (current.Type != runtimeType
-                && current.Type.IsAssignableFrom(runtimeType)
-                && !runtimeType.IsValueType // Avoid conversion for value types; the result could be null, causing System.NullReferenceException at runtime
-               )
-                current = Expression.Convert(current, runtimeType);
+            // Only check for type compatibility (i.e.: the need for conversion) if this is not the last match
+            if (match != matches[^1])
+            {
+                // Compile a lambda of the partial expression thus far (cast to object), to see if we need to add a cast
+                var lambdaTemp = Expression.Lambda<Func<object, object?>>(EnsureObjectCompatibleResult(current), parameterObj);
+                var funcCurrent = lambdaTemp.Compile();
+                // Evaluate this compiled function, to see if the result type is more specific than the current expression type. If so, cast to it
+                var result = funcCurrent(dataItem);
+                var typeResult = result?.GetType() ?? current.Type;
+                if (NeedToConvert(current.Type, typeResult))
+                    current = Expression.Convert(current, typeResult);
+            }
         }
 
         return EnsureObjectCompatibleResult(current);
     }
+
+    private static bool NeedToConvert(Type typeFrom, Type typeTo) => 
+        typeFrom != typeTo && 
+        typeFrom.IsAssignableFrom(typeTo) && 
+        !typeTo.IsValueType; // Avoid conversion for value types; the result could be null, causing System.NullReferenceException at runtime
+
+    private static Expression EnsureObjectCompatibleResult(Expression expression) =>
+        IsObjectCompatible(expression.Type) ? expression : Expression.Convert(expression, typeof(object));
+
+    private static bool IsObjectCompatible(Type typeToCheck) => typeof(object).IsAssignableFrom(typeToCheck) && !typeToCheck.IsValueType;
 
     /// <summary>
     /// Returns the indices from a (possible multi-dimensional) indexer that may be a mixture of integers and strings.
@@ -198,11 +209,6 @@ internal static partial class ObjectExtensions
             );
 
     }
-
-    private static Expression EnsureObjectCompatibleResult(Expression expression) =>
-        IsObjectCompatible(expression.Type) ? expression : Expression.Convert(expression, typeof(object));
-
-    private static bool IsObjectCompatible(Type typeToCheck) => typeof(object).IsAssignableFrom(typeToCheck) && !typeToCheck.IsValueType;
 
     /// <summary>
     /// Adds safe indexer access to the current expression, with appropriate bounds/key checking for various collection types.
