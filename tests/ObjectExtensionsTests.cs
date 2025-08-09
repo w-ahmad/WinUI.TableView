@@ -176,6 +176,16 @@ public class ObjectExtensionsTests
     }
 
     [TestMethod]
+    public void GetFuncCompiledPropertyPath_ShouldAccessPropertyOnString()
+    {
+        var testItem = new TestItem { StringList = ["item0", "item1 long text", "item2"] };
+        var func = testItem.GetFuncCompiledPropertyPath("StringList[1].Length");
+        Assert.IsNotNull(func);
+        var result = func(testItem);
+        Assert.AreEqual(15, result);
+    }
+
+    [TestMethod]
     public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForOutOfBoundsListIndex()
     {
         var testItem = new TestItem { StringList = ["item0", "item1", "item2"] };

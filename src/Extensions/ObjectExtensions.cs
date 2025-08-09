@@ -31,9 +31,6 @@ internal static partial class ObjectExtensions
             var parameterObj = Expression.Parameter(typeof(object), "obj");
             var expressionTree = BuildPropertyPathExpressionTree(parameterObj, bindingPath, dataItem);
 
-            if (NeedToConvert(expressionTree.Type, typeof(object)))
-                expressionTree = Expression.Convert(expressionTree, typeof(object));
-            
             // Compile the lambda expression
             var lambda = Expression.Lambda<Func<object, object?>>(expressionTree, parameterObj);
             return lambda.Compile();   // To DEBUG, set a breakpoint here and inspect the "DebugView" property on the variable "lambda"
@@ -122,23 +119,28 @@ internal static partial class ObjectExtensions
                 // Evaluate this compiled function, to see if the result type is more specific than the current expression type. If so, cast to it
                 var result = funcCurrent(dataItem);
                 var typeResult = result?.GetType() ?? current.Type;
-                if (NeedToConvert(current.Type, typeResult))
+
+                if (current.Type != typeResult)
+                {
+                    // Note that we do not need to check for null before we convert, as the null check is already done in the previous condition
+                    // So, we can safely convert the expression to the result type, even for value types (without the null check, a conversion of null to e.g. an int would result in a NullException being thrown)
                     current = Expression.Convert(current, typeResult);
+                }
             }
         }
 
         return EnsureObjectCompatibleResult(current);
     }
 
-    private static bool NeedToConvert(Type typeFrom, Type typeTo) => 
-        typeFrom != typeTo && 
-        typeFrom.IsAssignableFrom(typeTo) && 
-        !typeTo.IsValueType; // Avoid conversion for value types; the result could be null, causing System.NullReferenceException at runtime
-
-    private static Expression EnsureObjectCompatibleResult(Expression expression) =>
-        IsObjectCompatible(expression.Type) ? expression : Expression.Convert(expression, typeof(object));
-
-    private static bool IsObjectCompatible(Type typeToCheck) => typeof(object).IsAssignableFrom(typeToCheck) && !typeToCheck.IsValueType;
+    private static Expression EnsureObjectCompatibleResult(Expression expression)
+    {
+        // Only convert to object if the expression type is not already assignable to object without boxing
+        if (expression.Type.IsValueType
+            && !expression.Type.IsNullableType()  // e.g. int? is considered a ValueType, but also nullable, which means it can be converted to object without boxing
+           )
+            return Expression.Convert(expression, typeof(object));
+        return expression;
+    }
 
     /// <summary>
     /// Returns the indices from a (possible multi-dimensional) indexer that may be a mixture of integers and strings.
