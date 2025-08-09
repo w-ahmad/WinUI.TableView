@@ -236,6 +236,17 @@ public class ObjectExtensionsTests
     }
 
     [TestMethod]
+    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForThrowingIndexer()
+    {
+        var testItem = new TestItem();
+        // This should trigger the generic indexer path with try-catch
+        var func = testItem.GetFuncCompiledPropertyPath("[999,nonexistent]");
+        Assert.IsNotNull(func);
+        var result = func(testItem);
+        Assert.IsNull(result); // Custom indexer returns empty string, but expression should handle gracefully
+    }
+
+    [TestMethod]
     public void GetFuncCompiledPropertyPath_ShouldAccessNonGenericList()
     {
         var testItem = new TestItem { NonGenericList = new System.Collections.ArrayList { "item0", "item1", "item2" } };
@@ -339,7 +350,7 @@ public class ObjectExtensionsTests
         private readonly Dictionary<(int, string), string> _multiIndex = new();
         public string this[int i, string key]
         {
-            get => _multiIndex.TryGetValue((i, key), out var value) ? value : string.Empty;
+            get => _multiIndex[(i, key)];
             set => _multiIndex[(i, key)] = value;
         }
     }
