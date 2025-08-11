@@ -56,7 +56,7 @@
     <PackageTags>WinUI, WinAppSDK, Windows, UNO, XAML, TableView, DataGrid</PackageTags>
     <Product>WinUI TableView Control</Product>
     <RepositoryUrl>https://github.com/w-ahmad/WinUI.TableView</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/w-ahmad/WinUI.TableView</PackageProjectUrl>
+    <PackageProjectUrl>https://w-ahmad.github.io/WinUI.TableView/</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageOutputPath>$(MSBuildThisFileDirectory)..\artifacts\NuGet\$(Configuration)\</PackageOutputPath>
