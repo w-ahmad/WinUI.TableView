@@ -265,7 +265,7 @@ public partial class TableView
     /// <summary>
     /// Gets the collection of columns in the TableView.
     /// </summary>
-    public TableViewColumnsCollection Columns { get; } = [];
+    public ITableViewColumnsCollection Columns { get; }
 
     /// <summary>
     /// Gets or sets the height of the header row.

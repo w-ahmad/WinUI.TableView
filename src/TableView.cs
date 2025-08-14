@@ -48,7 +48,7 @@ public partial class TableView : ListView
     {
         DefaultStyleKey = typeof(TableView);
 
-        Columns.TableView = this;
+        Columns = new TableViewColumnsCollection(this);
         FilterHandler = new ColumnFilterHandler(this);
         base.ItemsSource = _collectionView;
         base.SelectionMode = SelectionMode;
