@@ -9,12 +9,17 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using WinUI.TableView.Helpers;
+using WinRT;
 
 namespace WinUI.TableView;
 
 /// <summary>
 /// Represents a row in a TableView.
 /// </summary>
+
+#if WINDOWS
+[WinRT.GeneratedBindableCustomPropertyAttribute]
+#endif
 public partial class TableViewRow : ListViewItem
 {
     private const string Selection_Indictor = nameof(Selection_Indictor);
