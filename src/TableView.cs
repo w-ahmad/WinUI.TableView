@@ -523,7 +523,15 @@ public partial class TableView : ListView
 
                 if (!columnArgs.Cancel && columnArgs.Column is not null)
                 {
-                    columnArgs.Column.Order = displayAttribute?.GetOrder();
+                    var displayAttributeOrder = displayAttribute?.GetOrder();
+
+                    // Only set column order if attribute-value valid and not already set via `OnAutoGeneratingColumn` hook.
+                    if (displayAttributeOrder != null)
+                    {
+                        if (columnArgs.Column.Order == null)
+                            columnArgs.Column.Order = displayAttributeOrder;
+                    }
+
                     Columns.Add(columnArgs.Column);
                 }
             }
