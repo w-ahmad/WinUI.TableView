@@ -112,7 +112,7 @@
                                           win:IsDeferredScrollingEnabled="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}"
                                           BringIntoViewOnFocusChange="{TemplateBinding ScrollViewer.BringIntoViewOnFocusChange}"
                                           win:AutomationProperties.AccessibilityView="Raw"
-                                          Template="{StaticResource ScrollViewerScrollBarlessTemplate}">
+                                          Template="{StaticResource TableViewScrollViewerTemplate}">
                                 <ItemsPresenter Padding="{TemplateBinding Padding}" />
                             </ScrollViewer>
                         </Grid>
