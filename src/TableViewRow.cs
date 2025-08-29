@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using WinUI.TableView.Helpers;
-using WinRT;
 
 namespace WinUI.TableView;
 
@@ -18,7 +17,7 @@ namespace WinUI.TableView;
 /// </summary>
 
 #if WINDOWS
-[WinRT.GeneratedBindableCustomPropertyAttribute]
+[WinRT.GeneratedBindableCustomProperty]
 #endif
 public partial class TableViewRow : ListViewItem
 {
