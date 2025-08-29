@@ -230,7 +230,7 @@ public partial class TableViewHeaderRow : Control
             var autoColumns = allColumns.Where(x => x.Width.IsAuto).ToList();
             var absoluteColumns = allColumns.Where(x => x.Width.IsAbsolute).ToList();
 
-            var height = TableView.HeaderRowHeight;
+            var height = ActualHeight;
             var availableWidth = TableView.ActualWidth - 32;
             var starUnitWeight = starColumns.Select(x => x.Width.Value).Sum();
             var fixedWidth = autoColumns.Select(x =>
@@ -300,7 +300,7 @@ public partial class TableViewHeaderRow : Control
                     DispatcherQueue.TryEnqueue(() =>
                         header.Measure(
                             new Size(header.Width,
-                            _headersStackPanel?.ActualHeight ?? TableView.HeaderRowHeight)));
+                            _headersStackPanel?.ActualHeight ?? ActualHeight)));
                 }
             }
 
