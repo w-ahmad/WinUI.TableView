@@ -23,7 +23,7 @@
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel x:Name="StackPanel"
+                            <StackPanel x:Name="CellsStackPanel"
                                         Grid.Column="1"
                                         Orientation="Horizontal">
                                 <!--This is just dummy textblock. It would be removed at runtime-->

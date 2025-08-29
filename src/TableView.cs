@@ -1,11 +1,9 @@
 ﻿using CommunityToolkit.WinUI;
-using CommunityToolkit.WinUI.Animations.Expressions;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Input;
 using System;
 using System.Collections;
@@ -268,21 +266,58 @@ public partial class TableView : ListView
         {
             while (ItemsPanelRoot is null) await Task.Yield();
 
-            ApplyItemsClip();
-            UpdateVerticalScrollBarMargin();
             EnsureAutoColumns();
         }
     }
-
 
     /// <summary>
     /// Handles the Loaded event of the TableView control.
     /// </summary>
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
+        var scrollPresenter = _scrollViewer?.FindDescendant<ScrollContentPresenter>();
+        var xScrollBar = _scrollViewer?.FindDescendant<ScrollBar>(sb => sb.Name is "HorizontalScrollBar2");
+        var yScrollBar = _scrollViewer?.FindDescendant<ScrollBar>(sb => sb.Name is "VerticalScrollBar");
+
+        if (scrollPresenter is not null)
+        {
+            scrollPresenter.PointerWheelChanged += OnScrollContentPresenterPointerWheelChanged;
+        }
+
+        xScrollBar?.SetBinding(RangeBase.ValueProperty, new Binding
+        {
+            Path = new PropertyPath(nameof(HorizontalOffset)),
+            Mode = BindingMode.TwoWay,
+            Source = this
+        });
+
+        yScrollBar?.SetBinding(RangeBase.ValueProperty, new Binding
+        {
+            Path = new PropertyPath(nameof(VerticalOffset)),
+            Mode = BindingMode.TwoWay,
+            Source = this
+        });
+
         EnsureAutoColumns();
-        ApplyItemsClip();
-        UpdateVerticalScrollBarMargin();
+    }
+
+    /// <summary>
+    /// Handles the PointerWheelChanged event of the ScrollContentPresenter.
+    /// </summary>
+    private void OnScrollContentPresenterPointerWheelChanged(object sender, PointerRoutedEventArgs e)
+    {
+        var pointerPoint = e.GetCurrentPoint(this);
+        var isShiftButton = KeyboardHelper.IsShiftKeyDown();
+        var isHorizontalScroll = isShiftButton || pointerPoint.Properties.IsHorizontalMouseWheel;
+
+        if (isHorizontalScroll && _scrollViewer?.ComputedHorizontalScrollBarVisibility is Visibility.Visible)
+        {
+            e.Handled = true;
+
+            var mouseWheelDelta = isShiftButton ? -pointerPoint.Properties.MouseWheelDelta : pointerPoint.Properties.MouseWheelDelta;
+            var xOffset = HorizontalOffset + (mouseWheelDelta / 4.0);
+            SetValue(HorizontalOffsetProperty, Math.Clamp(xOffset, 0, _scrollViewer.ViewportWidth));
+        }
     }
 
     /// <summary>
@@ -721,44 +756,6 @@ public partial class TableView : ListView
     }
 
     /// <summary>
-    /// Applies clipping to the items panel. This will allow header row to stay on top while scrolling
-    /// </summary>
-    private void ApplyItemsClip()
-    {
-#if WINDOWS
-        if (_scrollViewer is null || ItemsPanelRoot is null) return;
-
-        Canvas.SetZIndex(ItemsPanelRoot, -1);
-
-        var scrollProperties = ElementCompositionPreview.GetScrollViewerManipulationPropertySet(_scrollViewer);
-        var compositor = scrollProperties.Compositor;
-        var scrollPropSet = scrollProperties.GetSpecializedReference<ManipulationPropertySetReferenceNode>();
-        var itemsPanelVisual = ElementCompositionPreview.GetElementVisual(ItemsPanelRoot);
-        var contentClip = compositor.CreateInsetClip();
-        var expressionClipAnimation = ExpressionFunctions.Max(-scrollPropSet.Translation.Y, 0);
-
-        itemsPanelVisual.Clip = contentClip;
-        contentClip.TopInset = (float)Math.Max(-_scrollViewer.VerticalOffset, 0);
-        contentClip.StartAnimation("TopInset", expressionClipAnimation);
-#endif
-    }
-
-    /// <summary>
-    /// Updates the margin of the vertical scroll bar to always show under the header row.
-    /// </summary>
-    private void UpdateVerticalScrollBarMargin()
-    {
-        if (GetTemplateChild("ScrollViewer") is ScrollViewer scrollViewer)
-        {
-            var verticalScrollBar = scrollViewer.FindDescendant<ScrollBar>(x => x.Name == "VerticalScrollBar");
-            if (verticalScrollBar is not null)
-            {
-                verticalScrollBar.Margin = new Thickness(0, _headerRow?.ActualHeight ?? 0, 0, 0);
-            }
-        }
-    }
-
-    /// <summary>
     /// Clears all sorting applied to the items.
     /// </summary>
     public void ClearAllSorting()
@@ -1148,7 +1145,7 @@ public partial class TableView : ListView
         var cellLeft = Columns.VisibleColumns.Take(slot.Column).Sum(x => x.ActualWidth);
         var cellWidth = Columns.VisibleColumns[slot.Column].ActualWidth;
         var cellRight = cellLeft + cellWidth;
-        var viewportLeft = _scrollViewer.HorizontalOffset;
+        var viewportLeft = HorizontalOffset;
         var viewportRight = viewportLeft + _scrollViewer.ViewportWidth - SelectionIndicatorWidth;
 
         // If cell is wider than the viewport, align left edge
@@ -1169,33 +1166,12 @@ public partial class TableView : ListView
 
         // If cell is fully in view, just return
         if ((cellLeft >= viewportLeft && cellRight <= viewportRight) ||
-            xOffset == _scrollViewer.HorizontalOffset)
+            xOffset == HorizontalOffset)
         {
             return row.Cells.ElementAt(slot.Column);
         }
 
-        var tcs = new TaskCompletionSource<object?>();
-
-        void ViewChanged(object? _, ScrollViewerViewChangedEventArgs e)
-        {
-            if (e.IsIntermediate)
-            {
-                return;
-            }
-
-            tcs.TrySetResult(result: default);
-        }
-
-        try
-        {
-            _scrollViewer.ViewChanged += ViewChanged;
-            _scrollViewer.ChangeView(xOffset, _scrollViewer.VerticalOffset, null, true);
-            await tcs.Task;
-        }
-        finally
-        {
-            _scrollViewer.ViewChanged -= ViewChanged;
-        }
+        SetValue(HorizontalOffsetProperty, xOffset);
 
         return row?.Cells.ElementAt(slot.Column)!;
     }
@@ -1208,7 +1184,6 @@ public partial class TableView : ListView
     {
         if (_scrollViewer is null) return default!;
 
-        var xOffset = _scrollViewer.HorizontalOffset;
         var item = Items[index];
         index = Items.IndexOf(item); // if the ItemsSource has duplicate items in it. ScrollIntoView will only bring first index of item.
         ScrollIntoView(item);
@@ -1231,7 +1206,7 @@ public partial class TableView : ListView
                     try
                     {
                         _scrollViewer.ViewChanged += ViewChanged;
-                        _scrollViewer.ChangeView(xOffset, yOffset, null, true);
+                        _scrollViewer.ChangeView(0, yOffset, null, true);
                         await tcs.Task;
                     }
                     finally
@@ -1277,7 +1252,8 @@ public partial class TableView : ListView
         var width = 0d;
         foreach (var column in Columns.VisibleColumns)
         {
-            if (width >= _scrollViewer.HorizontalOffset && width + column.ActualWidth <= _scrollViewer.HorizontalOffset + _scrollViewer.ViewportWidth - SelectionIndicatorWidth)
+            if (width >= HorizontalOffset &&
+                width + column.ActualWidth <= HorizontalOffset + _scrollViewer.ViewportWidth - SelectionIndicatorWidth)
             {
                 if (start == -1)
                 {

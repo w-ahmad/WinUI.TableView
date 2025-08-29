@@ -53,6 +53,7 @@ public partial class TableViewHeaderRow : Control
         _selectAllCheckBox = GetTemplateChild("selectAllCheckBox") as CheckBox;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
         _h_gridLine = GetTemplateChild("HorizontalGridLine") as Rectangle;
+        _headersStackPanel = GetTemplateChild("HeadersStackPanel") as StackPanel;
 
         if (TableView is null)
         {
@@ -75,9 +76,8 @@ public partial class TableViewHeaderRow : Control
             _selectAllCheckBox.Unchecked += OnSelectAllCheckBoxUnchecked;
         }
 
-        if (TableView.Columns is not null && GetTemplateChild("HeadersStackPanel") is StackPanel stackPanel)
+        if (TableView.Columns is not null)
         {
-            _headersStackPanel = stackPanel;
             AddHeaders(TableView.Columns.VisibleColumns);
         }
 
@@ -91,6 +91,28 @@ public partial class TableViewHeaderRow : Control
         SetExportOptionsVisibility();
         SetCornerButtonState();
         EnsureGridLines();
+    }
+
+    /// <inheritdoc/>
+    protected override Size ArrangeOverride(Size finalSize)
+    {
+        finalSize = base.ArrangeOverride(finalSize);
+
+        if (_headersStackPanel is not null && TableView is not null)
+        {
+            var v_gridLineOffset = (_v_gridLine?.ActualOffset.X ?? 0) + (_v_gridLine?.ActualWidth ?? 0);
+            var headersOffset = -TableView.HorizontalOffset + v_gridLineOffset;
+            var xClip = (headersOffset * -1) + v_gridLineOffset;
+
+            _headersStackPanel.Arrange(new Rect(headersOffset, 0, _headersStackPanel.ActualWidth, finalSize.Height));
+            _headersStackPanel.Clip = headersOffset >= v_gridLineOffset ? null :
+                new RectangleGeometry
+                {
+                    Rect = new Rect(xClip, 0, _headersStackPanel.ActualWidth - xClip, finalSize.Height)
+                };
+        }
+
+        return finalSize;
     }
 
     /// <summary>

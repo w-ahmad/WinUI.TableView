@@ -28,17 +28,17 @@ public partial class TableView
     /// <summary>
     /// Identifies the HeaderRowHeight dependency property.
     /// </summary>
-    public static readonly DependencyProperty HeaderRowHeightProperty = DependencyProperty.Register(nameof(HeaderRowHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.NaN, OnHeaderRowHeightChanged));
+    public static readonly DependencyProperty HeaderRowHeightProperty = DependencyProperty.Register(nameof(HeaderRowHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.NaN));
 
     /// <summary>
     /// Identifies the HeaderRowMaxHeight dependency property.
     /// </summary>
-    public static readonly DependencyProperty HeaderRowMaxHeightProperty = DependencyProperty.Register(nameof(HeaderRowMaxHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.PositiveInfinity, OnHeaderRowHeightChanged));
+    public static readonly DependencyProperty HeaderRowMaxHeightProperty = DependencyProperty.Register(nameof(HeaderRowMaxHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.PositiveInfinity));
 
     /// <summary>
     /// Identifies the HeaderRowMinHeight dependency property.
     /// </summary>
-    public static readonly DependencyProperty HeaderRowMinHeightProperty = DependencyProperty.Register(nameof(HeaderRowMinHeight), typeof(double), typeof(TableView), new PropertyMetadata(32d, OnHeaderRowHeightChanged));
+    public static readonly DependencyProperty HeaderRowMinHeightProperty = DependencyProperty.Register(nameof(HeaderRowMinHeight), typeof(double), typeof(TableView), new PropertyMetadata(32d));
 
     /// <summary>
     /// Identifies the RowHeight dependency property.
@@ -173,6 +173,16 @@ public partial class TableView
     /// Identifies the UseRightClickForColumnFilter dependency property.
     /// </summary>
     public static readonly DependencyProperty UseRightClickForColumnFilterProperty = DependencyProperty.Register(nameof(UseRightClickForColumnFilter), typeof(bool), typeof(TableView), new PropertyMetadata(false));
+
+    /// <summary>
+    /// Identifies the VerticalOffset dependency property.
+    /// </summary>
+    public static readonly DependencyProperty VerticalOffsetProperty = DependencyProperty.Register(nameof(VerticalOffset), typeof(double), typeof(TableView), new PropertyMetadata(0d));
+
+    /// <summary>
+    /// Identifies the HorizontalOffset dependency property.
+    /// </summary>
+    public static readonly DependencyProperty HorizontalOffsetProperty = DependencyProperty.Register(nameof(HorizontalOffset), typeof(double), typeof(TableView), new PropertyMetadata(0.0, OnHorizontalOffsetChanged));
 
     /// <summary>
     /// Gets or sets a value indicating whether opening the column filter over header right-click is enabled.
@@ -538,6 +548,16 @@ public partial class TableView
     }
 
     /// <summary>
+    /// Gets the vertical offset for the TableView.
+    /// </summary>
+    public double VerticalOffset => (double)GetValue(VerticalOffsetProperty);
+
+    /// <summary>
+    /// Gets the horizontal offset for the TableView.
+    /// </summary>
+    public double HorizontalOffset => (double)GetValue(HorizontalOffsetProperty);
+
+    /// <summary>
     /// Handles changes to the ItemsSource property.
     /// </summary>
     private static void OnItemsSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -574,14 +594,6 @@ public partial class TableView
             tableView.UpdateBaseSelectionMode();
             tableView.UpdateCornerButtonState();
         }
-    }
-
-    /// <summary>
-    /// Handles changes to the HeaderRowHeight property.
-    /// </summary>
-    private static void OnHeaderRowHeightChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        (d as TableView)?.UpdateVerticalScrollBarMargin();
     }
 
     /// <summary>
@@ -739,6 +751,22 @@ public partial class TableView
         var newSlot = e.NewValue as TableViewCellSlot?;
 
         await tableView.OnCurrentCellChanged(oldSlot, newSlot);
+    }
+
+    /// <summary>
+    /// Handles changes to the HorizontalOffset property.
+    /// </summary>
+    private static void OnHorizontalOffsetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView { _headerRow: { } } tableView)
+        {
+            tableView._headerRow.InvalidateArrange();
+
+            foreach (var row in tableView._rows)
+            {
+                row?.CellPresenter?.InvalidateArrange();
+            }
+        }
     }
 
     /// <summary>

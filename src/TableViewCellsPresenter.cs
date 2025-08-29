@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 using System.Collections.Generic;
 using System.Linq;
+using Windows.Foundation;
 
 namespace WinUI.TableView;
 
@@ -14,7 +15,7 @@ namespace WinUI.TableView;
 /// </summary>
 public partial class TableViewCellsPresenter : Control
 {
-    private StackPanel? _stackPanel;
+    private StackPanel? _cellsStackPanel;
     private Rectangle? _v_gridLine;
     private Rectangle? _h_gridLine;
 
@@ -31,7 +32,7 @@ public partial class TableViewCellsPresenter : Control
     {
         base.OnApplyTemplate();
 
-        _stackPanel = GetTemplateChild("StackPanel") as StackPanel;
+        _cellsStackPanel = GetTemplateChild("CellsStackPanel") as StackPanel;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
         _h_gridLine = GetTemplateChild("HorizontalGridLine") as Rectangle;
 
@@ -44,6 +45,28 @@ public partial class TableViewCellsPresenter : Control
         TableViewRow?.EnsureCells();
 #endif
         EnsureGridLines();
+    }
+
+    /// <inheritdoc/>
+    protected override Size ArrangeOverride(Size finalSize)
+    {
+        finalSize = base.ArrangeOverride(finalSize);
+
+        if (_cellsStackPanel is not null && TableView is not null)
+        {
+            var v_gridLineOffset = (_v_gridLine?.ActualOffset.X ?? 0) + (_v_gridLine?.ActualWidth ?? 0);
+            var headersOffset = -TableView.HorizontalOffset + v_gridLineOffset;
+            var xClip = (headersOffset * -1) + v_gridLineOffset;
+
+            _cellsStackPanel.Arrange(new Rect(headersOffset, 0, _cellsStackPanel.ActualWidth, finalSize.Height));
+            _cellsStackPanel.Clip = headersOffset >= v_gridLineOffset ? null :
+                new RectangleGeometry
+                {
+                    Rect = new Rect(xClip, 0, _cellsStackPanel.ActualWidth - xClip, finalSize.Height)
+                };
+        }
+
+        return finalSize;
     }
 
     /// <summary>
@@ -88,12 +111,12 @@ public partial class TableViewCellsPresenter : Control
     /// <summary>
     /// Gets the collection of child elements.
     /// </summary>
-    internal UIElementCollection Children => _stackPanel?.Children!;
+    internal UIElementCollection Children => _cellsStackPanel?.Children!;
 
     /// <summary>
     /// Gets the list of cells in the presenter.
     /// </summary>
-    public IList<TableViewCell> Cells => _stackPanel?.Children.OfType<TableViewCell>().ToList()!;
+    public IList<TableViewCell> Cells => _cellsStackPanel?.Children.OfType<TableViewCell>().ToList()!;
 
     /// <summary>
     /// Gets or sets the TableViewRow associated with the presenter.
