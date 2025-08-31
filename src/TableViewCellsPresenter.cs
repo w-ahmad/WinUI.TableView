@@ -18,6 +18,7 @@ public partial class TableViewCellsPresenter : Control
     private StackPanel? _cellsStackPanel;
     private Rectangle? _v_gridLine;
     private Rectangle? _h_gridLine;
+    private ContentControl? _rowHeader;
 
     /// <summary>
     /// Initializes a new instance of the TableViewCellsPresenter class.
@@ -35,6 +36,7 @@ public partial class TableViewCellsPresenter : Control
         _cellsStackPanel = GetTemplateChild("CellsStackPanel") as StackPanel;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
         _h_gridLine = GetTemplateChild("HorizontalGridLine") as Rectangle;
+        _rowHeader = GetTemplateChild("RowHeaderContent") as ContentControl;
 
         TableViewRow = this.FindAscendant<TableViewRow>();
         TableView = TableViewRow?.TableView;
@@ -45,6 +47,7 @@ public partial class TableViewCellsPresenter : Control
         TableViewRow?.EnsureCells();
 #endif
         EnsureGridLines();
+        EnsureRowHeaders();
     }
 
     /// <inheritdoc/>
@@ -52,21 +55,46 @@ public partial class TableViewCellsPresenter : Control
     {
         finalSize = base.ArrangeOverride(finalSize);
 
-        if (_cellsStackPanel is not null && TableView is not null)
+        if (_cellsStackPanel is not null && _v_gridLine is not null && _rowHeader is not null && TableView is not null)
         {
-            var v_gridLineOffset = (_v_gridLine?.ActualOffset.X ?? 0) + (_v_gridLine?.ActualWidth ?? 0);
-            var headersOffset = -TableView.HorizontalOffset + v_gridLineOffset;
-            var xClip = (headersOffset * -1) + v_gridLineOffset;
+            var height = finalSize.Height;
+            var xGridLine = TableView.SelectionMode is ListViewSelectionMode.Multiple ? 44 : _rowHeader.ActualWidth;
+            var xCells = -TableView.HorizontalOffset + xGridLine + _v_gridLine.ActualWidth;
+            var xClip = (xCells * -1) + xGridLine + _v_gridLine.ActualWidth;
 
-            _cellsStackPanel.Arrange(new Rect(headersOffset, 0, _cellsStackPanel.ActualWidth, finalSize.Height));
-            _cellsStackPanel.Clip = headersOffset >= v_gridLineOffset ? null :
+            _v_gridLine.Arrange(new Rect(xGridLine, 0, _v_gridLine.ActualWidth, height));
+            _cellsStackPanel.Arrange(new Rect(xCells, 0, _cellsStackPanel.ActualWidth, height));
+            _cellsStackPanel.Clip = xCells >= xGridLine + _v_gridLine.ActualWidth ? null :
                 new RectangleGeometry
                 {
-                    Rect = new Rect(xClip, 0, _cellsStackPanel.ActualWidth - xClip, finalSize.Height)
+                    Rect = new Rect(xClip, 0, _cellsStackPanel.ActualWidth - xClip, height)
                 };
+
+            if (TableView.SelectionMode is ListViewSelectionMode.Multiple)
+            {
+                _rowHeader.Arrange(new Rect(0, 0, 0, 0));
+            }
         }
 
         return finalSize;
+    }
+
+    internal void EnsureRowHeaders()
+    {
+        if (_rowHeader is not null && TableView is not null)
+        {
+            if (TableView.SelectionMode is ListViewSelectionMode.Multiple)
+            {
+                _rowHeader.Opacity = 0;
+            }
+            else
+            {
+                _rowHeader.Opacity = 1;
+                _rowHeader.Width = TableView.RowHeaderWidth;
+                _rowHeader.MinWidth = TableView.RowHeaderMinWidth;
+                _rowHeader.MaxWidth = TableView.RowHeaderMaxWidth;
+            }
+        }
     }
 
     /// <summary>

@@ -79,8 +79,7 @@
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition x:Name="cornerButtonColumn"
-                                                  MinWidth="16"
-                                                  Width="Auto" />
+                                                  Width="12" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
@@ -88,15 +87,17 @@
                             <Button x:Name="selectAllButton"
                                     BorderThickness="0"
                                     Background="Transparent"
-                                    Padding="0"
+                                    Padding="0,0,2,2"
                                     CornerRadius="4,0,0,0"
                                     Visibility="Collapsed"
                                     IsTabStop="False"
                                     HorizontalAlignment="Stretch"
-                                    VerticalAlignment="Stretch">
+                                    VerticalAlignment="Stretch"
+                                    VerticalContentAlignment="Bottom"
+                                    HorizontalContentAlignment="Right">
                                 <FontIcon Opacity="0.5"
+                                          Margin="-12,0,0,0"
                                           Glyph="&#xE788;"
-                                          Margin="-8,6,0,0"
                                           VerticalAlignment="Bottom" />
                             </Button>
 
@@ -111,7 +112,6 @@
                                     IsTabStop="False">
                                 <FontIcon FontSize="12"
                                           MaxWidth="10"
-                                          Margin="-2,0,0,0"
                                           VerticalAlignment="Center"
                                           HorizontalAlignment="Center"
                                           Glyph="{ThemeResource OptionsButtonIcon}"

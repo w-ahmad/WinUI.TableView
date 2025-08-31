@@ -185,6 +185,21 @@ public partial class TableView
     public static readonly DependencyProperty HorizontalOffsetProperty = DependencyProperty.Register(nameof(HorizontalOffset), typeof(double), typeof(TableView), new PropertyMetadata(0.0, OnHorizontalOffsetChanged));
 
     /// <summary>
+    /// Identifies the RowHeaderWidth dependency property.
+    /// </summary>
+    public static readonly DependencyProperty RowHeaderWidthProperty = DependencyProperty.Register(nameof(RowHeaderWidth), typeof(double), typeof(TableView), new PropertyMetadata(double.NaN));
+
+    /// <summary>
+    /// Identifies the RowHeaderMinWidth dependency property.
+    /// </summary>
+    public static readonly DependencyProperty RowHeaderMinWidthProperty = DependencyProperty.Register(nameof(RowHeaderMinWidth), typeof(double), typeof(TableView), new PropertyMetadata(16d));
+
+    /// <summary>
+    /// Identifies the RowHeaderMaxWidth dependency property.
+    /// </summary>
+    public static readonly DependencyProperty RowHeaderMaxWidthProperty = DependencyProperty.Register(nameof(RowHeaderMaxWidth), typeof(double), typeof(TableView), new PropertyMetadata(double.PositiveInfinity));
+
+    /// <summary>
     /// Gets or sets a value indicating whether opening the column filter over header right-click is enabled.
     /// </summary>
     public bool UseRightClickForColumnFilter
@@ -556,6 +571,33 @@ public partial class TableView
     /// Gets the horizontal offset for the TableView.
     /// </summary>
     public double HorizontalOffset => (double)GetValue(HorizontalOffsetProperty);
+
+    /// <summary>
+    /// Gets or sets the width of the row header.
+    /// </summary>
+    public double RowHeaderWidth
+    {
+        get => (double)GetValue(RowHeaderWidthProperty);
+        set => SetValue(RowHeaderWidthProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the minimum width of the row header.
+    /// </summary>
+    public double RowHeaderMinWidth
+    {
+        get => (double)GetValue(RowHeaderMinWidthProperty);
+        set => SetValue(RowHeaderMinWidthProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the maximum width of the row header.
+    /// </summary>
+    public double RowHeaderMaxWidth
+    {
+        get => (double)GetValue(RowHeaderMaxWidthProperty);
+        set => SetValue(RowHeaderMaxWidthProperty, value);
+    }
 
     /// <summary>
     /// Handles changes to the ItemsSource property.
