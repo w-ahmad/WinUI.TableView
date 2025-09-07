@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -16,160 +18,369 @@ internal static partial class ObjectExtensions
     private static partial Regex PropertyPathRegex();
 
     /// <summary>
-    /// Gets the value of a property from an object using a sequence of property info and index pairs.
+    /// Creates and returns a compiled lambda expression for accessing the property path on instances, with runtime type checking and casting support.
     /// </summary>
-    /// <param name="obj">The object from which to get the value.</param>
-    /// <param name="pis">An array of property info and index pairs.</param>
-    /// <returns>The value of the property, or null if the object is null.</returns>
-    internal static object? GetValue(this object? obj, (PropertyInfo pi, object? index)[] pis)
+    /// <param name="dataItem">The data item instance to use for runtime type evaluation.</param>
+    /// <param name="bindingPath">The binding path to access, e.g. "[0].SubPropertyArray[0].SubSubProperty".</param>
+    /// <returns>A compiled function that takes an instance and returns the property value, or null if the property path is invalid.</returns>
+    internal static Func<object, object?>? GetFuncCompiledPropertyPath(this object dataItem, string bindingPath)
     {
-        if (pis is null || pis.Length == 0)
+        try
+        {
+            // Build the property access expression chain with runtime type checking
+            var parameterObj = Expression.Parameter(typeof(object), "obj");
+            var expressionTree = BuildPropertyPathExpressionTree(parameterObj, bindingPath, dataItem);
+
+            // Compile the lambda expression
+            var lambda = Expression.Lambda<Func<object, object?>>(expressionTree, parameterObj);
+            return lambda.Compile();   // To DEBUG, set a breakpoint here and inspect the "DebugView" property on the variable "lambda"
+        }
+        catch
         {
             return null;
         }
-
-        foreach (var (pi, index) in pis)
-        {
-            if (obj is null)
-                break;
-
-            if (pi != null)
-            {
-                // Use property getter, with or without index
-                obj = index is not null ? pi.GetValue(obj, [index]) : pi.GetValue(obj);
-            }
-            else if (obj is IDictionary dictionary && dictionary.Contains(index!))
-            {
-                obj = dictionary[index!];
-            }
-            else if (index is int idx)
-            {
-                // Array
-                if (obj is Array arr && idx >= 0 && idx < arr.Length)
-                {
-                    obj = arr.GetValue(idx);
-                }
-                // IList
-                else if (obj is IList list && idx >= 0 && list.Count < idx)
-                {
-                    obj = list[idx];
-                }
-            }
-            else
-            {
-                // Not a supported path segment
-                return null;
-            }
-        }
-
-        return obj;
     }
 
     /// <summary>
-    /// Gets the value of a property from an object using a type and a property path.
+    /// Builds an expression tree for accessing a property path on the given instance expression, with runtime type checking and casting support.
     /// </summary>
-    /// <param name="obj">The object from which to get the value.</param>
-    /// <param name="type">The type of the object.</param>
-    /// <param name="path">The property path.</param>
-    /// <param name="pis">An array of property info and index pairs.</param>
-    /// <returns>The value of the property, or null if the object is null.</returns>
-    internal static object? GetValue(this object? obj, Type? type, string? path, out (PropertyInfo pi, object? index)[] pis)
+    /// <param name="parameterObj">The expression representing the instance parameter for which the binding path will be evaluated.</param>
+    /// <param name="bindingPath">The binding path to access.</param>
+    /// <param name="dataItem">The actual data item to use for runtime type evaluation, to help with any needed subclass type conversions.</param>
+    /// <returns>An expression that accesses the property value specified by the binding path for the provided dataItem instance.</returns>
+    private static Expression BuildPropertyPathExpressionTree(ParameterExpression parameterObj, string bindingPath, object dataItem)
     {
-        if (obj == null || string.IsNullOrWhiteSpace(path) || type == null)
+        Expression current = parameterObj;
+
+        // The function uses a generic object input parameter to allow for any type of data item,
+        // but we need to ensure that the runtime type matches the data item type that is inputted as example to be able to find members
         {
-            pis = [];
-            return obj;
+            var typeActual = dataItem.GetType();
+            if (current.Type != typeActual && !typeActual.IsValueType)
+                current = Expression.Convert(current, dataItem.GetType());
         }
 
-        var matches = PropertyPathRegex().Matches(path);
-        if (matches.Count == 0)
-        {
-            pis = [];
-            return obj;
-        }
-
-        // Pre-size the steps array to the number of matches
-        pis = new (PropertyInfo, object?)[matches.Count];
-        var i = 0;
+        var matches = PropertyPathRegex().Matches(bindingPath);
 
         foreach (Match match in matches)
         {
-            var part = match.Value;
-            object? index = null;
+            string part = match.Value;
+            Expression nextPropertyAccess;
 
+            // Indexer
             if (part.StartsWith('[') && part.EndsWith(']'))
             {
-                index = part[1..^1];
+                object[] indices = GetIndices(part[1..^1]);
 
-                // Try IDictionary
-                if (obj is IDictionary dictionary && dictionary.Contains(index!))
+                if (current.Type.IsArray)
                 {
-                    obj = dictionary[index!];
-                    pis[i++] = (null!, index);
-                    type = obj?.GetType();
-                    continue;
+                    // Arrays only support integer indexing
+                    if (!indices.All(idx => idx is int))
+                        throw new ArgumentException($"Arrays only support integer indexing, not the provided indexer [{part[1..^1]}]");
+
+                    nextPropertyAccess = AddArrayAccessWithBoundsCheck(current, [.. indices.Select(index => (int)index)]);
                 }
-                else if (int.TryParse(part[1..^1], out var idx))
+                else
                 {
-                    index = idx;
-
-                    // Try array
-                    if (obj is Array arr && idx >= 0 && idx < arr.Length)
-                    {
-                        obj = arr.GetValue(idx);
-                        pis[i++] = (null!, idx);
-                        type = obj?.GetType();
-                        continue;
-                    }
-                    // Try IList
-                    else if (obj is IList list && idx >= 0 && list.Count < idx)
-                    {
-                        obj = list[idx];
-                        pis[i++] = (null!, idx);
-                        type = obj?.GetType();
-                        continue;
-                    }
-
+                    nextPropertyAccess = AddIndexerAccessWithSafetyChecks(current, indices);
                 }
+            }
+            // Simple property access
+            else
+            {
+                var propertyInfo = current.Type.GetProperty(part, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                    ?? throw new ArgumentException($"Property '{part}' not found on type '{current.Type.Name}'");
 
-                part = "Item"; // Default indexer property name
+                nextPropertyAccess = Expression.Property(current, propertyInfo);
             }
 
-            if (TryGetPropertyValue(ref obj, ref type, part, index, out var pi))
+            if (nextPropertyAccess.Type.IsValueType && !nextPropertyAccess.Type.IsNullableType())
             {
-                pis[i++] = (pi!, index);
+                // Value types cannot be null, so don't need to check for null, and we can directly assign the property access
+                current = nextPropertyAccess;
             }
             else
             {
-                pis = null!;
-                return null;
+                // Add null check: if current is null, stop and return null; otherwise, continue with the next access
+                var notNullCheck = Expression.NotEqual(current, Expression.Constant(null));
+                current = Expression.Condition(
+                    notNullCheck,
+                    nextPropertyAccess,
+                    Expression.Constant(null, nextPropertyAccess.Type)
+                );
             }
-        }
 
-        static bool TryGetPropertyValue(ref object? obj, ref Type? type, string propertyName, object? index, out PropertyInfo? pi)
-        {
-            try
+            // Only check for type compatibility (i.e.: the need for conversion) if this is not the last match
+            if (match != matches[^1])
             {
-                pi = index is null ? type?.GetProperty(propertyName) : type?.GetProperty(propertyName, [index.GetType()]);
+                // Compile a lambda of the partial expression thus far (cast to object), to see if we need to add a cast
+                var lambdaTemp = Expression.Lambda<Func<object, object?>>(EnsureObjectCompatibleResult(current), parameterObj);
+                var funcCurrent = lambdaTemp.Compile();
+                // Evaluate this compiled function, to see if the result type is more specific than the current expression type. If so, cast to it
+                var result = funcCurrent(dataItem);
+                var typeResult = result?.GetType() ?? current.Type;
 
-                if (pi != null)
+                if (current.Type != typeResult)
                 {
-                    obj = index is null ? pi.GetValue(obj) : pi.GetValue(obj, [index]);
-                    type = obj?.GetType();
-
-                    return true;
+                    // Note that we do not need to check for null before we convert, as the null check is already done in the previous condition
+                    // So, we can safely convert the expression to the result type, even for value types (without the null check, a conversion of null to e.g. an int would result in a NullException being thrown)
+                    current = Expression.Convert(current, typeResult);
                 }
-
-                return false;
-            }
-            catch
-            {
-                pi = null!;
-                return false;
             }
         }
 
-        return obj;
+        return EnsureObjectCompatibleResult(current);
+    }
+
+    private static Expression EnsureObjectCompatibleResult(Expression expression)
+    {
+        // Only convert to object if the expression type is not already assignable to object without boxing
+        if (expression.Type.IsValueType
+            && !expression.Type.IsNullableType()  // e.g. int? is considered a ValueType, but also nullable, which means it can be converted to object without boxing
+           )
+            return Expression.Convert(expression, typeof(object));
+        return expression;
+    }
+
+    /// <summary>
+    /// Returns the indices from a (possible multi-dimensional) indexer that may be a mixture of integers and strings.
+    /// </summary>
+    private static object[] GetIndices(string stringIndexer)
+    {
+        // Split by comma and parse each indexer, removing whitespace
+        var indexerParts = stringIndexer.Split(',')
+                                        .Select(s => s.Trim())
+                                        .ToArray();
+
+        // Parse each part into appropriate type (int or string)
+        return [.. indexerParts.Select(indexPart =>
+            int.TryParse(indexPart, out int intIndex) ? (object)intIndex : indexPart
+        )];
+    }
+
+    /// <summary>
+    /// Adds array access to the current expression, given the inputted indices, and adds bounds checking; 
+    /// the code for this expression will return null if the indices are out of bounds.
+    /// </summary>
+    private static BlockExpression AddArrayAccessWithBoundsCheck(Expression current, int[] indices)
+    {
+        if (!current.Type.IsArray)
+            throw new ArgumentException("Current expression must be an array.");
+
+        // Since array/indexer handling does various checks, it is more performant and readable to store the current expression in a variable
+        // which we will use as input to the block with array/indexer handling code.
+        var parameterArray = Expression.Parameter(current.Type, "array");
+        var assignArray = Expression.Assign(parameterArray, current);
+
+        var rank = current.Type.GetArrayRank();
+        if (indices.Length != rank)
+            throw new ArgumentException($"Array of rank {rank} requires {rank} indices, but {indices.Length} were provided.");
+
+        // Bounds check for each dimension
+        Expression boundsCheck = null!;
+        var getLengthMethod = typeof(Array).GetMethod("GetLength")!;
+        var indexConstants = new Expression[rank];
+        for (int dimension = 0; dimension < rank; dimension++)
+        {
+            var index = indices[dimension];
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(indices), $"Index for dimension {dimension} cannot be negative: {index}");
+
+            var indexConst = Expression.Constant(index);
+            indexConstants[dimension] = indexConst;
+
+            // GetLength method call for the current dimension
+            var lengthProp = Expression.Call(parameterArray, getLengthMethod, Expression.Constant(dimension));
+
+            var dimCheck = Expression.LessThan(indexConst, lengthProp);
+            boundsCheck = boundsCheck == null ? dimCheck : Expression.AndAlso(boundsCheck, dimCheck);
+        }
+
+        // If bounds check is not satisfied, return null; otherwise, access the array element
+        var expressionBlock = Expression.Condition(
+            boundsCheck,
+            Expression.Convert(Expression.ArrayAccess(parameterArray, indexConstants), typeof(object)),
+            Expression.Constant(null, typeof(object))
+        );
+
+        // Add the block
+        return Expression.Block(
+            [parameterArray],
+            assignArray,
+            expressionBlock
+            );
+
+    }
+
+    /// <summary>
+    /// Adds safe indexer access to the current expression, with appropriate bounds/key checking for various collection types.
+    /// Returns null if the indexer access would fail (out of bounds, missing key, etc.).
+    /// </summary>
+    private static Expression AddIndexerAccessWithSafetyChecks(Expression current, object[] indices)
+    {
+        var currentType = current.Type;
+        var parameter = Expression.Parameter(currentType, "collection");
+        var assignCurrent = Expression.Assign(parameter, current);
+
+        // Handle IDictionary<TKey, TValue> - use TryGetValue
+        if (TryCreateDictionaryTryGetExpression(currentType, parameter, indices, out var dictionaryExpr))
+        {
+            return Expression.Block([parameter], assignCurrent, dictionaryExpr);
+        }
+
+        // Handle (generic) IList and ICollection - bounds checking
+        if (TryCreateIListOrICollectionBoundsCheckExpression(currentType, parameter, indices, out var listExpr))
+        {
+            return Expression.Block([parameter], assignCurrent, listExpr);
+        }
+
+        // Handle generic indexers - check if indexer exists
+        if (TryCreateGenericIndexerExpression(currentType, parameter, indices, out var indexerExpr))
+        {
+            return Expression.Block([parameter], assignCurrent, indexerExpr);
+        }
+
+        // If no safe indexer can be created, return null
+        return Expression.Constant(null, typeof(object));
+    }
+
+    /// <summary>
+    /// Creates a TryGetValue expression for IDictionary types.
+    /// </summary>
+    private static bool TryCreateDictionaryTryGetExpression(Type type, ParameterExpression parameter, object[] indices, out Expression expression)
+    {
+        expression = null!;
+
+        if (indices.Length != 1)
+            return false;
+
+        // Find IDictionary<TKey, TValue> interface
+        var dictionaryInterface = type.GetInterfaces()
+            .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IDictionary<,>));
+
+        if (dictionaryInterface == null)
+            return false;  //apparently not a dictionary
+
+        var genericArgs = dictionaryInterface.GetGenericArguments();
+        var keyType = genericArgs[0];
+        var valueType = genericArgs[1];
+
+        // Check if the index type matches the key type
+        if (!keyType.IsAssignableFrom(indices[0].GetType()))
+        {
+            // Type mismatch - return an expression that always returns null
+            expression = Expression.Constant(null, typeof(object));
+            return true;
+        }
+
+        // Get TryGetValue method
+        var tryGetValueMethod = dictionaryInterface.GetMethod("TryGetValue");
+        if (tryGetValueMethod == null)
+            throw new InvalidOperationException($"The dictionary type {type} has no TryGetValue method");    // should not happen
+
+        // Create variables for the key and output value
+        var keyExpr = Expression.Constant(indices[0], keyType);
+        var valueVar = Expression.Parameter(valueType, "value");
+
+        // Call TryGetValue
+        var tryGetCall = Expression.Call(parameter, tryGetValueMethod, keyExpr, valueVar);
+
+        // Return value if found, null if not found
+        expression = Expression.Block(
+            [valueVar],
+            Expression.Condition(
+                tryGetCall,
+                Expression.Convert(valueVar, typeof(object)),
+                Expression.Constant(null, typeof(object))
+            )
+        );
+
+        return true;
+    }
+
+    /// <summary>
+    /// Creates a bounds-checked expression for IList and ICollection types.
+    /// </summary>
+    private static bool TryCreateIListOrICollectionBoundsCheckExpression(Type type, ParameterExpression parameter, object[] indices, out Expression expression)
+    {
+        expression = null!;
+
+        if (indices.Length != 1 || indices[0] is not int index)
+            return false;
+
+        // Try to find an indexer property with the appropriate parameter types
+        var indexerProperty = type.GetProperty("Item", [typeof(int)]);
+        if (indexerProperty == null)
+            return false;  // No indexer found
+
+        // Check for IList<T>
+        var listInterface = type.GetInterfaces()
+            .FirstOrDefault(i => i.IsGenericType &&
+                            (i.GetGenericTypeDefinition() == typeof(IList<>) ||
+                              i.GetGenericTypeDefinition() == typeof(ICollection<>)
+                            ));
+
+        if (listInterface != null ||
+            typeof(IList).IsAssignableFrom(type) ||     // Does have an indexer
+            typeof(ICollection).IsAssignableFrom(type)  // Has no indexer, but we can still check bounds; since it derives from ICollection at the least, the indexer is expected to be aimed at the collection
+           )
+        {
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(indices), $"Index for (generic) IList/ICollection cannot be negative: {index}");
+
+            var countProperty = type.GetProperty("Count");
+
+            if (indexerProperty != null && countProperty != null)
+            {
+                var indexExpr = Expression.Constant(index);
+                var countExpr = Expression.Property(parameter, countProperty);
+                var boundsCheck = Expression.LessThan(indexExpr, countExpr);
+
+                expression = Expression.Condition(
+                    boundsCheck,
+                    Expression.Convert(Expression.Property(parameter, indexerProperty, indexExpr), typeof(object)),
+                    Expression.Constant(null, typeof(object))
+                );
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Creates an expression for generic indexers, with try-catch to handle potential exceptions.
+    /// Returns null if indexer access fails for any reason.
+    /// </summary>
+    private static bool TryCreateGenericIndexerExpression(Type type, ParameterExpression parameter, object[] indices, out Expression expression)
+    {
+        expression = null!;
+
+        // Try to find an indexer property with the appropriate parameter types
+        var indexerTypes = indices.Select(idx => idx.GetType()).ToArray();
+        var indexerProperty = type.GetProperty("Item", indexerTypes);
+
+        if (indexerProperty == null)
+            return false;
+
+        // Create constant expressions for each index
+        var indexExpressions = indices.Select(Expression.Constant).ToArray();
+
+        // Create the indexer access
+        var indexerAccess = Expression.Property(parameter, indexerProperty, indexExpressions);
+
+        // Wrap in try-catch to handle any exceptions that might occur during indexer access, due to non-existing keys or out-of-bounds indices
+        var tryBlock = Expression.Convert(indexerAccess, typeof(object));
+        var catchBlock = Expression.Constant(null, typeof(object));
+
+        // Create try-catch expression - return null for any exception
+        expression = Expression.TryCatch(
+            tryBlock,
+            Expression.Catch(typeof(Exception), catchBlock)
+        );
+
+        return true;
     }
 
     /// <summary>
