@@ -27,6 +27,7 @@ namespace WinUI.TableView;
 [TemplateVisualState(Name = VisualStates.StateOptionsButtonDisabled, GroupName = VisualStates.GroupCornerButton)]
 public partial class TableViewHeaderRow : Control
 {
+    private ColumnDefinition? _cornerButtonColumn;
     private Button? _optionsButton;
     private CheckBox? _selectAllCheckBox;
     private Rectangle? _v_gridLine;
@@ -49,6 +50,7 @@ public partial class TableViewHeaderRow : Control
     {
         base.OnApplyTemplate();
 
+        _cornerButtonColumn = GetTemplateChild("cornerButtonColumn") as ColumnDefinition;
         _optionsButton = GetTemplateChild("optionsButton") as Button;
         _selectAllCheckBox = GetTemplateChild("selectAllCheckBox") as CheckBox;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
@@ -394,6 +396,10 @@ public partial class TableViewHeaderRow : Control
         {
             stateName = TableView.IsEditing ? VisualStates.StateSelectAllCheckBoxDisabled : VisualStates.StateSelectAllCheckBox;
         }
+        else if (TableView?.HeadersVisibility is TableViewHeadersVisibility.None or TableViewHeadersVisibility.Column)
+        {
+            stateName = VisualStates.StateNoButton;
+        }
         else if (TableView is { CornerButtonMode: TableViewCornerButtonMode.Options })
         {
             stateName = TableView.IsEditing ? VisualStates.StateOptionsButtonDisabled : VisualStates.StateOptionsButton;
@@ -471,6 +477,51 @@ public partial class TableViewHeaderRow : Control
     {
         var previousCellIndex = currentHeader is null ? Headers.Count - 1 : Headers.IndexOf(currentHeader) - 1;
         return previousCellIndex >= 0 ? Headers[previousCellIndex] : default;
+    }
+
+    /// <summary>
+    /// Sets the widths of the row header column.
+    /// </summary>
+    internal void SetRowHeaderWidth()
+    {
+        if (_cornerButtonColumn is not null && TableView is not null)
+        {
+            var headerWidth = TableView.RowHeaderWidth is double.NaN ? TableView.RowHeaderActualWidth : TableView.RowHeaderWidth;
+
+            _cornerButtonColumn.Width = new(headerWidth);
+            _cornerButtonColumn.MinWidth = TableView.RowHeaderMinWidth;
+            _cornerButtonColumn.MaxWidth = TableView.RowHeaderMaxWidth;
+        }
+    }
+
+    /// <summary>
+    /// Sets the visibility of the row header based on the TableView settings.
+    /// </summary>
+    internal void SetHeadersVisibility()
+    {
+        SetCornerButtonState();
+
+        if (_cornerButtonColumn is not null && _v_gridLine is not null && TableView is not null)
+        {
+            var areColumnHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Column;
+            var areRowHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Row;
+            var isMultiSelection = TableView.SelectionMode is ListViewSelectionMode.Multiple;
+
+            Visibility = areColumnHeadersVisible ? Visibility.Visible : Visibility.Collapsed;
+
+            if (areRowHeadersVisible || isMultiSelection)
+            {
+                SetRowHeaderWidth();
+                _v_gridLine.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                _v_gridLine.Visibility = Visibility.Collapsed;
+                _cornerButtonColumn.Width = new(0);
+                _cornerButtonColumn.MinWidth = 0;
+                _cornerButtonColumn.MaxWidth = 0;
+            }
+        }
     }
 
     /// <summary>

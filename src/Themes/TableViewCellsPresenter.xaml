@@ -2,6 +2,10 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="using:WinUI.TableView">
 
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/Resources.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
     <Style x:Key="DefaultTableViewCellsPresenterStyle"
            TargetType="local:TableViewCellsPresenter">
         <Setter Property="Template">
@@ -15,9 +19,11 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <Grid Margin="{TemplateBinding Padding}">
+                        <Grid x:Name="RootPanel"
+                              Margin="{TemplateBinding Padding}">
+
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition x:Name="RowHeaderColumn" Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
@@ -31,7 +37,7 @@
                                            VerticalAlignment="Center" />
                             </StackPanel>
 
-                            <ContentControl x:Name="RowHeaderContent" />
+                            <local:TableViewRowHeader x:Name="RowHeader" />
 
                             <Rectangle x:Name="VerticalGridLine"
                                        Width="1"

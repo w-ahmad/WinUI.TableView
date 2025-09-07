@@ -80,7 +80,7 @@ public partial class TableViewRow : ListViewItem
                 if (_itemPresenter is not null)
                 {
                     var cornerRadius = _itemPresenter.CornerRadius;
-                    var left = Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft);
+                    var left = Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft) / 2;
                     var selectionIndictor = _itemPresenter.FindDescendants()
                                                           .OfType<Border>()
                                                           .FirstOrDefault(x => x is { Name: not Selection_Indictor, Width: 3 });
@@ -159,6 +159,7 @@ public partial class TableViewRow : ListViewItem
         }
 #endif
 
+        CellPresenter?.InvalidateMeasure(); // The cells presenter does not measure every time.
         _tableView?.EnsureAlternateRowColors();
     }
 
@@ -207,9 +208,8 @@ public partial class TableViewRow : ListViewItem
 
         var cornerRadius = _itemPresenter?.CornerRadius ?? new();
         var left = Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft);
-        var right = Math.Max(cornerRadius.TopRight, cornerRadius.BottomRight);
 
-        _itemPresenter?.Arrange(new Rect(-left, 0, _itemPresenter.ActualWidth + right, _itemPresenter.ActualHeight));
+        _itemPresenter?.Arrange(new Rect(-left, 0, _itemPresenter.ActualWidth + left, _itemPresenter.ActualHeight));
 
         return finalSize;
     }
@@ -224,7 +224,7 @@ public partial class TableViewRow : ListViewItem
             return;
         }
 
-        if (CellPresenter is { Children: { } } && (_ensureCells || _cellPresenter != CellPresenter))
+        if (CellPresenter is not null && (_ensureCells || _cellPresenter != CellPresenter))
         {
             CellPresenter.Children.Clear();
 
@@ -334,7 +334,7 @@ public partial class TableViewRow : ListViewItem
         {
             foreach (var column in columns)
             {
-                var cell = CellPresenter.Children.OfType<TableViewCell>().FirstOrDefault(x => x.Column == column);
+                var cell = CellPresenter.Cells.FirstOrDefault(x => x.Column == column);
                 if (cell is not null)
                 {
                     CellPresenter.Children.Remove(cell);
@@ -356,14 +356,14 @@ public partial class TableViewRow : ListViewItem
                 {
                     Row = this,
                     Column = column,
-                    TableView = TableView!,
+                    TableView = TableView,
                     Index = TableView.Columns.VisibleColumns.IndexOf(column),
                     Width = column.ActualWidth,
                     Style = column.CellStyle ?? TableView.CellStyle
                 };
 
                 var index = TableView.Columns.VisibleColumns.IndexOf(column);
-                index = Math.Min(index, CellPresenter.Children.Count);
+                index = Math.Min(index, CellPresenter.Cells.Count);
                 index = Math.Max(index, 0); // handles -ve index.
                 CellPresenter.Children.Insert(index, cell);
             }
@@ -468,8 +468,7 @@ public partial class TableViewRow : ListViewItem
         if (TableView is not null && _itemPresenter is not null)
         {
             var cornerRadius = _itemPresenter.CornerRadius;
-            var left = Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft);
-            var right = Math.Max(cornerRadius.TopRight, cornerRadius.BottomRight);
+            var left = Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft) / 2;
             _selectionBackground ??= _itemPresenter.FindDescendants()
                                                    .OfType<Border>()
                                                    .FirstOrDefault(x => x.Name is not Selection_Background && x.Margin == _selectionBackgroundMargin);

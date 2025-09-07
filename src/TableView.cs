@@ -1280,9 +1280,13 @@ public partial class TableView : ListView
 
         base.SelectionMode = SelectionUnit is TableViewSelectionUnit.Cell ? ListViewSelectionMode.None : SelectionMode;
 
+        _headerRow?.SetHeadersVisibility();
+
         foreach (var row in _rows)
         {
             row.EnsureLayout();
+            row.CellPresenter?.SetRowHeaderVisibility();
+
         }
 
         _shouldThrowSelectionModeChangedException = false;
