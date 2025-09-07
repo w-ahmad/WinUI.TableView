@@ -25,8 +25,10 @@ public class TableViewTemplateColumn : TableViewColumn
     /// <returns>A ContentControl element.</returns>
     public override FrameworkElement GenerateElement(TableViewCell cell, object? dataItem)
     {
-        var template = CellTemplateSelector?.SelectTemplate(dataItem) ?? CellTemplate;
-        return (template?.LoadContent() as FrameworkElement)!;
+        return new ContentControl
+        {
+            ContentTemplate = CellTemplateSelector?.SelectTemplate(dataItem) ?? CellTemplate
+        };
     }
 
     /// <summary>
@@ -40,8 +42,10 @@ public class TableViewTemplateColumn : TableViewColumn
     {
         if (EditingTemplate is not null || EditingTemplateSelector is not null)
         {
-            var template = EditingTemplateSelector?.SelectTemplate(dataItem) ?? EditingTemplate;
-            return (template?.LoadContent() as FrameworkElement)!;
+            return new ContentControl
+            {
+                ContentTemplate = EditingTemplateSelector?.SelectTemplate(dataItem) ?? EditingTemplate
+            };
         }
 
         return GenerateElement(cell, dataItem);
