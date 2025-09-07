@@ -15,6 +15,10 @@ namespace WinUI.TableView;
 /// <summary>
 /// Represents a row in a TableView.
 /// </summary>
+
+#if WINDOWS
+[WinRT.GeneratedBindableCustomProperty]
+#endif
 public partial class TableViewRow : ListViewItem
 {
     private const string Selection_Indictor = nameof(Selection_Indictor);
