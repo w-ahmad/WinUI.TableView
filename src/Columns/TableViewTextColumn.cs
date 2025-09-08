@@ -8,7 +8,10 @@ namespace WinUI.TableView;
 /// </summary>
 [StyleTypedProperty(Property = nameof(ElementStyle), StyleTargetType = typeof(TextBlock))]
 [StyleTypedProperty(Property = nameof(EditingElementStyle), StyleTargetType = typeof(TextBox))]
-public class TableViewTextColumn : TableViewBoundColumn
+#if WINDOWS
+[WinRT.GeneratedBindableCustomProperty]
+#endif
+public partial class TableViewTextColumn : TableViewBoundColumn
 {
     /// <summary>
     /// Generates a TextBlock element for the cell.

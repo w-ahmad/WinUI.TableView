@@ -8,6 +8,9 @@ namespace WinUI.TableView;
 /// </summary>
 [StyleTypedProperty(Property = nameof(HeaderStyle), StyleTargetType = typeof(TableViewColumnHeader))]
 [StyleTypedProperty(Property = nameof(CellStyle), StyleTargetType = typeof(TableViewCell))]
+#if WINDOWS
+[WinRT.GeneratedBindableCustomProperty]
+#endif
 public abstract partial class TableViewColumn : DependencyObject
 {
     private TableViewColumnHeader? _headerControl;

@@ -14,6 +14,9 @@ namespace WinUI.TableView;
 /// </summary>
 [StyleTypedProperty(Property = nameof(ElementStyle), StyleTargetType = typeof(TextBlock))]
 [StyleTypedProperty(Property = nameof(EditingElementStyle), StyleTargetType = typeof(TableViewDatePicker))]
+#if WINDOWS
+[WinRT.GeneratedBindableCustomProperty]
+#endif
 public partial class TableViewDateColumn : TableViewBoundColumn
 {
     /// <summary>
