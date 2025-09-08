@@ -6,22 +6,22 @@ namespace WinUI.TableView;
 public enum TableViewHeadersVisibility
 {
     /// <summary>
-    /// No headers are visible.
+    /// Both row and column headers are visible. 
     /// </summary>
-    None,
+    All,
 
     /// <summary>
     /// Only column headers are visible.
     /// </summary>
-    Column,
+    Columns,
 
     /// <summary>
     /// Only row headers are visible.
     /// </summary>
-    Row,
+    Rows,
 
     /// <summary>
-    /// Both row and column headers are visible. 
+    /// No headers are visible.
     /// </summary>
-    All
+    None,
 }
