@@ -6,16 +6,23 @@ using Windows.Foundation;
 
 namespace WinUI.TableView;
 
+/// <summary>
+/// Represents a header for row in TableView.
+/// </summary>
 public partial class TableViewRowHeader : ContentControl
 {
     private ContentPresenter? _contentPresenter;
     private TableViewCellsPresenter? _cellPresenter;
 
+    /// <summary>
+    /// Initializes a new instance of the TableViewRowHeader class.
+    /// </summary>
     public TableViewRowHeader()
     {
         DefaultStyleKey = typeof(TableViewRowHeader);
     }
 
+    /// <inheritdoc/>
     protected override void OnApplyTemplate()
     {
         base.OnApplyTemplate();
@@ -23,6 +30,7 @@ public partial class TableViewRowHeader : ContentControl
         _contentPresenter = GetTemplateChild("Content") as ContentPresenter;
     }
 
+    /// <inheritdoc/>
     protected override Size MeasureOverride(Size availableSize)
     {
         if (TableView is not null && TableViewRow is not null && _contentPresenter is not null && ContentTemplateRoot is FrameworkElement element)
@@ -91,6 +99,13 @@ public partial class TableViewRowHeader : ContentControl
         return _cellPresenter?.GetHorizonalGridlineHeight() ?? 0d;
     }
 
+    /// <summary>
+    /// Gets or sets the TableViewRow associated with the presenter.
+    /// </summary>
     public TableView? TableView { get; internal set; }
+
+    /// <summary>
+    /// Gets or sets the TableView associated with the presenter.
+    /// </summary>
     public TableViewRow? TableViewRow { get; internal set; }
 }

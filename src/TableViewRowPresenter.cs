@@ -4,10 +4,14 @@ using Windows.Foundation;
 
 namespace WinUI.TableView;
 
+/// <summary>
+/// Represents the visual elements of a TableViewRow
+/// </summary>
 public partial class TableViewRowPresenter : ListViewItemPresenter
 {
     private TableViewCellsPresenter? _cellsPresenter;
 
+    /// <inheritdoc/>
     protected override Size ArrangeOverride(Size finalSize)
     {
         finalSize = base.ArrangeOverride(finalSize);

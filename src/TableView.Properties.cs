@@ -899,7 +899,7 @@ public partial class TableView
     }
 
     /// <summary>
-    /// Handles changes to the RowHeaderTemplate && RowHeaderTemplateSelector properties.
+    /// Handles changes to the RowHeaderTemplate and RowHeaderTemplateSelector properties.
     /// </summary>
     private static void OnRowHeaderTemplateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
