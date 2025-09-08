@@ -10,6 +10,9 @@ namespace WinUI.TableView;
 /// <summary>
 /// Represents a column in a TableView that is bound to a data source.
 /// </summary>
+#if WINDOWS
+[WinRT.GeneratedBindableCustomProperty]
+#endif
 public abstract class TableViewBoundColumn : TableViewColumn
 {
     private string? _propertyPath;
