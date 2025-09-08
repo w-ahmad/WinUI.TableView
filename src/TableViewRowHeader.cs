@@ -33,6 +33,7 @@ public partial class TableViewRowHeader : ContentControl
     /// <inheritdoc/>
     protected override Size MeasureOverride(Size availableSize)
     {
+        var desiredWidth = 0d;
         if (TableView is not null && TableViewRow is not null && _contentPresenter is not null && ContentTemplateRoot is FrameworkElement element)
         {
             #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860           
@@ -42,20 +43,17 @@ public partial class TableViewRowHeader : ContentControl
 
             element.Measure(availableSize: new Size(double.PositiveInfinity, double.PositiveInfinity));
 
-            var desiredWidth = element.DesiredSize.Width;
+            desiredWidth += element.DesiredSize.Width;
             desiredWidth += Padding.Left;
             desiredWidth += Padding.Right;
             desiredWidth += BorderThickness.Left;
             desiredWidth += BorderThickness.Right;
             desiredWidth = TableView.RowHeaderWidth is double.NaN ? desiredWidth : TableView.RowHeaderWidth;
-
-            var actualWidth = Math.Max(TableView.RowHeaderActualWidth, desiredWidth);
-            actualWidth = Math.Clamp(actualWidth, TableView.RowHeaderMinWidth, TableView.RowHeaderMaxWidth);
-
-            TableView.SetValue(TableView.RowHeaderActualWidthProperty, actualWidth);
+            desiredWidth = Math.Max(TableView.RowHeaderActualWidth, desiredWidth);
+            desiredWidth = Math.Clamp(desiredWidth, TableView.RowHeaderMinWidth, TableView.RowHeaderMaxWidth);
 
             #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860
-            var contentWidth = TableView.RowHeaderActualWidth;
+            var contentWidth = desiredWidth;
             contentWidth -= element.Margin.Left;
             contentWidth -= element.Margin.Right;
             contentWidth -= Padding.Left;
@@ -86,6 +84,9 @@ public partial class TableViewRowHeader : ContentControl
             }
             #endregion
         }
+
+        desiredWidth = Math.Clamp(desiredWidth, TableView?.RowHeaderMinWidth ?? 0, TableView?.RowHeaderMaxWidth ?? double.PositiveInfinity);
+        TableView?.SetValue(TableView.RowHeaderActualWidthProperty, desiredWidth);
 
         return base.MeasureOverride(availableSize);
     }

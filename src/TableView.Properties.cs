@@ -289,11 +289,6 @@ public partial class TableView
     internal bool IsEditing { get; private set; }
 
     /// <summary>
-    /// Gets the width of the selection indicator.
-    /// </summary>
-    internal double SelectionIndicatorWidth => SelectionMode is ListViewSelectionMode.Multiple ? 44 : RowHeaderActualWidth;
-
-    /// <summary>
     /// Gets or sets the filter handler for the TableView.
     /// </summary>
     public IColumnFilterHandler FilterHandler { get; set; }
@@ -644,7 +639,7 @@ public partial class TableView
     }
 
     /// <summary>
-    ///  Gets or sets the data template selector for the row header.
+    /// Gets or sets the data template selector for the row header.
     /// </summary>
     public DataTemplateSelector RowHeaderTemplateSelector
     {

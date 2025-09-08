@@ -100,14 +100,14 @@ public partial class TableViewHeaderRow : Control
     {
         finalSize = base.ArrangeOverride(finalSize);
 
-        if (_headersStackPanel is not null && TableView is not null)
+        if (_headersStackPanel is not null && _v_gridLine is not null && TableView is not null)
         {
-            var v_gridLineOffset = (_v_gridLine?.ActualOffset.X ?? 0) + (_v_gridLine?.ActualWidth ?? 0);
-            var headersOffset = -TableView.HorizontalOffset + v_gridLineOffset;
-            var xClip = (headersOffset * -1) + v_gridLineOffset;
+            var xGridLine = _v_gridLine.Visibility is Visibility.Visible ? _v_gridLine.ActualOffset.X + _v_gridLine.ActualWidth : 0;
+            var headersOffset = -TableView.HorizontalOffset + xGridLine;
+            var xClip = (headersOffset * -1) + xGridLine;
 
             _headersStackPanel.Arrange(new Rect(headersOffset, 0, _headersStackPanel.ActualWidth, finalSize.Height));
-            _headersStackPanel.Clip = headersOffset >= v_gridLineOffset ? null :
+            _headersStackPanel.Clip = headersOffset >= xGridLine ? null :
                 new RectangleGeometry
                 {
                     Rect = new Rect(xClip, 0, _headersStackPanel.ActualWidth - xClip, finalSize.Height)
@@ -396,7 +396,7 @@ public partial class TableViewHeaderRow : Control
         {
             stateName = TableView.IsEditing ? VisualStates.StateSelectAllCheckBoxDisabled : VisualStates.StateSelectAllCheckBox;
         }
-        else if (TableView?.HeadersVisibility is TableViewHeadersVisibility.None or TableViewHeadersVisibility.Column)
+        else if (TableView?.HeadersVisibility is TableViewHeadersVisibility.None or TableViewHeadersVisibility.Columns)
         {
             stateName = VisualStates.StateNoButton;
         }
@@ -503,8 +503,8 @@ public partial class TableViewHeaderRow : Control
 
         if (_cornerButtonColumn is not null && _v_gridLine is not null && TableView is not null)
         {
-            var areColumnHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Column;
-            var areRowHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Row;
+            var areColumnHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Columns;
+            var areRowHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
             var isMultiSelection = TableView.SelectionMode is ListViewSelectionMode.Multiple;
 
             Visibility = areColumnHeadersVisible ? Visibility.Visible : Visibility.Collapsed;

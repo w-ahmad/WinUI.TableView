@@ -1164,10 +1164,11 @@ public partial class TableView : ListView
         var cellWidth = Columns.VisibleColumns[slot.Column].ActualWidth;
         var cellRight = cellLeft + cellWidth;
         var viewportLeft = HorizontalOffset;
-        var viewportRight = viewportLeft + _scrollViewer.ViewportWidth - SelectionIndicatorWidth;
+        var headersOffset = GetRowHeadersOffset();
+        var viewportRight = viewportLeft + _scrollViewer.ViewportWidth - headersOffset;
 
         // If cell is wider than the viewport, align left edge
-        if (cellWidth > _scrollViewer.ViewportWidth - SelectionIndicatorWidth)
+        if (cellWidth > _scrollViewer.ViewportWidth - headersOffset)
         {
             xOffset = cellLeft;
         }
@@ -1179,7 +1180,7 @@ public partial class TableView : ListView
         // If cell is right of the viewport, scroll so its right edge is visible
         else if (cellRight > viewportRight)
         {
-            xOffset = cellRight - (_scrollViewer.ViewportWidth - SelectionIndicatorWidth);
+            xOffset = cellRight - (_scrollViewer.ViewportWidth - headersOffset);
         }
 
         // If cell is fully in view, just return
@@ -1268,10 +1269,12 @@ public partial class TableView : ListView
         var start = -1;
         var end = -1;
         var width = 0d;
+        var headersOffset = GetRowHeadersOffset();
+
         foreach (var column in Columns.VisibleColumns)
         {
             if (width >= HorizontalOffset &&
-                width + column.ActualWidth <= HorizontalOffset + _scrollViewer.ViewportWidth - SelectionIndicatorWidth)
+                width + column.ActualWidth <= HorizontalOffset + _scrollViewer.ViewportWidth - headersOffset)
             {
                 if (start == -1)
                 {
@@ -1287,6 +1290,14 @@ public partial class TableView : ListView
         }
 
         return (start, end);
+    }
+
+    private double GetRowHeadersOffset()
+    {
+        var areHeadersVisible = HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
+        var isMultiSelection = SelectionMode is ListViewSelectionMode.Multiple;
+
+        return isMultiSelection ? 44 : areHeadersVisible ? RowHeaderActualWidth : 0;
     }
 
     /// <summary>
