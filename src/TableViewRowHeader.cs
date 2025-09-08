@@ -33,50 +33,31 @@ public partial class TableViewRowHeader : ContentControl
     /// <inheritdoc/>
     protected override Size MeasureOverride(Size availableSize)
     {
-        var desiredWidth = 0d;
-        if (TableView is not null && TableViewRow is not null && _contentPresenter is not null && ContentTemplateRoot is FrameworkElement element)
+        if (TableView is not null && TableViewRow is not null && _contentPresenter is not null)
         {
+            var element = ContentTemplateRoot as FrameworkElement;
             #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860           
-            element.MaxWidth = double.PositiveInfinity;
-            element.MaxHeight = double.PositiveInfinity;
+            if (element is not null)
+            {
+                element.MaxWidth = double.PositiveInfinity;
+                element.MaxHeight = double.PositiveInfinity;
+            }
             #endregion
 
-            element.Measure(availableSize: new Size(double.PositiveInfinity, double.PositiveInfinity));
+            element?.Measure(availableSize: new Size(double.PositiveInfinity, double.PositiveInfinity));
 
-            desiredWidth += element.DesiredSize.Width;
-            desiredWidth += Padding.Left;
-            desiredWidth += Padding.Right;
-            desiredWidth += BorderThickness.Left;
-            desiredWidth += BorderThickness.Right;
-            desiredWidth = TableView.RowHeaderWidth is double.NaN ? desiredWidth : TableView.RowHeaderWidth;
-            desiredWidth = Math.Max(TableView.RowHeaderActualWidth, desiredWidth);
-            desiredWidth = Math.Clamp(desiredWidth, TableView.RowHeaderMinWidth, TableView.RowHeaderMaxWidth);
+            var desiredWidth = Math.Clamp(GetContentDesiredWidth(element), TableView.RowHeaderMinWidth, TableView.RowHeaderMaxWidth);
+            TableView?.SetValue(TableView.RowHeaderActualWidthProperty, desiredWidth);
 
             #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860
-            var contentWidth = desiredWidth;
-            contentWidth -= element.Margin.Left;
-            contentWidth -= element.Margin.Right;
-            contentWidth -= Padding.Left;
-            contentWidth -= Padding.Right;
-            contentWidth -= BorderThickness.Left;
-            contentWidth -= BorderThickness.Right;
-
-            var rowHeight = TableViewRow.Height is double.NaN ? double.PositiveInfinity : TableViewRow.Height;
-            var rowMaxHeight = TableViewRow.MaxHeight;
-            var contentHeight = Math.Min(rowHeight, rowMaxHeight);
-            contentHeight -= element.Margin.Top;
-            contentHeight -= element.Margin.Bottom;
-            contentHeight -= Padding.Top;
-            contentHeight -= Padding.Bottom;
-            contentHeight -= BorderThickness.Top;
-            contentHeight -= BorderThickness.Bottom;
-            contentHeight -= GetHorizonalGridlineHeight();
+            var contentWidth = GetContentWidth(desiredWidth, element);
+            var contentHeight = GetContentHeight(element);
 
             if (contentWidth < 0 || contentHeight < 0)
             {
                 _contentPresenter.Visibility = Visibility.Collapsed;
             }
-            else
+            else if (element is not null)
             {
                 element.MaxWidth = contentWidth;
                 element.MaxHeight = contentHeight;
@@ -85,10 +66,50 @@ public partial class TableViewRowHeader : ContentControl
             #endregion
         }
 
-        desiredWidth = Math.Clamp(desiredWidth, TableView?.RowHeaderMinWidth ?? 0, TableView?.RowHeaderMaxWidth ?? double.PositiveInfinity);
-        TableView?.SetValue(TableView.RowHeaderActualWidthProperty, desiredWidth);
-
         return base.MeasureOverride(availableSize);
+    }
+
+    private double GetContentDesiredWidth(FrameworkElement? element)
+    {
+        if (TableView is null) return 0d;
+
+        var desiredWidth = element?.DesiredSize.Width ?? 0;
+        desiredWidth += Padding.Left;
+        desiredWidth += Padding.Right;
+        desiredWidth += BorderThickness.Left;
+        desiredWidth += BorderThickness.Right;
+        desiredWidth = TableView.RowHeaderWidth is double.NaN ? desiredWidth : TableView.RowHeaderWidth;
+        desiredWidth = Math.Max(TableView.RowHeaderActualWidth, desiredWidth);
+        desiredWidth = Math.Clamp(desiredWidth, TableView.RowHeaderMinWidth, TableView.RowHeaderMaxWidth);
+
+        return desiredWidth;
+    }
+
+    private double GetContentWidth(double desiredWidth, FrameworkElement? element)
+    {
+        var contentWidth = desiredWidth;
+        contentWidth -= element?.Margin.Left ?? 0;
+        contentWidth -= element?.Margin.Right ?? 0;
+        contentWidth -= Padding.Left;
+        contentWidth -= Padding.Right;
+        contentWidth -= BorderThickness.Left;
+        contentWidth -= BorderThickness.Right;
+        return contentWidth;
+    }
+
+    private double GetContentHeight(FrameworkElement? element)
+    {
+        var rowHeight = TableViewRow?.Height is double.NaN ? double.PositiveInfinity : TableViewRow?.Height ?? 0;
+        var rowMaxHeight = TableViewRow?.MaxHeight ?? double.PositiveInfinity;
+        var contentHeight = Math.Min(rowHeight, rowMaxHeight);
+        contentHeight -= element?.Margin.Top ?? 0;
+        contentHeight -= element?.Margin.Bottom ?? 0;
+        contentHeight -= Padding.Top;
+        contentHeight -= Padding.Bottom;
+        contentHeight -= BorderThickness.Top;
+        contentHeight -= BorderThickness.Bottom;
+        contentHeight -= GetHorizonalGridlineHeight();
+        return contentHeight;
     }
 
     /// <summary>
