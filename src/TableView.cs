@@ -756,6 +756,24 @@ public partial class TableView : ListView
     }
 
     /// <summary>
+    /// Refreshes the items view of the TableView.
+    /// </summary>
+    public void RefreshView()
+    {
+        DeselectAll();
+        _collectionView.Refresh();
+    }
+
+    /// <summary>
+    /// Refreshes the sorting applied to the items in the TableView.
+    /// </summary>
+    public void RefreshSorting()
+    {
+        DeselectAll();
+        _collectionView.RefreshSorting();
+    }
+
+    /// <summary>
     /// Clears all sorting applied to the items.
     /// </summary>
     public void ClearAllSorting()
