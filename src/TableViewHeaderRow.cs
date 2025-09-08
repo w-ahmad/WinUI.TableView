@@ -505,7 +505,7 @@ public partial class TableViewHeaderRow : Control
         {
             var areColumnHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Columns;
             var areRowHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
-            var isMultiSelection = TableView.SelectionMode is ListViewSelectionMode.Multiple;
+            var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
 
             Visibility = areColumnHeadersVisible ? Visibility.Visible : Visibility.Collapsed;
 

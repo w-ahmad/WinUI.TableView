@@ -80,7 +80,7 @@ public partial class TableViewCellsPresenter : Control
         {
             var height = finalSize.Height;
             var areHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
-            var isMultiSelection = TableView.SelectionMode is ListViewSelectionMode.Multiple;
+            var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
             var headerWidth = areHeadersVisible && !isMultiSelection ? TableView.RowHeaderActualWidth + _v_gridLine.ActualWidth : 0;
             var cornerRadius = _rowPresenter?.CornerRadius ?? new CornerRadius(4);
             var left = isMultiSelection ? 44 : Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft);
@@ -143,7 +143,7 @@ public partial class TableViewCellsPresenter : Control
         if (_rowHeader is not null && _v_gridLine is not null && _rowHeaderColumn is not null && TableView is not null)
         {
             var areHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
-            var isMultiSelection = TableView.SelectionMode is ListViewSelectionMode.Multiple;
+            var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
 
             _v_gridLine.Visibility = areHeadersVisible || isMultiSelection ? Visibility.Visible : Visibility.Collapsed;
 
