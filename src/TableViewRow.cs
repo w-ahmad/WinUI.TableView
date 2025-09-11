@@ -573,7 +573,7 @@ public partial class TableViewRow : ListViewItem
 #if WINDOWS
             _cellPresenter ??= ContentTemplateRoot as TableViewCellsPresenter;
 #else
-            _cellPresenter ??=this.FindDescendant<TableViewCellsPresenter>();
+            _cellPresenter ??= this.FindDescendant<TableViewCellsPresenter>();
 #endif
             return _cellPresenter;
         }

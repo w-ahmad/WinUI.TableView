@@ -196,7 +196,7 @@ public partial class TableViewCellsPresenter : Control
     /// <summary>
     /// Retrieves the height of the horizontal gridline.
     /// </summary>
-    internal double GetHorizonalGridlineHeight()
+    internal double GetHorizontalGridlineHeight()
     {
         return _h_gridLine?.ActualHeight ?? 0d;
     }

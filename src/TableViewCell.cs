@@ -130,7 +130,7 @@ public partial class TableViewCell : ContentControl
             contentHeight -= BorderThickness.Bottom;
             contentHeight -= _selectionBorder?.BorderThickness.Top ?? 0;
             contentHeight -= _selectionBorder?.BorderThickness.Bottom ?? 0;
-            contentHeight -= GetHorizonalGridlineHeight();
+            contentHeight -= GetHorizontalGridlineHeight();
 
             if (contentWidth < 0 || contentHeight < 0)
             {
@@ -151,10 +151,10 @@ public partial class TableViewCell : ContentControl
     /// <summary>
     /// Retrieves the height of the horizontal gridline.
     /// </summary>
-    private double GetHorizonalGridlineHeight()
+    private double GetHorizontalGridlineHeight()
     {
         _cellPresenter ??= this?.FindAscendant<TableViewCellsPresenter>();
-        return _cellPresenter?.GetHorizonalGridlineHeight() ?? 0d;
+        return _cellPresenter?.GetHorizontalGridlineHeight() ?? 0d;
     }
 
     /// <inheritdoc/>
