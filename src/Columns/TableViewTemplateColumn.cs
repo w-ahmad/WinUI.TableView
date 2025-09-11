@@ -6,7 +6,10 @@ namespace WinUI.TableView;
 /// <summary>
 /// Represents a column in a TableView that uses a DataTemplate for its content.
 /// </summary>
-public class TableViewTemplateColumn : TableViewColumn
+#if WINDOWS
+[WinRT.GeneratedBindableCustomProperty]
+#endif
+public partial class TableViewTemplateColumn : TableViewColumn
 {
     /// <summary>
     /// Initializes a new instance of the TableViewTemplateColumn class.
