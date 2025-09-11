@@ -108,17 +108,17 @@ public partial class TableViewRowHeader : ContentControl
         contentHeight -= Padding.Bottom;
         contentHeight -= BorderThickness.Top;
         contentHeight -= BorderThickness.Bottom;
-        contentHeight -= GetHorizonalGridlineHeight();
+        contentHeight -= GetHorizontalGridlineHeight();
         return contentHeight;
     }
 
     /// <summary>
     /// Retrieves the height of the horizontal gridline.
     /// </summary>
-    private double GetHorizonalGridlineHeight()
+    private double GetHorizontalGridlineHeight()
     {
         _cellPresenter ??= this?.FindAscendant<TableViewCellsPresenter>();
-        return _cellPresenter?.GetHorizonalGridlineHeight() ?? 0d;
+        return _cellPresenter?.GetHorizontalGridlineHeight() ?? 0d;
     }
 
     /// <summary>
