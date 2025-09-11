@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using Windows.Foundation;
 using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
@@ -83,7 +84,7 @@ public partial class TableViewRow : ListViewItem
                 if (_itemPresenter is not null)
                 {
                     var cornerRadius = _itemPresenter.CornerRadius;
-                    var left = Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft);
+                    var left = Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft) / 2;
                     var selectionIndictor = _itemPresenter.FindDescendants()
                                                           .OfType<Border>()
                                                           .FirstOrDefault(x => x is { Name: not Selection_Indictor, Width: 3 });
@@ -140,19 +141,6 @@ public partial class TableViewRow : ListViewItem
         _cellPresenterBackground = Background;
         _cellPresenterForeground = Foreground;
         _itemPresenter = GetTemplateChild("Root") as ListViewItemPresenter;
-
-        if (_itemPresenter is not null)
-        {
-            var cornerRadius = _itemPresenter.CornerRadius;
-            var left = Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft);
-            var right = Math.Max(cornerRadius.TopRight, cornerRadius.BottomRight);
-
-            _itemPresenter.Margin = new Thickness(
-                _itemPresenter.Margin.Left - left,
-                _itemPresenter.Margin.Top,
-                _itemPresenter.Margin.Right - right,
-                _itemPresenter.Margin.Bottom);
-        }
     }
 
     /// <inheritdoc/>
@@ -175,6 +163,7 @@ public partial class TableViewRow : ListViewItem
         }
 #endif
 
+        CellPresenter?.InvalidateMeasure(); // The cells presenter does not measure every time.
         _tableView?.EnsureAlternateRowColors();
     }
 
@@ -216,6 +205,19 @@ public partial class TableViewRow : ListViewItem
         }
     }
 
+    /// <inheritdoc/>
+    protected override Size ArrangeOverride(Size finalSize)
+    {
+        finalSize = base.ArrangeOverride(finalSize);
+
+        var cornerRadius = _itemPresenter?.CornerRadius ?? new();
+        var left = Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft);
+
+        _itemPresenter?.Arrange(new Rect(-left, 0, _itemPresenter.ActualWidth + left, _itemPresenter.ActualHeight));
+
+        return finalSize;
+    }
+
     /// <summary>
     /// Ensures cells are created for the row.
     /// </summary>
@@ -226,9 +228,8 @@ public partial class TableViewRow : ListViewItem
             return;
         }
 
-        if (CellPresenter is { Children: { } } && (_ensureCells || _cellPresenter != CellPresenter))
+        if (CellPresenter is not null && (_ensureCells || _cellPresenter != CellPresenter))
         {
-            _cellPresenter = CellPresenter;
             CellPresenter.Children.Clear();
 
             AddCells(TableView.Columns.VisibleColumns);
@@ -337,7 +338,7 @@ public partial class TableViewRow : ListViewItem
         {
             foreach (var column in columns)
             {
-                var cell = CellPresenter.Children.OfType<TableViewCell>().FirstOrDefault(x => x.Column == column);
+                var cell = CellPresenter.Cells.FirstOrDefault(x => x.Column == column);
                 if (cell is not null)
                 {
                     CellPresenter.Children.Remove(cell);
@@ -359,14 +360,14 @@ public partial class TableViewRow : ListViewItem
                 {
                     Row = this,
                     Column = column,
-                    TableView = TableView!,
+                    TableView = TableView,
                     Index = TableView.Columns.VisibleColumns.IndexOf(column),
                     Width = column.ActualWidth,
                     Style = column.CellStyle ?? TableView.CellStyle
                 };
 
                 var index = TableView.Columns.VisibleColumns.IndexOf(column);
-                index = Math.Min(index, CellPresenter.Children.Count);
+                index = Math.Min(index, CellPresenter.Cells.Count);
                 index = Math.Max(index, 0); // handles -ve index.
                 CellPresenter.Children.Insert(index, cell);
             }
@@ -471,25 +472,24 @@ public partial class TableViewRow : ListViewItem
         if (TableView is not null && _itemPresenter is not null)
         {
             var cornerRadius = _itemPresenter.CornerRadius;
-            var left = Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft);
-            var right = Math.Max(cornerRadius.TopRight, cornerRadius.BottomRight);
+            var left = Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft) / 2;
             _selectionBackground ??= _itemPresenter.FindDescendants()
                                                    .OfType<Border>()
                                                    .FirstOrDefault(x => x.Name is not Selection_Background && x.Margin == _selectionBackgroundMargin);
 
+            FocusVisualMargin = new Thickness(
+                _focusVisualMargin.Left + left,
+                _focusVisualMargin.Top,
+                _focusVisualMargin.Right,
+                _focusVisualMargin.Bottom + TableView.HorizontalGridLinesStrokeThickness);
+
             if (_selectionBackground is not null)
             {
-                FocusVisualMargin = new Thickness(
-                    _focusVisualMargin.Left + left,
-                    _focusVisualMargin.Top,
-                    _focusVisualMargin.Right + right,
-                    _focusVisualMargin.Bottom + TableView.HorizontalGridLinesStrokeThickness);
-
                 _selectionBackground.Name = Selection_Background;
                 _selectionBackground.Margin = new Thickness(
                     _selectionBackgroundMargin.Left + left,
                     _selectionBackgroundMargin.Top,
-                    _selectionBackgroundMargin.Right + right,
+                    _selectionBackgroundMargin.Right,
                     _selectionBackgroundMargin.Bottom + TableView.HorizontalGridLinesStrokeThickness);
             }
         }
@@ -502,26 +502,16 @@ public partial class TableViewRow : ListViewItem
     /// </summary>
     internal void EnsureLayout()
     {
-        if (CellPresenter is not null && TableView is not null)
-        {
-            CellPresenter.Padding = ((ListView)TableView).SelectionMode is ListViewSelectionMode.Multiple
-#if WINDOWS
-                                     ? new Thickness(16, 0, 16, 0)
-#else
-                                     ? new Thickness(8, 0, 16, 0)
-#endif
-                                     : new Thickness(20, 0, 16, 0);
 #if !WINDOWS
-            var multiSelectSquare = this.FindDescendant<Border>(x => x.Name is "MultiSelectSquare");
-            if (multiSelectSquare is not null)
-            {
-                multiSelectSquare.Opacity = 0.5;
-                multiSelectSquare.CornerRadius = new CornerRadius(4);
-                multiSelectSquare.BorderThickness = new Thickness(1);
-                multiSelectSquare.Margin = new Thickness(10, 0, 0, 0);
-            }
-#endif
+        var multiSelectSquare = this.FindDescendant<Border>(x => x.Name is "MultiSelectSquare");
+        if (multiSelectSquare is not null)
+        {
+            multiSelectSquare.Opacity = 0.5;
+            multiSelectSquare.CornerRadius = new CornerRadius(4);
+            multiSelectSquare.BorderThickness = new Thickness(1);
+            multiSelectSquare.Margin = new Thickness(10, 0, 0, 0);
         }
+#endif
     }
 
     /// <summary>
@@ -576,10 +566,16 @@ public partial class TableViewRow : ListViewItem
     }
 
     /// <inheritdoc/>
-    public TableViewCellsPresenter? CellPresenter =>
+    public TableViewCellsPresenter? CellPresenter
+    {
+        get
+        {
 #if WINDOWS
-            ContentTemplateRoot as TableViewCellsPresenter;
+            _cellPresenter ??= ContentTemplateRoot as TableViewCellsPresenter;
 #else
-            this.FindDescendant<TableViewCellsPresenter>();
+            _cellPresenter ??= this.FindDescendant<TableViewCellsPresenter>();
 #endif
+            return _cellPresenter;
+        }
+    }
 }

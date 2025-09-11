@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace WinUI.TableView;
 
@@ -28,17 +29,17 @@ public partial class TableView
     /// <summary>
     /// Identifies the HeaderRowHeight dependency property.
     /// </summary>
-    public static readonly DependencyProperty HeaderRowHeightProperty = DependencyProperty.Register(nameof(HeaderRowHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.NaN, OnHeaderRowHeightChanged));
+    public static readonly DependencyProperty HeaderRowHeightProperty = DependencyProperty.Register(nameof(HeaderRowHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.NaN));
 
     /// <summary>
     /// Identifies the HeaderRowMaxHeight dependency property.
     /// </summary>
-    public static readonly DependencyProperty HeaderRowMaxHeightProperty = DependencyProperty.Register(nameof(HeaderRowMaxHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.PositiveInfinity, OnHeaderRowHeightChanged));
+    public static readonly DependencyProperty HeaderRowMaxHeightProperty = DependencyProperty.Register(nameof(HeaderRowMaxHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.PositiveInfinity));
 
     /// <summary>
     /// Identifies the HeaderRowMinHeight dependency property.
     /// </summary>
-    public static readonly DependencyProperty HeaderRowMinHeightProperty = DependencyProperty.Register(nameof(HeaderRowMinHeight), typeof(double), typeof(TableView), new PropertyMetadata(32d, OnHeaderRowHeightChanged));
+    public static readonly DependencyProperty HeaderRowMinHeightProperty = DependencyProperty.Register(nameof(HeaderRowMinHeight), typeof(double), typeof(TableView), new PropertyMetadata(32d));
 
     /// <summary>
     /// Identifies the RowHeight dependency property.
@@ -175,6 +176,51 @@ public partial class TableView
     public static readonly DependencyProperty UseRightClickForColumnFilterProperty = DependencyProperty.Register(nameof(UseRightClickForColumnFilter), typeof(bool), typeof(TableView), new PropertyMetadata(false));
 
     /// <summary>
+    /// Identifies the VerticalOffset dependency property.
+    /// </summary>
+    public static readonly DependencyProperty VerticalOffsetProperty = DependencyProperty.Register(nameof(VerticalOffset), typeof(double), typeof(TableView), new PropertyMetadata(0d));
+
+    /// <summary>
+    /// Identifies the HorizontalOffset dependency property.
+    /// </summary>
+    public static readonly DependencyProperty HorizontalOffsetProperty = DependencyProperty.Register(nameof(HorizontalOffset), typeof(double), typeof(TableView), new PropertyMetadata(0.0, OnHorizontalOffsetChanged));
+
+    /// <summary>
+    /// Identifies the RowHeaderActualWidth dependency property.
+    /// </summary>
+    public static readonly DependencyProperty RowHeaderActualWidthProperty = DependencyProperty.Register(nameof(RowHeaderActualWidth), typeof(double), typeof(TableView), new PropertyMetadata(0d, OnRowHeaderWidthChanged));
+
+    /// <summary>
+    /// Identifies the RowHeaderWidth dependency property.
+    /// </summary>
+    public static readonly DependencyProperty RowHeaderWidthProperty = DependencyProperty.Register(nameof(RowHeaderWidth), typeof(double), typeof(TableView), new PropertyMetadata(double.NaN, OnRowHeaderWidthChanged));
+
+    /// <summary>
+    /// Identifies the RowHeaderMinWidth dependency property.
+    /// </summary>
+    public static readonly DependencyProperty RowHeaderMinWidthProperty = DependencyProperty.Register(nameof(RowHeaderMinWidth), typeof(double), typeof(TableView), new PropertyMetadata(16d, OnRowHeaderWidthChanged));
+
+    /// <summary>
+    /// Identifies the RowHeaderMaxWidth dependency property.
+    /// </summary>
+    public static readonly DependencyProperty RowHeaderMaxWidthProperty = DependencyProperty.Register(nameof(RowHeaderMaxWidth), typeof(double), typeof(TableView), new PropertyMetadata(double.PositiveInfinity, OnRowHeaderWidthChanged));
+
+    /// <summary>
+    /// Identifies the HeadersVisibility dependency property.
+    /// </summary>
+    public static readonly DependencyProperty HeadersVisibilityProperty = DependencyProperty.Register(nameof(HeadersVisibility), typeof(TableViewHeadersVisibility), typeof(TableView), new PropertyMetadata(TableViewHeadersVisibility.All, OnRowHeadersVisibilityChanged));
+
+    /// <summary>
+    /// Identifies the RowHeaderContent dependency property.
+    /// </summary>
+    public static readonly DependencyProperty RowHeaderTemplateProperty = DependencyProperty.Register(nameof(RowHeaderTemplate), typeof(DataTemplate), typeof(TableView), new PropertyMetadata(null, OnRowHeaderTemplateChanged));
+
+    /// <summary>
+    /// Identifies the RowHeaderTemplateSelector dependency property.
+    /// </summary>
+    public static readonly DependencyProperty RowHeaderTemplateSelectorProperty = DependencyProperty.Register(nameof(RowHeaderTemplateSelector), typeof(DataTemplateSelector), typeof(TableView), new PropertyMetadata(null, OnRowHeaderTemplateChanged));
+
+    /// <summary>
     /// Gets or sets a value indicating whether opening the column filter over header right-click is enabled.
     /// </summary>
     public bool UseRightClickForColumnFilter
@@ -241,11 +287,6 @@ public partial class TableView
     /// Gets or sets a value indicating whether the TableView is in editing mode.
     /// </summary>
     internal bool IsEditing { get; private set; }
-
-    /// <summary>
-    /// Gets the width of the selection indicator.
-    /// </summary>
-    internal int SelectionIndicatorWidth => SelectionMode is ListViewSelectionMode.Multiple ? 44 : 16;
 
     /// <summary>
     /// Gets or sets the filter handler for the TableView.
@@ -538,6 +579,75 @@ public partial class TableView
     }
 
     /// <summary>
+    /// Gets the vertical offset for the TableView.
+    /// </summary>
+    public double VerticalOffset => (double)GetValue(VerticalOffsetProperty);
+
+    /// <summary>
+    /// Gets the horizontal offset for the TableView.
+    /// </summary>
+    public double HorizontalOffset => (double)GetValue(HorizontalOffsetProperty);
+
+    /// <summary>
+    /// Gets the actual width of the row header.
+    /// </summary>
+    public double RowHeaderActualWidth => (double)GetValue(RowHeaderActualWidthProperty);
+
+    /// <summary>
+    /// Gets or sets the width of the row header.
+    /// </summary>
+    public double RowHeaderWidth
+    {
+        get => (double)GetValue(RowHeaderWidthProperty);
+        set => SetValue(RowHeaderWidthProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the minimum width of the row header.
+    /// </summary>
+    public double RowHeaderMinWidth
+    {
+        get => (double)GetValue(RowHeaderMinWidthProperty);
+        set => SetValue(RowHeaderMinWidthProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the maximum width of the row header.
+    /// </summary>
+    public double RowHeaderMaxWidth
+    {
+        get => (double)GetValue(RowHeaderMaxWidthProperty);
+        set => SetValue(RowHeaderMaxWidthProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the visibility of the row and column headers.
+    /// </summary>
+    public TableViewHeadersVisibility HeadersVisibility
+    {
+        get => (TableViewHeadersVisibility)GetValue(HeadersVisibilityProperty);
+        set => SetValue(HeadersVisibilityProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the data template for the row header.
+    /// </summary>
+    public DataTemplate? RowHeaderTemplate
+    {
+        get => (DataTemplate?)GetValue(RowHeaderTemplateProperty);
+        set => SetValue(RowHeaderTemplateProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the data template selector for the row header.
+    /// </summary>
+    public DataTemplateSelector RowHeaderTemplateSelector
+    {
+        get => (DataTemplateSelector)GetValue(RowHeaderTemplateSelectorProperty);
+        set => SetValue(RowHeaderTemplateSelectorProperty, value);
+    }
+
+    /// <summary>
     /// Handles changes to the ItemsSource property.
     /// </summary>
     private static void OnItemsSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -574,14 +684,6 @@ public partial class TableView
             tableView.UpdateBaseSelectionMode();
             tableView.UpdateCornerButtonState();
         }
-    }
-
-    /// <summary>
-    /// Handles changes to the HeaderRowHeight property.
-    /// </summary>
-    private static void OnHeaderRowHeightChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        (d as TableView)?.UpdateVerticalScrollBarMargin();
     }
 
     /// <summary>
@@ -739,6 +841,72 @@ public partial class TableView
         var newSlot = e.NewValue as TableViewCellSlot?;
 
         await tableView.OnCurrentCellChanged(oldSlot, newSlot);
+    }
+
+    /// <summary>
+    /// Handles changes to the HorizontalOffset property.
+    /// </summary>
+    private static void OnHorizontalOffsetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView { _headerRow: { } } tableView)
+        {
+            tableView._headerRow.InvalidateArrange();
+
+            foreach (var row in tableView._rows)
+            {
+                row?.CellPresenter?.InvalidateArrange();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the RowHeaderActualWidth, RowHeaderWidth, RowHeaderMinWidth, RowHeaderMaxWidth properties.
+    /// </summary>
+    private static async void OnRowHeaderWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            await Task.Yield();
+
+            tableView._headerRow?.SetRowHeaderWidth();
+
+            foreach (var row in tableView._rows)
+            {
+                row.CellPresenter?.SetRowHeaderWidth();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the HeadersVisibility property.
+    /// </summary>
+    private static void OnRowHeadersVisibilityChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            tableView._headerRow?.SetHeadersVisibility();
+
+            foreach (var row in tableView._rows)
+            {
+                row.CellPresenter?.SetRowHeaderVisibility();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the RowHeaderTemplate and RowHeaderTemplateSelector properties.
+    /// </summary>
+    private static void OnRowHeaderTemplateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            tableView.SetValue(RowHeaderActualWidthProperty, 0d);
+
+            foreach (var row in tableView._rows)
+            {
+                row.CellPresenter?.SetRowHeaderTemplate();
+            }
+        }
     }
 
     /// <summary>

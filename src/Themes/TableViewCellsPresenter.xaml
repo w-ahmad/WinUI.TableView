@@ -2,10 +2,12 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="using:WinUI.TableView">
 
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/Resources.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
     <Style x:Key="DefaultTableViewCellsPresenterStyle"
            TargetType="local:TableViewCellsPresenter">
-        <Setter Property="Padding"
-                Value="20,0,16,0" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:TableViewCellsPresenter">
@@ -17,30 +19,35 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <Grid Margin="{TemplateBinding Padding}">
+                        <Grid x:Name="RootPanel"
+                              Margin="{TemplateBinding Padding}">
+
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition x:Name="RowHeaderColumn" Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel x:Name="StackPanel"
-                                        Grid.Column="1"
+                            <StackPanel x:Name="CellsStackPanel"
+                                        Grid.Column="2"
                                         Orientation="Horizontal">
                                 <!--This is just dummy textblock. It would be removed at runtime-->
                                 <TextBlock Margin="16,0"
-                                           Text="{Binding}" 
+                                           Text="{Binding}"
                                            VerticalAlignment="Center" />
                             </StackPanel>
 
+                            <local:TableViewRowHeader x:Name="RowHeader" />
+
                             <Rectangle x:Name="VerticalGridLine"
                                        Width="1"
+                                       Grid.Column="1"
                                        VerticalAlignment="Stretch"
                                        IsHitTestVisible="False" />
                         </Grid>
 
                         <Rectangle x:Name="HorizontalGridLine"
                                    Grid.Row="1"
-                                   Margin="-24,0,0,0"
                                    HorizontalAlignment="Stretch"
                                    IsHitTestVisible="False" />
                     </Grid>
