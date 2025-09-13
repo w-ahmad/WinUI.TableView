@@ -128,4 +128,3 @@ Build and run your application. You should see the `WinUI.TableView` populated w
 
 
 ![image](https://github.com/user-attachments/assets/e00bffc7-19e0-40bd-bbda-07198d6bc60a)
-

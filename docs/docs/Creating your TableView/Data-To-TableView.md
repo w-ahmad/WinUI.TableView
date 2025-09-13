@@ -70,7 +70,7 @@ public class <The name of your class> : INotifyPropertyChanged
     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }
 ```
-Levae everything outside of `<>` unchanged.
+Leave everything outside of `<>` unchanged.
 
 
 ## Creating TableView columns
