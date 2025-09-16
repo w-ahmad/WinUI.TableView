@@ -34,6 +34,7 @@ public partial class TableView : ListView
 {
     private TableViewHeaderRow? _headerRow;
     private ScrollViewer? _scrollViewer;
+    private RowDefinition? _headerRowDefinition;
     private bool _shouldThrowSelectionModeChangedException;
     private bool _ensureColumns = true;
     private readonly List<TableViewRow> _rows = [];
@@ -261,13 +262,15 @@ public partial class TableView : ListView
 
         _headerRow = GetTemplateChild("HeaderRow") as TableViewHeaderRow;
         _scrollViewer = GetTemplateChild("ScrollViewer") as ScrollViewer;
-
+        _headerRowDefinition = GetTemplateChild("HeaderRowDefinition") as RowDefinition;
         if (IsLoaded)
         {
             while (ItemsPanelRoot is null) await Task.Yield();
 
             EnsureAutoColumns();
         }
+
+        SetHeadersVisibility();
     }
 
     /// <summary>
@@ -1467,6 +1470,25 @@ public partial class TableView : ListView
 
         IsEditing = value;
         UpdateCornerButtonState();
+    }
+
+    /// <summary>
+    /// Sets the visibility of the headers.
+    /// </summary>
+    private void SetHeadersVisibility()
+    {
+        if (_headerRowDefinition is not null)
+        {
+            var areColumnHeadersVisible = HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Columns;
+            _headerRowDefinition.Height = areColumnHeadersVisible ? GridLength.Auto : new(0);
+        }
+
+        _headerRow?.SetHeadersVisibility();
+
+        foreach (var row in _rows)
+        {
+            row.CellPresenter?.SetRowHeaderVisibility();
+        }
     }
 
     /// <inheritdoc/>

@@ -86,7 +86,7 @@
                             CornerRadius="{TemplateBinding CornerRadius}">
                         <Grid>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
+                                <RowDefinition x:Name="HeaderRowDefinition" Height="Auto" />
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
 

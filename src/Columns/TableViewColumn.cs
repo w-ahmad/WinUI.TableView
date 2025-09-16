@@ -14,6 +14,7 @@ public abstract partial class TableViewColumn : DependencyObject
     private double _desiredWidth;
     private SD? _sortDirection;
     private bool _isFiltered;
+    private bool _isFrozen;
 
     /// <summary>
     /// Generates a display element for the cell.
@@ -264,6 +265,22 @@ public abstract partial class TableViewColumn : DependencyObject
         {
             _isFiltered = value;
             OnIsFilteredChanged();
+        }
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether the column can horizontally scrolled.
+    /// </summary>
+    public bool IsFrozen
+    {
+        get => _isFrozen;
+        internal set
+        {
+            if (_isFrozen != value)
+            {
+                _isFrozen = value;
+                OwningCollection?.HandleColumnPropertyChanged(this, nameof(IsFrozen));
+            }
         }
     }
 
