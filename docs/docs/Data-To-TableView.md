@@ -209,7 +209,7 @@ public class MainViewModel
 > [!TIP]
 > You can also make changes or add items to your collection later like this:
 > ```cs
-> var viewModel = TaskTable.DataContext as MainViewModel;
+> var viewModel = MyTableView.DataContext as MainViewModel;
 > viewModel.Genders.Add("NewGender");
 > ```
 
