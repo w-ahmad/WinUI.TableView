@@ -8,6 +8,7 @@
     </TargetFrameworks> 
     <Nullable>enable</Nullable> 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsAOTCompatible>true</IsAOTCompatible>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$([MSBuild]::GetTargetPlatformIdentifier($(TargetFramework)))' == 'windows'">
