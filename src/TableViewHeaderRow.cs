@@ -331,6 +331,8 @@ public partial class TableViewHeaderRow : Control
             }
 
             _calculatingHeaderWidths = false;
+
+            TableView.UpdateHorizontalScrollBarMargin();
         }
     }
 
