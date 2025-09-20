@@ -269,7 +269,7 @@ public abstract partial class TableViewColumn : DependencyObject
     }
 
     /// <summary>
-    /// Gets a value indicating whether the column can horizontally scrolled.
+    /// Gets a value indicating whether the column can be horizontally scrolled.
     /// </summary>
     public bool IsFrozen
     {

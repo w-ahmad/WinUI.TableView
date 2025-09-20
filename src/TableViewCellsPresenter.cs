@@ -211,7 +211,7 @@ public partial class TableViewCellsPresenter : Control
     /// Inserts a cell at the specified index.
     /// </summary>
     /// <param name="cell">The cell to insert.</param>
-    public void InsertCell( TableViewCell cell)
+    public void InsertCell(TableViewCell cell)
     {
         if (TableView is null || cell is not { Column: { } column }) return;
 
