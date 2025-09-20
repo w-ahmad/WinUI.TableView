@@ -130,7 +130,6 @@ public partial class TableViewRow : ListViewItem
         _focusVisualMargin = FocusVisualMargin;
 
         EnsureGridLines();
-        EnsureLayout();
     }
 
     /// <inheritdoc/>
@@ -230,7 +229,7 @@ public partial class TableViewRow : ListViewItem
 
         if (CellPresenter is not null && (_ensureCells || _cellPresenter != CellPresenter))
         {
-            CellPresenter.Children.Clear();
+            CellPresenter.ClearCells();
 
             AddCells(TableView.Columns.VisibleColumns);
             _ensureCells = false;
@@ -263,7 +262,7 @@ public partial class TableViewRow : ListViewItem
         }
         else if (e.Action == NotifyCollectionChangedAction.Reset && CellPresenter is not null)
         {
-            CellPresenter.Children.Clear();
+            CellPresenter.ClearCells();
         }
     }
 
@@ -283,7 +282,9 @@ public partial class TableViewRow : ListViewItem
                 RemoveCells([e.Column]);
             }
         }
-        else if (e.PropertyName is nameof(TableViewColumn.Order) && e.Column.Visibility is Visibility.Visible)
+        else if ((e.PropertyName is nameof(TableViewColumn.Order) ||
+            e.PropertyName is nameof(TableViewColumn.IsFrozen)) &&
+            e.Column.Visibility is Visibility.Visible)
         {
             RemoveCells([e.Column]);
             AddCells([e.Column]);
@@ -341,7 +342,7 @@ public partial class TableViewRow : ListViewItem
                 var cell = CellPresenter.Cells.FirstOrDefault(x => x.Column == column);
                 if (cell is not null)
                 {
-                    CellPresenter.Children.Remove(cell);
+                    CellPresenter.RemoveCell(cell);
                 }
             }
         }
@@ -366,10 +367,7 @@ public partial class TableViewRow : ListViewItem
                     Style = column.CellStyle ?? TableView.CellStyle
                 };
 
-                var index = TableView.Columns.VisibleColumns.IndexOf(column);
-                index = Math.Min(index, CellPresenter.Cells.Count);
-                index = Math.Max(index, 0); // handles -ve index.
-                CellPresenter.Children.Insert(index, cell);
+                CellPresenter.InsertCell(cell);
             }
         }
     }
@@ -541,7 +539,7 @@ public partial class TableViewRow : ListViewItem
     /// <summary>
     /// Gets the list of cells in the row.
     /// </summary>
-    internal IList<TableViewCell> Cells => CellPresenter?.Cells ?? [];
+    public IReadOnlyList<TableViewCell> Cells => CellPresenter?.Cells ?? [];
 
     /// <summary>
     /// Gets the index of the row.

@@ -34,6 +34,7 @@ public partial class TableView : ListView
 {
     private TableViewHeaderRow? _headerRow;
     private ScrollViewer? _scrollViewer;
+    private RowDefinition? _headerRowDefinition;
     private bool _shouldThrowSelectionModeChangedException;
     private bool _ensureColumns = true;
     private readonly List<TableViewRow> _rows = [];
@@ -261,13 +262,15 @@ public partial class TableView : ListView
 
         _headerRow = GetTemplateChild("HeaderRow") as TableViewHeaderRow;
         _scrollViewer = GetTemplateChild("ScrollViewer") as ScrollViewer;
-
+        _headerRowDefinition = GetTemplateChild("HeaderRowDefinition") as RowDefinition;
         if (IsLoaded)
         {
             while (ItemsPanelRoot is null) await Task.Yield();
 
             EnsureAutoColumns();
         }
+
+        SetHeadersVisibility();
     }
 
     /// <summary>
@@ -1295,7 +1298,7 @@ public partial class TableView : ListView
     private double GetRowHeadersOffset()
     {
         var areHeadersVisible = HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
-        var isMultiSelection = SelectionMode is ListViewSelectionMode.Multiple;
+        var isMultiSelection = this is ListView { SelectionMode: ListViewSelectionMode.Multiple };
 
         return isMultiSelection ? 44 : areHeadersVisible ? RowHeaderActualWidth : 0;
     }
@@ -1309,6 +1312,7 @@ public partial class TableView : ListView
 
         base.SelectionMode = SelectionUnit is TableViewSelectionUnit.Cell ? ListViewSelectionMode.None : SelectionMode;
 
+        UpdateHorizontalScrollBarMargin();
         _headerRow?.SetHeadersVisibility();
 
         foreach (var row in _rows)
@@ -1467,6 +1471,36 @@ public partial class TableView : ListView
 
         IsEditing = value;
         UpdateCornerButtonState();
+    }
+
+    /// <summary>
+    /// Sets the visibility of the headers.
+    /// </summary>
+    private void SetHeadersVisibility()
+    {
+        if (_headerRowDefinition is not null)
+        {
+            var areColumnHeadersVisible = HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Columns;
+            _headerRowDefinition.Height = areColumnHeadersVisible ? GridLength.Auto : new(0);
+        }
+
+        _headerRow?.SetHeadersVisibility();
+
+        foreach (var row in _rows)
+        {
+            row.CellPresenter?.SetRowHeaderVisibility();
+        }
+    }
+
+    /// <summary>
+    /// Updates the margin of the horizontal scroll bar to account for frozen columns and row headers.
+    /// </summary>
+    internal void UpdateHorizontalScrollBarMargin()
+    {
+        if (_scrollViewer is null) return;
+
+        var offset = GetRowHeadersOffset() + Columns.VisibleColumns.Where(c => c.IsFrozen).Sum(c => c.ActualWidth);
+        ScrollViewerHelper.SetFrozenColumnScrollBarSpace(_scrollViewer, offset);
     }
 
     /// <inheritdoc/>

@@ -38,6 +38,8 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
     /// </summary>
     private void OnVectorChanged(IObservableVector<DependencyObject> sender, IVectorChangedEventArgs args)
     {
+        UpdateFrozenColumns();
+
         var index = (int)args.Index;
 
         switch (args.CollectionChange)
@@ -72,6 +74,14 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
 
         _itemsCopy = new TableViewColumn[Count];
         CopyTo(_itemsCopy, 0);
+    }
+
+    internal void UpdateFrozenColumns()
+    {
+        foreach (var column in this.OfType<TableViewColumn>())
+        {
+            column.IsFrozen = VisibleColumns.IndexOf(column) < (TableView?.FrozenColumnCount ?? 0);
+        }
     }
 
     /// <summary>
