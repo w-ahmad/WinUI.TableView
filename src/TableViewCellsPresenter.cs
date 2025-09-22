@@ -19,7 +19,8 @@ public partial class TableViewCellsPresenter : Control
     private TableViewRowHeader? _rowHeader;
     private Panel? _rootPanel;
     private ColumnDefinition? _rowHeaderColumn;
-    private StackPanel? _cellsStackPanel;
+    private StackPanel? _scrollableCellsPanel;
+    private StackPanel? _frozenCellsPanel;
     private Rectangle? _v_gridLine;
     private Rectangle? _h_gridLine;
     private TableViewRowPresenter? _rowPresenter;
@@ -40,7 +41,8 @@ public partial class TableViewCellsPresenter : Control
         _rootPanel = GetTemplateChild("RootPanel") as Panel;
         _rowHeaderColumn = GetTemplateChild("RowHeaderColumn") as ColumnDefinition;
         _rowHeader = GetTemplateChild("RowHeader") as TableViewRowHeader;
-        _cellsStackPanel = GetTemplateChild("CellsStackPanel") as StackPanel;
+        _scrollableCellsPanel = GetTemplateChild("ScrollableCellsPanel") as StackPanel;
+        _frozenCellsPanel = GetTemplateChild("FrozenCellsPanel") as StackPanel;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
         _h_gridLine = GetTemplateChild("HorizontalGridLine") as Rectangle;
         _rowPresenter = this.FindAscendant<TableViewRowPresenter>();
@@ -76,28 +78,32 @@ public partial class TableViewCellsPresenter : Control
     {
         finalSize = base.ArrangeOverride(finalSize);
 
-        if (TableView is not null && _rootPanel is not null && _cellsStackPanel is not null && _v_gridLine is not null)
+        if (TableView is not null && _rootPanel is not null && _scrollableCellsPanel is not null && _frozenCellsPanel is not null && _v_gridLine is not null)
         {
-            var height = finalSize.Height;
             var areHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
             var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
             var headerWidth = areHeadersVisible && !isMultiSelection ? TableView.RowHeaderActualWidth + _v_gridLine.ActualWidth : 0;
             var cornerRadius = _rowPresenter?.CornerRadius ?? new CornerRadius(4);
             var left = isMultiSelection ? 44 : Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft);
-            var xScroll = headerWidth - TableView.HorizontalOffset;
-            var xClip = (xScroll * -1) + headerWidth;
+            var xScroll = headerWidth + _frozenCellsPanel.ActualWidth - TableView.HorizontalOffset;
+            var xClip = (xScroll * -1) + headerWidth + _frozenCellsPanel.ActualWidth;
 
-            _rootPanel.Arrange(new(left, 0, _rootPanel.ActualWidth - left, finalSize.Height));
-            _cellsStackPanel.Arrange(new(xScroll, 0, _cellsStackPanel.ActualWidth, height));
-            _cellsStackPanel.Clip = xScroll >= headerWidth ? null :
-                new RectangleGeometry
-                {
-                    Rect = new Rect(xClip, 0, _cellsStackPanel.ActualWidth - xClip, height)
-                };
+            _rootPanel.Arrange(new(left, 0, _rootPanel.ActualWidth - left, _rootPanel.ActualHeight));
+            _frozenCellsPanel.Arrange(new(headerWidth, 0, _frozenCellsPanel.ActualWidth, _frozenCellsPanel.ActualHeight));
+
+            if (_scrollableCellsPanel.ActualWidth > 0)
+            {
+                _scrollableCellsPanel.Arrange(new(xScroll, 0, _scrollableCellsPanel.ActualWidth, _scrollableCellsPanel.ActualHeight));
+                _scrollableCellsPanel.Clip = xScroll >= headerWidth + _frozenCellsPanel.ActualWidth ? null :
+                    new RectangleGeometry
+                    {
+                        Rect = new(xClip, 0, _scrollableCellsPanel.ActualWidth - xClip, _scrollableCellsPanel.ActualHeight)
+                    };
+            }
 
             if (isMultiSelection)
             {
-                _v_gridLine.Arrange(new(0, 0, _v_gridLine.ActualWidth, height));
+                _v_gridLine.Arrange(new(0, 0, _v_gridLine.ActualWidth, _v_gridLine.ActualHeight));
             }
         }
 
@@ -202,14 +208,65 @@ public partial class TableViewCellsPresenter : Control
     }
 
     /// <summary>
-    /// Gets the collection of child elements.
+    /// Inserts a cell at the specified index.
     /// </summary>
-    internal UIElementCollection Children => _cellsStackPanel?.Children!;
+    /// <param name="cell">The cell to insert.</param>
+    public void InsertCell(TableViewCell cell)
+    {
+        if (TableView is null || cell is not { Column: { } column }) return;
+
+        var _frozenColumns = TableView.Columns.VisibleColumns.Where(x => x.IsFrozen).ToList();
+        var _scrollableColumns = TableView.Columns.VisibleColumns.Where(x => !x.IsFrozen).ToList();
+
+        if (cell is { Column.IsFrozen: true } && _frozenCellsPanel is not null)
+        {
+            var index = _frozenColumns.IndexOf(column);
+            index = Math.Min(index, _frozenColumns.Count);
+            index = Math.Max(index, 0); // handles -ve index;
+
+            _frozenCellsPanel.Children.Insert(index, cell);
+        }
+        else if (_scrollableCellsPanel is not null)
+        {
+            var index = _scrollableColumns.IndexOf(column);
+            index = Math.Min(index, _scrollableColumns.Count);
+            index = Math.Max(index, 0); // handles -ve index;
+
+            _scrollableCellsPanel.Children.Insert(index, cell);
+        }
+    }
+
+    /// <summary>
+    /// Removes a cell from the presenter.
+    /// </summary>
+    /// <param name="cell">The cell to remove.</param>
+    public void RemoveCell(TableViewCell cell)
+    {
+        if (_frozenCellsPanel?.Children.Contains(cell) ?? false)
+        {
+            _frozenCellsPanel.Children.Remove(cell);
+        }
+        else if (_scrollableCellsPanel?.Children.Contains(cell) ?? false)
+        {
+            _scrollableCellsPanel.Children.Remove(cell);
+        }
+    }
+
+    /// <summary>
+    /// Clears all cells from the presenter.
+    /// </summary>
+    public void ClearCells()
+    {
+        _frozenCellsPanel?.Children.Clear();
+        _scrollableCellsPanel?.Children.Clear();
+    }
 
     /// <summary>
     /// Gets the list of cells in the presenter.
     /// </summary>
-    public IList<TableViewCell> Cells => _cellsStackPanel?.Children.OfType<TableViewCell>().ToList()!;
+    public IReadOnlyList<TableViewCell> Cells =>
+        [.. _frozenCellsPanel?.Children.OfType<TableViewCell>() ?? [],
+         .. _scrollableCellsPanel?.Children.OfType<TableViewCell>() ?? []];
 
     /// <summary>
     /// Gets or sets the TableViewRow associated with the presenter.

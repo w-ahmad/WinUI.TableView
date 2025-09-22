@@ -221,6 +221,11 @@ public partial class TableView
     public static readonly DependencyProperty RowHeaderTemplateSelectorProperty = DependencyProperty.Register(nameof(RowHeaderTemplateSelector), typeof(DataTemplateSelector), typeof(TableView), new PropertyMetadata(null, OnRowHeaderTemplateChanged));
 
     /// <summary>
+    /// Identifies the FrozenColumnCount dependency property.
+    /// </summary>
+    public static readonly DependencyProperty FrozenColumnCountProperty = DependencyProperty.Register(nameof(FrozenColumnCount), typeof(int), typeof(TableView), new PropertyMetadata(0, OnFrozenColumnCountChanged));
+
+    /// <summary>
     /// Gets or sets a value indicating whether opening the column filter over header right-click is enabled.
     /// </summary>
     public bool UseRightClickForColumnFilter
@@ -648,6 +653,15 @@ public partial class TableView
     }
 
     /// <summary>
+    /// Gets or sets the number of columns that stays in view on horizontal scroll.
+    /// </summary>
+    public int FrozenColumnCount
+    {
+        get => (int)GetValue(FrozenColumnCountProperty);
+        set => SetValue(FrozenColumnCountProperty, value);
+    }
+
+    /// <summary>
     /// Handles changes to the ItemsSource property.
     /// </summary>
     private static void OnItemsSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -884,12 +898,8 @@ public partial class TableView
     {
         if (d is TableView tableView)
         {
-            tableView._headerRow?.SetHeadersVisibility();
-
-            foreach (var row in tableView._rows)
-            {
-                row.CellPresenter?.SetRowHeaderVisibility();
-            }
+            tableView.SetHeadersVisibility();
+            tableView.UpdateHorizontalScrollBarMargin();
         }
     }
 
@@ -905,6 +915,23 @@ public partial class TableView
             foreach (var row in tableView._rows)
             {
                 row.CellPresenter?.SetRowHeaderTemplate();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the FrozenColumnCount property.
+    /// </summary>
+    private static void OnFrozenColumnCountChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            tableView.SetValue(HorizontalOffsetProperty, 0d);
+            tableView.UpdateHorizontalScrollBarMargin();
+
+            if (tableView.Columns is TableViewColumnsCollection columnsCollection)
+            {
+                columnsCollection.UpdateFrozenColumns();
             }
         }
     }
