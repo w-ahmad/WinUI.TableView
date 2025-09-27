@@ -1084,7 +1084,12 @@ public partial class TableView : ListView
         if (oldSlot.HasValue)
         {
             var cell = GetCellFromSlot(oldSlot.Value);
-            cell?.SetElement();
+
+            if (IsEditing)
+            {
+                cell?.SetElement();
+            }
+
             cell?.ApplyCurrentCellState();
         }
 
