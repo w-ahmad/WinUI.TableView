@@ -1,4 +1,4 @@
-> [🔙 **Back to *Adding data to your TableView***](docs\Data-To-TableView.md)
+> [🔙 **Back to *Adding data to your TableView***](Data-To-TableView.md)
 # Adding columns from a collection
 This approach lets you add a predetermined set of columns with their own data that can be changed and added to dynamically.
 
@@ -17,7 +17,7 @@ This approach lets you add a predetermined set of columns with their own data th
 ## Before you begin: **Understanding TableView columns**
 There are different types of TableView columns like `TableViewTextColumn`, `TableViewCheckBoxColumn`, `TableViewComboBoxColumn` and more.
 
-When dynamically adding columns, some columns can have their type assigned automatically. For example, if you have an `int` value for a column the column will automatically become a `TableViewNumberColumn`. The same goes for a TextColumn with `string` and CheckBoxColumn with `bool`. Columns are auto-generated if [**`AutoGenerateColumns`**](docs\AutoGenerateColumns.md) is set to `true`
+When dynamically adding columns, some columns can have their type assigned automatically. For example, if you have an `int` value for a column the column will automatically become a `TableViewNumberColumn`. The same goes for a TextColumn with `string` and CheckBoxColumn with `bool`. Columns are auto-generated if [**`AutoGenerateColumns`**](..\AutoGenerateColumns.md) is set to `true`
 
 TableView columns are often stored in their own classes. These are collections (the TableView interprets them as `TableViewColumnsCollection`) where you can store data for one or multiple columns. This is really useful when adding columns dynamically from code-behind and assigning them custom or dynamic values.
 

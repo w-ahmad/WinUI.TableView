@@ -1,4 +1,4 @@
-> [🔙 **Back to *Adding data to your TableView***](docs\Data-To-TableView.md)
+> [🔙 **Back to *Adding data to your TableView***](Data-To-TableView.md)
 
 # Dynamically creating columns using a DataTemplate
 
@@ -180,160 +180,64 @@ public MainPage()
     // Attach our rows as the ItemsSource for the TableView.
     MyTableView.ItemsSource = Rows;
 }
-``` 
+```
 
-### Adding the columns
-#### 5. Create a function for adding new columns
-Let's create a function that adds a new column when called. We'll use it for this example and you can change it later as you see fit. Some things remain the same from our previous function for the basic columns.
+### Adding a dynamic ComboBox column
+You can also create ComboBox columns dynamically.
+This lets you display options like “Easy”, “Medium”, or “Hard” directly in your table and store the selected value for each row. For this example, we're going to create a function called `AddComboBoxColumn()` that adds a new ComboBox column with its own unique names and options
 ```cs
-public void AddNewColumn()
+private void AddComboBoxColumn()
 {
-    // These two are optional, but we're using them now to give a unique name to each column
+    // Give each new column a unique name.
     int n = MyTableView.Columns.Count + 1;
+    string fieldKey = $"Column{n}";
     string headerText = $"Column {n}";
 
-    string fieldKey = $"Column{n}";
-    ...
-```
-Now, inside this function, we'll write the code that adds the new column to your TableView.
-
-#### 6. Prepare your ComboBox's options
-A ComboBox column needs a list of selectable items. In this example, we’ll create a simple list of difficulty levels that each task can have. We'll set these options up by adding them to their own list, like so:
-```cs
-private void AddNewColumn()
-{
-    // These two are optional, but we're using them now to give a unique name to each column
-    int n = MyTableView.Columns.Count + 1;
-    string headerText = $"Column {n}";
-
-    string fieldKey = $"Column{n}";
-
-    // The set of options for this new ComboBox column.
-    // In a real app this could come from user settings or input.
-    var options = new List<string> { "Easy", "Medium", "Hard" };
-```
-
-#### 7. Create the items for the ComboBox
-Now that we have a list with the items to add, we'll create the items as `ComboBoxItems` so we can add them to the `TableViewComboBoxColumn`.
-```cs
-    foreach (var opt in options)
-    {
-        sbItems.Append("<ComboBoxItem Content='");
-        sbItems.Append(XmlEscape(opt)); // escape special chars for valid XAML. This uses the XmlEscape helped we made earlier.
-        sbItems.Append("'/>");
-    }
-```
-
-#### 8. Create the `ComboBox` using XAML (in C#)
-This builds the `DataTemplate` XAML string for the `ComboBox` in our columns. Specifically, it:
-
-- Defines a ComboBox with fixed width.
-- SelectedValuePath='Content' makes SelectedValue return the item text.
-- SelectedValue is two-way bound to the row indexer (row[fieldKey]).
-
-This is how we connect each cell to its row’s dictionary and create the `DataTemplate` for the `ComboBox` inside the `TableViewComboBoxColumn`
-
-```cs
-    string xaml =
-        "<DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'>" +
-        $"<ComboBox Width='160' SelectedValuePath='Content' SelectedValue='{{Binding Path=[{fieldKey}], Mode=TwoWay}}'>" +
-        sbItems.ToString() +
-        "</ComboBox></DataTemplate>";
-```
-
-and then take that string, which is the XAML, and actually load it using `XamlReader`:
-
-```cs
-DataTemplate template = (DataTemplate)XamlReader.Load(xaml);
-```
-
-#### 9. Wrap the `DataTemplate` inside a TableView column definition.
-Now, we put that `DataTemplate` in a `TableViewTemplateColumn`, which means we are essentially creating our own custom column, which in this case is a `ComboBoxColumn` and we add it to the TableView.
-```cs
-    var col = new TableViewTemplateColumn
-    {
-        Header = headerText,   // column header text
-        CellTemplate = template
-    };
-
-    // Add the new column to the TableView.
-    MyTableView.Columns.Add(col);
-```
-
-#### 10. Set the default option
-This is optional, but we can set the default option for our column like this:
-```cs
-    var first = options.FirstOrDefault();
-    if (first != null)
-    {
-        foreach (var row in Columns)
-        {
-            if (row[fieldKey] == null)
-                row[fieldKey] = first;
-        }
-    }
-```
-
-#### And this is it
-We have created our own `TableViewComboBoxColumn`. Now, whenever `AddNewColumn()` is called, a new ComboBox column is added with its own header and options.
-
-This is the full function:
-```cs
-private void AddNewColumn()
-{
-    int n = _columnCounter++;
-    string fieldKey = $"Column{n}";      // internal key used in bindings
-    string headerText = $"Column {n}";   // user-facing header text
-
-    // The set of options for this new ComboBox column.
-    // In a real app this could come from user settings or input.
+    // Define the dropdown options for this ComboBox column.
     var options = new List<string> { "Easy", "Medium", "Hard" };
 
-    // Build ComboBoxItem elements in XAML string form.
-    // We inline them here so no external resource dictionaries are required.
-    var sbItems = new StringBuilder();
+    // Build ComboBox items as XAML text.
+    var sb = new StringBuilder();
     foreach (var opt in options)
-    {
-        sbItems.Append("<ComboBoxItem Content='");
-        sbItems.Append(XmlEscape(opt)); // escape special chars for valid XAML
-        sbItems.Append("'/>");
-    }
+        sb.Append($"<ComboBoxItem Content='{XmlEscape(opt)}'/>");
 
-    // Build the DataTemplate XAML string:
-    // - Defines a ComboBox with fixed width.
-    // - SelectedValuePath='Content' makes SelectedValue return the item text.
-    // - SelectedValue is two-way bound to the row indexer (row[fieldKey]).
-    //   This is how we connect each cell to its row’s dictionary.
+    // Build a DataTemplate that defines the ComboBox for this column.
     string xaml =
         "<DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'>" +
-        $"<ComboBox Width='160' SelectedValuePath='Content' SelectedValue='{{Binding Path=[{fieldKey}], Mode=TwoWay}}'>" +
-        sbItems.ToString() +
+        $"<ComboBox Width='160' SelectedValuePath='Content' " +
+        $"SelectedValue='{{Binding Path=[{fieldKey}], Mode=TwoWay}}'>" +
+        sb.ToString() +
         "</ComboBox></DataTemplate>";
 
-    // Parse the XAML string into a real DataTemplate using XamlReader.
-    // XamlReader.Load takes a string and constructs the UI tree.
-    DataTemplate template = (DataTemplate)XamlReader.Load(xaml);
+    // Convert the XAML string into a real DataTemplate.
+    var template = (DataTemplate)XamlReader.Load(xaml);
 
-    // Wrap the DataTemplate inside a TableView column definition.
+    // Create the TableView column and assign the template.
     var col = new TableViewTemplateColumn
     {
-        Header = headerText,   // column header text
+        Header = headerText,
         CellTemplate = template
     };
 
     // Add the new column to the TableView.
     MyTableView.Columns.Add(col);
 
-    // Initialize existing rows with the first option so the new column
-    // doesn’t appear empty (optional, purely cosmetic).
+    // Optional: initialize existing rows with a default option.
     var first = options.FirstOrDefault();
     if (first != null)
     {
-        foreach (var row in Columns)
-        {
-            if (row[fieldKey] == null)
-                row[fieldKey] = first;
-        }
+        foreach (var row in Rows)
+            row[fieldKey] ??= first;
     }
 }
 ```
+
+### How it works
+- Each column is created dynamically and bound to a unique key in your `DynamicRow` dictionary.
+- The list `options` defines the items available in the ComboBox for that column.
+- The ComboBox is created in XAML using a `DataTemplate`, and its `SelectedValue` is two-way bound to the row data.
+- When you add the column, every row immediately gains that new ComboBox cell — its value is stored per-row in the `DynamicRow` dictionary.
+- Optionally, you can initialize rows with a default value (like `"Easy"`) to keep cells from appearing empty.
+
+## 🎉 And that's it!
+This is how you can add your own custom columns dynamically and on-demand in code-behind. If you have any questions, feel free to create a post in [**Discussions**](https://github.com/w-ahmad/WinUI.TableView/discussions). You may tag @Georgios1999 for feedback related to the docs.
