@@ -24,18 +24,10 @@
 
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition x:Name="RowHeaderColumn" Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition x:Name="VerticalGridLineColumn" Width="Auto" />
+                                <ColumnDefinition x:Name="FrozenCellsPanelColumn" Width="Auto" />
+                                <ColumnDefinition x:Name="ScrollableCellsPanelColumn" Width="*" />
                             </Grid.ColumnDefinitions>
-
-                            <StackPanel x:Name="CellsStackPanel"
-                                        Grid.Column="2"
-                                        Orientation="Horizontal">
-                                <!--This is just dummy textblock. It would be removed at runtime-->
-                                <TextBlock Margin="16,0"
-                                           Text="{Binding}"
-                                           VerticalAlignment="Center" />
-                            </StackPanel>
 
                             <local:TableViewRowHeader x:Name="RowHeader" />
 
@@ -44,6 +36,19 @@
                                        Grid.Column="1"
                                        VerticalAlignment="Stretch"
                                        IsHitTestVisible="False" />
+
+                            <StackPanel x:Name="FrozenCellsPanel"
+                                        Grid.Column="2"
+                                        Orientation="Horizontal" />
+
+                            <StackPanel x:Name="ScrollableCellsPanel"
+                                        Grid.Column="3"
+                                        Orientation="Horizontal">
+                                <!--This is just dummy textblock. It would be removed at runtime-->
+                                <TextBlock Margin="16,0"
+                                           Text="{Binding}"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
                         </Grid>
 
                         <Rectangle x:Name="HorizontalGridLine"
