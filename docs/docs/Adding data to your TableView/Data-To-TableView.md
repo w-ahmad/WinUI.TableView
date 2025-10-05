@@ -6,7 +6,7 @@ There are three different ways to add columns to your TableView, each one with t
 ### 1. Adding columns directly using XAML
 <span style="color:red;">⚠️ This approach is not recommended since it still needs code-behind implementation and it can be tricky to set up Binding for XAML. You can just use Method 2 for this.</span>
 
-<kbd>👉 [**View example in README**](..\getting-started.md)</kbd>
+<kbd>👉 [**View example in README**](../getting-started.md)</kbd>
 
 ---
 

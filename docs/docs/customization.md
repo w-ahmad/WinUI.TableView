@@ -47,7 +47,7 @@ then you can edit its properties in code like this:
 TView.Opacity = 1;
 ```
 
-### Useful Properties
+### Useful Properties and Functions
 - `TableView.Columns` allows you to edit columns by using `.Add()` to add a column, `.Remove()` to remove one, `.Clear()` to clear all and more
 - `TableView.ScrollIntoView(`any column item`)` Scrolls to the chosen item
 - `TableView.SelectAll()` Selects all the items
