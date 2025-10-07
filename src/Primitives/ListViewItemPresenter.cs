@@ -6,15 +6,15 @@ namespace WinUI.TableView.Primitives;
 /// <inheritdoc/>
 public partial class ListViewItemPresenter : Microsoft.UI.Xaml.Controls.Primitives.ListViewItemPresenter
 {
-    private TableViewCellsPresenter? _cellsPresenter;
+    private TableViewRowPresenter? _rowPresenter;
 
     /// <inheritdoc/>
     protected override Size ArrangeOverride(Size finalSize)
     {
         finalSize = base.ArrangeOverride(finalSize);
 
-        _cellsPresenter ??= this.FindDescendant<TableViewCellsPresenter>();
-        _cellsPresenter?.Arrange(new Rect(0, 0, _cellsPresenter.ActualWidth, finalSize.Height));
+        _rowPresenter ??= this.FindDescendant<TableViewRowPresenter>();
+        _rowPresenter?.Arrange(new Rect(0, 0, _rowPresenter.ActualWidth, finalSize.Height));
 
         return finalSize;
     }

@@ -1318,7 +1318,7 @@ public partial class TableView : ListView
         foreach (var row in _rows)
         {
             row.EnsureLayout();
-            row.CellPresenter?.SetRowHeaderVisibility();
+            row.RowPresenter?.SetRowHeaderVisibility();
 
         }
 
@@ -1400,7 +1400,7 @@ public partial class TableView : ListView
 #if !WINDOWS
             RowContextFlyout.DataContext = row.Content;
 #endif
-            RowContextFlyout.ShowAt(row.CellPresenter, new FlyoutShowOptions
+            RowContextFlyout.ShowAt(row.RowPresenter, new FlyoutShowOptions
             {
 #if WINDOWS
                 ShowMode = FlyoutShowMode.Standard,
@@ -1488,7 +1488,7 @@ public partial class TableView : ListView
 
         foreach (var row in _rows)
         {
-            row.CellPresenter?.SetRowHeaderVisibility();
+            row.RowPresenter?.SetRowHeaderVisibility();
         }
     }
 

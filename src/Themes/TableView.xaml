@@ -74,7 +74,7 @@
         <Setter Property="ItemTemplate">
             <Setter.Value>
                 <DataTemplate>
-                    <local:TableViewCellsPresenter IsTabStop="False" />
+                    <local:TableViewRowPresenter IsTabStop="False" />
                 </DataTemplate>
             </Setter.Value>
         </Setter>

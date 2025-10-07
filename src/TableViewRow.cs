@@ -30,7 +30,7 @@ public partial class TableViewRow : ListViewItem
 
     private TableView? _tableView;
     private ListViewItemPresenter? _itemPresenter;
-    private TableViewCellsPresenter? _cellPresenter;
+    private TableViewRowPresenter? _rowPresenter;
     private Border? _selectionBackground;
     private bool _ensureCells = true;
     private Brush? _cellPresenterBackground;
@@ -162,7 +162,7 @@ public partial class TableViewRow : ListViewItem
         }
 #endif
 
-        CellPresenter?.InvalidateMeasure(); // The cells presenter does not measure every time.
+        RowPresenter?.InvalidateMeasure(); // The cells presenter does not measure every time.
         _tableView?.EnsureAlternateRowColors();
     }
 
@@ -227,9 +227,9 @@ public partial class TableViewRow : ListViewItem
             return;
         }
 
-        if (CellPresenter is not null && (_ensureCells || _cellPresenter != CellPresenter))
+        if (RowPresenter is not null && (_ensureCells || _rowPresenter != RowPresenter))
         {
-            CellPresenter.ClearCells();
+            RowPresenter.ClearCells();
 
             AddCells(TableView.Columns.VisibleColumns);
             _ensureCells = false;
@@ -260,9 +260,9 @@ public partial class TableViewRow : ListViewItem
         {
             RemoveCells(oldItems);
         }
-        else if (e.Action == NotifyCollectionChangedAction.Reset && CellPresenter is not null)
+        else if (e.Action == NotifyCollectionChangedAction.Reset && RowPresenter is not null)
         {
-            CellPresenter.ClearCells();
+            RowPresenter.ClearCells();
         }
     }
 
@@ -335,14 +335,14 @@ public partial class TableViewRow : ListViewItem
     /// </summary>
     private void RemoveCells(IEnumerable<TableViewColumn> columns)
     {
-        if (CellPresenter is not null)
+        if (RowPresenter is not null)
         {
             foreach (var column in columns)
             {
-                var cell = CellPresenter.Cells.FirstOrDefault(x => x.Column == column);
+                var cell = RowPresenter.Cells.FirstOrDefault(x => x.Column == column);
                 if (cell is not null)
                 {
-                    CellPresenter.RemoveCell(cell);
+                    RowPresenter.RemoveCell(cell);
                 }
             }
         }
@@ -353,7 +353,7 @@ public partial class TableViewRow : ListViewItem
     /// </summary>
     private void AddCells(IEnumerable<TableViewColumn> columns)
     {
-        if (CellPresenter is not null && TableView is not null)
+        if (RowPresenter is not null && TableView is not null)
         {
             foreach (var column in columns)
             {
@@ -367,7 +367,7 @@ public partial class TableViewRow : ListViewItem
                     Style = column.CellStyle ?? TableView.CellStyle
                 };
 
-                CellPresenter.InsertCell(cell);
+                RowPresenter.InsertCell(cell);
             }
         }
     }
@@ -492,7 +492,7 @@ public partial class TableViewRow : ListViewItem
             }
         }
 
-        CellPresenter?.EnsureGridLines();
+        RowPresenter?.EnsureGridLines();
     }
 
     /// <summary>
@@ -517,12 +517,12 @@ public partial class TableViewRow : ListViewItem
     /// </summary>
     internal void EnsureAlternateColors()
     {
-        if (TableView is null || CellPresenter is null) return;
+        if (TableView is null || RowPresenter is null) return;
 
-        CellPresenter.Background =
+        RowPresenter.Background =
             Index % 2 == 1 && TableView.AlternateRowBackground is not null ? TableView.AlternateRowBackground : _cellPresenterBackground;
 
-        CellPresenter.Foreground =
+        RowPresenter.Foreground =
             Index % 2 == 1 && TableView.AlternateRowForeground is not null ? TableView.AlternateRowForeground : _cellPresenterForeground;
     }
 
@@ -539,7 +539,7 @@ public partial class TableViewRow : ListViewItem
     /// <summary>
     /// Gets the list of cells in the row.
     /// </summary>
-    public IReadOnlyList<TableViewCell> Cells => CellPresenter?.Cells ?? [];
+    public IReadOnlyList<TableViewCell> Cells => RowPresenter?.Cells ?? [];
 
     /// <summary>
     /// Gets the index of the row.
@@ -564,16 +564,16 @@ public partial class TableViewRow : ListViewItem
     }
 
     /// <inheritdoc/>
-    public TableViewCellsPresenter? CellPresenter
+    public TableViewRowPresenter? RowPresenter
     {
         get
         {
 #if WINDOWS
-            _cellPresenter ??= ContentTemplateRoot as TableViewCellsPresenter;
+            _rowPresenter ??= ContentTemplateRoot as TableViewRowPresenter;
 #else
-            _cellPresenter ??= this.FindDescendant<TableViewCellsPresenter>();
+            _rowPresenter ??= this.FindDescendant<TableViewRowPresenter>();
 #endif
-            return _cellPresenter;
+            return _rowPresenter;
         }
     }
 }

@@ -1,8 +1,8 @@
-﻿using CommunityToolkit.WinUI;
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using Windows.Foundation;
+using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView;
 
@@ -12,7 +12,6 @@ namespace WinUI.TableView;
 public partial class TableViewRowHeader : ContentControl
 {
     private ContentPresenter? _contentPresenter;
-    private TableViewCellsPresenter? _cellPresenter;
 
     /// <summary>
     /// Initializes a new instance of the TableViewRowHeader class.
@@ -108,17 +107,8 @@ public partial class TableViewRowHeader : ContentControl
         contentHeight -= Padding.Bottom;
         contentHeight -= BorderThickness.Top;
         contentHeight -= BorderThickness.Bottom;
-        contentHeight -= GetHorizontalGridlineHeight();
+        contentHeight -= TableView.GetHorizontalGridlineHeight();
         return contentHeight;
-    }
-
-    /// <summary>
-    /// Retrieves the height of the horizontal gridline.
-    /// </summary>
-    private double GetHorizontalGridlineHeight()
-    {
-        _cellPresenter ??= this?.FindAscendant<TableViewCellsPresenter>();
-        return _cellPresenter?.GetHorizontalGridlineHeight() ?? 0d;
     }
 
     /// <summary>

@@ -868,7 +868,7 @@ public partial class TableView
 
             foreach (var row in tableView._rows)
             {
-                row?.CellPresenter?.InvalidateArrange();
+                row?.RowPresenter?.InvalidateArrange();
             }
         }
     }
@@ -886,7 +886,7 @@ public partial class TableView
 
             foreach (var row in tableView._rows)
             {
-                row.CellPresenter?.SetRowHeaderWidth();
+                row.RowPresenter?.SetRowHeaderWidth();
             }
         }
     }
@@ -914,7 +914,7 @@ public partial class TableView
 
             foreach (var row in tableView._rows)
             {
-                row.CellPresenter?.SetRowHeaderTemplate();
+                row.RowPresenter?.SetRowHeaderTemplate();
             }
         }
     }

@@ -9,6 +9,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
+using WinUI.TableView.Extensions;
 using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
@@ -29,7 +30,6 @@ public partial class TableViewCell : ContentControl
     private ContentPresenter? _contentPresenter;
     private Border? _selectionBorder;
     private Rectangle? _v_gridLine;
-    private TableViewCellsPresenter? _cellPresenter;
 
     /// <summary>
     /// Initializes a new instance of the TableViewCell class.
@@ -130,7 +130,7 @@ public partial class TableViewCell : ContentControl
             contentHeight -= BorderThickness.Bottom;
             contentHeight -= _selectionBorder?.BorderThickness.Top ?? 0;
             contentHeight -= _selectionBorder?.BorderThickness.Bottom ?? 0;
-            contentHeight -= GetHorizontalGridlineHeight();
+            contentHeight -= TableView.GetHorizontalGridlineHeight();
 
             if (contentWidth < 0 || contentHeight < 0)
             {
@@ -146,15 +146,6 @@ public partial class TableViewCell : ContentControl
         }
 
         return base.MeasureOverride(availableSize);
-    }
-
-    /// <summary>
-    /// Retrieves the height of the horizontal gridline.
-    /// </summary>
-    private double GetHorizontalGridlineHeight()
-    {
-        _cellPresenter ??= this?.FindAscendant<TableViewCellsPresenter>();
-        return _cellPresenter?.GetHorizontalGridlineHeight() ?? 0d;
     }
 
     /// <inheritdoc/>

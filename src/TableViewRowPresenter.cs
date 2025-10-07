@@ -13,9 +13,9 @@ using WinUI.TableView.Primitives;
 namespace WinUI.TableView;
 
 /// <summary>
-/// Represents a presenter for the cells in a TableView row.
+/// Represents a control that presents visuals for the <see cref="WinUI.TableView.TableViewRow"/>.
 /// </summary>
-public partial class TableViewCellsPresenter : Control
+public partial class TableViewRowPresenter : Control
 {
     private TableViewRowHeader? _rowHeader;
     private Panel? _rootPanel;
@@ -27,11 +27,11 @@ public partial class TableViewCellsPresenter : Control
     private ListViewItemPresenter? _itemPresenter;
 
     /// <summary>
-    /// Initializes a new instance of the TableViewCellsPresenter class.
+    /// Initializes a new instance of the <see cref="TableViewRowPresenter"/> class.
     /// </summary>
-    public TableViewCellsPresenter()
+    public TableViewRowPresenter()
     {
-        DefaultStyleKey = typeof(TableViewCellsPresenter);
+        DefaultStyleKey = typeof(TableViewRowPresenter);
     }
 
     /// <inheritdoc/>
@@ -198,14 +198,6 @@ public partial class TableViewCellsPresenter : Control
         {
             cell.EnsureGridLines();
         }
-    }
-
-    /// <summary>
-    /// Retrieves the height of the horizontal gridline.
-    /// </summary>
-    internal double GetHorizontalGridlineHeight()
-    {
-        return _h_gridLine?.ActualHeight ?? 0d;
     }
 
     /// <summary>

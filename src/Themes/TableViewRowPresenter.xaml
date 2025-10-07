@@ -6,11 +6,11 @@
         <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/Resources.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
-    <Style x:Key="DefaultTableViewCellsPresenterStyle"
-           TargetType="local:TableViewCellsPresenter">
+    <Style x:Key="DefaultTableViewRowPresenterStyle"
+           TargetType="local:TableViewRowPresenter">
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="local:TableViewCellsPresenter">
+                <ControlTemplate TargetType="local:TableViewRowPresenter">
                     <Grid Background="{TemplateBinding Background}"
                           BorderBrush="{TemplateBinding BorderBrush}"
                           BorderThickness="{TemplateBinding BorderThickness}">
