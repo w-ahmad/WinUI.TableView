@@ -11,7 +11,8 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:TableViewRowPresenter">
-                    <Grid Background="{TemplateBinding Background}"
+                    <Grid x:Name="RootGrid"
+                          Background="{TemplateBinding Background}"
                           BorderBrush="{TemplateBinding BorderBrush}"
                           BorderThickness="{TemplateBinding BorderThickness}">
                         <Grid.RowDefinitions>

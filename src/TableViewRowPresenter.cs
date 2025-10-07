@@ -2,13 +2,13 @@
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Windows.Foundation;
-using WinUI.TableView.Primitives;
 
 namespace WinUI.TableView;
 
@@ -18,7 +18,7 @@ namespace WinUI.TableView;
 public partial class TableViewRowPresenter : Control
 {
     private TableViewRowHeader? _rowHeader;
-    private Panel? _rootPanel;
+    private Grid? _rootGrid;
     private ColumnDefinition? _rowHeaderColumn;
     private StackPanel? _scrollableCellsPanel;
     private StackPanel? _frozenCellsPanel;
@@ -39,7 +39,7 @@ public partial class TableViewRowPresenter : Control
     {
         base.OnApplyTemplate();
 
-        _rootPanel = GetTemplateChild("RootPanel") as Panel;
+        _rootGrid = GetTemplateChild("RootGrid") as Grid;
         _rowHeaderColumn = GetTemplateChild("RowHeaderColumn") as ColumnDefinition;
         _rowHeader = GetTemplateChild("RowHeader") as TableViewRowHeader;
         _scrollableCellsPanel = GetTemplateChild("ScrollableCellsPanel") as StackPanel;
@@ -79,34 +79,26 @@ public partial class TableViewRowPresenter : Control
     {
         finalSize = base.ArrangeOverride(finalSize);
 
-        if (TableView is not null && _rootPanel is not null && _scrollableCellsPanel is not null && _frozenCellsPanel is not null && _v_gridLine is not null)
+        if (TableView is not null && _rootGrid is not null && _frozenCellsPanel is not null && _scrollableCellsPanel is not null)
         {
-            var areHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
-            var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
-            var headerWidth = areHeadersVisible && !isMultiSelection ? TableView.RowHeaderActualWidth + _v_gridLine.ActualWidth : 0;
             var cornerRadius = _itemPresenter?.CornerRadius ?? new CornerRadius(4);
-            var left = isMultiSelection ? 44 : Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft);
-            var xScroll = headerWidth + _frozenCellsPanel.ActualWidth - TableView.HorizontalOffset;
-            var xClip = (xScroll * -1) + headerWidth + _frozenCellsPanel.ActualWidth;
+            var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
+            var left = isMultiSelection ? 16 : Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft);
+            var xScroll = _frozenCellsPanel.ActualOffset.X + _frozenCellsPanel.ActualWidth - TableView.HorizontalOffset;
+            var xClip = (xScroll * -1) + _frozenCellsPanel.ActualOffset.X + _frozenCellsPanel.ActualWidth;
 
-            _rootPanel.Arrange(new(left, 0, _rootPanel.ActualWidth - left, _rootPanel.ActualHeight));
-            _frozenCellsPanel.Arrange(new(headerWidth, 0, _frozenCellsPanel.ActualWidth, _frozenCellsPanel.ActualHeight));
+            _rootGrid.Arrange(new(left, 0, Math.Max(0, ActualWidth - left), ActualHeight));
 
             if (_scrollableCellsPanel.ActualWidth > 0)
             {
                 _scrollableCellsPanel.Arrange(new(xScroll, 0, _scrollableCellsPanel.ActualWidth, _scrollableCellsPanel.ActualHeight));
-                _scrollableCellsPanel.Clip = xScroll >= headerWidth + _frozenCellsPanel.ActualWidth ? null :
+                _scrollableCellsPanel.Clip = xScroll >= _frozenCellsPanel.ActualOffset.X + _frozenCellsPanel.ActualWidth ? null :
                     new RectangleGeometry
                     {
                         Rect = new(xClip, 0, _scrollableCellsPanel.ActualWidth - xClip, _scrollableCellsPanel.ActualHeight)
                     };
             }
-
-            if (isMultiSelection)
-            {
-                _v_gridLine.Arrange(new(0, 0, _v_gridLine.ActualWidth, _v_gridLine.ActualHeight));
             }
-        }
 
         return finalSize;
     }
