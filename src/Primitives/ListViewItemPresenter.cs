@@ -1,13 +1,10 @@
 ﻿using CommunityToolkit.WinUI;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using Windows.Foundation;
 
-namespace WinUI.TableView;
+namespace WinUI.TableView.Primitives;
 
-/// <summary>
-/// Represents the visual elements of a TableViewRow
-/// </summary>
-public partial class TableViewRowPresenter : ListViewItemPresenter
+/// <inheritdoc/>
+public partial class ListViewItemPresenter : Microsoft.UI.Xaml.Controls.Primitives.ListViewItemPresenter
 {
     private TableViewCellsPresenter? _cellsPresenter;
 

@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.WinUI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using System;
@@ -10,6 +9,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using Windows.Foundation;
 using WinUI.TableView.Helpers;
+using WinUI.TableView.Primitives;
 
 namespace WinUI.TableView;
 

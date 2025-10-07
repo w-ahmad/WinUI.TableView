@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Windows.Foundation;
+using WinUI.TableView.Primitives;
 
 namespace WinUI.TableView;
 
@@ -23,7 +24,7 @@ public partial class TableViewCellsPresenter : Control
     private StackPanel? _frozenCellsPanel;
     private Rectangle? _v_gridLine;
     private Rectangle? _h_gridLine;
-    private TableViewRowPresenter? _rowPresenter;
+    private ListViewItemPresenter? _itemPresenter;
 
     /// <summary>
     /// Initializes a new instance of the TableViewCellsPresenter class.
@@ -45,7 +46,7 @@ public partial class TableViewCellsPresenter : Control
         _frozenCellsPanel = GetTemplateChild("FrozenCellsPanel") as StackPanel;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
         _h_gridLine = GetTemplateChild("HorizontalGridLine") as Rectangle;
-        _rowPresenter = this.FindAscendant<TableViewRowPresenter>();
+        _itemPresenter = this.FindAscendant<ListViewItemPresenter>();
         TableViewRow = this.FindAscendant<TableViewRow>();
         TableView = TableViewRow?.TableView;
 
@@ -83,7 +84,7 @@ public partial class TableViewCellsPresenter : Control
             var areHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
             var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
             var headerWidth = areHeadersVisible && !isMultiSelection ? TableView.RowHeaderActualWidth + _v_gridLine.ActualWidth : 0;
-            var cornerRadius = _rowPresenter?.CornerRadius ?? new CornerRadius(4);
+            var cornerRadius = _itemPresenter?.CornerRadius ?? new CornerRadius(4);
             var left = isMultiSelection ? 44 : Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft);
             var xScroll = headerWidth + _frozenCellsPanel.ActualWidth - TableView.HorizontalOffset;
             var xClip = (xScroll * -1) + headerWidth + _frozenCellsPanel.ActualWidth;
