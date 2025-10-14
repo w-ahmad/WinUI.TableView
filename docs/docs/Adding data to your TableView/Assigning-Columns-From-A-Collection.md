@@ -97,8 +97,9 @@ Leave everything outside of `<>` unchanged.
 
 ## Creating TableView columns
 There are two ways to add columns to your TableView *using this approach*:
-1. **Auto-Generated columns** (for text, numbers, date and time, and boolean values)
-2. **Custom columns** (for more control over the column type and values (ComboBox, etc.))
+1. **Auto-Generated columns** for text, numbers, date and time, and boolean values
+2. **Predefined custom columns** using XAML.
+3. **Custom columns** for more control over the column type and values (ComboBox, etc.)
 
 ### 1. Auto-Generated columns
 If you bind a list of objects (like an `ObservableCollection<MyItem>`) to a TableView, it will automatically create a column for each public property on the item type. The type of column depends on the property type:
@@ -192,7 +193,80 @@ public sealed partial class MainWindow : Window // This could also be a page. Do
 
 -----
 
-### 2. Customizing or Replacing Columns (ComboBox, ToggleSwitch, Template, etc.)
+### 2. Predefining columns using XAML
+This is the most straightforward way to do this that doesn't involve changing the `AutoGeneratingColumn` event. This involves setting the columns in XAML and binding them to their own data.
+
+> [!CAUTION]
+> You will need to disable `AutoGenerateColumns` for this.
+> ```xml
+> <tv:TableView AutoGenerateColumns="False">
+> ```
+
+#### 1. Have your data ready.
+This class sets the data for just one column.
+```csharp
+public class Price : INotifyPropertyChanged
+{
+    private int _price;
+
+    public int Price
+    {
+        get => _price;
+        set { _price = value; OnPropertyChanged(nameof(Price)); }
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+    protected void OnPropertyChanged(string propertyName) =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+}
+```
+
+#### 2. Declare your class so you can use it.
+Declare your class in your page or view model's class so you can bind it:
+```csharp
+public Price price = new Price();
+```
+
+#### 3. Create the column in XAML
+```xml
+<tv:TableView AutoGenerateColumns="False">
+    <tv:TableView.Columns>
+        <tv:TableViewNumberColumn Header="Price" Binding="{Binding price}" />
+    </tv:TableView.Columns>
+</tv:TableView>
+```
+
+<details>
+<summary>Full XAML example</summary>
+
+```xml
+<tv:TableView x:Name="MyTableView"
+              ItemsSource="{x:Bind ViewModel.Items}"
+              AutoGenerateColumns="False"
+              xmlns:tv="using:WinUI.TableView">
+    <tv:TableView.Columns>
+        <tv:TableViewTextColumn Header="Name" Binding="{Binding Name}" />
+        <tv:TableViewNumberColumn Header="Price" Binding="{Binding Price}" />
+        <tv:TableViewTemplateColumn Header="Quantity">
+            <tv:TableViewTemplateColumn.CellTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Quantity}" />
+                </DataTemplate>
+            </tv:TableViewTemplateColumn.CellTemplate>
+            <tv:TableViewTemplateColumn.EditingTemplate>
+                <DataTemplate>
+                    <NumberBox Value="{Binding Quantity, Mode=TwoWay}" />
+                </DataTemplate>
+            </tv:TableViewTemplateColumn.EditingTemplate>
+        </tv:TableViewTemplateColumn>
+    </tv:TableView.Columns>
+</tv:TableView>
+```
+</details>
+
+-----
+
+### 3. Customizing or Replacing Columns (ComboBox, ToggleSwitch, Template, etc.)
 
 Some columns, like ComboBox or custom templates, require extra steps. TableView does **not** automatically create a ComboBox just because you have a list or set of values. You must tell TableView to use a ComboBox column for a property.
 
