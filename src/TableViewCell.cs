@@ -119,9 +119,8 @@ public partial class TableViewCell : ContentControl
             contentWidth -= _selectionBorder?.BorderThickness.Right ?? 0;
             contentWidth -= _v_gridLine?.ActualWidth ?? 0d;
 
-            var rowHeight = Row.Height is double.NaN ? double.PositiveInfinity : Row.Height;
-            var rowMaxHeight = Row.MaxHeight;
-            var contentHeight = Math.Min(rowHeight, rowMaxHeight);
+            var height = Height is double.NaN ? double.PositiveInfinity : Height;
+            var contentHeight = Math.Min(height, MaxHeight);
             contentHeight -= element.Margin.Top;
             contentHeight -= element.Margin.Bottom;
             contentHeight -= Padding.Top;
@@ -130,7 +129,7 @@ public partial class TableViewCell : ContentControl
             contentHeight -= BorderThickness.Bottom;
             contentHeight -= _selectionBorder?.BorderThickness.Top ?? 0;
             contentHeight -= _selectionBorder?.BorderThickness.Bottom ?? 0;
-            contentHeight -= TableView.GetHorizontalGridlineHeight();
+            contentHeight -= GetHorizontalGridlineHeight();
 
             if (contentWidth < 0 || contentHeight < 0)
             {
@@ -231,6 +230,15 @@ public partial class TableViewCell : ContentControl
                 TableView?.MakeSelection(cell.Slot, true, ctrlKey);
             }
         }
+    }
+
+    /// <summary>
+    /// Gets the height of the horizontal gridlines/>.
+    /// </summary>
+    private double GetHorizontalGridlineHeight()
+    {
+        return TableView?.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Horizontal
+            ? TableView.HorizontalGridLinesStrokeThickness : 0d;
     }
 
     /// <summary>

@@ -36,7 +36,7 @@ public partial class TableView : ListView
     private ScrollViewer? _scrollViewer;
     private RowDefinition? _headerRowDefinition;
     private bool _shouldThrowSelectionModeChangedException;
-    private bool _ensureColumns = true;
+    private bool _ensureColumns = true;    
     private readonly List<TableViewRow> _rows = [];
     private readonly CollectionView _collectionView = [];
 
@@ -103,30 +103,10 @@ public partial class TableView : ListView
         });
     }
 
-
     /// <inheritdoc/>
     protected override DependencyObject GetContainerForItemOverride()
     {
         var row = new TableViewRow { TableView = this };
-
-        row.SetBinding(HeightProperty, new Binding
-        {
-            Path = new PropertyPath($"{nameof(TableViewRow.TableView)}.{nameof(RowHeight)}"),
-            RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
-        });
-
-        row.SetBinding(MaxHeightProperty, new Binding
-        {
-            Path = new PropertyPath($"{nameof(TableViewRow.TableView)}.{nameof(RowMaxHeight)}"),
-            RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
-        });
-
-        row.SetBinding(MinHeightProperty, new Binding
-        {
-            Path = new PropertyPath($"{nameof(TableViewRow.TableView)}.{nameof(RowMinHeight)}"),
-            RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
-        });
-
         _rows.Add(row);
 
         return row;
@@ -1334,7 +1314,7 @@ public partial class TableView : ListView
 
         foreach (var row in _rows)
         {
-            row.EnsureGridLines();
+            row.RowPresenter?.EnsureGridLines();
         }
     }
 
@@ -1500,7 +1480,7 @@ public partial class TableView : ListView
         if (_scrollViewer is null) return;
 
         var offset = GetRowHeadersOffset() + Columns.VisibleColumns.Where(c => c.IsFrozen).Sum(c => c.ActualWidth);
-        ScrollViewerHelper.SetFrozenColumnScrollBarSpace(_scrollViewer, offset);
+        AttachedPropertiesHelper.SetFrozenColumnScrollBarSpace(_scrollViewer, offset);
     }
 
     /// <inheritdoc/>

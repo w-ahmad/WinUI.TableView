@@ -45,7 +45,7 @@ public partial class TableViewRowHeader : ContentControl
 
             element?.Measure(availableSize: new Size(double.PositiveInfinity, double.PositiveInfinity));
 
-            var desiredWidth = Math.Clamp(GetContentDesiredWidth(element), TableView.RowHeaderMinWidth, TableView.RowHeaderMaxWidth);
+            var desiredWidth = GetContentDesiredWidth(element);
             TableView?.SetValue(TableView.RowHeaderActualWidthProperty, desiredWidth);
 
             #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860
@@ -79,7 +79,6 @@ public partial class TableViewRowHeader : ContentControl
         desiredWidth += BorderThickness.Right;
         desiredWidth = TableView.RowHeaderWidth is double.NaN ? desiredWidth : TableView.RowHeaderWidth;
         desiredWidth = Math.Max(TableView.RowHeaderActualWidth, desiredWidth);
-        desiredWidth = Math.Clamp(desiredWidth, TableView.RowHeaderMinWidth, TableView.RowHeaderMaxWidth);
 
         return desiredWidth;
     }
@@ -98,17 +97,25 @@ public partial class TableViewRowHeader : ContentControl
 
     private double GetContentHeight(FrameworkElement? element)
     {
-        var rowHeight = TableViewRow?.Height is double.NaN ? double.PositiveInfinity : TableViewRow?.Height ?? 0;
-        var rowMaxHeight = TableViewRow?.MaxHeight ?? double.PositiveInfinity;
-        var contentHeight = Math.Min(rowHeight, rowMaxHeight);
+        var height = Height is double.NaN ? double.PositiveInfinity : Height;
+        var contentHeight = Math.Min(height, MaxHeight);
         contentHeight -= element?.Margin.Top ?? 0;
         contentHeight -= element?.Margin.Bottom ?? 0;
         contentHeight -= Padding.Top;
         contentHeight -= Padding.Bottom;
         contentHeight -= BorderThickness.Top;
         contentHeight -= BorderThickness.Bottom;
-        contentHeight -= TableView.GetHorizontalGridlineHeight();
+        contentHeight -= GetHorizontalGridlineHeight();
         return contentHeight;
+    }
+
+    /// <summary>
+    /// Gets the height of the horizontal gridlines/>.
+    /// </summary>
+    private double GetHorizontalGridlineHeight()
+    {
+        return TableView?.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Horizontal
+            ? TableView.HorizontalGridLinesStrokeThickness : 0d;
     }
 
     /// <summary>

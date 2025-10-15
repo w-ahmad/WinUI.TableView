@@ -15,6 +15,47 @@
                           Background="{TemplateBinding Background}"
                           BorderBrush="{TemplateBinding BorderBrush}"
                           BorderThickness="{TemplateBinding BorderThickness}">
+
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="DetailsStates">
+                                <VisualState x:Name="DetailsVisible">
+                                    <VisualState.Storyboard>
+                                        <Storyboard>
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="DetailsPanel"
+                                                                           Storyboard.TargetProperty="Visibility">
+                                                <DiscreteObjectKeyFrame KeyTime="0"
+                                                                        Value="Visible" />
+                                            </ObjectAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </VisualState.Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="DetailsCollapsed">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="DetailsPanel"
+                                                                       Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="Collapsed" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+                            </VisualStateGroup>
+
+                            <VisualStateGroup x:Name="DetailsButtonStates">
+                                <VisualState x:Name="DetailsButtonVisible">
+                                    <VisualState.Setters>
+                                        <Setter Target="DetailsToggleButton.Visibility"
+                                                Value="Visible" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="DetailsButtonCollapsed">
+                                    <VisualState.Setters>
+                                        <Setter Target="DetailsToggleButton.Visibility"
+                                                Value="Collapsed" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
@@ -23,17 +64,37 @@
                         <Grid x:Name="RootPanel"
                               Margin="{TemplateBinding Padding}">
 
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition x:Name="RowHeaderColumn" Width="Auto" />
+                                <ColumnDefinition x:Name="HeaderColumn" Width="Auto" />
                                 <ColumnDefinition x:Name="VerticalGridLineColumn" Width="Auto" />
                                 <ColumnDefinition x:Name="FrozenCellsPanelColumn" Width="Auto" />
                                 <ColumnDefinition x:Name="ScrollableCellsPanelColumn" Width="*" />
                             </Grid.ColumnDefinitions>
 
-                            <local:TableViewRowHeader x:Name="RowHeader" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition x:Name="RowHeaderColumn" Width="Auto" />
+                                    <ColumnDefinition x:Name="DetailsExpandChevronColumn" Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <local:TableViewRowHeader x:Name="RowHeader" />
+                                
+                                <ToggleButton x:Name="DetailsToggleButton"
+                                              Grid.Column="1"
+                                              VerticalAlignment="Stretch"
+                                              Visibility="Collapsed"
+                                              Margin="{ThemeResource TableViewDetailsToggleButtonMardin}"
+                                              Style="{StaticResource DetailsExpanderToggleButtonStyle}" />
+                            </Grid>
 
                             <Rectangle x:Name="VerticalGridLine"
                                        Width="1"
+                                       Grid.RowSpan="2"
                                        Grid.Column="1"
                                        VerticalAlignment="Stretch"
                                        IsHitTestVisible="False" />
@@ -50,6 +111,29 @@
                                            Text="{Binding}"
                                            VerticalAlignment="Center" />
                             </StackPanel>
+
+                            <Grid x:Name="DetailsPanel"
+                                  Grid.Row="1"
+                                  Grid.Column="2"
+                                  Grid.ColumnSpan="2"
+                                  Visibility="Collapsed"
+                                  Background="{ThemeResource TableViewRowDetailsBackgroundBrush}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <Rectangle HorizontalAlignment="Stretch"
+                                           IsHitTestVisible="False"
+                                           Fill="{Binding Fill, ElementName=HorizontalGridLine}"
+                                           Height="{Binding Height, ElementName=HorizontalGridLine}"
+                                           Visibility="{Binding Visibility, ElementName=HorizontalGridLine}" />
+
+                                <ContentPresenter x:Name="DetailsPresenter"
+                                                  Grid.Row="1"
+                                                  Grid.Column="1"
+                                                  Padding="{ThemeResource TableViewDetailsPading}" />
+                            </Grid>
                         </Grid>
 
                         <Rectangle x:Name="HorizontalGridLine"

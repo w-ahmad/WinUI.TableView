@@ -100,7 +100,7 @@
 
                             <ScrollViewer x:Name="ScrollViewer"
                                           Grid.Row="1"
-                                          helpers:ScrollViewerHelper.FrozenColumnScrollBarSpace="{TemplateBinding RowHeaderMinWidth}"
+                                          helpers:AttachedPropertiesHelper.FrozenColumnScrollBarSpace="{TemplateBinding RowHeaderMinWidth}"
                                           TabNavigation="{TemplateBinding TabNavigation}"
                                           HorizontalScrollMode="{TemplateBinding ScrollViewer.HorizontalScrollMode}"
                                           HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
@@ -379,7 +379,7 @@
                     </Grid.ColumnDefinitions>
 
                     <Border Opacity="0"
-                            MinWidth="{Binding (helpers:ScrollViewerHelper.FrozenColumnScrollBarSpace), RelativeSource={RelativeSource TemplatedParent}}"
+                            MinWidth="{Binding (helpers:AttachedPropertiesHelper.FrozenColumnScrollBarSpace), RelativeSource={RelativeSource TemplatedParent}}"
                             Background="{ThemeResource ScrollViewerScrollBarSeparatorBackground}" />
 
                     <ScrollBar x:Name="HorizontalScrollBar2"
