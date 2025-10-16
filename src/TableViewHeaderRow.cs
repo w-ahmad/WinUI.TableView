@@ -27,11 +27,13 @@ namespace WinUI.TableView;
 [TemplateVisualState(Name = VisualStates.StateOptionsButtonDisabled, GroupName = VisualStates.GroupCornerButton)]
 public partial class TableViewHeaderRow : Control
 {
+    private ColumnDefinition? _cornerButtonColumn;
     private Button? _optionsButton;
     private CheckBox? _selectAllCheckBox;
     private Rectangle? _v_gridLine;
     private Rectangle? _h_gridLine;
-    private StackPanel? _headersStackPanel;
+    private StackPanel? _frozenHeadersPanel;
+    private StackPanel? _scrollableHeadersPanel;
     private bool _calculatingHeaderWidths;
     private DispatcherTimer? _timer;
     private readonly Dictionary<DependencyProperty, long> _callbackTokens = [];
@@ -49,10 +51,13 @@ public partial class TableViewHeaderRow : Control
     {
         base.OnApplyTemplate();
 
+        _cornerButtonColumn = GetTemplateChild("cornerButtonColumn") as ColumnDefinition;
         _optionsButton = GetTemplateChild("optionsButton") as Button;
         _selectAllCheckBox = GetTemplateChild("selectAllCheckBox") as CheckBox;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
         _h_gridLine = GetTemplateChild("HorizontalGridLine") as Rectangle;
+        _frozenHeadersPanel = GetTemplateChild("FrozenHeadersPanel") as StackPanel;
+        _scrollableHeadersPanel = GetTemplateChild("ScrollableHeadersPanel") as StackPanel;
 
         if (TableView is null)
         {
@@ -75,9 +80,8 @@ public partial class TableViewHeaderRow : Control
             _selectAllCheckBox.Unchecked += OnSelectAllCheckBoxUnchecked;
         }
 
-        if (TableView.Columns is not null && GetTemplateChild("HeadersStackPanel") is StackPanel stackPanel)
+        if (TableView.Columns is not null)
         {
-            _headersStackPanel = stackPanel;
             AddHeaders(TableView.Columns.VisibleColumns);
         }
 
@@ -90,7 +94,30 @@ public partial class TableViewHeaderRow : Control
 
         SetExportOptionsVisibility();
         SetCornerButtonState();
+        SetHeadersVisibility();
         EnsureGridLines();
+    }
+
+    /// <inheritdoc/>
+    protected override Size ArrangeOverride(Size finalSize)
+    {
+        finalSize = base.ArrangeOverride(finalSize);
+
+        if (_scrollableHeadersPanel is not null && _frozenHeadersPanel is not null && TableView is not null && _scrollableHeadersPanel.ActualWidth > 0)
+        {
+            var frozenOffset = _frozenHeadersPanel.ActualOffset.X + _frozenHeadersPanel.ActualWidth;
+            var headersOffset = -TableView.HorizontalOffset + frozenOffset;
+            var xClip = (headersOffset * -1) + frozenOffset;
+
+            _scrollableHeadersPanel.Arrange(new Rect(headersOffset, 0, _scrollableHeadersPanel.ActualWidth, _scrollableHeadersPanel.ActualHeight));
+            _scrollableHeadersPanel.Clip = headersOffset >= frozenOffset ? null :
+                new RectangleGeometry
+                {
+                    Rect = new Rect(xClip, 0, _scrollableHeadersPanel.ActualWidth - xClip, finalSize.Height)
+                };
+        }
+
+        return finalSize;
     }
 
     /// <summary>
@@ -106,9 +133,9 @@ public partial class TableViewHeaderRow : Control
         {
             RemoveHeaders(oldItems);
         }
-        else if (e.Action == NotifyCollectionChangedAction.Reset && _headersStackPanel is not null)
+        else if (e.Action == NotifyCollectionChangedAction.Reset && _scrollableHeadersPanel is not null)
         {
-            _headersStackPanel.Children.Clear();
+            ClearHeaders();
         }
     }
 
@@ -128,7 +155,9 @@ public partial class TableViewHeaderRow : Control
                 RemoveHeaders([e.Column]);
             }
         }
-        else if (e.PropertyName is nameof(TableViewColumn.Order) && e.Column.Visibility is Visibility.Visible)
+        else if ((e.PropertyName is nameof(TableViewColumn.Order) ||
+            e.PropertyName is nameof(TableViewColumn.IsFrozen)) &&
+            e.Column.Visibility is Visibility.Visible)
         {
             RemoveHeaders([e.Column]);
             AddHeaders([e.Column]);
@@ -178,14 +207,14 @@ public partial class TableViewHeaderRow : Control
     /// </summary>
     private void RemoveHeaders(IEnumerable<TableViewColumn> columns)
     {
-        if (_headersStackPanel is not null)
+        if (_scrollableHeadersPanel is not null)
         {
             foreach (var column in columns)
             {
-                var header = _headersStackPanel.Children.OfType<TableViewColumnHeader>().FirstOrDefault(x => x.Column == column);
+                var header = Headers.FirstOrDefault(x => x.Column == column);
                 if (header is not null)
                 {
-                    _headersStackPanel.Children.Remove(header);
+                    RemoveHeader(header);
                 }
             }
         }
@@ -196,17 +225,14 @@ public partial class TableViewHeaderRow : Control
     /// </summary>
     private void AddHeaders(IEnumerable<TableViewColumn> columns)
     {
-        if (TableView is not null && _headersStackPanel is not null)
+        if (TableView is not null && _scrollableHeadersPanel is not null)
         {
             foreach (var column in columns)
             {
                 var header = new TableViewColumnHeader { DataContext = column, Column = column };
                 column.HeaderControl = header;
 
-                var index = TableView.Columns.VisibleColumns.IndexOf(column);
-                index = Math.Min(index, _headersStackPanel.Children.Count);
-                index = Math.Max(index, 0); // handles -ve index;
-                _headersStackPanel.Children.Insert(index, header);
+                InsertHeader(header);
 
                 header.SetBinding(ContentControl.ContentProperty,
                                   new Binding { Path = new PropertyPath(nameof(TableViewColumn.Header)) });
@@ -300,11 +326,13 @@ public partial class TableViewHeaderRow : Control
                     DispatcherQueue.TryEnqueue(() =>
                         header.Measure(
                             new Size(header.Width,
-                            _headersStackPanel?.ActualHeight ?? ActualHeight)));
+                            _scrollableHeadersPanel?.ActualHeight ?? ActualHeight)));
                 }
             }
 
             _calculatingHeaderWidths = false;
+
+            TableView.UpdateHorizontalScrollBarMargin();
         }
     }
 
@@ -371,6 +399,10 @@ public partial class TableViewHeaderRow : Control
         if (TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple })
         {
             stateName = TableView.IsEditing ? VisualStates.StateSelectAllCheckBoxDisabled : VisualStates.StateSelectAllCheckBox;
+        }
+        else if (TableView?.HeadersVisibility is TableViewHeadersVisibility.None or TableViewHeadersVisibility.Columns)
+        {
+            stateName = VisualStates.StateNoButton;
         }
         else if (TableView is { CornerButtonMode: TableViewCornerButtonMode.Options })
         {
@@ -445,10 +477,116 @@ public partial class TableViewHeaderRow : Control
     /// <summary>
     /// Gets the previous header in the header row.
     /// </summary>
-    internal TableViewColumnHeader? GetPreviousHeader(TableViewColumnHeader? currentHeader)
+    internal TableViewColumnHeader? GetPreviousHeader(TableViewColumnHeader currentHeader)
     {
-        var previousCellIndex = currentHeader is null ? Headers.Count - 1 : Headers.IndexOf(currentHeader) - 1;
-        return previousCellIndex >= 0 ? Headers[previousCellIndex] : default;
+        if (TableView is { Columns: { } } && currentHeader is { Column: { } })
+        {
+            var index = TableView.Columns.VisibleColumns.IndexOf(currentHeader.Column);
+
+            if (index > 0)
+            {
+                return TableView.Columns.VisibleColumns[index - 1].HeaderControl;
+            }
+        }
+
+        return default;
+    }
+
+    /// <summary>
+    /// Sets the widths of the row header column.
+    /// </summary>
+    internal void SetRowHeaderWidth()
+    {
+        if (_cornerButtonColumn is not null && TableView is not null)
+        {
+            var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
+            var headerWidth = TableView.RowHeaderWidth is double.NaN ? TableView.RowHeaderActualWidth : TableView.RowHeaderWidth;
+
+            _cornerButtonColumn.Width = new(headerWidth);
+            _cornerButtonColumn.MinWidth = isMultiSelection ? 0 : TableView.RowHeaderMinWidth;
+            _cornerButtonColumn.MaxWidth = isMultiSelection ? double.PositiveInfinity : TableView.RowHeaderMaxWidth;
+        }
+    }
+
+    /// <summary>
+    /// Sets the visibility of the row header based on the TableView settings.
+    /// </summary>
+    internal void SetHeadersVisibility()
+    {
+        SetCornerButtonState();
+
+        if (_cornerButtonColumn is not null && _v_gridLine is not null && TableView is not null)
+        {
+            var areRowHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
+            var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
+
+            if (areRowHeadersVisible || isMultiSelection)
+            {
+                SetRowHeaderWidth();
+                _v_gridLine.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                _v_gridLine.Visibility = Visibility.Collapsed;
+                _cornerButtonColumn.Width = new(0);
+                _cornerButtonColumn.MinWidth = 0;
+                _cornerButtonColumn.MaxWidth = 0;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Inserts a header at the specified index.
+    /// </summary>
+    /// <param name="header">The header to insert.</param>
+    public void InsertHeader(TableViewColumnHeader header)
+    {
+        if (TableView is null || header is not { Column: { } column }) return;
+
+        var _frozenColumns = TableView.Columns.VisibleColumns.Where(x => x.IsFrozen).ToList();
+        var _scrollableColumns = TableView.Columns.VisibleColumns.Where(x => !x.IsFrozen).ToList();
+
+        if (header is { Column.IsFrozen: true } && _frozenHeadersPanel is not null)
+        {
+            var index = _frozenColumns.IndexOf(column);
+            index = Math.Min(index, _frozenColumns.Count);
+            index = Math.Max(index, 0); // handles -ve index;
+
+            _frozenHeadersPanel.Children.Insert(index, header);
+        }
+        else if (_scrollableHeadersPanel is not null)
+        {
+            var index = _scrollableColumns.IndexOf(column);
+            index = Math.Min(index, _scrollableColumns.Count);
+            index = Math.Max(index, 0); // handles -ve index;
+
+            _scrollableHeadersPanel.Children.Insert(index, header);
+        }
+    }
+
+    /// <summary>
+    /// Removes a header from the header row.
+    /// </summary>
+    /// <param name="header">The header to remove.</param>
+    public void RemoveHeader(TableViewColumnHeader header)
+    {
+        if (_frozenHeadersPanel?.Children.Contains(header) ?? false)
+        {
+            _frozenHeadersPanel.Children.Remove(header);
+        }
+        else if (_scrollableHeadersPanel?.Children.Contains(header) ?? false)
+        {
+            _scrollableHeadersPanel.Children.Remove(header);
+        }
+    }
+
+    /// <summary>
+    /// Clears all headers from the header row.
+    /// </summary>
+    public void ClearHeaders()
+    {
+        _frozenHeadersPanel?.Children.Clear();
+        _scrollableHeadersPanel?.Children.Clear();
     }
 
     /// <summary>
@@ -504,7 +642,9 @@ public partial class TableViewHeaderRow : Control
     /// <summary>
     /// Gets the list of headers in the header row.
     /// </summary>
-    public IList<TableViewColumnHeader> Headers => [.. _headersStackPanel?.Children.OfType<TableViewColumnHeader>() ?? []];
+    public IReadOnlyList<TableViewColumnHeader> Headers =>
+        [.. _frozenHeadersPanel?.Children.OfType<TableViewColumnHeader>() ?? [],
+         .. _scrollableHeadersPanel?.Children.OfType<TableViewColumnHeader>() ?? []];
 
     /// <summary>
     /// Gets or sets the TableView associated with the header row.

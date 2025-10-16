@@ -1,11 +1,9 @@
 ﻿using CommunityToolkit.WinUI;
-using CommunityToolkit.WinUI.Animations.Expressions;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Input;
 using System;
 using System.Collections;
@@ -36,6 +34,7 @@ public partial class TableView : ListView
 {
     private TableViewHeaderRow? _headerRow;
     private ScrollViewer? _scrollViewer;
+    private RowDefinition? _headerRowDefinition;
     private bool _shouldThrowSelectionModeChangedException;
     private bool _ensureColumns = true;
     private readonly List<TableViewRow> _rows = [];
@@ -263,26 +262,65 @@ public partial class TableView : ListView
 
         _headerRow = GetTemplateChild("HeaderRow") as TableViewHeaderRow;
         _scrollViewer = GetTemplateChild("ScrollViewer") as ScrollViewer;
-
+        _headerRowDefinition = GetTemplateChild("HeaderRowDefinition") as RowDefinition;
         if (IsLoaded)
         {
             while (ItemsPanelRoot is null) await Task.Yield();
 
-            ApplyItemsClip();
-            UpdateVerticalScrollBarMargin();
             EnsureAutoColumns();
         }
-    }
 
+        SetHeadersVisibility();
+    }
 
     /// <summary>
     /// Handles the Loaded event of the TableView control.
     /// </summary>
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
+        var scrollPresenter = _scrollViewer?.FindDescendant<ScrollContentPresenter>();
+        var xScrollBar = _scrollViewer?.FindDescendant<ScrollBar>(sb => sb.Name is "HorizontalScrollBar2");
+        var yScrollBar = _scrollViewer?.FindDescendant<ScrollBar>(sb => sb.Name is "VerticalScrollBar");
+
+        if (scrollPresenter is not null)
+        {
+            scrollPresenter.PointerWheelChanged += OnScrollContentPresenterPointerWheelChanged;
+        }
+
+        xScrollBar?.SetBinding(RangeBase.ValueProperty, new Binding
+        {
+            Path = new PropertyPath(nameof(HorizontalOffset)),
+            Mode = BindingMode.TwoWay,
+            Source = this
+        });
+
+        yScrollBar?.SetBinding(RangeBase.ValueProperty, new Binding
+        {
+            Path = new PropertyPath(nameof(VerticalOffset)),
+            Mode = BindingMode.TwoWay,
+            Source = this
+        });
+
         EnsureAutoColumns();
-        ApplyItemsClip();
-        UpdateVerticalScrollBarMargin();
+    }
+
+    /// <summary>
+    /// Handles the PointerWheelChanged event of the ScrollContentPresenter.
+    /// </summary>
+    private void OnScrollContentPresenterPointerWheelChanged(object sender, PointerRoutedEventArgs e)
+    {
+        var pointerPoint = e.GetCurrentPoint(this);
+        var isShiftButton = KeyboardHelper.IsShiftKeyDown();
+        var isHorizontalScroll = isShiftButton || pointerPoint.Properties.IsHorizontalMouseWheel;
+
+        if (isHorizontalScroll && _scrollViewer?.ComputedHorizontalScrollBarVisibility is Visibility.Visible)
+        {
+            e.Handled = true;
+
+            var mouseWheelDelta = isShiftButton ? -pointerPoint.Properties.MouseWheelDelta : pointerPoint.Properties.MouseWheelDelta;
+            var xOffset = HorizontalOffset + (mouseWheelDelta / 4.0);
+            SetValue(HorizontalOffsetProperty, Math.Clamp(xOffset, 0, _scrollViewer.ViewportWidth));
+        }
     }
 
     /// <summary>
@@ -721,41 +759,21 @@ public partial class TableView : ListView
     }
 
     /// <summary>
-    /// Applies clipping to the items panel. This will allow header row to stay on top while scrolling
+    /// Refreshes the items view of the TableView.
     /// </summary>
-    private void ApplyItemsClip()
+    public void RefreshView()
     {
-#if WINDOWS
-        if (_scrollViewer is null || ItemsPanelRoot is null) return;
-
-        Canvas.SetZIndex(ItemsPanelRoot, -1);
-
-        var scrollProperties = ElementCompositionPreview.GetScrollViewerManipulationPropertySet(_scrollViewer);
-        var compositor = scrollProperties.Compositor;
-        var scrollPropSet = scrollProperties.GetSpecializedReference<ManipulationPropertySetReferenceNode>();
-        var itemsPanelVisual = ElementCompositionPreview.GetElementVisual(ItemsPanelRoot);
-        var contentClip = compositor.CreateInsetClip();
-        var expressionClipAnimation = ExpressionFunctions.Max(-scrollPropSet.Translation.Y, 0);
-
-        itemsPanelVisual.Clip = contentClip;
-        contentClip.TopInset = (float)Math.Max(-_scrollViewer.VerticalOffset, 0);
-        contentClip.StartAnimation("TopInset", expressionClipAnimation);
-#endif
+        DeselectAll();
+        _collectionView.Refresh();
     }
 
     /// <summary>
-    /// Updates the margin of the vertical scroll bar to always show under the header row.
+    /// Refreshes the sorting applied to the items in the TableView.
     /// </summary>
-    private void UpdateVerticalScrollBarMargin()
+    public void RefreshSorting()
     {
-        if (GetTemplateChild("ScrollViewer") is ScrollViewer scrollViewer)
-        {
-            var verticalScrollBar = scrollViewer.FindDescendant<ScrollBar>(x => x.Name == "VerticalScrollBar");
-            if (verticalScrollBar is not null)
-            {
-                verticalScrollBar.Margin = new Thickness(0, _headerRow?.ActualHeight ?? 0, 0, 0);
-            }
-        }
+        DeselectAll();
+        _collectionView.RefreshSorting();
     }
 
     /// <summary>
@@ -1084,7 +1102,12 @@ public partial class TableView : ListView
         if (oldSlot.HasValue)
         {
             var cell = GetCellFromSlot(oldSlot.Value);
-            cell?.SetElement();
+
+            if (IsEditing)
+            {
+                cell?.SetElement();
+            }
+
             cell?.ApplyCurrentCellState();
         }
 
@@ -1148,11 +1171,12 @@ public partial class TableView : ListView
         var cellLeft = Columns.VisibleColumns.Take(slot.Column).Sum(x => x.ActualWidth);
         var cellWidth = Columns.VisibleColumns[slot.Column].ActualWidth;
         var cellRight = cellLeft + cellWidth;
-        var viewportLeft = _scrollViewer.HorizontalOffset;
-        var viewportRight = viewportLeft + _scrollViewer.ViewportWidth - SelectionIndicatorWidth;
+        var viewportLeft = HorizontalOffset;
+        var headersOffset = GetRowHeadersOffset();
+        var viewportRight = viewportLeft + _scrollViewer.ViewportWidth - headersOffset;
 
         // If cell is wider than the viewport, align left edge
-        if (cellWidth > _scrollViewer.ViewportWidth - SelectionIndicatorWidth)
+        if (cellWidth > _scrollViewer.ViewportWidth - headersOffset)
         {
             xOffset = cellLeft;
         }
@@ -1164,38 +1188,17 @@ public partial class TableView : ListView
         // If cell is right of the viewport, scroll so its right edge is visible
         else if (cellRight > viewportRight)
         {
-            xOffset = cellRight - (_scrollViewer.ViewportWidth - SelectionIndicatorWidth);
+            xOffset = cellRight - (_scrollViewer.ViewportWidth - headersOffset);
         }
 
         // If cell is fully in view, just return
         if ((cellLeft >= viewportLeft && cellRight <= viewportRight) ||
-            xOffset == _scrollViewer.HorizontalOffset)
+            xOffset == HorizontalOffset)
         {
             return row.Cells.ElementAt(slot.Column);
         }
 
-        var tcs = new TaskCompletionSource<object?>();
-
-        void ViewChanged(object? _, ScrollViewerViewChangedEventArgs e)
-        {
-            if (e.IsIntermediate)
-            {
-                return;
-            }
-
-            tcs.TrySetResult(result: default);
-        }
-
-        try
-        {
-            _scrollViewer.ViewChanged += ViewChanged;
-            _scrollViewer.ChangeView(xOffset, _scrollViewer.VerticalOffset, null, true);
-            await tcs.Task;
-        }
-        finally
-        {
-            _scrollViewer.ViewChanged -= ViewChanged;
-        }
+        SetValue(HorizontalOffsetProperty, xOffset);
 
         return row?.Cells.ElementAt(slot.Column)!;
     }
@@ -1208,7 +1211,6 @@ public partial class TableView : ListView
     {
         if (_scrollViewer is null) return default!;
 
-        var xOffset = _scrollViewer.HorizontalOffset;
         var item = Items[index];
         index = Items.IndexOf(item); // if the ItemsSource has duplicate items in it. ScrollIntoView will only bring first index of item.
         ScrollIntoView(item);
@@ -1231,7 +1233,7 @@ public partial class TableView : ListView
                     try
                     {
                         _scrollViewer.ViewChanged += ViewChanged;
-                        _scrollViewer.ChangeView(xOffset, yOffset, null, true);
+                        _scrollViewer.ChangeView(0, yOffset, null, true);
                         await tcs.Task;
                     }
                     finally
@@ -1275,9 +1277,12 @@ public partial class TableView : ListView
         var start = -1;
         var end = -1;
         var width = 0d;
+        var headersOffset = GetRowHeadersOffset();
+
         foreach (var column in Columns.VisibleColumns)
         {
-            if (width >= _scrollViewer.HorizontalOffset && width + column.ActualWidth <= _scrollViewer.HorizontalOffset + _scrollViewer.ViewportWidth - SelectionIndicatorWidth)
+            if (width >= HorizontalOffset &&
+                width + column.ActualWidth <= HorizontalOffset + _scrollViewer.ViewportWidth - headersOffset)
             {
                 if (start == -1)
                 {
@@ -1295,6 +1300,14 @@ public partial class TableView : ListView
         return (start, end);
     }
 
+    private double GetRowHeadersOffset()
+    {
+        var areHeadersVisible = HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
+        var isMultiSelection = this is ListView { SelectionMode: ListViewSelectionMode.Multiple };
+
+        return isMultiSelection ? 44 : areHeadersVisible ? RowHeaderActualWidth : 0;
+    }
+
     /// <summary>
     /// Updates the base SelectionMode property.
     /// </summary>
@@ -1304,9 +1317,14 @@ public partial class TableView : ListView
 
         base.SelectionMode = SelectionUnit is TableViewSelectionUnit.Cell ? ListViewSelectionMode.None : SelectionMode;
 
+        UpdateHorizontalScrollBarMargin();
+        _headerRow?.SetHeadersVisibility();
+
         foreach (var row in _rows)
         {
             row.EnsureLayout();
+            row.CellPresenter?.SetRowHeaderVisibility();
+
         }
 
         _shouldThrowSelectionModeChangedException = false;
@@ -1458,6 +1476,36 @@ public partial class TableView : ListView
 
         IsEditing = value;
         UpdateCornerButtonState();
+    }
+
+    /// <summary>
+    /// Sets the visibility of the headers.
+    /// </summary>
+    private void SetHeadersVisibility()
+    {
+        if (_headerRowDefinition is not null)
+        {
+            var areColumnHeadersVisible = HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Columns;
+            _headerRowDefinition.Height = areColumnHeadersVisible ? GridLength.Auto : new(0);
+        }
+
+        _headerRow?.SetHeadersVisibility();
+
+        foreach (var row in _rows)
+        {
+            row.CellPresenter?.SetRowHeaderVisibility();
+        }
+    }
+
+    /// <summary>
+    /// Updates the margin of the horizontal scroll bar to account for frozen columns and row headers.
+    /// </summary>
+    internal void UpdateHorizontalScrollBarMargin()
+    {
+        if (_scrollViewer is null) return;
+
+        var offset = GetRowHeadersOffset() + Columns.VisibleColumns.Where(c => c.IsFrozen).Sum(c => c.ActualWidth);
+        ScrollViewerHelper.SetFrozenColumnScrollBarSpace(_scrollViewer, offset);
     }
 
     /// <inheritdoc/>

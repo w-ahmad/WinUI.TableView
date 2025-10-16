@@ -34,7 +34,8 @@
     "resource": [
       {
         "files": [
-          "images/**"
+          "images/**",
+          "favicon.ico"
         ]
       }
     ],
@@ -45,6 +46,7 @@
       "template"
     ],
     "globalMetadata": {
+      "_appLogoPath": "images/logo.png",
       "_appName": "WinUI.TableView",
       "_appTitle": "WinUI.TableView",
       "_enableSearch": true,

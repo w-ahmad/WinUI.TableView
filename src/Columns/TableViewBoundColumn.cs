@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 using System;
+using System.Linq.Expressions;
 using System.Reflection;
 using WinUI.TableView.Extensions;
 
@@ -11,25 +12,22 @@ namespace WinUI.TableView;
 /// </summary>
 public abstract class TableViewBoundColumn : TableViewColumn
 {
-    private Type? _listType;
     private string? _propertyPath;
     private Binding _binding = new();
-    private (PropertyInfo, object?)[]? _propertyInfo;
+
+    private Func<object, object?>? _funcCompiledPropertyPath;
 
     /// <inheritdoc/>
     public override object? GetCellContent(object? dataItem)
     {
-        if (dataItem is null) return null;
+        if (dataItem is null) 
+            return null;
 
-        if (_propertyInfo is null || dataItem.GetType() != _listType)
-        {
-            _listType = dataItem.GetType();
-            dataItem = dataItem.GetValue(_listType, PropertyPath, out _propertyInfo);
-        }
-        else
-        {
-            dataItem = dataItem.GetValue(_propertyInfo);
-        }
+        if (_funcCompiledPropertyPath is null && !string.IsNullOrWhiteSpace(PropertyPath))
+            _funcCompiledPropertyPath = dataItem.GetFuncCompiledPropertyPath(PropertyPath!);
+
+        if (_funcCompiledPropertyPath is not null)
+            dataItem = _funcCompiledPropertyPath(dataItem);
 
         if (Binding?.Converter is not null)
         {

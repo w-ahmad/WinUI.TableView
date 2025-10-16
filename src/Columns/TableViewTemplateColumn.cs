@@ -6,7 +6,10 @@ namespace WinUI.TableView;
 /// <summary>
 /// Represents a column in a TableView that uses a DataTemplate for its content.
 /// </summary>
-public class TableViewTemplateColumn : TableViewColumn
+#if WINDOWS
+[WinRT.GeneratedBindableCustomProperty]
+#endif
+public partial class TableViewTemplateColumn : TableViewColumn
 {
     /// <summary>
     /// Initializes a new instance of the TableViewTemplateColumn class.
@@ -25,8 +28,10 @@ public class TableViewTemplateColumn : TableViewColumn
     /// <returns>A ContentControl element.</returns>
     public override FrameworkElement GenerateElement(TableViewCell cell, object? dataItem)
     {
-        var template = CellTemplateSelector?.SelectTemplate(dataItem) ?? CellTemplate;
-        return (template?.LoadContent() as FrameworkElement)!;
+        return new ContentControl
+        {
+            ContentTemplate = CellTemplateSelector?.SelectTemplate(dataItem) ?? CellTemplate
+        };
     }
 
     /// <summary>
@@ -40,8 +45,10 @@ public class TableViewTemplateColumn : TableViewColumn
     {
         if (EditingTemplate is not null || EditingTemplateSelector is not null)
         {
-            var template = EditingTemplateSelector?.SelectTemplate(dataItem) ?? EditingTemplate;
-            return (template?.LoadContent() as FrameworkElement)!;
+            return new ContentControl
+            {
+                ContentTemplate = EditingTemplateSelector?.SelectTemplate(dataItem) ?? EditingTemplate
+            };
         }
 
         return GenerateElement(cell, dataItem);
