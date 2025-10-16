@@ -9,7 +9,6 @@ using Microsoft.UI.Xaml.Shapes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml.Linq;
 using Windows.Foundation;
 
 namespace WinUI.TableView;
@@ -186,17 +185,27 @@ public partial class TableViewRowPresenter : Control
                 VisualStates.GoToState(this, false, VisualStates.StateDetailsButtonCollapsed);
                 break;
             case TableViewRowDetailsVisibilityMode.VisibleWhenSelected:
-                if (TableViewRow?.IsSelected ?? false)
-                    VisualStates.GoToState(this, false, VisualStates.StateDetailsVisible);
+                if (_detailsToggleButton is not null)
+                {
+                    _detailsToggleButton.IsChecked = TableViewRow?.IsSelected ?? false;
+                }
                 else
-                    VisualStates.GoToState(this, false, VisualStates.StateDetailsCollapsed);
+                {
+                    var detailsState = (TableViewRow?.IsSelected ?? false) ? VisualStates.StateDetailsVisible : VisualStates.StateDetailsCollapsed;
+                    VisualStates.GoToState(this, false, detailsState);
+                }
+
                 VisualStates.GoToState(this, false, VisualStates.StateDetailsButtonCollapsed);
                 break;
             case TableViewRowDetailsVisibilityMode.VisibleWhenExpanded:
                 VisualStates.GoToState(this, false, VisualStates.StateDetailsButtonVisible);
                 break;
+            case TableViewRowDetailsVisibilityMode.Collapsed:
+            default:
+                VisualStates.GoToState(this, false, VisualStates.StateDetailsCollapsed);
+                VisualStates.GoToState(this, false, VisualStates.StateDetailsButtonCollapsed);
+                break;
         }
-
     }
 
     /// <summary>
@@ -255,8 +264,10 @@ public partial class TableViewRowPresenter : Control
         {
             var areHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
             var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
+            var isDetailsToggleButtonVisible = TableView.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded;
 
-            if (areHeadersVisible && !isMultiSelection && _rowHeader.ContentTemplate is not null)
+            if (areHeadersVisible && !isMultiSelection &&
+               (!isDetailsToggleButtonVisible || _rowHeader.ContentTemplate is not null))
             {
                 _rowHeader.Visibility = Visibility.Visible;
                 SetRowHeaderWidth();

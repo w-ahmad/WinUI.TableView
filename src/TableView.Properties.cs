@@ -999,6 +999,7 @@ public partial class TableView
         {
             foreach (var row in tableView._rows)
             {
+                row.RowPresenter?.SetRowHeaderVisibility();
                 row.RowPresenter?.SetRowDetailsVisibility();
             }
         }
