@@ -130,7 +130,7 @@
     <value>Limpar filtro</value>
   </data>
   <data name="Ok" xml:space="preserve">
-    <value>Ok</value>
+    <value>OK</value>
   </data>
   <data name="SelectAllParenthesized" xml:space="preserve">
     <value>(Selecionar tudo)</value>
