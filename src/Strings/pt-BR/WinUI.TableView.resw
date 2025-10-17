@@ -175,7 +175,7 @@
     <value>Selecionar tudo</value>
   </data>
   <data name="SearchBoxPlaceholder" xml:space="preserve">
-    <value>Buscar...</value>
+    <value>Pesquisar...</value>
   </data>
   <data name="Copy" xml:space="preserve">
     <value>Copiar</value>
