@@ -20,8 +20,8 @@
             <x:Boolean x:Key="TableViewRowSelectionCheckMarkVisualEnabled">True</x:Boolean>
             <x:Boolean x:Key="TableViewRowSelectionIndicatorVisualEnabled">True</x:Boolean>
             <Thickness x:Key="TableViewCellSelectionBorderThickness">2</Thickness>
-            <Thickness x:Key="TableViewDetailsPading">8</Thickness>
-            <Thickness x:Key="TableViewDetailsToggleButtonMardin">4,2,4,2</Thickness>
+            <Thickness x:Key="TableViewDetailsPadding">8</Thickness>
+            <Thickness x:Key="TableViewDetailsToggleButtonMargin">4,2,4,2</Thickness>
             <CornerRadius x:Key="TableViewRowCellSelectionBorderCornerRadius">4</CornerRadius>
             <CornerRadius x:Key="TableViewRowCornerRadius">4</CornerRadius>
             <CornerRadius x:Key="TableViewRowCheckBoxCornerRadius">3</CornerRadius>
@@ -90,8 +90,8 @@
             <x:Boolean x:Key="TableViewRowSelectionCheckMarkVisualEnabled">True</x:Boolean>
             <x:Boolean x:Key="TableViewRowSelectionIndicatorVisualEnabled">True</x:Boolean>
             <Thickness x:Key="TableViewCellSelectionBorderThickness">2</Thickness>
-            <Thickness x:Key="TableViewDetailsPading">8</Thickness>
-            <Thickness x:Key="TableViewDetailsToggleButtonMardin">4,2,4,2</Thickness>
+            <Thickness x:Key="TableViewDetailsPadding">8</Thickness>
+            <Thickness x:Key="TableViewDetailsToggleButtonMargin">4,2,4,2</Thickness>
             <CornerRadius x:Key="TableViewRowCellSelectionBorderCornerRadius">4</CornerRadius>
             <CornerRadius x:Key="TableViewRowCornerRadius">4</CornerRadius>
             <CornerRadius x:Key="TableViewRowCheckBoxCornerRadius">3</CornerRadius>
@@ -160,8 +160,8 @@
             <x:Boolean x:Key="TableViewRowSelectionCheckMarkVisualEnabled">True</x:Boolean>
             <x:Boolean x:Key="TableViewRowSelectionIndicatorVisualEnabled">True</x:Boolean>
             <Thickness x:Key="TableViewCellSelectionBorderThickness">2</Thickness>
-            <Thickness x:Key="TableViewDetailsPading">8</Thickness>
-            <Thickness x:Key="TableViewDetailsToggleButtonMardin">4,2,4,2</Thickness>
+            <Thickness x:Key="TableViewDetailsPadding">8</Thickness>
+            <Thickness x:Key="TableViewDetailsToggleButtonMargin">4,2,4,2</Thickness>
             <CornerRadius x:Key="TableViewRowCellSelectionBorderCornerRadius">4</CornerRadius>
             <CornerRadius x:Key="TableViewRowCornerRadius">4</CornerRadius>
             <CornerRadius x:Key="TableViewRowCheckBoxCornerRadius">3</CornerRadius>
@@ -268,7 +268,7 @@
                                         </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                     <VisualState.Setters>
-                                        <Setter Target="ExpandCollapseChevron.(controls:AnimatedIcon.State)"
+                                        <Setter Target="ExpandCollapseChevron.(AnimatedIcon.State)"
                                                 Value="PointerOverOff" />
 
                                     </VisualState.Setters>
@@ -294,7 +294,7 @@
                                         </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                     <VisualState.Setters>
-                                        <Setter Target="ExpandCollapseChevron.(controls:AnimatedIcon.State)"
+                                        <Setter Target="ExpandCollapseChevron.(AnimatedIcon.State)"
                                                 Value="PressedOff" />
 
                                     </VisualState.Setters>
@@ -341,7 +341,7 @@
                                         </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                     <VisualState.Setters>
-                                        <Setter Target="ExpandCollapseChevron.(controls:AnimatedIcon.State)"
+                                        <Setter Target="ExpandCollapseChevron.(AnimatedIcon.State)"
                                                 Value="NormalOn" />
 
                                     </VisualState.Setters>
@@ -366,7 +366,7 @@
                                         </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                     <VisualState.Setters>
-                                        <Setter Target="ExpandCollapseChevron.(controls:AnimatedIcon.State)"
+                                        <Setter Target="ExpandCollapseChevron.(AnimatedIcon.State)"
                                                 Value="PointerOverOn" />
 
                                     </VisualState.Setters>
@@ -391,7 +391,7 @@
                                         </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                     <VisualState.Setters>
-                                        <Setter Target="ExpandCollapseChevron.(controls:AnimatedIcon.State)"
+                                        <Setter Target="ExpandCollapseChevron.(AnimatedIcon.State)"
                                                 Value="PressedOn" />
 
                                     </VisualState.Setters>
@@ -416,7 +416,7 @@
                                         </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                     <VisualState.Setters>
-                                        <Setter Target="ExpandCollapseChevron.(controls:AnimatedIcon.State)"
+                                        <Setter Target="ExpandCollapseChevron.(AnimatedIcon.State)"
                                                 Value="NormalOn" />
 
                                     </VisualState.Setters>

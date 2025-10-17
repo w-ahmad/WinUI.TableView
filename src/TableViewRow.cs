@@ -25,9 +25,9 @@ namespace WinUI.TableView;
 #endif
 public partial class TableViewRow : ListViewItem
 {
-    private const string Selection_Indictor = nameof(Selection_Indictor);
+    private const string Selection_Indicator = nameof(Selection_Indicator);
     private const string Selection_Background = nameof(Selection_Background);
-    private const double Selection_IndictorHeight = 16d;
+    private const double Selection_IndicatorHeight = 16d;
     private const string Check_Mark = "\uE73E";
     private Thickness _focusVisualMargin = new(1);
     private readonly Thickness _selectionBackgroundMargin = new(4, 2, 4, 2);
@@ -478,7 +478,7 @@ public partial class TableViewRow : ListViewItem
 
 
         var cellsHeight = ActualHeight - detailsHeight;
-        var selectionIndictorHeight = Math.Max(Selection_IndictorHeight, cellsHeight - 40);
+        var selectionIndictorHeight = Math.Max(Selection_IndicatorHeight, cellsHeight - 40);
 
         if (selectionBorder is not null)
         {
