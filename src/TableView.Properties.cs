@@ -243,7 +243,7 @@ public partial class TableView
     /// <summary>
     /// Identifies the CellsVerticalOffset dependency property.
     /// </summary>
-    public static readonly DependencyProperty CellsHorizontalOffsetProperty = DependencyProperty.Register(nameof(CellsHorizontalOffset), typeof(double), typeof(TableView), new PropertyMetadata(0d));
+    public static readonly DependencyProperty CellsHorizontalOffsetProperty = DependencyProperty.Register(nameof(CellsHorizontalOffset), typeof(double), typeof(TableView), new PropertyMetadata(16d));
 
     /// <summary>
     /// Gets or sets a value indicating whether opening the column filter over header right-click is enabled.
