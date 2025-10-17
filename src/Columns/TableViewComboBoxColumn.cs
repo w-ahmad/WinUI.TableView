@@ -3,7 +3,6 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using System;
-using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView;
 
@@ -19,8 +18,7 @@ public partial class TableViewComboBoxColumn : TableViewBoundColumn
 {
     private Binding? _textBinding;
     private Binding? _selectedValueBinding;
-    private Func<object, object?>? _funcCompiledDisplayMemberPath;
-
+    
     /// <summary>
     /// Generates a TextBlock element for the cell.
     /// </summary>
@@ -71,8 +69,6 @@ public partial class TableViewComboBoxColumn : TableViewBoundColumn
         {
             comboBox.SetBinding(Selector.SelectedValueProperty, SelectedValueBinding);
         }
-
-        comboBox.GetBindingExpression(Selector.SelectedItemProperty)?.UpdateSource();
 
         return comboBox;
     }
