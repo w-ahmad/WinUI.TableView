@@ -178,33 +178,36 @@ public partial class TableViewRowPresenter : Control
     {
         EnsureGridLines();
 
-        switch (TableView?.RowDetailsVisibilityMode)
-        {
-            case TableViewRowDetailsVisibilityMode.Visible:
-                VisualStates.GoToState(this, false, VisualStates.StateDetailsVisible);
-                VisualStates.GoToState(this, false, VisualStates.StateDetailsButtonCollapsed);
-                break;
-            case TableViewRowDetailsVisibilityMode.VisibleWhenSelected:
-                if (_detailsToggleButton is not null)
-                {
-                    _detailsToggleButton.IsChecked = TableViewRow?.IsSelected ?? false;
-                }
-                else
-                {
-                    var detailsState = (TableViewRow?.IsSelected ?? false) ? VisualStates.StateDetailsVisible : VisualStates.StateDetailsCollapsed;
-                    VisualStates.GoToState(this, false, detailsState);
-                }
+        var mode = TableView?.RowDetailsVisibilityMode;
+        var hasTemplate = TableView?.RowDetailsTemplate is not null || TableView?.RowDetailsTemplateSelector is not null;
 
-                VisualStates.GoToState(this, false, VisualStates.StateDetailsButtonCollapsed);
-                break;
-            case TableViewRowDetailsVisibilityMode.VisibleWhenExpanded:
-                VisualStates.GoToState(this, false, VisualStates.StateDetailsButtonVisible);
-                break;
-            case TableViewRowDetailsVisibilityMode.Collapsed:
-            default:
-                VisualStates.GoToState(this, false, VisualStates.StateDetailsCollapsed);
-                VisualStates.GoToState(this, false, VisualStates.StateDetailsButtonCollapsed);
-                break;
+        if (!hasTemplate)
+        {
+            VisualStates.GoToState(this, false, VisualStates.StateDetailsCollapsed);
+            VisualStates.GoToState(this, false, VisualStates.StateDetailsButtonCollapsed);
+        }
+        else if (mode is TableViewRowDetailsVisibilityMode.Visible)
+        {
+            VisualStates.GoToState(this, false, VisualStates.StateDetailsVisible);
+            VisualStates.GoToState(this, false, VisualStates.StateDetailsButtonCollapsed);
+        }
+        else if (mode is TableViewRowDetailsVisibilityMode.VisibleWhenSelected)
+        {
+            if (_detailsToggleButton is not null)
+                _detailsToggleButton.IsChecked = TableViewRow?.IsSelected ?? false;
+            else
+                VisualStates.GoToState(this, false, (TableViewRow?.IsSelected ?? false) ? VisualStates.StateDetailsVisible : VisualStates.StateDetailsCollapsed);
+
+            VisualStates.GoToState(this, false, VisualStates.StateDetailsButtonCollapsed);
+        }
+        else if (mode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded)
+        {
+            VisualStates.GoToState(this, false, VisualStates.StateDetailsButtonVisible);
+        }
+        else
+        {
+            VisualStates.GoToState(this, false, VisualStates.StateDetailsCollapsed);
+            VisualStates.GoToState(this, false, VisualStates.StateDetailsButtonCollapsed);
         }
     }
 
@@ -264,10 +267,11 @@ public partial class TableViewRowPresenter : Control
         {
             var areHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
             var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
-            var isDetailsToggleButtonVisible = TableView.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded;
+            var isDetailsToggleButtonVisible = TableView.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded
+                                               && (TableView.RowDetailsTemplate is not null || TableView.RowDetailsTemplateSelector is not null);
 
             if (areHeadersVisible && !isMultiSelection &&
-               (!isDetailsToggleButtonVisible || _rowHeader.ContentTemplate is not null))
+               (!isDetailsToggleButtonVisible || TableView.RowHeaderTemplate is not null || TableView.RowHeaderTemplateSelector is not null))
             {
                 _rowHeader.Visibility = Visibility.Visible;
                 SetRowHeaderWidth();
@@ -322,15 +326,14 @@ public partial class TableViewRowPresenter : Control
                                            || TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical;
                 var areHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
                 var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
-                var isDetailsToggleButtonVisible = TableView.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded;
+                var isDetailsToggleButtonVisible = TableView.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded
+                                                    && (TableView.RowDetailsTemplate is not null || TableView.RowDetailsTemplateSelector is not null);
 
                 _v_gridLine.Fill = TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
                                    ? TableView.VerticalGridLinesStroke : new SolidColorBrush(Colors.Transparent);
                 _v_gridLine.Width = TableView.VerticalGridLinesStrokeThickness;
                 _v_gridLine.Visibility = vGridLinesVisibility && (areHeadersVisible || isMultiSelection || isDetailsToggleButtonVisible) ? Visibility.Visible : Visibility.Collapsed;
             }
-
-
         }
 
         foreach (var cell in Cells)
