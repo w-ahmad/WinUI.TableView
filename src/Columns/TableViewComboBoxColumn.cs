@@ -17,7 +17,7 @@ public partial class TableViewComboBoxColumn : TableViewBoundColumn
 {
     private Binding? _textBinding;
     private Binding? _selectedValueBinding;
-
+    
     /// <summary>
     /// Generates a TextBlock element for the cell.
     /// </summary>
@@ -30,7 +30,17 @@ public partial class TableViewComboBoxColumn : TableViewBoundColumn
         {
             Margin = new Thickness(12, 0, 12, 0),
         };
-        textBlock.SetBinding(TextBlock.TextProperty, Binding);
+
+        if (!string.IsNullOrEmpty(DisplayMemberPath))
+        {
+            textBlock.SetBinding(FrameworkElement.DataContextProperty, Binding);
+            textBlock.SetBinding(TextBlock.TextProperty, new Binding { Path = new PropertyPath(DisplayMemberPath) });
+        }
+        else
+        {
+            textBlock.SetBinding(TextBlock.TextProperty, Binding);
+        }
+
         return textBlock;
     }
 
