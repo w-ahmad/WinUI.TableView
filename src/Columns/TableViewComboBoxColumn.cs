@@ -33,7 +33,8 @@ public class TableViewComboBoxColumn : TableViewBoundColumn
 
         if (!string.IsNullOrEmpty(DisplayMemberPath))
         {
-            textBlock.Text = GetDisplayText(dataItem);
+            textBlock.SetBinding(FrameworkElement.DataContextProperty, Binding);
+            textBlock.SetBinding(TextBlock.TextProperty, new Binding { Path = new PropertyPath(DisplayMemberPath) });
         }
         else
         {
@@ -41,22 +42,6 @@ public class TableViewComboBoxColumn : TableViewBoundColumn
         }
 
         return textBlock;
-    }
-
-    /// <summary>
-    /// Gets display text based on <see cref="DisplayMemberPath"/>.
-    /// </summary>
-    private string? GetDisplayText(object? dataItem)
-    {
-        if (GetCellContent(dataItem) is { } value)
-        {
-            _funcCompiledDisplayMemberPath ??= value.GetFuncCompiledPropertyPath(DisplayMemberPath!);
-
-            if (_funcCompiledDisplayMemberPath is not null)
-                return _funcCompiledDisplayMemberPath(value) as string;
-        }
-
-        return default;
     }
 
     /// <summary>
@@ -83,6 +68,8 @@ public class TableViewComboBoxColumn : TableViewBoundColumn
         {
             comboBox.SetBinding(Selector.SelectedValueProperty, SelectedValueBinding);
         }
+
+        comboBox.GetBindingExpression(Selector.SelectedItemProperty)?.UpdateSource();
 
         return comboBox;
     }
