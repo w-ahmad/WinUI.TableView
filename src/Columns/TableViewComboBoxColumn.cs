@@ -2,6 +2,8 @@
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
+using System;
+using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView;
 
@@ -14,6 +16,7 @@ public class TableViewComboBoxColumn : TableViewBoundColumn
 {
     private Binding? _textBinding;
     private Binding? _selectedValueBinding;
+    private Func<object, object?>? _funcCompiledDisplayMemberPath;
 
     /// <summary>
     /// Generates a TextBlock element for the cell.
@@ -27,8 +30,33 @@ public class TableViewComboBoxColumn : TableViewBoundColumn
         {
             Margin = new Thickness(12, 0, 12, 0),
         };
-        textBlock.SetBinding(TextBlock.TextProperty, Binding);
+
+        if (!string.IsNullOrEmpty(DisplayMemberPath))
+        {
+            textBlock.Text = GetDisplayText(dataItem);
+        }
+        else
+        {
+            textBlock.SetBinding(TextBlock.TextProperty, Binding);
+        }
+
         return textBlock;
+    }
+
+    /// <summary>
+    /// Gets display text based on <see cref="DisplayMemberPath"/>.
+    /// </summary>
+    private string? GetDisplayText(object? dataItem)
+    {
+        if (GetCellContent(dataItem) is { } value)
+        {
+            _funcCompiledDisplayMemberPath ??= value.GetFuncCompiledPropertyPath(DisplayMemberPath!);
+
+            if (_funcCompiledDisplayMemberPath is not null)
+                return _funcCompiledDisplayMemberPath(value) as string;
+        }
+
+        return default;
     }
 
     /// <summary>
