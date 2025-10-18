@@ -9,6 +9,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
+using WinUI.TableView.Extensions;
 using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
@@ -29,7 +30,6 @@ public partial class TableViewCell : ContentControl
     private ContentPresenter? _contentPresenter;
     private Border? _selectionBorder;
     private Rectangle? _v_gridLine;
-    private TableViewCellsPresenter? _cellPresenter;
 
     /// <summary>
     /// Initializes a new instance of the TableViewCell class.
@@ -119,9 +119,8 @@ public partial class TableViewCell : ContentControl
             contentWidth -= _selectionBorder?.BorderThickness.Right ?? 0;
             contentWidth -= _v_gridLine?.ActualWidth ?? 0d;
 
-            var rowHeight = Row.Height is double.NaN ? double.PositiveInfinity : Row.Height;
-            var rowMaxHeight = Row.MaxHeight;
-            var contentHeight = Math.Min(rowHeight, rowMaxHeight);
+            var height = Height is double.NaN ? double.PositiveInfinity : Height;
+            var contentHeight = Math.Min(height, MaxHeight);
             contentHeight -= element.Margin.Top;
             contentHeight -= element.Margin.Bottom;
             contentHeight -= Padding.Top;
@@ -146,15 +145,6 @@ public partial class TableViewCell : ContentControl
         }
 
         return base.MeasureOverride(availableSize);
-    }
-
-    /// <summary>
-    /// Retrieves the height of the horizontal gridline.
-    /// </summary>
-    private double GetHorizontalGridlineHeight()
-    {
-        _cellPresenter ??= this?.FindAscendant<TableViewCellsPresenter>();
-        return _cellPresenter?.GetHorizontalGridlineHeight() ?? 0d;
     }
 
     /// <inheritdoc/>
@@ -240,6 +230,15 @@ public partial class TableViewCell : ContentControl
                 TableView?.MakeSelection(cell.Slot, true, ctrlKey);
             }
         }
+    }
+
+    /// <summary>
+    /// Gets the height of the horizontal gridlines/>.
+    /// </summary>
+    private double GetHorizontalGridlineHeight()
+    {
+        return TableView?.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Horizontal
+            ? TableView.HorizontalGridLinesStrokeThickness : 0d;
     }
 
     /// <summary>

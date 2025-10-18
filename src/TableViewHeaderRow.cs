@@ -27,7 +27,7 @@ namespace WinUI.TableView;
 [TemplateVisualState(Name = VisualStates.StateOptionsButtonDisabled, GroupName = VisualStates.GroupCornerButton)]
 public partial class TableViewHeaderRow : Control
 {
-    private ColumnDefinition? _cornerButtonColumn;
+    private Panel? _cornerButtonPanel;
     private Button? _optionsButton;
     private CheckBox? _selectAllCheckBox;
     private Rectangle? _v_gridLine;
@@ -51,7 +51,7 @@ public partial class TableViewHeaderRow : Control
     {
         base.OnApplyTemplate();
 
-        _cornerButtonColumn = GetTemplateChild("cornerButtonColumn") as ColumnDefinition;
+        _cornerButtonPanel = GetTemplateChild("CornerButtonPanel") as Panel;
         _optionsButton = GetTemplateChild("optionsButton") as Button;
         _selectAllCheckBox = GetTemplateChild("selectAllCheckBox") as CheckBox;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
@@ -91,6 +91,11 @@ public partial class TableViewHeaderRow : Control
             cornerButtonColumn.MinWidth = 20;
         }
 #endif
+        _cornerButtonPanel?.SetBinding(WidthProperty, new Binding
+        {
+            Source = TableView,
+            Path = new PropertyPath(nameof(TableView.CellsHorizontalOffset))
+        });
 
         SetExportOptionsVisibility();
         SetCornerButtonState();
@@ -400,10 +405,6 @@ public partial class TableViewHeaderRow : Control
         {
             stateName = TableView.IsEditing ? VisualStates.StateSelectAllCheckBoxDisabled : VisualStates.StateSelectAllCheckBox;
         }
-        else if (TableView?.HeadersVisibility is TableViewHeadersVisibility.None or TableViewHeadersVisibility.Columns)
-        {
-            stateName = VisualStates.StateNoButton;
-        }
         else if (TableView is { CornerButtonMode: TableViewCornerButtonMode.Options })
         {
             stateName = TableView.IsEditing ? VisualStates.StateOptionsButtonDisabled : VisualStates.StateOptionsButton;
@@ -454,12 +455,18 @@ public partial class TableViewHeaderRow : Control
 
             if (_v_gridLine is not null)
             {
+                var vGridLinesVisibility = TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                                           || TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical;
+                var areHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
+                var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
+                var isDetailsToggleButtonVisible = TableView.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded
+                                                    && (TableView.RowDetailsTemplate is not null || TableView.RowDetailsTemplateSelector is not null);
+
+
                 _v_gridLine.Fill = TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
                                    ? TableView.VerticalGridLinesStroke : new SolidColorBrush(Colors.Transparent);
                 _v_gridLine.Width = TableView.VerticalGridLinesStrokeThickness;
-                _v_gridLine.Visibility = TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
-                                         || TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
-                                         ? Visibility.Visible : Visibility.Collapsed;
+                _v_gridLine.Visibility = vGridLinesVisibility && (areHeadersVisible || isMultiSelection || isDetailsToggleButtonVisible) ? Visibility.Visible : Visibility.Collapsed;
             }
         }
 
@@ -493,46 +500,22 @@ public partial class TableViewHeaderRow : Control
     }
 
     /// <summary>
-    /// Sets the widths of the row header column.
-    /// </summary>
-    internal void SetRowHeaderWidth()
-    {
-        if (_cornerButtonColumn is not null && TableView is not null)
-        {
-            var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
-            var headerWidth = TableView.RowHeaderWidth is double.NaN ? TableView.RowHeaderActualWidth : TableView.RowHeaderWidth;
-
-            _cornerButtonColumn.Width = new(headerWidth);
-            _cornerButtonColumn.MinWidth = isMultiSelection ? 0 : TableView.RowHeaderMinWidth;
-            _cornerButtonColumn.MaxWidth = isMultiSelection ? double.PositiveInfinity : TableView.RowHeaderMaxWidth;
-        }
-    }
-
-    /// <summary>
     /// Sets the visibility of the row header based on the TableView settings.
     /// </summary>
     internal void SetHeadersVisibility()
     {
-        SetCornerButtonState();
-
-        if (_cornerButtonColumn is not null && _v_gridLine is not null && TableView is not null)
+        if (_cornerButtonPanel is not null && TableView is not null)
         {
             var areRowHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
             var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
+            var isRowDetailExpandable = TableView.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded;
 
-            if (areRowHeadersVisible || isMultiSelection)
-            {
-                SetRowHeaderWidth();
-                _v_gridLine.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                _v_gridLine.Visibility = Visibility.Collapsed;
-                _cornerButtonColumn.Width = new(0);
-                _cornerButtonColumn.MinWidth = 0;
-                _cornerButtonColumn.MaxWidth = 0;
-            }
+            _cornerButtonPanel.Visibility = areRowHeadersVisible || isMultiSelection || isRowDetailExpandable 
+                ? Visibility.Visible : Visibility.Collapsed;
         }
+
+        SetCornerButtonState();
+        EnsureGridLines();
     }
 
     /// <summary>

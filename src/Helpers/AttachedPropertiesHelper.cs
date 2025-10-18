@@ -3,9 +3,9 @@
 namespace WinUI.TableView.Helpers;
 
 /// <summary>
-/// Provides attached properties for ScrollViewer-related functionality.
+/// Provides attached properties for various purposes.
 /// </summary>
-public class ScrollViewerHelper
+internal class AttachedPropertiesHelper
 {
     /// <summary>
     /// Gets the FrozenColumnScrollBarSpace attached property. This is used to reserve space for the scrollbar in frozen columns.
@@ -26,5 +26,5 @@ public class ScrollViewerHelper
     /// <summary>
     /// Identifies the FrozenColumnScrollBarSpace attached property.
     /// </summary>
-    public static readonly DependencyProperty FrozenColumnScrollBarSpaceProperty = DependencyProperty.RegisterAttached("FrozenColumnScrollBarSpace", typeof(double), typeof(ScrollViewerHelper), new PropertyMetadata(0d));
+    public static readonly DependencyProperty FrozenColumnScrollBarSpaceProperty = DependencyProperty.RegisterAttached("FrozenColumnScrollBarSpace", typeof(double), typeof(AttachedPropertiesHelper), new PropertyMetadata(0d));
 }
