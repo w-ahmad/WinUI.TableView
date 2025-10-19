@@ -117,12 +117,13 @@ public partial class TableViewRowPresenter : Control
 
             if (_detailsPanel?.Visibility is Visibility.Visible && _v_gridLine is not null)
             {
-                var x = _v_gridLine.ActualOffset.X + xScroll;
+                var x = _v_gridLine.ActualOffset.X + _v_gridLine.ActualWidth;
+                x += TableView.AreRowDetailsFrozen ? 0 : xScroll;
                 var y = _scrollableCellsPanel?.ActualHeight ?? _v_gridLine.ActualOffset.Y;
-                var width = _detailsPanel.ActualWidth - x;
+                var width = _detailsPanel.ActualWidth;
                 var height = _detailsPanel.ActualHeight;
                 _detailsPanel.Arrange(new(x, y, width, height));
-                _detailsPanel.Clip = x >= _detailsPanel.ActualWidth ? null :
+                _detailsPanel.Clip = x >= _v_gridLine.ActualOffset.X + _v_gridLine.ActualWidth ? null :
                     new RectangleGeometry
                     {
                         Rect = new(xClip, 0, _detailsPanel.ActualWidth - xClip, _detailsPanel.ActualHeight)

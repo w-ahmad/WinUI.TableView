@@ -241,6 +241,11 @@ public partial class TableView
     public static readonly DependencyProperty RowDetailsTemplateSelectorProperty = DependencyProperty.Register(nameof(RowDetailsTemplateSelector), typeof(DataTemplateSelector), typeof(TableView), new PropertyMetadata(null, OnRowDetailsTemplateChanged));
 
     /// <summary>
+    /// Identifies the AreRowDetailsFrozen dependency property.
+    /// </summary>
+    public static readonly DependencyProperty AreRowDetailsFrozenProperty = DependencyProperty.Register(nameof(AreRowDetailsFrozen), typeof(bool), typeof(TableView), new PropertyMetadata(false, OnAreRowDetailsFrozen));
+
+    /// <summary>
     /// Identifies the CellsVerticalOffset dependency property.
     /// </summary>
     public static readonly DependencyProperty CellsHorizontalOffsetProperty = DependencyProperty.Register(nameof(CellsHorizontalOffset), typeof(double), typeof(TableView), new PropertyMetadata(16d));
@@ -709,6 +714,15 @@ public partial class TableView
     }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the row details are frozen during horizontal scrolling.
+    /// </summary>
+    public bool AreRowDetailsFrozen
+    {
+        get => (bool)GetValue(AreRowDetailsFrozenProperty);
+        set => SetValue(AreRowDetailsFrozenProperty, value);
+    }
+
+    /// <summary>
     /// Gets or sets the horizontal offset for the cells.
     /// </summary>
     public double CellsHorizontalOffset
@@ -1015,6 +1029,20 @@ public partial class TableView
             foreach (var row in tableView._rows)
             {
                 row.RowPresenter?.SetRowDetailsTemplate();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the AreRowDetailsFrozen property.
+    /// </summary>
+    private static void OnAreRowDetailsFrozen(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            foreach (var row in tableView._rows)
+            {
+                row.RowPresenter?.InvalidateArrange();
             }
         }
     }
