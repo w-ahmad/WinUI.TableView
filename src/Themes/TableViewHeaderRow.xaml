@@ -13,12 +13,22 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:TableViewHeaderRow">
-                    <Grid>
+                    <Grid x:Name="root"
+                          Background="{TemplateBinding Background}"
+                          BorderBrush="{TemplateBinding BorderBrush}"
+                          BorderThickness="{TemplateBinding BorderThickness}">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition x:Name="cornerButtonColumn" Width="Auto" />
+                            <ColumnDefinition x:Name="VerticalGridLineColumn" Width="Auto" />
+                            <ColumnDefinition x:Name="FrozenHeadersPanelColumn" Width="Auto" />
+                            <ColumnDefinition x:Name="ScrollableHeadersPanelColumn" Width="*" />
+                        </Grid.ColumnDefinitions>
+                            
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CommonStates">
                                 <VisualState x:Name="Normal" />
@@ -57,8 +67,6 @@
                                     <VisualState.Setters>
                                         <Setter Target="selectAllCheckBox.Visibility"
                                                 Value="Visible" />
-                                        <Setter Target="cornerButtonColumn.Width"
-                                                Value="40" />
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="SelectAllCheckBoxDisabled">
@@ -67,24 +75,12 @@
                                                 Value="False" />
                                         <Setter Target="selectAllCheckBox.Visibility"
                                                 Value="Visible" />
-                                        <Setter Target="cornerButtonColumn.Width"
-                                                Value="40" />
                                     </VisualState.Setters>
                                 </VisualState>
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
 
-                        <Grid x:Name="root"
-                              Background="{TemplateBinding Background}"
-                              BorderBrush="{TemplateBinding BorderBrush}"
-                              BorderThickness="{TemplateBinding BorderThickness}">
-                            
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition x:Name="cornerButtonColumn" Width="16" />
-                                <ColumnDefinition x:Name="VerticalGridLineColumn" Width="Auto" />
-                                <ColumnDefinition x:Name="FrozenHeadersPanelColumn" Width="Auto" />
-                                <ColumnDefinition x:Name="ScrollableHeadersPanelColumn" Width="*" />
-                            </Grid.ColumnDefinitions>
+                        <Grid x:Name="CornerButtonPanel">
 
                             <Button x:Name="selectAllButton"
                                     BorderThickness="0"
@@ -175,29 +171,31 @@
 
                             <CheckBox x:Name="selectAllCheckBox"
                                       Padding="0"
+                                      Margin="10,0,0,0"
                                       MinWidth="20"
                                       MinHeight="20"
                                       IsTabStop="False"
                                       Visibility="Collapsed"
                                       VerticalAlignment="Center"
-                                      HorizontalAlignment="Center" />
-
-                            <Rectangle x:Name="VerticalGridLine"
-                                       Grid.Column="1"
-                                       Width="1"
-                                       VerticalAlignment="Stretch" />
-
-                            <StackPanel x:Name="FrozenHeadersPanel"
-                                        Grid.Column="2"
-                                        Orientation="Horizontal" />
-
-                            <StackPanel x:Name="ScrollableHeadersPanel"
-                                        Grid.Column="3"
-                                        Orientation="Horizontal" />
+                                      HorizontalAlignment="Left" />
                         </Grid>
+
+                        <Rectangle x:Name="VerticalGridLine"
+                                   Grid.Column="1"
+                                   Width="1"
+                                   VerticalAlignment="Stretch" />
+
+                        <StackPanel x:Name="FrozenHeadersPanel"
+                                    Grid.Column="2"
+                                    Orientation="Horizontal" />
+
+                        <StackPanel x:Name="ScrollableHeadersPanel"
+                                    Grid.Column="3"
+                                    Orientation="Horizontal" />
 
                         <Rectangle x:Name="HorizontalGridLine"
                                    Grid.Row="1"
+                                   Grid.ColumnSpan="4"
                                    HorizontalAlignment="Stretch" />
                     </Grid>
                 </ControlTemplate>
