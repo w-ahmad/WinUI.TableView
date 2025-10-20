@@ -13,12 +13,22 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:TableViewHeaderRow">
-                    <Grid>
+                    <Grid x:Name="root"
+                          Background="{TemplateBinding Background}"
+                          BorderBrush="{TemplateBinding BorderBrush}"
+                          BorderThickness="{TemplateBinding BorderThickness}">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition x:Name="cornerButtonColumn" Width="Auto" />
+                            <ColumnDefinition x:Name="VerticalGridLineColumn" Width="Auto" />
+                            <ColumnDefinition x:Name="FrozenHeadersPanelColumn" Width="Auto" />
+                            <ColumnDefinition x:Name="ScrollableHeadersPanelColumn" Width="*" />
+                        </Grid.ColumnDefinitions>
+                            
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CommonStates">
                                 <VisualState x:Name="Normal" />
@@ -70,134 +80,122 @@
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
 
-                        <Grid x:Name="root"
-                              Background="{TemplateBinding Background}"
-                              BorderBrush="{TemplateBinding BorderBrush}"
-                              BorderThickness="{TemplateBinding BorderThickness}">
-                            
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition x:Name="cornerButtonColumn" Width="Auto" />
-                                <ColumnDefinition x:Name="VerticalGridLineColumn" Width="Auto" />
-                                <ColumnDefinition x:Name="FrozenHeadersPanelColumn" Width="Auto" />
-                                <ColumnDefinition x:Name="ScrollableHeadersPanelColumn" Width="*" />
-                            </Grid.ColumnDefinitions>
+                        <Grid x:Name="CornerButtonPanel">
 
-                            <Grid x:Name="CornerButtonPanel">
+                            <Button x:Name="selectAllButton"
+                                    BorderThickness="0"
+                                    Background="Transparent"
+                                    Padding="0,0,2,2"
+                                    CornerRadius="4,0,0,0"
+                                    Visibility="Collapsed"
+                                    IsTabStop="False"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Stretch"
+                                    VerticalContentAlignment="Bottom"
+                                    HorizontalContentAlignment="Right">
+                                <FontIcon Opacity="0.5"
+                                          Margin="-12,0,0,0"
+                                          Glyph="&#xE788;"
+                                          VerticalAlignment="Bottom" />
+                            </Button>
 
-                                <Button x:Name="selectAllButton"
-                                        BorderThickness="0"
-                                        Background="Transparent"
-                                        Padding="0,0,2,2"
-                                        CornerRadius="4,0,0,0"
-                                        Visibility="Collapsed"
-                                        IsTabStop="False"
-                                        HorizontalAlignment="Stretch"
-                                        VerticalAlignment="Stretch"
-                                        VerticalContentAlignment="Bottom"
-                                        HorizontalContentAlignment="Right">
-                                    <FontIcon Opacity="0.5"
-                                              Margin="-12,0,0,0"
-                                              Glyph="&#xE788;"
-                                              VerticalAlignment="Bottom" />
-                                </Button>
-
-                                <Button x:Name="optionsButton"
-                                        HorizontalAlignment="Stretch"
-                                        VerticalAlignment="Stretch"
-                                        BorderThickness="0"
-                                        Background="Transparent"
-                                        Padding="0"
-                                        CornerRadius="4,0,0,0"
-                                        Visibility="Collapsed"
-                                        IsTabStop="False">
-                                    <FontIcon FontSize="12"
-                                              MaxWidth="10"
-                                              VerticalAlignment="Center"
-                                              HorizontalAlignment="Center"
-                                              Glyph="{ThemeResource OptionsButtonIcon}"
-                                              RenderTransformOrigin="0.5,0.5">
-                                        <FontIcon.RenderTransform>
-                                            <RotateTransform Angle="90" />
-                                        </FontIcon.RenderTransform>
-                                    </FontIcon>
-                                    <Button.Flyout>
-                                        <MenuFlyout Placement="BottomEdgeAlignedLeft">
-                                            <MenuFlyoutItem Command="{Binding SelectAllCommand}">
-                                                <MenuFlyoutItem.KeyboardAccelerators>
-                                                    <KeyboardAccelerator Key="A"
-                                                                         Modifiers="Control"
-                                                                         ScopeOwner="{TemplateBinding TableView}" />
-                                                </MenuFlyoutItem.KeyboardAccelerators>
-                                            </MenuFlyoutItem>
-                                            <MenuFlyoutItem Command="{Binding DeselectAllCommand}"
-                                                            Icon="ClearSelection">
-                                                <MenuFlyoutItem.KeyboardAccelerators>
-                                                    <KeyboardAccelerator Key="A"
-                                                                         Modifiers="Control,Shift" />
-                                                </MenuFlyoutItem.KeyboardAccelerators>
-                                            </MenuFlyoutItem>
-                                            <MenuFlyoutSeparator />
-                                            <MenuFlyoutItem Command="{Binding CopyCommand}"
-                                                            Icon="Copy">
-                                                <MenuFlyoutItem.KeyboardAccelerators>
-                                                    <KeyboardAccelerator Key="C"
-                                                                         Modifiers="Control"
-                                                                         ScopeOwner="{TemplateBinding TableView}" />
-                                                </MenuFlyoutItem.KeyboardAccelerators>
-                                            </MenuFlyoutItem>
-                                            <MenuFlyoutItem Command="{Binding CopyWithHeadersCommand}">
-                                                <MenuFlyoutItem.KeyboardAccelerators>
-                                                    <KeyboardAccelerator Key="C"
-                                                                         Modifiers="Control,Shift" />
-                                                </MenuFlyoutItem.KeyboardAccelerators>
-                                            </MenuFlyoutItem>
-                                            <MenuFlyoutSeparator />
-                                            <MenuFlyoutItem Command="{Binding ClearSortingCommand}" />
-                                            <MenuFlyoutItem Command="{Binding ClearFilterCommand}" />
-                                            <MenuFlyoutSeparator Visibility="{Binding Visibility, ElementName=ExportAllMenuItem}" />
-                                            <MenuFlyoutItem x:Name="ExportAllMenuItem"
-                                                            Command="{Binding ExportAllToCSVCommand}">
-                                                <MenuFlyoutItem.Icon>
-                                                    <FontIcon Glyph="&#xede1;" />
-                                                </MenuFlyoutItem.Icon>
-                                            </MenuFlyoutItem>
-                                            <MenuFlyoutItem x:Name="ExportSelectedMenuItem"
-                                                            Command="{Binding ExportSelectedToCSVCommand}">
-                                                <MenuFlyoutItem.Icon>
-                                                    <FontIcon Glyph="&#xede1;" />
-                                                </MenuFlyoutItem.Icon>
-                                            </MenuFlyoutItem>
-                                        </MenuFlyout>
-                                    </Button.Flyout>
-                                </Button>
-
-                                <CheckBox x:Name="selectAllCheckBox"
-                                          Padding="0"
-                                          Margin="10,0,0,0"
-                                          MinWidth="20"
-                                          MinHeight="20"
-                                          IsTabStop="False"
-                                          Visibility="Collapsed"
+                            <Button x:Name="optionsButton"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Stretch"
+                                    BorderThickness="0"
+                                    Background="Transparent"
+                                    Padding="0"
+                                    CornerRadius="4,0,0,0"
+                                    Visibility="Collapsed"
+                                    IsTabStop="False">
+                                <FontIcon FontSize="12"
+                                          MaxWidth="10"
                                           VerticalAlignment="Center"
-                                          HorizontalAlignment="Left" />
-                            </Grid>
+                                          HorizontalAlignment="Center"
+                                          Glyph="{ThemeResource OptionsButtonIcon}"
+                                          RenderTransformOrigin="0.5,0.5">
+                                    <FontIcon.RenderTransform>
+                                        <RotateTransform Angle="90" />
+                                    </FontIcon.RenderTransform>
+                                </FontIcon>
+                                <Button.Flyout>
+                                    <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                                        <MenuFlyoutItem Command="{Binding SelectAllCommand}">
+                                            <MenuFlyoutItem.KeyboardAccelerators>
+                                                <KeyboardAccelerator Key="A"
+                                                                     Modifiers="Control"
+                                                                     ScopeOwner="{TemplateBinding TableView}" />
+                                            </MenuFlyoutItem.KeyboardAccelerators>
+                                        </MenuFlyoutItem>
+                                        <MenuFlyoutItem Command="{Binding DeselectAllCommand}"
+                                                        Icon="ClearSelection">
+                                            <MenuFlyoutItem.KeyboardAccelerators>
+                                                <KeyboardAccelerator Key="A"
+                                                                     Modifiers="Control,Shift" />
+                                            </MenuFlyoutItem.KeyboardAccelerators>
+                                        </MenuFlyoutItem>
+                                        <MenuFlyoutSeparator />
+                                        <MenuFlyoutItem Command="{Binding CopyCommand}"
+                                                        Icon="Copy">
+                                            <MenuFlyoutItem.KeyboardAccelerators>
+                                                <KeyboardAccelerator Key="C"
+                                                                     Modifiers="Control"
+                                                                     ScopeOwner="{TemplateBinding TableView}" />
+                                            </MenuFlyoutItem.KeyboardAccelerators>
+                                        </MenuFlyoutItem>
+                                        <MenuFlyoutItem Command="{Binding CopyWithHeadersCommand}">
+                                            <MenuFlyoutItem.KeyboardAccelerators>
+                                                <KeyboardAccelerator Key="C"
+                                                                     Modifiers="Control,Shift" />
+                                            </MenuFlyoutItem.KeyboardAccelerators>
+                                        </MenuFlyoutItem>
+                                        <MenuFlyoutSeparator />
+                                        <MenuFlyoutItem Command="{Binding ClearSortingCommand}" />
+                                        <MenuFlyoutItem Command="{Binding ClearFilterCommand}" />
+                                        <MenuFlyoutSeparator Visibility="{Binding Visibility, ElementName=ExportAllMenuItem}" />
+                                        <MenuFlyoutItem x:Name="ExportAllMenuItem"
+                                                        Command="{Binding ExportAllToCSVCommand}">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xede1;" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                        <MenuFlyoutItem x:Name="ExportSelectedMenuItem"
+                                                        Command="{Binding ExportSelectedToCSVCommand}">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xede1;" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                    </MenuFlyout>
+                                </Button.Flyout>
+                            </Button>
 
-                            <Rectangle x:Name="VerticalGridLine"
-                                       Grid.Column="1"
-                                       Width="1"
-                                       VerticalAlignment="Stretch" />
-
-                            <StackPanel x:Name="FrozenHeadersPanel"
-                                        Grid.Column="2"
-                                        Orientation="Horizontal" />
-
-                            <StackPanel x:Name="ScrollableHeadersPanel"
-                                        Grid.Column="3"
-                                        Orientation="Horizontal" />
+                            <CheckBox x:Name="selectAllCheckBox"
+                                      Padding="0"
+                                      Margin="10,0,0,0"
+                                      MinWidth="20"
+                                      MinHeight="20"
+                                      IsTabStop="False"
+                                      Visibility="Collapsed"
+                                      VerticalAlignment="Center"
+                                      HorizontalAlignment="Left" />
                         </Grid>
+
+                        <Rectangle x:Name="VerticalGridLine"
+                                   Grid.Column="1"
+                                   Width="1"
+                                   VerticalAlignment="Stretch" />
+
+                        <StackPanel x:Name="FrozenHeadersPanel"
+                                    Grid.Column="2"
+                                    Orientation="Horizontal" />
+
+                        <StackPanel x:Name="ScrollableHeadersPanel"
+                                    Grid.Column="3"
+                                    Orientation="Horizontal" />
 
                         <Rectangle x:Name="HorizontalGridLine"
                                    Grid.Row="1"
+                                   Grid.ColumnSpan="4"
                                    HorizontalAlignment="Stretch" />
                     </Grid>
                 </ControlTemplate>
