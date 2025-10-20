@@ -577,7 +577,7 @@ public partial class TableViewRow : ListViewItem
     }
 
     /// <summary>
-    /// Gets the height of the horizontal gridlines/>.
+    /// Gets the height of the horizontal gridlines.
     /// </summary>
     private double GetHorizontalGridlineHeight()
     {

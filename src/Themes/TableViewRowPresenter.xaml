@@ -131,7 +131,6 @@
 
                                 <ContentPresenter x:Name="DetailsPresenter"
                                                   Grid.Row="1"
-                                                  Grid.Column="1"
                                                   Content="{Binding}"
                                                   Padding="{ThemeResource TableViewDetailsPadding}" />
                             </Grid>

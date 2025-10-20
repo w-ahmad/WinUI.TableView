@@ -126,7 +126,7 @@ public partial class TableViewRowPresenter : Control
                 _detailsPanel.Clip = x >= _v_gridLine.ActualOffset.X + _v_gridLine.ActualWidth ? null :
                     new RectangleGeometry
                     {
-                        Rect = new(xClip, 0, _detailsPanel.ActualWidth - xClip, _detailsPanel.ActualHeight)
+                        Rect = new(xClip, 0, Math.Max(0, _detailsPanel.ActualWidth - xClip), _detailsPanel.ActualHeight)
                     };
             }
 
@@ -138,7 +138,7 @@ public partial class TableViewRowPresenter : Control
                 _scrollableCellsPanel.Clip = xScroll >= _frozenCellsPanel.ActualOffset.X + _frozenCellsPanel.ActualWidth ? null :
                     new RectangleGeometry
                     {
-                        Rect = new(xClip, 0, _scrollableCellsPanel.ActualWidth - xClip, _scrollableCellsPanel.ActualHeight)
+                        Rect = new(xClip, 0, Math.Max(0, _scrollableCellsPanel.ActualWidth - xClip), _scrollableCellsPanel.ActualHeight)
                     };
             }
 
