@@ -107,13 +107,13 @@ public partial class TableViewRowPresenter : Control
 
         if (TableView is not null)
         {
-            var cornerRadius = _itemPresenter?.CornerRadius ?? new CornerRadius(4);
+            var cornerRadius = _itemPresenter?.CornerRadius ?? new CornerRadius(0);
             var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
             var left = isMultiSelection ? 44 : Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft);
             var xScroll = -TableView.HorizontalOffset;
             var xClip = TableView.HorizontalOffset;
 
-            _rootPanel?.Arrange(new(left, 0, Math.Max(0, ActualWidth - left), _rootPanel.ActualHeight));
+            _rootPanel?.Arrange(new(left, 0, Math.Max(0, _rootPanel.ActualWidth), _rootPanel.ActualHeight));
 
             if (_detailsPanel?.Visibility is Visibility.Visible && _v_gridLine is not null)
             {
