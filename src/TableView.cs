@@ -113,7 +113,7 @@ public partial class TableView : ListView
     }
 
     /// <inheritdoc/>
-    protected override void OnKeyDown(KeyRoutedEventArgs e)
+    protected override async void OnKeyDown(KeyRoutedEventArgs e)
     {
         var shiftKey = KeyboardHelper.IsShiftKeyDown();
         var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
@@ -124,20 +124,19 @@ public partial class TableView : ListView
             return;
         }
 
-        HandleNavigations(e, shiftKey, ctrlKey);
+        await HandleNavigations(e, shiftKey, ctrlKey);
     }
 
     /// <summary>
     /// Handles navigation keys.
     /// </summary>
-    private void HandleNavigations(KeyRoutedEventArgs e, bool shiftKey, bool ctrlKey)
+    private async Task HandleNavigations(KeyRoutedEventArgs e, bool shiftKey, bool ctrlKey)
     {
         var currentCell = CurrentCellSlot.HasValue ? GetCellFromSlot(CurrentCellSlot.Value) : default;
 
         if (e.Key is VirtualKey.F2 && currentCell is { IsReadOnly: false } && !IsEditing)
         {
-            currentCell.PrepareForEdit();
-            e.Handled = true;
+            e.Handled = await currentCell.BeginCellEditing(e);
         }
         else if (e.Key is VirtualKey.Escape && currentCell is not null && IsEditing)
         {
@@ -176,7 +175,7 @@ public partial class TableView : ListView
             if (isEditing && currentCell is not null)
             {
                 currentCell = GetCellFromSlot(newSlot);
-                currentCell?.PrepareForEdit();
+                await (currentCell?.BeginCellEditing(e) ?? Task.CompletedTask);
             }
 
             e.Handled = true;

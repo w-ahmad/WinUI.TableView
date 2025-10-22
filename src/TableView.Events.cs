@@ -158,4 +158,32 @@ partial class TableView
     {
         CurrentCellChanged?.Invoke(this, args);
     }
+
+    /// <summary>
+    /// Occurs before a cell enters edit mode and allows the edit operation to be canceled.
+    /// </summary>
+    public event EventHandler<TableViewBeginningEditEventArgs>? BeginningEdit;
+
+    /// <summary>
+    /// Called before the <see cref="BeginningEdit"/> event occurs.
+    /// </summary>
+    /// <param name="args">Cancelable event args.</param>
+    protected internal virtual void OnBeginningEdit(TableViewBeginningEditEventArgs args)
+    {
+        BeginningEdit?.Invoke(this, args);
+    }
+
+    /// <summary>
+    /// Occurs when a cell enters edit mode, after the editing element has been created.
+    /// </summary>
+    public event EventHandler<TableViewPreparingCellForEditEventArgs>? PreparingCellForEdit;
+
+    /// <summary>
+    /// Called before the <see cref="PreparingCellForEdit"/> event occurs.
+    /// </summary>
+    /// <param name="args">Event args.</param>
+    protected internal virtual void OnPreparingCellForEdit(TableViewPreparingCellForEditEventArgs args)
+    {
+        PreparingCellForEdit?.Invoke(this, args);
+    }
 }
