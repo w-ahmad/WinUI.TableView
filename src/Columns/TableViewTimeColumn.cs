@@ -73,6 +73,17 @@ public partial class TableViewTimeColumn : TableViewBoundColumn
         return timePicker;
     }
 
+    /// <inheritdoc/>
+    protected internal override object? PrepareCellForEdit(TableViewCell cell, RoutedEventArgs routedEvent)
+    {
+        if (cell.Content is TableViewTimePicker timePicker)
+        {
+            return timePicker.SelectedTime;
+        }
+
+        return base.PrepareCellForEdit(cell, routedEvent);
+    }
+
     /// <summary>
     /// Gets the type of the source property.
     /// </summary>
@@ -83,11 +94,10 @@ public partial class TableViewTimeColumn : TableViewBoundColumn
         if (Binding is not null && dataItem is not null)
         {
             var type = dataItem.GetType();
-            var propertyPath = Binding.Path?.Path;
 
-            if (!string.IsNullOrEmpty(propertyPath))
+            if (!string.IsNullOrEmpty(PropertyPath))
             {
-                var propertyInfo = type.GetProperty(propertyPath);
+                var propertyInfo = type.GetProperty(PropertyPath);
                 if (propertyInfo is not null)
                 {
                     type = propertyInfo.PropertyType;

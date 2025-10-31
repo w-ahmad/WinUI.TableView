@@ -186,4 +186,32 @@ partial class TableView
     {
         PreparingCellForEdit?.Invoke(this, args);
     }
+
+    /// <summary>
+    /// Occurs just before a cell edit is committed or canceled, and allows the action to be canceled.
+    /// </summary>
+    public event EventHandler<TableViewCellEditEndingEventArgs>? CellEditEnding;
+
+    /// <summary>
+    /// Called before the <see cref="CellEditEnding"/> event occurs.
+    /// </summary>
+    /// <param name="args">Cancelable event args.</param>
+    protected virtual void OnCellEditEnding(TableViewCellEditEndingEventArgs args)
+    {
+        CellEditEnding?.Invoke(this, args);
+    }
+
+    /// <summary>
+    /// Occurs after a cell edit has been committed or canceled.
+    /// </summary>
+    public event EventHandler<TableViewCellEditEndedEventArgs>? CellEditEnded;
+
+    /// <summary>
+    /// Called before the <see cref="CellEditEnded"/> event occurs.
+    /// </summary>
+    /// <param name="args">Event args.</param>
+    protected virtual void OnCellEditEnded(TableViewCellEditEndedEventArgs args)
+    {
+        CellEditEnded?.Invoke(this, args);
+    }
 }

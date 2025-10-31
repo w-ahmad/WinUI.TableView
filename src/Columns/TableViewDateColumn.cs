@@ -70,6 +70,38 @@ public partial class TableViewDateColumn : TableViewBoundColumn
         return timePicker;
     }
 
+    /// <inheritdoc/>
+    protected internal override object? PrepareCellForEdit(TableViewCell cell, RoutedEventArgs routedEvent)
+    {
+        if (cell.Content is TableViewDatePicker datePicker)
+        {
+            return datePicker.SelectedDate;
+        }
+
+        return base.PrepareCellForEdit(cell, routedEvent);
+    }
+
+    /// <inheritdoc/>
+    protected internal override void EndCellEditing(TableViewCell cell, object? dataItem, TableViewEditAction editAction, object? uneditedValue)
+    {
+        if (cell.Content is TableViewDatePicker datePicker)
+        {
+            if (editAction == TableViewEditAction.Cancel)
+            {
+                datePicker.Date = uneditedValue is DateTimeOffset d ? d : default;
+            }
+            else
+            {
+                try
+                {
+                    var bindingExpression = datePicker.GetBindingExpression(TableViewDatePicker.SelectedDateProperty);
+                    bindingExpression?.UpdateSource();
+                }
+                finally { }
+            }
+        }
+    }
+
     /// <summary>
     /// Gets the type of the source property.
     /// </summary>
@@ -80,11 +112,10 @@ public partial class TableViewDateColumn : TableViewBoundColumn
         if (Binding is not null && dataItem is not null)
         {
             var type = dataItem.GetType();
-            var propertyPath = Binding.Path?.Path;
 
-            if (!string.IsNullOrEmpty(propertyPath))
+            if (!string.IsNullOrEmpty(PropertyPath))
             {
-                var propertyInfo = type.GetProperty(propertyPath);
+                var propertyInfo = type.GetProperty(PropertyPath);
                 if (propertyInfo is not null)
                 {
                     type = propertyInfo.PropertyType;

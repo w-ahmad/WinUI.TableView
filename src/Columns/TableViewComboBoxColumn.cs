@@ -17,7 +17,7 @@ public partial class TableViewComboBoxColumn : TableViewBoundColumn
 {
     private Binding? _textBinding;
     private Binding? _selectedValueBinding;
-    
+
     /// <summary>
     /// Generates a TextBlock element for the cell.
     /// </summary>
@@ -70,6 +70,38 @@ public partial class TableViewComboBoxColumn : TableViewBoundColumn
         }
 
         return comboBox;
+    }
+
+    /// <inheritdoc/>
+    protected internal override object? PrepareCellForEdit(TableViewCell cell, RoutedEventArgs routedEvent)
+    {
+        if (cell.Content is ComboBox comboBox)
+        {
+            return comboBox.SelectedItem;
+        }
+
+        return base.PrepareCellForEdit(cell, routedEvent);
+    }
+
+    /// <inheritdoc/>
+    protected internal override void EndCellEditing(TableViewCell cell, object? dataItem, TableViewEditAction editAction, object? uneditedValue)
+    {
+        if (cell.Content is ComboBox comboBox)
+        {
+            if (editAction == TableViewEditAction.Cancel)
+            {
+                comboBox.SelectedItem = uneditedValue;
+            }
+            else
+            {
+                try
+                {
+                    var bindingExpression = comboBox.GetBindingExpression(Selector.SelectedItemProperty);
+                    bindingExpression?.UpdateSource();
+                }
+                finally { }
+            }
+        }
     }
 
     /// <summary>

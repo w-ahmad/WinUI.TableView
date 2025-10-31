@@ -46,4 +46,36 @@ public partial class TableViewNumberColumn : TableViewBoundColumn
 #endif
         return numberBox;
     }
+
+    /// <inheritdoc/>
+    protected internal override object? PrepareCellForEdit(TableViewCell cell, RoutedEventArgs routedEvent)
+    {
+        if (cell.Content is NumberBox numberBox)
+        {
+            return numberBox.Value;
+        }
+
+        return base.PrepareCellForEdit(cell, routedEvent);
+    }
+
+    /// <inheritdoc/>
+    protected internal override void EndCellEditing(TableViewCell cell, object? dataItem, TableViewEditAction editAction, object? uneditedValue)
+    {
+        if (cell.Content is NumberBox numberBox)
+        {
+            if (editAction == TableViewEditAction.Cancel)
+            {
+                numberBox.Value = uneditedValue is double d ? d : 0d;
+            }
+            else
+            {
+                try
+                {
+                    var bindingExpression = numberBox.GetBindingExpression(NumberBox.ValueProperty);
+                    bindingExpression?.UpdateSource();
+                }
+                finally { }
+            }
+        }
+    }
 }

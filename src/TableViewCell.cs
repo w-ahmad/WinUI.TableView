@@ -30,6 +30,8 @@ public partial class TableViewCell : ContentControl
     private ContentPresenter? _contentPresenter;
     private Border? _selectionBorder;
     private Rectangle? _v_gridLine;
+    private object? _uneditedValue;
+    private RoutedEventArgs? _editingArgs;
 
     /// <summary>
     /// Initializes a new instance of the TableViewCell class.
@@ -174,11 +176,20 @@ public partial class TableViewCell : ContentControl
     }
 
     /// <inheritdoc/>
-    protected override void OnTapped(TappedRoutedEventArgs e)
+    protected override async void OnTapped(TappedRoutedEventArgs e)
     {
         base.OnTapped(e);
 
-        if (TableView?.SelectionUnit is not TableViewSelectionUnit.Row || TableView.CurrentCellSlot != Slot)
+        if ((TableView?.IsEditing ?? false) &&
+             TableView.CurrentCellSlot.HasValue &&
+             TableView.GetCellFromSlot(TableView.CurrentCellSlot.Value) is { } currentCell)
+        {
+            e.Handled = !TableView.EndCellEditing(TableViewEditAction.Commit, currentCell);
+
+            if (e.Handled) return;
+        }
+
+        if (TableView?.SelectionUnit is not TableViewSelectionUnit.Row && TableView?.CurrentCellSlot != Slot)
         {
             MakeSelection();
             e.Handled = true;
@@ -321,7 +332,7 @@ public partial class TableViewCell : ContentControl
     /// successfully started; otherwise, <see langword="false"/> if the operation was canceled.</returns>
     internal async Task<bool> BeginCellEditing(RoutedEventArgs editingArgs)
     {
-        var args = new TableViewBeginningEditEventArgs(this, Row?.Content, Column, editingArgs);
+        var args = new TableViewBeginningEditEventArgs(this, Row?.Content, Column!, editingArgs);
         TableView?.OnBeginningEdit(args);
 
         if (!args.Cancel)
@@ -340,10 +351,7 @@ public partial class TableViewCell : ContentControl
     internal async void PrepareForEdit(RoutedEventArgs editingArgs)
     {
         var editingElement = SetEditingElement();
-        var args = new TableViewPreparingCellForEditEventArgs(this, Row?.Content, Column, editingElement, editingArgs);
-        TableView?.OnPreparingCellForEdit(args);
-
-        Content = args.EditingElement;
+        Content = editingElement;
 
         if (TableView is not null)
         {
@@ -353,9 +361,9 @@ public partial class TableViewCell : ContentControl
 
         if (editingElement is { IsHitTestVisible: true })
         {
+            _editingArgs = editingArgs;
             editingElement.Loaded += OnEditingElementLoaded;
         }
-
     }
 
     private void OnEditingElementLoaded(object sender, RoutedEventArgs e)
@@ -364,6 +372,11 @@ public partial class TableViewCell : ContentControl
         {
             editingElement.Loaded -= OnEditingElementLoaded;
             editingElement.Focus(FocusState.Pointer);
+            _editingArgs ??= new RoutedEventArgs();
+
+            var args = new TableViewPreparingCellForEditEventArgs(this, Row?.Content, Column!, editingElement, _editingArgs);
+            _uneditedValue = Column?.PrepareCellForEdit(this, _editingArgs);
+            TableView?.OnPreparingCellForEdit(args);
         }
     }
 
@@ -387,6 +400,12 @@ public partial class TableViewCell : ContentControl
 
             return element;
         }
+    }
+
+    internal void EndEditing(TableViewEditAction editAction)
+    {
+        Column?.EndCellEditing(this, Row?.Content, editAction, _uneditedValue);
+        SetElement();
     }
 
     /// <summary>

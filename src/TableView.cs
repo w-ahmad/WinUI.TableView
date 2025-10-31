@@ -140,9 +140,8 @@ public partial class TableView : ListView
         }
         else if (e.Key is VirtualKey.Escape && currentCell is not null && IsEditing)
         {
+            e.Handled = EndCellEditing(TableViewEditAction.Cancel, currentCell);
             SetIsEditing(false);
-            currentCell?.SetElement();
-            e.Handled = true;
         }
         else if (e.Key is VirtualKey.Space && currentCell is not null && CurrentCellSlot.HasValue && !IsEditing)
         {
@@ -169,14 +168,17 @@ public partial class TableView : ListView
 
             } while (isEditing && Columns[newSlot.Column].IsReadOnly);
 
-
-            MakeSelection(newSlot, false);
-
             if (isEditing && currentCell is not null)
             {
-                currentCell = GetCellFromSlot(newSlot);
-                await (currentCell?.BeginCellEditing(e) ?? Task.CompletedTask);
+                if (!EndCellEditing(TableViewEditAction.Commit, currentCell)) return;
+
+                if (CurrentCellSlot == newSlot || GetCellFromSlot(newSlot) is not { } nextCell || !await nextCell.BeginCellEditing(e))
+                {
+                    SetIsEditing(false);
+                }
             }
+
+            MakeSelection(newSlot, false);
 
             e.Handled = true;
         }
@@ -208,6 +210,24 @@ public partial class TableView : ListView
             MakeSelection(newSlot, shiftKey);
             e.Handled = true;
         }
+    }
+
+    internal bool EndCellEditing(TableViewEditAction editAction, TableViewCell cell)
+    {
+        var editingElement = cell.Content as FrameworkElement;
+        var endingArgs = new TableViewCellEditEndingEventArgs(cell, cell.Row?.Content, cell.Column!, editingElement!, editAction);
+        OnCellEditEnding(endingArgs);
+        if (endingArgs.Cancel)
+        {
+            return false;
+        }
+
+        cell.EndEditing(editAction);
+
+        var endArgs = new TableViewCellEditEndedEventArgs(cell, cell.Row?.Content, cell.Column!, editAction);
+        OnCellEditEnded(endArgs);
+
+        return true;
     }
 
     /// <summary>
@@ -1045,12 +1065,6 @@ public partial class TableView : ListView
         if (oldSlot.HasValue)
         {
             var cell = GetCellFromSlot(oldSlot.Value);
-
-            if (IsEditing)
-            {
-                cell?.SetElement();
-            }
-
             cell?.ApplyCurrentCellState();
         }
 

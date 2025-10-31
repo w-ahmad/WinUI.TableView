@@ -14,13 +14,12 @@ public abstract class TableViewBoundColumn : TableViewColumn
 {
     private string? _propertyPath;
     private Binding _binding = new();
-
     private Func<object, object?>? _funcCompiledPropertyPath;
 
     /// <inheritdoc/>
     public override object? GetCellContent(object? dataItem)
     {
-        if (dataItem is null) 
+        if (dataItem is null)
             return null;
 
         if (_funcCompiledPropertyPath is null && !string.IsNullOrWhiteSpace(PropertyPath))
@@ -61,10 +60,19 @@ public abstract class TableViewBoundColumn : TableViewColumn
         get => _binding;
         set
         {
-            _binding = value;
-            if (_binding is not null)
+            if (_binding != value)
             {
-                _binding.Mode = BindingMode.TwoWay;
+                _binding = value;
+
+                if (_binding is not null)
+                {
+                    _binding.Mode = BindingMode.TwoWay;
+
+                    if (_binding.UpdateSourceTrigger == UpdateSourceTrigger.Default)
+                    {
+                        _binding.UpdateSourceTrigger = UpdateSourceTrigger.Explicit;
+                    }
+                }
             }
         }
     }
