@@ -64,7 +64,16 @@ public partial class TableViewTimePicker : Control
     /// </summary>
     private void ShowFlyout()
     {
-        _flyout.Time = SelectedTime switch
+        _flyout.Time = GetOldTime();
+
+        _flyout.ClockIdentifier = ClockIdentifier;
+        _flyout.MinuteIncrement = MinuteIncrement;
+        _flyout.ShowAt(this);
+    }
+
+    private TimeSpan GetOldTime()
+    {
+        return SelectedTime switch
         {
             TimeSpan timeSpan => timeSpan,
             TimeOnly timeOnly => timeOnly.ToTimeSpan(),
@@ -72,10 +81,6 @@ public partial class TableViewTimePicker : Control
             DateTimeOffset dateTimeOffset => dateTimeOffset.TimeOfDay,
             _ => _flyout.Time
         };
-
-        _flyout.ClockIdentifier = ClockIdentifier;
-        _flyout.MinuteIncrement = MinuteIncrement;
-        _flyout.ShowAt(this);
     }
 
     /// <summary>
@@ -83,27 +88,44 @@ public partial class TableViewTimePicker : Control
     /// </summary>
     private void OnTimePicked(TimePickerFlyout sender, TimePickedEventArgs args)
     {
-        var oldTime = SelectedTime is null ? TimeSpan.Zero : args.OldTime;
+        UpdateTime(args.NewTime, GetOldTime());
+    }
 
+    private void UpdateTime(TimeSpan newTime, TimeSpan oldTime)
+    {
         if (SourceType.IsTimeSpan())
         {
-            SelectedTime = args.NewTime;
+            SelectedTime = newTime;
         }
         else if (SourceType.IsTimeOnly())
         {
-            SelectedTime = TimeOnly.FromTimeSpan(args.NewTime);
+            SelectedTime = TimeOnly.FromTimeSpan(newTime);
         }
         else if (SourceType.IsDateTime())
         {
             var dateTime = (DateTime?)SelectedTime ?? DateTime.Today;
-            SelectedTime = dateTime.Subtract(oldTime).Add(args.NewTime);
+            SelectedTime = dateTime.Subtract(oldTime).Add(newTime);
         }
         else if (SourceType.IsDateTimeOffset())
         {
             var offset = TimeZoneInfo.Local.GetUtcOffset(DateTime.Today);
             var dateTimeOffset = (DateTimeOffset?)SelectedTime ?? new DateTimeOffset(DateTime.Today, offset);
-            SelectedTime = dateTimeOffset.Subtract(oldTime).Add(args.NewTime);
+            SelectedTime = dateTimeOffset.Subtract(oldTime).Add(newTime);
         }
+    }
+
+    internal void UpdateTimeInternal(object? newValue)
+    {
+        var newTime = newValue switch
+        {
+            TimeSpan timeSpan => timeSpan,
+            TimeOnly timeOnly => timeOnly.ToTimeSpan(),
+            DateTime dateTime => dateTime.TimeOfDay,
+            DateTimeOffset dateTimeOffset => dateTimeOffset.TimeOfDay,
+            _ => TimeSpan.Zero,
+        };
+
+        UpdateTime(newTime, GetOldTime());
     }
 
     /// <summary>

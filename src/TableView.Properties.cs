@@ -806,7 +806,7 @@ public partial class TableView
     {
         if (d is TableView tableView)
         {
-            tableView.IsReadOnlyChanged?.Invoke(d, e);
+            tableView.OnIsReadOnlyChanged(e);
 
             if ((tableView.SelectionMode is ListViewSelectionMode.None
                 || tableView.SelectionUnit is TableViewSelectionUnit.Row)
@@ -919,7 +919,7 @@ public partial class TableView
     {
         if (d is not TableView tableView) return;
 
-        tableView.CurrentCellChanged?.Invoke(d, e);
+        tableView.OnCurrentCellChanged(e);
 
         var oldSlot = e.OldValue as TableViewCellSlot?;
         var newSlot = e.NewValue as TableViewCellSlot?;

@@ -36,7 +36,7 @@ public partial class TableView : ListView
     private ScrollViewer? _scrollViewer;
     private RowDefinition? _headerRowDefinition;
     private bool _shouldThrowSelectionModeChangedException;
-    private bool _ensureColumns = true;    
+    private bool _ensureColumns = true;
     private readonly List<TableViewRow> _rows = [];
     private readonly CollectionView _collectionView = [];
 
@@ -113,7 +113,7 @@ public partial class TableView : ListView
     }
 
     /// <inheritdoc/>
-    protected override void OnKeyDown(KeyRoutedEventArgs e)
+    protected override async void OnKeyDown(KeyRoutedEventArgs e)
     {
         var shiftKey = KeyboardHelper.IsShiftKeyDown();
         var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
@@ -124,26 +124,24 @@ public partial class TableView : ListView
             return;
         }
 
-        HandleNavigations(e, shiftKey, ctrlKey);
+        await HandleNavigations(e, shiftKey, ctrlKey);
     }
 
     /// <summary>
     /// Handles navigation keys.
     /// </summary>
-    private void HandleNavigations(KeyRoutedEventArgs e, bool shiftKey, bool ctrlKey)
+    private async Task HandleNavigations(KeyRoutedEventArgs e, bool shiftKey, bool ctrlKey)
     {
         var currentCell = CurrentCellSlot.HasValue ? GetCellFromSlot(CurrentCellSlot.Value) : default;
 
         if (e.Key is VirtualKey.F2 && currentCell is { IsReadOnly: false } && !IsEditing)
         {
-            currentCell.PrepareForEdit();
-            e.Handled = true;
+            e.Handled = await currentCell.BeginCellEditing(e);
         }
         else if (e.Key is VirtualKey.Escape && currentCell is not null && IsEditing)
         {
+            e.Handled = EndCellEditing(TableViewEditAction.Cancel, currentCell);
             SetIsEditing(false);
-            currentCell?.SetElement();
-            e.Handled = true;
         }
         else if (e.Key is VirtualKey.Space && currentCell is not null && CurrentCellSlot.HasValue && !IsEditing)
         {
@@ -170,14 +168,17 @@ public partial class TableView : ListView
 
             } while (isEditing && Columns[newSlot.Column].IsReadOnly);
 
-
-            MakeSelection(newSlot, false);
-
             if (isEditing && currentCell is not null)
             {
-                currentCell = GetCellFromSlot(newSlot);
-                currentCell?.PrepareForEdit();
+                if (!EndCellEditing(TableViewEditAction.Commit, currentCell)) return;
+
+                if (CurrentCellSlot == newSlot || GetCellFromSlot(newSlot) is not { } nextCell || !await nextCell.BeginCellEditing(e))
+                {
+                    SetIsEditing(false);
+                }
             }
+
+            MakeSelection(newSlot, false);
 
             e.Handled = true;
         }
@@ -209,6 +210,24 @@ public partial class TableView : ListView
             MakeSelection(newSlot, shiftKey);
             e.Handled = true;
         }
+    }
+
+    internal bool EndCellEditing(TableViewEditAction editAction, TableViewCell cell)
+    {
+        var editingElement = cell.Content as FrameworkElement;
+        var endingArgs = new TableViewCellEditEndingEventArgs(cell, cell.Row?.Content, cell.Column!, editingElement!, editAction);
+        OnCellEditEnding(endingArgs);
+        if (endingArgs.Cancel)
+        {
+            return false;
+        }
+
+        cell.EndEditing(editAction);
+
+        var endArgs = new TableViewCellEditEndedEventArgs(cell, cell.Row?.Content, cell.Column!, editAction);
+        OnCellEditEnded(endArgs);
+
+        return true;
     }
 
     /// <summary>
@@ -367,15 +386,6 @@ public partial class TableView : ListView
         var package = new DataPackage();
         package.SetText(GetSelectedContent(includeHeaders));
         Clipboard.SetContent(package);
-    }
-
-    /// <summary>
-    /// Called before the CopyToClipboard event occurs.
-    /// </summary>
-    /// <param name="args">Handleable event args.</param>
-    protected virtual void OnCopyToClipboard(TableViewCopyToClipboardEventArgs args)
-    {
-        CopyToClipboard?.Invoke(this, args);
     }
 
     /// <summary>
@@ -562,15 +572,6 @@ public partial class TableView : ListView
     }
 
     /// <summary>
-    /// Called before the AutoGeneratingColumn event occurs.
-    /// </summary>
-    /// <param name="args">Cancelable event args.</param>
-    protected virtual void OnAutoGeneratingColumn(TableViewAutoGeneratingColumnEventArgs args)
-    {
-        AutoGeneratingColumn?.Invoke(this, args);
-    }
-
-    /// <summary>
     /// Gets a TableViewColumn based on the property type.
     /// </summary>
     private static TableViewBoundColumn GetTableViewColumnFromType(string? propertyName, Type? type)
@@ -676,15 +677,6 @@ public partial class TableView : ListView
     }
 
     /// <summary>
-    /// Called before the ExportSelectedContent event occurs.
-    /// </summary>
-    /// <param name="args">Handleable event args.</param>
-    protected virtual void OnExportSelectedContent(TableViewExportContentEventArgs args)
-    {
-        ExportSelectedContent?.Invoke(this, args);
-    }
-
-    /// <summary>
     /// Exports all rows content to a CSV file.
     /// </summary>
     internal async void ExportAllToCSV()
@@ -712,15 +704,6 @@ public partial class TableView : ListView
             await tw.WriteAsync(content);
         }
         catch { }
-    }
-
-    /// <summary>
-    /// Called before the ExportAllContent event occurs.
-    /// </summary>
-    /// <param name="args">Handleable event args.</param>
-    protected virtual void OnExportAllContent(TableViewExportContentEventArgs args)
-    {
-        ExportAllContent?.Invoke(this, args);
     }
 
     /// <summary>
@@ -1082,12 +1065,6 @@ public partial class TableView : ListView
         if (oldSlot.HasValue)
         {
             var cell = GetCellFromSlot(oldSlot.Value);
-
-            if (IsEditing)
-            {
-                cell?.SetElement();
-            }
-
             cell?.ApplyCurrentCellState();
         }
 
@@ -1130,7 +1107,7 @@ public partial class TableView : ListView
 
         if (removedCells.Count > 0 || addedCells.Count > 0)
         {
-            CellSelectionChanged?.Invoke(this, new TableViewCellSelectionChangedEventArgs(removedCells, addedCells));
+            OnCellSelectionChanged(new TableViewCellSelectionChangedEventArgs(removedCells, addedCells));
         }
     }
 
@@ -1378,7 +1355,7 @@ public partial class TableView : ListView
     internal bool ShowRowContext(TableViewRow row, Point position)
     {
         var eventArgs = new TableViewRowContextFlyoutEventArgs(row.Index, row, row.Content, RowContextFlyout);
-        RowContextFlyoutOpening?.Invoke(this, eventArgs);
+        OnRowContextFlyoutOpening(eventArgs);
 
         if (RowContextFlyout is not null && !eventArgs.Handled)
         {
@@ -1406,7 +1383,7 @@ public partial class TableView : ListView
     internal bool ShowCellContext(TableViewCell cell, Point position)
     {
         var eventArgs = new TableViewCellContextFlyoutEventArgs(cell.Slot, cell, cell.Row?.Content!, CellContextFlyout);
-        CellContextFlyoutOpening?.Invoke(this, eventArgs);
+        OnCellContextFlyoutOpening(eventArgs);
 
         if (CellContextFlyout is not null && !eventArgs.Handled)
         {
@@ -1487,74 +1464,4 @@ public partial class TableView : ListView
         var offset = GetRowHeadersOffset() + Columns.VisibleColumns.Where(c => c.IsFrozen).Sum(c => c.ActualWidth);
         AttachedPropertiesHelper.SetFrozenColumnScrollBarSpace(_scrollViewer, offset);
     }
-
-    /// <inheritdoc/>
-    public virtual void OnSorting(TableViewSortingEventArgs eventArgs)
-    {
-        Sorting?.Invoke(this, eventArgs);
-    }
-
-    /// <summary>
-    /// Called before the ClearSorting event occurs.
-    /// </summary>
-    /// <param name="eventArgs">The event data.</param>
-    public virtual void OnClearSorting(TableViewClearSortingEventArgs eventArgs)
-    {
-        ClearSorting?.Invoke(this, eventArgs);
-    }
-
-    /// <summary>
-    /// Event triggered when a column is auto-generating.
-    /// </summary>
-    public event EventHandler<TableViewAutoGeneratingColumnEventArgs>? AutoGeneratingColumn;
-
-    /// <summary>
-    /// Event triggered when exporting all rows content.
-    /// </summary>
-    public event EventHandler<TableViewExportContentEventArgs>? ExportAllContent;
-
-    /// <summary>
-    /// Event triggered when exporting selected rows or cells content.
-    /// </summary>
-    public event EventHandler<TableViewExportContentEventArgs>? ExportSelectedContent;
-
-    /// <summary>
-    /// Event triggered when copying selected rows or cell content to the clipboard.
-    /// </summary>
-    public event EventHandler<TableViewCopyToClipboardEventArgs>? CopyToClipboard;
-
-    /// <summary>
-    /// Event triggered when the IsReadOnly property changes.
-    /// </summary>
-    public event DependencyPropertyChangedEventHandler? IsReadOnlyChanged;
-
-    /// <summary>
-    /// Event triggered when the row context flyout is opening.
-    /// </summary>
-    public event EventHandler<TableViewRowContextFlyoutEventArgs>? RowContextFlyoutOpening;
-
-    /// <summary>
-    /// Event triggered when the cell context flyout is opening.
-    /// </summary>
-    public event EventHandler<TableViewCellContextFlyoutEventArgs>? CellContextFlyoutOpening;
-
-    /// <summary>
-    /// Occurs when a sorting is being applied to a column in the TableView.
-    /// </summary>
-    public event EventHandler<TableViewSortingEventArgs>? Sorting;
-
-    /// <summary>
-    /// Occurs when sorting is cleared from a column in the TableView.
-    /// </summary>
-    public event EventHandler<TableViewClearSortingEventArgs>? ClearSorting;
-
-    /// <summary>
-    /// Event triggered when selected cells change.
-    /// </summary>
-    public event EventHandler<TableViewCellSelectionChangedEventArgs>? CellSelectionChanged;
-
-    /// <summary>
-    /// Event triggered when the current cell changes.
-    /// </summary>
-    public event DependencyPropertyChangedEventHandler? CurrentCellChanged;
 }
