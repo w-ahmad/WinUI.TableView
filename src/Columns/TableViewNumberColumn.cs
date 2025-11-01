@@ -65,7 +65,7 @@ public partial class TableViewNumberColumn : TableViewBoundColumn
         {
             if (editAction == TableViewEditAction.Cancel)
             {
-                numberBox.Value = uneditedValue is double d ? d : 0d;
+                numberBox.Value = uneditedValue as double? ?? double.NaN;
             }
             else
             {

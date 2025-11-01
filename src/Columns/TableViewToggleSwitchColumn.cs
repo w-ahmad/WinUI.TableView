@@ -76,16 +76,12 @@ public partial class TableViewToggleSwitchColumn : TableViewBoundColumn
         {
             if (editAction == TableViewEditAction.Cancel)
             {
-                toggleSwitch.IsOn = uneditedValue is bool b && b;
+                toggleSwitch.IsOn = uneditedValue is true;
             }
             else
             {
-                try
-                {
-                    var bindingExpression = toggleSwitch.GetBindingExpression(ToggleSwitch.IsOnProperty);
-                    bindingExpression?.UpdateSource();
-                }
-                finally { }
+                var bindingExpression = toggleSwitch.GetBindingExpression(ToggleSwitch.IsOnProperty);
+                bindingExpression?.UpdateSource();
             }
         }
     }

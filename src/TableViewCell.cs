@@ -190,13 +190,9 @@ public partial class TableViewCell : ContentControl
             if (e.Handled) return;
         }
 
-        if (TableView?.SelectionUnit is not TableViewSelectionUnit.Row)
+        if (TableView?.CurrentCellSlot != Slot)
         {
-            if (TableView?.CurrentCellSlot != Slot)
-            {
-                MakeSelection();
-            }
-
+            MakeSelection();
             e.Handled = true;
         }
     }

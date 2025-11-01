@@ -87,15 +87,15 @@ public partial class TableViewTimeColumn : TableViewBoundColumn
     /// <inheritdoc/>
     protected internal override void EndCellEditing(TableViewCell cell, object? dataItem, TableViewEditAction editAction, object? uneditedValue)
     {
-        if (cell.Content is TableViewTimePicker datePicker)
+        if (cell.Content is TableViewTimePicker timePicker)
         {
             if (editAction == TableViewEditAction.Cancel)
             {
-                datePicker.UpdateTimeInternal(uneditedValue);
+                timePicker.UpdateTimeInternal(uneditedValue);
             }
             else
             {
-                var bindingExpression = datePicker.GetBindingExpression(TableViewDatePicker.SelectedDateProperty);
+                var bindingExpression = timePicker.GetBindingExpression(TimePicker.SelectedTimeProperty);
                 bindingExpression?.UpdateSource();
             }
         }
