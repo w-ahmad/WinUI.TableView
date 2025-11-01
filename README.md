@@ -7,6 +7,7 @@
 [![cd-build](https://github.com/w-ahmad/WinUI.TableView/actions/workflows/cd-build.yml/badge.svg)](https://github.com/w-ahmad/WinUI.TableView/actions/workflows/cd-build.yml)
 [![nuget](https://img.shields.io/nuget/v/WinUI.TableView)](https://www.nuget.org/packages/WinUI.TableView/)
 [![nuget](https://img.shields.io/nuget/dt/WinUI.TableView)](https://www.nuget.org/packages/WinUI.TableView/)
+<a href="https://info.flagcounter.com/zbTF"><img src="https://s05.flagcounter.com/mini/zbTF/bg_4A4A4A/txt_FFFFFF/border_4A4A4A/flags_1/" alt="Free counters!" border="0"></a>
 
 ### [Samples App](https://github.com/w-ahmad/WinUI.TableView.SampleApp)
 
