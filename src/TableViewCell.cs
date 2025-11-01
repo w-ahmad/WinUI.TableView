@@ -181,6 +181,7 @@ public partial class TableViewCell : ContentControl
         base.OnTapped(e);
 
         if ((TableView?.IsEditing ?? false) &&
+             TableView.CurrentCellSlot != Slot &&
              TableView.CurrentCellSlot.HasValue &&
              TableView.GetCellFromSlot(TableView.CurrentCellSlot.Value) is { } currentCell)
         {
@@ -189,9 +190,13 @@ public partial class TableViewCell : ContentControl
             if (e.Handled) return;
         }
 
-        if (TableView?.SelectionUnit is not TableViewSelectionUnit.Row && TableView?.CurrentCellSlot != Slot)
+        if (TableView?.SelectionUnit is not TableViewSelectionUnit.Row)
         {
-            MakeSelection();
+            if (TableView?.CurrentCellSlot != Slot)
+            {
+                MakeSelection();
+            }
+
             e.Handled = true;
         }
     }
@@ -348,7 +353,7 @@ public partial class TableViewCell : ContentControl
     /// <summary>
     /// Prepares the cell for editing.
     /// </summary>
-    internal async void PrepareForEdit(RoutedEventArgs editingArgs)
+    internal void PrepareForEdit(RoutedEventArgs editingArgs)
     {
         var editingElement = SetEditingElement();
         Content = editingElement;

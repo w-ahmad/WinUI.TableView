@@ -82,12 +82,8 @@ public partial class TableViewCheckBoxColumn : TableViewBoundColumn
             }
             else
             {
-                try
-                {
-                    var bindingExpression = checkBox.GetBindingExpression(CheckBox.IsCheckedProperty);
-                    bindingExpression?.UpdateSource();
-                }
-                finally { }
+                var bindingExpression = checkBox.GetBindingExpression(CheckBox.IsCheckedProperty);
+                bindingExpression?.UpdateSource();
             }
         }
     }

@@ -69,12 +69,8 @@ public partial class TableViewNumberColumn : TableViewBoundColumn
             }
             else
             {
-                try
-                {
-                    var bindingExpression = numberBox.GetBindingExpression(NumberBox.ValueProperty);
-                    bindingExpression?.UpdateSource();
-                }
-                finally { }
+                var bindingExpression = numberBox.GetBindingExpression(NumberBox.ValueProperty);
+                bindingExpression?.UpdateSource();
             }
         }
     }

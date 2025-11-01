@@ -10,11 +10,11 @@ namespace WinUI.TableView;
 /// Initializes a new instance of the TableViewBeginningEditEventArgs class.
 /// </remarks>
 /// <param name="cell">The cell being edited.</param>
-/// <param name="dataIteam">The data item associated with the cell.</param>
+/// <param name="dataItem">The data item associated with the cell.</param>
 /// <param name="column">The column containing the cell.</param>
 /// <param name="editingArgs">The event args for the editing event.</param>
 public class TableViewBeginningEditEventArgs(TableViewCell cell,
-                                             object? dataIteam,
+                                             object? dataItem,
                                              TableViewColumn column,
                                              RoutedEventArgs editingArgs) 
     : CancelEventArgs
@@ -27,7 +27,7 @@ public class TableViewBeginningEditEventArgs(TableViewCell cell,
     /// <summary>
     /// Gets the data item associated with the cell being edited.
     /// </summary>
-    public object? DataItem { get; } = dataIteam;
+    public object? DataItem { get; } = dataItem;
 
     /// <summary>
     /// Gets the column that contains the cell being edited, if available.

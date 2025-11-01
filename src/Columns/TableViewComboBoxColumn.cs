@@ -94,12 +94,8 @@ public partial class TableViewComboBoxColumn : TableViewBoundColumn
             }
             else
             {
-                try
-                {
-                    var bindingExpression = comboBox.GetBindingExpression(Selector.SelectedItemProperty);
-                    bindingExpression?.UpdateSource();
-                }
-                finally { }
+                var bindingExpression = comboBox.GetBindingExpression(Selector.SelectedItemProperty);
+                bindingExpression?.UpdateSource();
             }
         }
     }

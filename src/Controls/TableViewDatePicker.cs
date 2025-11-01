@@ -63,16 +63,21 @@ public partial class TableViewDatePicker : CalendarDatePicker
         if (d is TableViewDatePicker datePicker && !datePicker._deferUpdate)
         {
             datePicker._deferUpdate = true;
-            datePicker.Date = e.NewValue switch
-            {
-                DateOnly dateOnly => dateOnly.ToDateTimeOffset(),
-                DateTime dateTime => dateTime.ToDateTimeOffset(),
-                DateTimeOffset dateTimeOffset => dateTimeOffset,
-                _ => throw new FormatException()
-            };
+            datePicker.UpdateDateInternal(e.NewValue);
             datePicker.SourceType ??= e.NewValue?.GetType();
             datePicker._deferUpdate = false;
         }
+    }
+
+    internal void UpdateDateInternal(object? newValue)
+    {
+        Date = newValue switch
+        {
+            DateOnly dateOnly => dateOnly.ToDateTimeOffset(),
+            DateTime dateTime => dateTime.ToDateTimeOffset(),
+            DateTimeOffset dateTimeOffset => dateTimeOffset,
+            _ => default
+        };
     }
 
     /// <summary>

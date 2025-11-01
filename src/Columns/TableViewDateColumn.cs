@@ -88,16 +88,12 @@ public partial class TableViewDateColumn : TableViewBoundColumn
         {
             if (editAction == TableViewEditAction.Cancel)
             {
-                datePicker.Date = uneditedValue is DateTimeOffset d ? d : default;
+                datePicker.UpdateDateInternal(uneditedValue);
             }
             else
             {
-                try
-                {
-                    var bindingExpression = datePicker.GetBindingExpression(TableViewDatePicker.SelectedDateProperty);
-                    bindingExpression?.UpdateSource();
-                }
-                finally { }
+                var bindingExpression = datePicker.GetBindingExpression(TableViewDatePicker.SelectedDateProperty);
+                bindingExpression?.UpdateSource();
             }
         }
     }

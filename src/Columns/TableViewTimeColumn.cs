@@ -84,6 +84,23 @@ public partial class TableViewTimeColumn : TableViewBoundColumn
         return base.PrepareCellForEdit(cell, routedEvent);
     }
 
+    /// <inheritdoc/>
+    protected internal override void EndCellEditing(TableViewCell cell, object? dataItem, TableViewEditAction editAction, object? uneditedValue)
+    {
+        if (cell.Content is TableViewTimePicker datePicker)
+        {
+            if (editAction == TableViewEditAction.Cancel)
+            {
+                datePicker.UpdateTimeInternal(uneditedValue);
+            }
+            else
+            {
+                var bindingExpression = datePicker.GetBindingExpression(TableViewDatePicker.SelectedDateProperty);
+                bindingExpression?.UpdateSource();
+            }
+        }
+    }
+
     /// <summary>
     /// Gets the type of the source property.
     /// </summary>

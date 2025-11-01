@@ -68,12 +68,8 @@ public partial class TableViewTextColumn : TableViewBoundColumn
             }
             else
             {
-                try
-                {
-                    var bindingExpression = textBox.GetBindingExpression(TextBox.TextProperty);
-                    bindingExpression?.UpdateSource();
-                }
-                finally { }
+                var bindingExpression = textBox.GetBindingExpression(TextBox.TextProperty);
+                bindingExpression?.UpdateSource();
             }
         }
     }
