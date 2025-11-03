@@ -86,11 +86,7 @@ public partial class TableViewDateColumn : TableViewBoundColumn
     {
         if (cell.Content is TableViewDatePicker datePicker)
         {
-            if (editAction == TableViewEditAction.Cancel)
-            {
-                datePicker.UpdateDateInternal(uneditedValue);
-            }
-            else
+            if (editAction == TableViewEditAction.Commit)
             {
                 var bindingExpression = datePicker.GetBindingExpression(TableViewDatePicker.SelectedDateProperty);
                 bindingExpression?.UpdateSource();

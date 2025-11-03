@@ -89,11 +89,7 @@ public partial class TableViewTimeColumn : TableViewBoundColumn
     {
         if (cell.Content is TableViewTimePicker timePicker)
         {
-            if (editAction == TableViewEditAction.Cancel)
-            {
-                timePicker.UpdateTimeInternal(uneditedValue);
-            }
-            else
+            if (editAction == TableViewEditAction.Commit)
             {
                 var bindingExpression = timePicker.GetBindingExpression(TimePicker.SelectedTimeProperty);
                 bindingExpression?.UpdateSource();

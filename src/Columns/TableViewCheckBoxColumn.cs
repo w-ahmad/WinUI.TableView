@@ -76,11 +76,7 @@ public partial class TableViewCheckBoxColumn : TableViewBoundColumn
     {
         if (cell.Content is CheckBox checkBox)
         {
-            if (editAction == TableViewEditAction.Cancel)
-            {
-                checkBox.IsChecked = uneditedValue as bool?;
-            }
-            else
+            if (editAction == TableViewEditAction.Commit)
             {
                 var bindingExpression = checkBox.GetBindingExpression(CheckBox.IsCheckedProperty);
                 bindingExpression?.UpdateSource();

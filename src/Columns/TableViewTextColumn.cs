@@ -62,11 +62,7 @@ public partial class TableViewTextColumn : TableViewBoundColumn
     {
         if (cell.Content is TextBox textBox)
         {
-            if (editAction == TableViewEditAction.Cancel)
-            {
-                textBox.Text = uneditedValue is string s ? s : default;
-            }
-            else
+            if (editAction == TableViewEditAction.Commit)
             {
                 var bindingExpression = textBox.GetBindingExpression(TextBox.TextProperty);
                 bindingExpression?.UpdateSource();

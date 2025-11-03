@@ -88,11 +88,7 @@ public partial class TableViewComboBoxColumn : TableViewBoundColumn
     {
         if (cell.Content is ComboBox comboBox)
         {
-            if (editAction == TableViewEditAction.Cancel)
-            {
-                comboBox.SelectedItem = uneditedValue;
-            }
-            else
+            if (editAction == TableViewEditAction.Commit)
             {
                 var bindingExpression = comboBox.GetBindingExpression(Selector.SelectedItemProperty);
                 bindingExpression?.UpdateSource();

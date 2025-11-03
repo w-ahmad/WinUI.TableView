@@ -63,11 +63,7 @@ public partial class TableViewNumberColumn : TableViewBoundColumn
     {
         if (cell.Content is NumberBox numberBox)
         {
-            if (editAction == TableViewEditAction.Cancel)
-            {
-                numberBox.Value = uneditedValue as double? ?? double.NaN;
-            }
-            else
+            if (editAction == TableViewEditAction.Commit)
             {
                 var bindingExpression = numberBox.GetBindingExpression(NumberBox.ValueProperty);
                 bindingExpression?.UpdateSource();

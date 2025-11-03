@@ -74,11 +74,7 @@ public partial class TableViewToggleSwitchColumn : TableViewBoundColumn
     {
         if (cell.Content is ToggleSwitch toggleSwitch)
         {
-            if (editAction == TableViewEditAction.Cancel)
-            {
-                toggleSwitch.IsOn = uneditedValue is true;
-            }
-            else
+            if (editAction == TableViewEditAction.Commit)
             {
                 var bindingExpression = toggleSwitch.GetBindingExpression(ToggleSwitch.IsOnProperty);
                 bindingExpression?.UpdateSource();
