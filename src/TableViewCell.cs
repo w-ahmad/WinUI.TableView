@@ -85,10 +85,39 @@ public partial class TableViewCell : ContentControl
     }
 
     /// <inheritdoc/>
+    protected override void OnContentChanged(object oldContent, object newContent)
+    {
+        base.OnContentChanged(oldContent, newContent);
+
+        if (newContent is ContentControl contentControl)
+        {
+            contentControl.Loaded += OnContentLoaded;
+        }
+
+        void OnContentLoaded(object sender, RoutedEventArgs e)
+        {
+            ((ContentControl)sender).Loaded -= OnContentLoaded;
+            Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        }
+    }
+
+    /// <inheritdoc/>
     protected override Size MeasureOverride(Size availableSize)
     {
         if (Column is not null && Row is not null && _contentPresenter is not null && Content is FrameworkElement element)
         {
+            if (Column is TableViewTemplateColumn)
+            {
+#if WINDOWS
+                if (element is ContentControl { ContentTemplateRoot: FrameworkElement root }) 
+#else
+                if (element.FindDescendant<ContentPresenter>() is { ContentTemplateRoot: FrameworkElement root })
+#endif
+                    element = root;
+                else
+                    return base.MeasureOverride(availableSize);
+            }
+
             #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860           
             element.MaxWidth = double.PositiveInfinity;
             element.MaxHeight = double.PositiveInfinity;
