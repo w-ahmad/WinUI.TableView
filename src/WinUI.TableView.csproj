@@ -45,6 +45,12 @@
     <PRIResource Include="**\*.resw" Exclude="bin\**\*.resw;obj\**\*.resw" />
   </ItemGroup>
 
+	<ItemGroup>
+		<Compile Update="TableView.*.cs">
+			<DependentUpon>TableView.cs</DependentUpon>
+		</Compile>
+	</ItemGroup>
+
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <PackageId>WinUI.TableView</PackageId>
     <DebugType>portable</DebugType>

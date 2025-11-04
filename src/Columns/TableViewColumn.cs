@@ -40,6 +40,29 @@ public abstract partial class TableViewColumn : DependencyObject
     public virtual void RefreshElement(TableViewCell cell, object? dataItem) { }
 
     /// <summary>
+    /// Called to prepare the cell for editing.
+    /// </summary>
+    /// <param name="cell">The cell to prepare for editing.</param>
+    /// <param name="routedEvent">The routed event.</param>
+    /// <returns>Should return the unedited cell value.</returns>
+    protected internal virtual object? PrepareCellForEdit(TableViewCell cell, RoutedEventArgs routedEvent)
+    {
+        return default;
+    }
+
+    /// <summary>
+    /// Called to end the editing session for the cell.
+    /// </summary>
+    /// <param name="cell">The cell whose editing session is being ended.</param>
+    /// <param name="dataItem">The data item associated with the cell.</param>
+    /// <param name="editAction">The edit action.</param>
+    /// <param name="uneditedValue">The unedited value of the cell.</param>
+    protected internal virtual void EndCellEditing(TableViewCell cell, object? dataItem, TableViewEditAction editAction, object? uneditedValue)
+    {
+        // Nothing to do here by default. Derived classes can override to commit changes if needed.
+    }
+
+    /// <summary>
     /// Updates the state of the element for the cell.
     /// </summary>
     /// <param name="cell">The cell for which the element state is updated.</param>

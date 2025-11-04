@@ -58,6 +58,30 @@ public partial class TableViewToggleSwitchColumn : TableViewBoundColumn
         }
     }
 
+    /// <inheritdoc/>
+    protected internal override object? PrepareCellForEdit(TableViewCell cell, RoutedEventArgs routedEvent)
+    {
+        if (cell.Content is ToggleSwitch toggleSwitch)
+        {
+            return toggleSwitch.IsOn;
+        }
+
+        return base.PrepareCellForEdit(cell, routedEvent);
+    }
+
+    /// <inheritdoc/>
+    protected internal override void EndCellEditing(TableViewCell cell, object? dataItem, TableViewEditAction editAction, object? uneditedValue)
+    {
+        if (cell.Content is ToggleSwitch toggleSwitch)
+        {
+            if (editAction == TableViewEditAction.Commit)
+            {
+                var bindingExpression = toggleSwitch.GetBindingExpression(ToggleSwitch.IsOnProperty);
+                bindingExpression?.UpdateSource();
+            }
+        }
+    }
+
     /// <summary>
     /// Updates the state of the ToggleSwitch element.
     /// </summary>

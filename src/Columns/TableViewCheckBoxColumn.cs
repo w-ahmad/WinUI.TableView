@@ -60,6 +60,30 @@ public partial class TableViewCheckBoxColumn : TableViewBoundColumn
         }
     }
 
+    /// <inheritdoc/>
+    protected internal override object? PrepareCellForEdit(TableViewCell cell, RoutedEventArgs routedEvent)
+    {
+        if (cell.Content is CheckBox checkBox)
+        {
+            return checkBox.IsChecked;
+        }
+
+        return base.PrepareCellForEdit(cell, routedEvent);
+    }
+
+    /// <inheritdoc/>
+    protected internal override void EndCellEditing(TableViewCell cell, object? dataItem, TableViewEditAction editAction, object? uneditedValue)
+    {
+        if (cell.Content is CheckBox checkBox)
+        {
+            if (editAction == TableViewEditAction.Commit)
+            {
+                var bindingExpression = checkBox.GetBindingExpression(CheckBox.IsCheckedProperty);
+                bindingExpression?.UpdateSource();
+            }
+        }
+    }
+
     /// <summary>
     /// Updates the state of the CheckBox element.
     /// </summary>
