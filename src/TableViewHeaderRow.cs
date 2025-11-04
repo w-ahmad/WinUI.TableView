@@ -576,14 +576,22 @@ public partial class TableViewHeaderRow : Control
     {
         if (_columnDropIndicator is { DataContext: DragIndicatorData data } && TableView is not null)
         {
-            TableView.DeselectAll();
             _columnDropIndicator.Visibility = Visibility.Collapsed;
 
             var sourceIndex = TableView.Columns.VisibleColumns.IndexOf(column);
             var dropIndex = sourceIndex > data.DropIndex ? data.DropIndex + 1 : data.DropIndex;
             dropIndex = Math.Clamp(dropIndex, 0, TableView.Columns.VisibleColumns.Count - 1);
 
+            var reorderingArgs = new TableViewColumnReorderingEventArgs(column, dropIndex);
+            TableView.OnColumnReordering(reorderingArgs);
+
+            if (reorderingArgs.Cancel) return;
+
+            TableView.DeselectAll();
             TableView.Columns.Move(sourceIndex, dropIndex);
+
+            var reorderedArgs = new TableViewColumnReorderedEventArgs(column, dropIndex);
+            TableView.OnColumnReordered(reorderedArgs);
         }
     }
 
