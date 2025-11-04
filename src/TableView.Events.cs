@@ -219,7 +219,7 @@ partial class TableView
     /// <summary>
     /// Occurs before a column is reordered.
     /// </summary>
-    public event EventHandler<TableViewColumnReorderingEventArgs> ColumnReordering;
+    public event EventHandler<TableViewColumnReorderingEventArgs>? ColumnReordering;
 
     /// <summary>
     /// Called before the <see cref="ColumnReordering"/> event occurs.
@@ -233,7 +233,7 @@ partial class TableView
     /// <summary>
     /// Occurs after a column has been reordered.
     /// </summary>
-    public event EventHandler<TableViewColumnReorderedEventArgs> ColumnReordered;
+    public event EventHandler<TableViewColumnReorderedEventArgs>? ColumnReordered;
 
     /// <summary>
     /// Called before the <see cref="ColumnReordered"/> event occurs.

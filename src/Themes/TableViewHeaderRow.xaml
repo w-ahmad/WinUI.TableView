@@ -197,7 +197,7 @@
                                 Grid.ColumnSpan="4"
                                 Visibility="Collapsed"
                                 HorizontalAlignment="Left"
-                                Translation="0 0 32"
+                                Translation="0, 0, 32"
                                 BorderThickness="1"
                                 RenderTransformOrigin="0.5,0.5"
                                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
