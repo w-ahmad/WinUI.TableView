@@ -237,6 +237,15 @@ public abstract partial class TableViewColumn : DependencyObject
         set => SetValue(OrderProperty, value);
     }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the column can be reordered.
+    /// </summary>
+    public bool CanReorder
+    {
+        get => (bool)GetValue(CanReorderProperty);
+        set => SetValue(CanReorderProperty, value);
+    }
+
     internal TableViewColumnsCollection? OwningCollection { get; set; }
 
     /// <summary>
@@ -456,4 +465,9 @@ public abstract partial class TableViewColumn : DependencyObject
     /// Identifies the Order dependency property.
     /// </summary>
     public static readonly DependencyProperty OrderProperty = DependencyProperty.Register(nameof(Order), typeof(int?), typeof(TableViewColumn), new PropertyMetadata(null, OnPropertyChanged));
+
+    /// <summary>
+    /// Identifies the CanReorder dependency property.
+    /// </summary>
+    public static readonly DependencyProperty CanReorderProperty = DependencyProperty.Register(nameof(CanReorder), typeof(bool), typeof(TableViewColumn), new PropertyMetadata(true));
 }

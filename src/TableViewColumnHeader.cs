@@ -482,7 +482,7 @@ public partial class TableViewColumnHeader : ContentControl
             _resizeStartingWidth = header.ActualWidth;
             CapturePointer(e.Pointer);
         }
-        else if (_tableView?.CanReorderColumns ?? false)
+        else if (_tableView?.CanReorderColumns is true && Column?.CanReorder is true)
         {
             var position = e.GetCurrentPoint(_headerRow).Position;
             _reorderStartingPosition = position.X;
