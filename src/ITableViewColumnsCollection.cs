@@ -23,6 +23,13 @@ public interface ITableViewColumnsCollection : IList<TableViewColumn>, INotifyCo
     event EventHandler<TableViewColumnPropertyChangedEventArgs>? ColumnPropertyChanged;
 
     /// <summary>
+    /// Moves a column from one index to another within the collection.
+    /// </summary>
+    /// <param name="oldIndex">The zero-based index of the column to move.</param>
+    /// <param name="newIndex">The zero-based index to move the column to.</param>
+    void Move(int oldIndex, int newIndex);
+
+    /// <summary>
     /// Gets the list of visible <see cref="TableViewColumn"/>s.
     /// </summary>
     /// <remarks>

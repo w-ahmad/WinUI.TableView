@@ -193,6 +193,37 @@
                                     Grid.Column="3"
                                     Orientation="Horizontal" />
 
+                        <Border x:Name="ColumnDropIndicator"
+                                Grid.ColumnSpan="4"
+                                Visibility="Collapsed"
+                                HorizontalAlignment="Left"
+                                Translation="0 0 32"
+                                BorderThickness="1"
+                                RenderTransformOrigin="0.5,0.5"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                            <Border.Shadow>
+                                <ThemeShadow />
+                            </Border.Shadow>
+                            <Border.RenderTransform>
+                                <TranslateTransform x:Name="ColumnDropIndicatorTransform" />
+                            </Border.RenderTransform>
+                            <Grid>
+                                <FontIcon Glyph="&#xEB0F;"
+                                          FontSize="12"
+                                          Margin="0,-2,0,0"
+                                          VerticalAlignment="Top" 
+                                          Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                                <FontIcon Glyph="&#xEB11;"
+                                          FontSize="12"
+                                          Margin="0,0,0,-2"
+                                          VerticalAlignment="Bottom" 
+                                          Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                                <Image x:Name="DragHeaderImage"
+                                       Stretch="None"
+                                       Source="{Binding Visuals}"/>
+                            </Grid>
+                        </Border>
                         <Rectangle x:Name="HorizontalGridLine"
                                    Grid.Row="1"
                                    Grid.ColumnSpan="4"

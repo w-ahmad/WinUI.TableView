@@ -244,6 +244,10 @@ public partial class TableViewRow : ListViewItem
         {
             RemoveCells(oldItems);
         }
+        else if (e.Action == NotifyCollectionChangedAction.Move && e.NewItems?.Count > 0)
+        {
+            RowPresenter?.MoveCells(e.NewItems.OfType<TableViewColumn>().First(), e.NewStartingIndex);
+        }
         else if (e.Action == NotifyCollectionChangedAction.Reset && RowPresenter is not null)
         {
             RowPresenter.ClearCells();

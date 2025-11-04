@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
 using System;
 using System.Linq;
@@ -43,6 +44,9 @@ public partial class TableViewColumnHeader : ContentControl
     private double _resizeStartingWidth;
     private bool _resizePreviousStarted;
     private TextBox? _searchBox;
+    private double _reorderStartingPosition;
+    private bool _reorderStarted;
+    private RenderTargetBitmap? _dragVisuals;
 
     /// <summary>
     /// Initializes a new instance of the TableViewColumnHeader class.
@@ -80,7 +84,7 @@ public partial class TableViewColumnHeader : ContentControl
         // Shows the button's flyout if options button is available and filtering is enabled
         if (_optionsButton is not null && CanFilter)
         {
-            _optionsButton.Flyout?.ShowAt(_optionsButton);            
+            _optionsButton.Flyout?.ShowAt(_optionsButton);
             e.Handled = true;
         }
     }
@@ -176,7 +180,7 @@ public partial class TableViewColumnHeader : ContentControl
     /// <inheritdoc/>
     protected override void OnTapped(TappedRoutedEventArgs e)
     {
-        if (CanSort && Column is not null && _tableView is not null && !IsSizingCursor)
+        if (CanSort && Column is not null && _tableView is not null && !IsSizingCursor && !_reorderStarted)
         {
             var isCtrlButtonDown = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control) is
                 CoreVirtualKeyStates.Down or (CoreVirtualKeyStates.Down | CoreVirtualKeyStates.Locked);
@@ -447,11 +451,11 @@ public partial class TableViewColumnHeader : ContentControl
     {
         base.OnPointerMoved(e);
 
-        if (CanResize && IsCursorInRightResizeArea(e))
+        if (CanResize && IsCursorInRightResizeArea(e) && !_reorderStarted)
         {
             ProtectedCursor = InputSystemCursor.Create(InputSystemCursorShape.SizeWestEast);
         }
-        else if (CanResizePrevious && IsCursorInLeftResizeArea(e))
+        else if (CanResizePrevious && IsCursorInLeftResizeArea(e) && !_reorderStarted)
         {
             ProtectedCursor = InputSystemCursor.Create(InputSystemCursorShape.SizeWestEast);
         }
@@ -462,7 +466,7 @@ public partial class TableViewColumnHeader : ContentControl
     }
 
     /// <inheritdoc/>
-    protected override void OnPointerPressed(PointerRoutedEventArgs e)
+    protected override async void OnPointerPressed(PointerRoutedEventArgs e)
     {
         base.OnPointerPressed(e);
 
@@ -476,6 +480,14 @@ public partial class TableViewColumnHeader : ContentControl
         {
             _resizePreviousStarted = true;
             _resizeStartingWidth = header.ActualWidth;
+            CapturePointer(e.Pointer);
+        }
+        else if (_tableView?.CanReorderColumns ?? false)
+        {
+            var position = e.GetCurrentPoint(_headerRow).Position;
+            _reorderStartingPosition = position.X;
+            _reorderStarted = true;
+            _dragVisuals = await CreateDragVisualsAsync();
             CapturePointer(e.Pointer);
         }
     }
@@ -513,6 +525,18 @@ public partial class TableViewColumnHeader : ContentControl
 
             header.Column.Width = new GridLength(width, GridUnitType.Pixel);
         }
+        else if (_reorderStarted && _dragVisuals is not null)
+        {
+            var position = _reorderStartingPosition + e.Cumulative.Translation.X;
+            _headerRow?.ShowColumnDropIndicator(position, _dragVisuals);
+        }
+    }
+
+    private async Task<RenderTargetBitmap> CreateDragVisualsAsync()
+    {
+        var rtb = new RenderTargetBitmap();
+        await rtb.RenderAsync(this);
+        return rtb;
     }
 
     /// <inheritdoc/>
@@ -520,26 +544,25 @@ public partial class TableViewColumnHeader : ContentControl
     {
         base.OnManipulationCompleted(e);
 
+        if (_reorderStarted && Column is not null)
+        {
+            _headerRow?.ColumnDropCompleted(Column);
+        }
+
         _resizeStarted = false;
         _resizePreviousStarted = false;
+        _reorderStarted = false;
     }
 
     /// <inheritdoc/>
     protected override async void OnPointerReleased(PointerRoutedEventArgs e)
     {
         base.OnPointerReleased(e);
+        ReleasePointerCaptures();
 
         _resizeStarted = false;
         _resizePreviousStarted = false;
-        ReleasePointerCaptures();
-
-        await Task.Delay(100);
-
-        if (_tableView?.CurrentCellSlot is not null)
-        {
-            var cell = _tableView.GetCellFromSlot(_tableView.CurrentCellSlot.Value);
-            cell?.ApplyCurrentCellState();
-        }
+        _reorderStarted = false;
     }
 
     /// <summary>
