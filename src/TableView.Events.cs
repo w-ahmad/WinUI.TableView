@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using System;
+using System.ComponentModel;
 
 namespace WinUI.TableView;
 
@@ -213,5 +214,33 @@ partial class TableView
     protected virtual void OnCellEditEnded(TableViewCellEditEndedEventArgs args)
     {
         CellEditEnded?.Invoke(this, args);
+    }
+
+    /// <summary>
+    /// Occurs before a column is reordered.
+    /// </summary>
+    public event EventHandler<TableViewColumnReorderingEventArgs>? ColumnReordering;
+
+    /// <summary>
+    /// Called before the <see cref="ColumnReordering"/> event occurs.
+    /// </summary>
+    /// <param name="args">The event arguments.</param>
+    protected internal virtual void OnColumnReordering(TableViewColumnReorderingEventArgs args)
+    {
+        ColumnReordering?.Invoke(this, args);
+    }
+
+    /// <summary>
+    /// Occurs after a column has been reordered.
+    /// </summary>
+    public event EventHandler<TableViewColumnReorderedEventArgs>? ColumnReordered;
+
+    /// <summary>
+    /// Called before the <see cref="ColumnReordered"/> event occurs.
+    /// </summary>
+    /// <param name="args">The event arguments.</param>
+    protected internal virtual void OnColumnReordered(TableViewColumnReorderedEventArgs args)
+    {
+        ColumnReordered?.Invoke(this, args);
     }
 }

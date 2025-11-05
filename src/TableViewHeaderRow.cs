@@ -1,9 +1,11 @@
+using CommunityToolkit.WinUI;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
 using System;
 using System.Collections.Generic;
@@ -34,6 +36,8 @@ public partial class TableViewHeaderRow : Control
     private Rectangle? _h_gridLine;
     private StackPanel? _frozenHeadersPanel;
     private StackPanel? _scrollableHeadersPanel;
+    private Border? _columnDropIndicator;
+    private TranslateTransform? _columnDropIndicatorTransform;
     private bool _calculatingHeaderWidths;
     private DispatcherTimer? _timer;
     private readonly Dictionary<DependencyProperty, long> _callbackTokens = [];
@@ -58,6 +62,8 @@ public partial class TableViewHeaderRow : Control
         _h_gridLine = GetTemplateChild("HorizontalGridLine") as Rectangle;
         _frozenHeadersPanel = GetTemplateChild("FrozenHeadersPanel") as StackPanel;
         _scrollableHeadersPanel = GetTemplateChild("ScrollableHeadersPanel") as StackPanel;
+        _columnDropIndicator = GetTemplateChild("ColumnDropIndicator") as Border;
+        _columnDropIndicatorTransform = GetTemplateChild("ColumnDropIndicatorTransform") as TranslateTransform;
 
         if (TableView is null)
         {
@@ -138,9 +144,35 @@ public partial class TableViewHeaderRow : Control
         {
             RemoveHeaders(oldItems);
         }
+        else if (e.Action == NotifyCollectionChangedAction.Move && e.NewItems?.Count > 0)
+        {
+            MoveHeaders(e.NewItems.OfType<TableViewColumn>().First(), e.NewStartingIndex);
+        }
         else if (e.Action == NotifyCollectionChangedAction.Reset && _scrollableHeadersPanel is not null)
         {
             ClearHeaders();
+        }
+    }
+
+    /// <summary>
+    /// Moves the header associated with the specified column to a new index.
+    /// </summary>
+    /// <param name="column">The column associated with the header to move.</param>
+    /// <param name="newIndex">The new index to move the header to.</param>
+
+    private void MoveHeaders(TableViewColumn column, int newIndex)
+    {
+        if (Headers.FirstOrDefault(h => h.Column == column) is { } header)
+        {
+            RemoveHeader(header);
+            InsertHeader(header);
+        }
+
+        if (newIndex >= 0 && newIndex < TableView?.FrozenColumnCount &&
+            _frozenHeadersPanel?.Children.OfType<TableViewColumnHeader>().LastOrDefault() is { } frozenHeader)
+        {
+            RemoveHeader(frozenHeader);
+            InsertHeader(frozenHeader);
         }
     }
 
@@ -212,15 +244,12 @@ public partial class TableViewHeaderRow : Control
     /// </summary>
     private void RemoveHeaders(IEnumerable<TableViewColumn> columns)
     {
-        if (_scrollableHeadersPanel is not null)
+        foreach (var column in columns)
         {
-            foreach (var column in columns)
+            var header = Headers.FirstOrDefault(x => x.Column == column);
+            if (header is not null)
             {
-                var header = Headers.FirstOrDefault(x => x.Column == column);
-                if (header is not null)
-                {
-                    RemoveHeader(header);
-                }
+                RemoveHeader(header);
             }
         }
     }
@@ -510,12 +539,79 @@ public partial class TableViewHeaderRow : Control
             var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
             var isRowDetailExpandable = TableView.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded;
 
-            _cornerButtonPanel.Visibility = areRowHeadersVisible || isMultiSelection || isRowDetailExpandable 
+            _cornerButtonPanel.Visibility = areRowHeadersVisible || isMultiSelection || isRowDetailExpandable
                 ? Visibility.Visible : Visibility.Collapsed;
         }
 
         SetCornerButtonState();
         EnsureGridLines();
+    }
+
+    /// <summary>
+    /// Shows the column drop indicator at the specified position.
+    /// </summary>
+    internal void ShowColumnDropIndicator(double position, RenderTargetBitmap headerVisuals)
+    {
+        if (_columnDropIndicator is not null && FindHeader(new(position, ActualHeight / 2)) is { Column: { } dropColumn } dropHeader)
+        {
+            var dropColumnIndex = TableView?.Columns.VisibleColumns.IndexOf(dropColumn) ?? 0;
+            var transform = dropHeader.TransformToVisual(this);
+            var dropHeaderX = transform.TransformPoint(new Point(0, 0)).X;
+            var midPoint = dropHeaderX + (dropHeader.ActualWidth / 2);
+            var x = dropHeaderX;
+            x += midPoint < position ? dropHeader.ActualWidth : 0d;
+            x -= _columnDropIndicator.ActualWidth / 2;
+            dropColumnIndex += midPoint > position ? -1 : 0;
+
+            _columnDropIndicator.DataContext = new DragIndicatorData(dropColumnIndex, headerVisuals);
+            _columnDropIndicator.Visibility = Visibility.Visible;
+
+            if (_columnDropIndicatorTransform is not null)
+            {
+                _columnDropIndicatorTransform.X = x;
+            }
+        }
+    }
+
+    internal void ColumnDropCompleted(TableViewColumn column)
+    {
+        if (_columnDropIndicator is { DataContext: DragIndicatorData data } && TableView is not null)
+        {
+            _columnDropIndicator.Visibility = Visibility.Collapsed;
+
+            var sourceIndex = TableView.Columns.VisibleColumns.IndexOf(column);
+            var dropIndex = sourceIndex > data.DropIndex ? data.DropIndex + 1 : data.DropIndex;
+            dropIndex = Math.Clamp(dropIndex, 0, TableView.Columns.VisibleColumns.Count - 1);
+
+            var reorderingArgs = new TableViewColumnReorderingEventArgs(column, dropIndex);
+            TableView.OnColumnReordering(reorderingArgs);
+
+            if (reorderingArgs.Cancel) return;
+
+            TableView.DeselectAll();
+            TableView.Columns.Move(sourceIndex, dropIndex);
+
+            var reorderedArgs = new TableViewColumnReorderedEventArgs(column, dropIndex);
+            TableView.OnColumnReordered(reorderedArgs);
+        }
+    }
+
+    /// <summary>
+    /// Finds the header at the specified position.
+    /// </summary>
+    private TableViewColumnHeader? FindHeader(Point position)
+    {
+        var transformedPoint = TransformToVisual(null).TransformPoint(position);
+#if WINDOWS
+        return VisualTreeHelper.FindElementsInHostCoordinates(transformedPoint, this)
+#else
+        return VisualTreeHelper.FindElementsInHostCoordinates(transformedPoint, TableView, true)
+                               .OfType<ContentPresenter>()
+                               .Where(x => x.Name is "ContentPresenter")
+                               .Select(x => x.FindAscendant<TableViewColumnHeader>() is { } header ? header : default)
+#endif
+                               .OfType<TableViewColumnHeader>()
+                               .FirstOrDefault();
     }
 
     /// <summary>
@@ -643,3 +739,10 @@ public partial class TableViewHeaderRow : Control
     /// </summary>
     public static readonly DependencyProperty TableViewProperty = DependencyProperty.Register(nameof(TableView), typeof(TableView), typeof(TableViewHeaderRow), new PropertyMetadata(null, OnTableViewChanged));
 }
+
+/// <summary>
+/// Provides data for the drag indicator during column reordering.
+/// </summary>
+/// <param name="DropIndex">The index where the column is dropped.</param>
+/// <param name="Visuals">The visuals associated with the drag indicator.</param>
+file record struct DragIndicatorData(int DropIndex, RenderTargetBitmap Visuals);

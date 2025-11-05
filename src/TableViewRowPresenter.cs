@@ -394,6 +394,47 @@ public partial class TableViewRowPresenter : Control
     }
 
     /// <summary>
+    /// Moves the cell associated with the specified column to a new index.
+    /// </summary>
+    /// <param name="column">The column associated with the cell to move.</param>
+    /// <param name="newIndex">The new index to move the cell to.</param>
+    internal void MoveCells(TableViewColumn column, int newIndex)
+    {
+        if (Cells.FirstOrDefault(h => h.Column == column) is { } cell)
+        {
+            RemoveCell(cell);
+            InsertCell(cell);
+        }
+
+        if (newIndex >= 0 && newIndex < TableView?.FrozenColumnCount &&
+           _frozenCellsPanel?.Children.OfType<TableViewCell>().LastOrDefault() is { } frozenCell)
+        {
+            RemoveCell(frozenCell);
+            InsertCell(frozenCell);
+        }
+
+        UpdateCellIndexes();
+    }
+
+    /// <summary>
+    /// Updates the indexes of all cells in the presenter.
+    /// </summary>
+    private void UpdateCellIndexes()
+    {
+        if (TableView is null) return;
+
+        foreach (var cell in Cells)
+        {
+            if (cell.Column is not null)
+            {
+                var index = TableView.Columns.VisibleColumns.IndexOf(cell.Column);
+                if (cell.Index != index)
+                    cell.Index = index;
+            }
+        }
+    }
+
+    /// <summary>
     /// Clears all cells from the presenter.
     /// </summary>
     public void ClearCells()

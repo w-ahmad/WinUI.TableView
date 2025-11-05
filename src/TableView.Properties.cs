@@ -251,6 +251,10 @@ public partial class TableView
     public static readonly DependencyProperty CellsHorizontalOffsetProperty = DependencyProperty.Register(nameof(CellsHorizontalOffset), typeof(double), typeof(TableView), new PropertyMetadata(16d));
 
     /// <summary>
+    /// Identifies the CanReorderColumns dependency property.
+    /// </summary>
+    public static readonly DependencyProperty CanReorderColumnsProperty = DependencyProperty.Register(nameof(CanReorderColumns), typeof(bool), typeof(TableView), new PropertyMetadata(true));
+    /// <summary>
     /// Gets or sets a value indicating whether opening the column filter over header right-click is enabled.
     /// </summary>
     public bool UseRightClickForColumnFilter
@@ -729,6 +733,15 @@ public partial class TableView
     {
         get => (double)GetValue(CellsHorizontalOffsetProperty);
         internal set => SetValue(CellsHorizontalOffsetProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether columns can be reordered by dragging headers.
+    /// </summary>
+    public bool CanReorderColumns
+    {
+        get => (bool)GetValue(CanReorderColumnsProperty);
+        set => SetValue(CanReorderColumnsProperty, value);
     }
 
     /// <summary>

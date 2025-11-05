@@ -16,6 +16,8 @@ namespace WinUI.TableView;
 public partial class TableViewColumnsCollection : DependencyObjectCollection, ITableViewColumnsCollection
 {
     private TableViewColumn[] _itemsCopy = []; // To keep a copy of the items to keep track of removed items
+    private bool _movingColumn;
+
     /// <inheritdoc/>
     public event EventHandler<TableViewColumnPropertyChangedEventArgs>? ColumnPropertyChanged;
     /// <inheritdoc/>
@@ -38,6 +40,8 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
     /// </summary>
     private void OnVectorChanged(IObservableVector<DependencyObject> sender, IVectorChangedEventArgs args)
     {
+        if (_movingColumn) return; // Skip processing if it's a move action
+
         UpdateFrozenColumns();
 
         var index = (int)args.Index;
@@ -89,7 +93,7 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
     /// </summary>
     internal void HandleColumnPropertyChanged(TableViewColumn column, string propertyName)
     {
-        if (Contains(column) && this is ITableViewColumnsCollection d)
+        if (Contains(column) && !_movingColumn)
         {
             var index = IndexOf(column);
             ColumnPropertyChanged?.Invoke(this, new TableViewColumnPropertyChangedEventArgs(column, propertyName, index));
@@ -168,5 +172,38 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
     void IList<TableViewColumn>.RemoveAt(int index)
     {
         RemoveAt(index);
+    }
+
+    /// <inheritdoc/>
+    public void Move(int oldIndex, int newIndex)
+    {
+        _movingColumn = true;
+
+        if (oldIndex < 0 || oldIndex >= Count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(oldIndex), "Old index is out of range.");
+        }
+        if (newIndex < 0 || newIndex >= Count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(newIndex), "New index is out of range.");
+        }
+        if (oldIndex == newIndex)
+        {
+            return; // No need to move if the indices are the same
+        }
+
+        var column = (TableViewColumn)this[oldIndex];
+        var columnBefore = (TableViewColumn)this[newIndex];
+
+        // Assign the same order value as the target column, ensuring correct order for the VisibleColumns collection.
+        column.Order = columnBefore.Order;
+
+        RemoveAt(oldIndex);
+        Insert(newIndex, column);
+
+        UpdateFrozenColumns();
+        CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, column, newIndex, oldIndex));
+
+        _movingColumn = false;
     }
 }
