@@ -600,10 +600,15 @@ public partial class TableViewHeaderRow : Control
     /// </summary>
     private TableViewColumnHeader? FindHeader(Point position)
     {
-        var transform = TransformToVisual(this).Inverse;
-        var point = transform.TransformPoint(position);
-        var transformedPoint = TransformToVisual(null).TransformPoint(point);
+        var transformedPoint = TransformToVisual(null).TransformPoint(position);
+#if WINDOWS
         return VisualTreeHelper.FindElementsInHostCoordinates(transformedPoint, this)
+#else
+        return VisualTreeHelper.FindElementsInHostCoordinates(transformedPoint, TableView, true)
+                               .OfType<ContentPresenter>()
+                               .Where(x => x.Name is "ContentPresenter")
+                               .Select(x => x.FindAscendant<TableViewColumnHeader>() is { } header ? header : default)
+#endif
                                .OfType<TableViewColumnHeader>()
                                .FirstOrDefault();
     }

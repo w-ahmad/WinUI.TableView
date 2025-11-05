@@ -555,7 +555,7 @@ public partial class TableViewColumnHeader : ContentControl
     }
 
     /// <inheritdoc/>
-    protected override async void OnPointerReleased(PointerRoutedEventArgs e)
+    protected override void OnPointerReleased(PointerRoutedEventArgs e)
     {
         base.OnPointerReleased(e);
         ReleasePointerCaptures();
