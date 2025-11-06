@@ -286,16 +286,14 @@ public partial class TableView : ListView
             scrollPresenter.PointerWheelChanged += OnScrollContentPresenterPointerWheelChanged;
         }
 
+        if (yScrollBar is not null)
+        {
+            yScrollBar.ValueChanged += (_, _) => SetValue(VerticalOffsetProperty, yScrollBar.Value);
+        }
+
         xScrollBar?.SetBinding(RangeBase.ValueProperty, new Binding
         {
             Path = new PropertyPath(nameof(HorizontalOffset)),
-            Mode = BindingMode.TwoWay,
-            Source = this
-        });
-
-        yScrollBar?.SetBinding(RangeBase.ValueProperty, new Binding
-        {
-            Path = new PropertyPath(nameof(VerticalOffset)),
             Mode = BindingMode.TwoWay,
             Source = this
         });
@@ -315,10 +313,9 @@ public partial class TableView : ListView
         if (isHorizontalScroll && _scrollViewer?.ComputedHorizontalScrollBarVisibility is Visibility.Visible)
         {
             e.Handled = true;
-
             var mouseWheelDelta = isShiftButton ? -pointerPoint.Properties.MouseWheelDelta : pointerPoint.Properties.MouseWheelDelta;
             var xOffset = HorizontalOffset + (mouseWheelDelta / 4.0);
-            SetValue(HorizontalOffsetProperty, Math.Clamp(xOffset, 0, _scrollViewer.ViewportWidth));
+            SetValue(HorizontalOffsetProperty, Math.Clamp(xOffset, 0, _scrollViewer.ScrollableWidth));
         }
     }
 
@@ -1129,7 +1126,7 @@ public partial class TableView : ListView
         var cellWidth = Columns.VisibleColumns[slot.Column].ActualWidth;
         var cellRight = cellLeft + cellWidth;
         var viewportLeft = HorizontalOffset;
-        var headersOffset = GetRowHeadersOffset();
+        var headersOffset = CellsHorizontalOffset;
         var viewportRight = viewportLeft + _scrollViewer.ViewportWidth - headersOffset;
 
         // If cell is wider than the viewport, align left edge
@@ -1234,7 +1231,7 @@ public partial class TableView : ListView
         var start = -1;
         var end = -1;
         var width = 0d;
-        var headersOffset = GetRowHeadersOffset();
+        var headersOffset = CellsHorizontalOffset;
 
         foreach (var column in Columns.VisibleColumns)
         {
@@ -1255,14 +1252,6 @@ public partial class TableView : ListView
         }
 
         return (start, end);
-    }
-
-    private double GetRowHeadersOffset()
-    {
-        var areHeadersVisible = HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
-        var isMultiSelection = this is ListView { SelectionMode: ListViewSelectionMode.Multiple };
-
-        return isMultiSelection ? 44 : areHeadersVisible ? RowHeaderActualWidth : 0;
     }
 
     /// <summary>
@@ -1461,7 +1450,7 @@ public partial class TableView : ListView
     {
         if (_scrollViewer is null) return;
 
-        var offset = GetRowHeadersOffset() + Columns.VisibleColumns.Where(c => c.IsFrozen).Sum(c => c.ActualWidth);
+        var offset = CellsHorizontalOffset + Columns.VisibleColumns.Where(c => c.IsFrozen).Sum(c => c.ActualWidth);
         AttachedPropertiesHelper.SetFrozenColumnScrollBarSpace(_scrollViewer, offset);
     }
 }
