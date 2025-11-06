@@ -265,7 +265,7 @@ public partial class TableViewCell : ContentControl
         {
             var cell = FindCell(e.Position);
 
-            if (cell is not null && cell != this)
+            if (cell is not null && cell.Slot != TableView?.CurrentCellSlot)
             {
                 var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
                 TableView?.MakeSelection(cell.Slot, true, ctrlKey);
@@ -288,25 +288,19 @@ public partial class TableViewCell : ContentControl
     private TableViewCell? FindCell(Point position)
     {
         _scrollViewer ??= TableView?.FindDescendant<ScrollViewer>();
+        if (_scrollViewer is null) return null;
 
-        if (_scrollViewer is { })
-        {
+        var transformedPoint = TransformToVisual(null).TransformPoint(position);
 #if WINDOWS
-            var transform = _scrollViewer.TransformToVisual(this).Inverse;
-            var point = transform.TransformPoint(position);
-            var transformedPoint = _scrollViewer.TransformToVisual(null).TransformPoint(point);
-            return VisualTreeHelper.FindElementsInHostCoordinates(transformedPoint, _scrollViewer)
+        return VisualTreeHelper.FindElementsInHostCoordinates(transformedPoint, _scrollViewer)
 #else
-            return VisualTreeHelper.FindElementsInHostCoordinates(position, _scrollViewer, true)
-                                   .OfType<ContentPresenter>()
-                                   .Where(x => x.Name is "Content")
-                                   .Select(x => x.FindAscendant<TableViewCell>() is { } cell ? cell : default)
+        return VisualTreeHelper.FindElementsInHostCoordinates(transformedPoint, _scrollViewer, true)
+                               .OfType<ContentPresenter>()
+                               .Where(x => x.Name is "Content")
+                               .Select(x => x.FindAscendant<TableViewCell>() is { } header ? header : default)
 #endif
-                                   .OfType<TableViewCell>()
-                                   .FirstOrDefault();
-        }
-
-        return null;
+                               .OfType<TableViewCell>()
+                               .FirstOrDefault();
     }
 
     /// <inheritdoc/>

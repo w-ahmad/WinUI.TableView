@@ -79,11 +79,7 @@ public partial class TableViewRowPresenter : Control
                 => TableViewRow?.EnsureLayout());
         }
 
-#if !WINDOWS
-        TableView?.EnsureCells();
-#else
         TableViewRow?.EnsureCells();
-#endif
         EnsureGridLines();
         SetRowHeaderBindings();
         SetRowHeaderVisibility();

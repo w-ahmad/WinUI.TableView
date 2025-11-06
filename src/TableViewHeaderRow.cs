@@ -91,12 +91,6 @@ public partial class TableViewHeaderRow : Control
             AddHeaders(TableView.Columns.VisibleColumns);
         }
 
-#if !WINDOWS
-        if (GetTemplateChild("cornerButtonColumn") is ColumnDefinition cornerButtonColumn)
-        {
-            cornerButtonColumn.MinWidth = 20;
-        }
-#endif
         _cornerButtonPanel?.SetBinding(WidthProperty, new Binding
         {
             Source = TableView,
