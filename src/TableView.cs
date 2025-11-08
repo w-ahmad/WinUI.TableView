@@ -381,7 +381,7 @@ public partial class TableView : ListView
         }
 
         var package = new DataPackage();
-        package.SetText(GetSelectedContent(includeHeaders));
+        package.SetText(GetSelectedClipboardContent(includeHeaders));
         Clipboard.SetContent(package);
     }
 
@@ -392,6 +392,26 @@ public partial class TableView : ListView
     /// <param name="separator">The character used to separate cell values (default is tab).</param>
     /// <returns>A string of selected cell content separated by the specified character.</returns>
     public string GetSelectedContent(bool includeHeaders, char separator = '\t')
+    {
+        var slots = GetSelectedCellSlots();
+
+        return GetCellsContent(slots, includeHeaders, separator);
+    }
+
+    /// <summary>
+    /// Returns the selected cells' or rows' clipboard content as a string, optionally including headers, with values separated by the given character.
+    /// </summary>
+    /// <param name="includeHeaders">Whether to include headers in the output.</param>
+    /// <param name="separator">The character used to separate cell values (default is tab).</param>
+    /// <returns>A string of selected cell clipboard content separated by the specified character.</returns>
+    public string GetSelectedClipboardContent(bool includeHeaders, char separator = '\t')
+    {
+        var slots = GetSelectedCellSlots();
+
+        return GetCellsContent(slots, includeHeaders, separator, true);
+    }
+
+    private IEnumerable<TableViewCellSlot> GetSelectedCellSlots()
     {
         var slots = Enumerable.Empty<TableViewCellSlot>();
 
@@ -409,7 +429,7 @@ public partial class TableView : ListView
             slots = [CurrentCellSlot.Value];
         }
 
-        return GetCellsContent(slots, includeHeaders, separator);
+        return slots;
     }
 
     /// <summary>
@@ -451,6 +471,11 @@ public partial class TableView : ListView
     /// <returns>A string of specified cell content separated by the specified character.</returns>
     public string GetCellsContent(IEnumerable<TableViewCellSlot> slots, bool includeHeaders, char separator = '\t')
     {
+        return GetCellsContent(slots, includeHeaders, separator, false);
+    }
+
+    private string GetCellsContent(IEnumerable<TableViewCellSlot> slots, bool includeHeaders, char separator, bool isClipboardContent)
+    {
         if (!slots.Any())
         {
             return string.Empty;
@@ -458,9 +483,7 @@ public partial class TableView : ListView
 
         var minColumn = slots.Select(x => x.Column).Min();
         var maxColumn = slots.Select(x => x.Column).Max();
-
         var stringBuilder = new StringBuilder();
-        var properties = new Dictionary<string, (PropertyInfo, object?)[]>();
 
         if (includeHeaders)
         {
@@ -481,7 +504,8 @@ public partial class TableView : ListView
                     continue;
                 }
 
-                stringBuilder.Append($"{column.GetCellContent(item)}{separator}");
+                var content = isClipboardContent ? column.GetClipboardContent(item) : column.GetCellContent(item);
+                stringBuilder.Append($"{content}{separator}");
             }
 
             stringBuilder.Remove(stringBuilder.Length - 1, 1); // remove extra separator at the end of the line

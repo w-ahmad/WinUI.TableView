@@ -1,4 +1,7 @@
 ﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Data;
+using System;
+using WinUI.TableView.Extensions;
 using SD = WinUI.TableView.SortDirection;
 
 namespace WinUI.TableView;
@@ -15,6 +18,7 @@ public abstract partial class TableViewColumn : DependencyObject
     private SD? _sortDirection;
     private bool _isFiltered;
     private bool _isFrozen;
+    private Func<object, object?>? _funcCompiledPropertyPath;
 
     /// <summary>
     /// Generates a display element for the cell.
@@ -98,6 +102,34 @@ public abstract partial class TableViewColumn : DependencyObject
     }
 
     /// <summary>
+    /// Gets the clipboard content of the cell for the specified data item.
+    /// </summary>
+    /// <param name="dataItem">The data item.</param>
+    /// <returns>The clipboard content of the cell.</returns>
+    public virtual object? GetClipboardContent(object? dataItem)
+    {
+        if (dataItem is null)
+            return null;
+
+        if (_funcCompiledPropertyPath is null && !string.IsNullOrWhiteSpace(ClipboardContentBindingPropertyPath))
+            _funcCompiledPropertyPath = dataItem.GetFuncCompiledPropertyPath(ClipboardContentBindingPropertyPath!);
+
+        if (_funcCompiledPropertyPath is not null)
+            dataItem = _funcCompiledPropertyPath(dataItem);
+
+        if (ClipboardContentBinding?.Converter is not null)
+        {
+            dataItem = ClipboardContentBinding.Converter.Convert(
+                dataItem,
+                typeof(object),
+                ClipboardContentBinding.ConverterParameter,
+                ClipboardContentBinding.ConverterLanguage);
+        }
+
+        return dataItem;
+    }
+
+    /// <summary>
     /// Gets or sets the header content of the column.
     /// </summary>
     public object Header
@@ -168,7 +200,6 @@ public abstract partial class TableViewColumn : DependencyObject
         get => (Style?)GetValue(HeaderStyleProperty);
         set => SetValue(HeaderStyleProperty, value);
     }
-
 
     /// <summary>
     /// Gets or sets the style that is used to render cells in the column.
@@ -315,6 +346,16 @@ public abstract partial class TableViewColumn : DependencyObject
             }
         }
     }
+
+    /// <summary>
+    /// Gets or sets the data binding used to get or set content for the clipboard.
+    /// </summary>
+    public virtual Binding? ClipboardContentBinding { get; set; }
+
+    /// <summary>
+    /// Gets the property path for the <see cref="ClipboardContentBinding"/>.
+    /// </summary>
+    internal string? ClipboardContentBindingPropertyPath => ClipboardContentBinding?.Path?.Path;
 
     /// <summary>
     /// Gets the owning TableView for the column.
