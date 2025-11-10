@@ -25,8 +25,7 @@ namespace WinUI.TableView;
 #endif
 public partial class TableViewRow : ListViewItem
 {
-    private const string Selection_Indicator = nameof(Selection_Indicator);
-    private const string Selection_Background = nameof(Selection_Background);
+    private const string Selection_Background = "SelectionBackground";
     private const double Selection_IndicatorHeight = 16d;
     private const string Check_Mark = "\uE73E";
     private Thickness _focusVisualMargin = new(1);
@@ -124,27 +123,28 @@ public partial class TableViewRow : ListViewItem
         _cellPresenterBackground = Background;
         _cellPresenterForeground = Foreground;
         _itemPresenter = GetTemplateChild("Root") as ListViewItemPresenter;
+#if !WINDOWS
+        _rowPresenter = GetTemplateChild("RowPresenter") as TableViewRowPresenter;
+        _selectionBackground = GetTemplateChild("SelectionBackground") as Border;
+#endif
     }
 
     /// <inheritdoc/>
     protected override void OnContentChanged(object oldContent, object newContent)
     {
         base.OnContentChanged(oldContent, newContent);
-#if WINDOWS
+
         if (_ensureCells)
         {
             EnsureCells();
         }
         else
         {
-#endif
             foreach (var cell in Cells)
             {
                 cell.RefreshElement();
             }
-#if WINDOWS
         }
-#endif
 
         RowPresenter?.InvalidateMeasure(); // The cells presenter does not measure every time.
         _tableView?.EnsureAlternateRowColors();
@@ -476,62 +476,49 @@ public partial class TableViewRow : ListViewItem
         var cornerRadius = _itemPresenter?.CornerRadius ?? new();
         var left = Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft) / 2;
         var detailsHeight = RowPresenter?.GetDetailsContentHeight() ?? 0d;
-        var selectionBorder = _itemPresenter?.FindDescendants()
-                                               .OfType<Border>()
-                                               .FirstOrDefault(x => x is { Width: 3 });
-
+#if WINDOWS
+        var selectionIndicator = _itemPresenter?.FindDescendants()
+                                                .OfType<Border>()
+                                                .FirstOrDefault(x => x is { Width: 3 });
 
         var cellsHeight = ActualHeight - detailsHeight;
-        var selectionIndictorHeight = Math.Max(Selection_IndicatorHeight, cellsHeight - 40);
+        var selectionIndicatorHeight = Math.Max(Selection_IndicatorHeight, cellsHeight - 40);
 
-        if (selectionBorder is not null)
+        if (selectionIndicator is not null)
         {
-            selectionBorder.MaxHeight = selectionIndictorHeight;
-            selectionBorder.Margin = new Thickness(
-                            _selectionIndicatorMargin.Left + left,
-                            _selectionIndicatorMargin.Top,
-                            _selectionIndicatorMargin.Right,
-                            _selectionIndicatorMargin.Bottom);
+            selectionIndicator.MaxHeight = selectionIndicatorHeight;
+            selectionIndicator.Margin = new Thickness(
+                _selectionIndicatorMargin.Left + left,
+                _selectionIndicatorMargin.Top,
+                _selectionIndicatorMargin.Right,
+                _selectionIndicatorMargin.Bottom);
         }
 
         if (TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple })
         {
             var fontIcon = this.FindDescendant<FontIcon>(x => x.Glyph == Check_Mark);
-            selectionBorder = fontIcon?.Parent as Border;
-
-#if !WINDOWS
-            if (selectionBorder is not null)
-            {
-                selectionBorder.Opacity = 0.5;
-                selectionBorder.CornerRadius = new CornerRadius(4);
-                selectionBorder.BorderThickness = new Thickness(1);
-                selectionBorder.Margin = new Thickness(10, 0, 0, 0);
-            }
-#endif
+            selectionIndicator = fontIcon?.Parent as Border;
         }
 
-        if (selectionBorder is not null)
+        if (selectionIndicator is not null && IsSelected)
         {
             // Assign a TranslateTransform for animation
             var _translateTransform = new TranslateTransform();
-            selectionBorder.RenderTransform = _translateTransform;
+            selectionIndicator.RenderTransform = _translateTransform;
 
             var toValue = Math.Round(-detailsHeight / 2); // move up or down
 
-            // Create animation
             var animation = new DoubleAnimation
             {
                 To = toValue,
                 Duration = new Duration(TimeSpan.Zero)
             };
 
-            // Create and configure storyboard
             var storyboard = new Storyboard();
             Storyboard.SetTarget(animation, _translateTransform);
             Storyboard.SetTargetProperty(animation, "Y"); // vertical movement
             storyboard.Children.Add(animation);
 
-            // Start animation
             storyboard.Begin();
         }
 
@@ -545,6 +532,7 @@ public partial class TableViewRow : ListViewItem
             _focusVisualMargin.Right,
             _focusVisualMargin.Bottom + GetHorizontalGridlineHeight());
 
+#endif
         if (_selectionBackground is not null)
         {
             _selectionBackground.Name = Selection_Background;
@@ -623,8 +611,6 @@ public partial class TableViewRow : ListViewItem
         {
 #if WINDOWS
             _rowPresenter ??= ContentTemplateRoot as TableViewRowPresenter;
-#else
-            _rowPresenter ??= this.FindDescendant<TableViewRowPresenter>();
 #endif
             return _rowPresenter;
         }
