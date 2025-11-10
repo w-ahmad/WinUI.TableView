@@ -348,7 +348,7 @@ public abstract partial class TableViewColumn : DependencyObject
     }
 
     /// <summary>
-    /// Gets or sets the data binding used to get or set content for the clipboard.
+    /// Gets or sets the data binding used to retrieve cell content when copying to the clipboard.
     /// </summary>
     public virtual Binding? ClipboardContentBinding { get; set; }
 

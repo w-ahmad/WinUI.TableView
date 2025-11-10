@@ -70,7 +70,7 @@ public abstract class TableViewBoundColumn : TableViewColumn
     }
 
     /// <summary>
-    /// Gets or sets the data binding used to get or set content for the clipboard.
+    /// Gets or sets the data binding used to retrieve cell content when copying to the clipboard.
     /// If no explicit clipboard binding is set, the column's <see cref="Binding"/> is returned as a fallback.
     /// </summary>
     public override Binding? ClipboardContentBinding
