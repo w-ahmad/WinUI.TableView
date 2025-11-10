@@ -12,7 +12,6 @@ namespace WinUI.TableView;
 /// </summary>
 public abstract class TableViewBoundColumn : TableViewColumn
 {
-    private string? _propertyPath;
     private Binding _binding = new();
     private Func<object, object?>? _funcCompiledPropertyPath;
 
@@ -43,14 +42,7 @@ public abstract class TableViewBoundColumn : TableViewColumn
     /// <summary>
     /// Gets the property path for the binding.
     /// </summary>
-    internal string? PropertyPath
-    {
-        get
-        {
-            _propertyPath ??= Binding?.Path?.Path;
-            return _propertyPath;
-        }
-    }
+    internal string? PropertyPath => Binding?.Path?.Path;
 
     /// <summary>
     /// Gets or sets the binding for the column.
@@ -62,19 +54,29 @@ public abstract class TableViewBoundColumn : TableViewColumn
         {
             if (_binding != value)
             {
-                _binding = value;
-
-                if (_binding is not null)
+                if (value is not null)
                 {
-                    _binding.Mode = BindingMode.TwoWay;
+                    value.Mode = BindingMode.TwoWay;
 
-                    if (_binding.UpdateSourceTrigger == UpdateSourceTrigger.Default)
+                    if (value.UpdateSourceTrigger == UpdateSourceTrigger.Default)
                     {
-                        _binding.UpdateSourceTrigger = UpdateSourceTrigger.Explicit;
+                        value.UpdateSourceTrigger = UpdateSourceTrigger.Explicit;
                     }
                 }
+
+                _binding = value!;
             }
         }
+    }
+
+    /// <summary>
+    /// Gets or sets the data binding used to retrieve cell content when copying to the clipboard.
+    /// If no explicit clipboard binding is set, the column's <see cref="Binding"/> is returned as a fallback.
+    /// </summary>
+    public override Binding? ClipboardContentBinding
+    {
+        get => base.ClipboardContentBinding ?? Binding;
+        set => base.ClipboardContentBinding = value;
     }
 
     /// <summary>
