@@ -500,27 +500,45 @@ public partial class TableViewRow : ListViewItem
             selectionIndicator = fontIcon?.Parent as Border;
         }
 
-        if (selectionIndicator is not null && IsSelected)
+        if (TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple })
         {
-            // Assign a TranslateTransform for animation
-            var _translateTransform = new TranslateTransform();
-            selectionIndicator.RenderTransform = _translateTransform;
-
-            var toValue = Math.Round(-detailsHeight / 2); // move up or down
-
-            var animation = new DoubleAnimation
-            {
-                To = toValue,
-                Duration = new Duration(TimeSpan.Zero)
-            };
-
-            var storyboard = new Storyboard();
-            Storyboard.SetTarget(animation, _translateTransform);
-            Storyboard.SetTargetProperty(animation, "Y"); // vertical movement
-            storyboard.Children.Add(animation);
-
-            storyboard.Begin();
+            var fontIcon = this.FindDescendant<FontIcon>(x => x.Glyph == Check_Mark);
+            selectionIndicator = fontIcon?.Parent as Border;
         }
+
+        if (selectionIndicator is not null)
+        {
+            if (IsSelected)
+            {
+                // Assign a TranslateTransform for animation
+                var translateTransform = new TranslateTransform();
+                selectionIndicator.RenderTransform = translateTransform;
+
+                var toValue = Math.Round(-detailsHeight / 2); // move up or down
+
+                var animation = new DoubleAnimation
+                {
+                    To = toValue,
+                    Duration = new Duration(TimeSpan.Zero)
+                };
+
+                var storyboard = new Storyboard();
+                Storyboard.SetTarget(animation, translateTransform);
+                Storyboard.SetTargetProperty(animation, "Y"); // vertical movement
+                storyboard.Children.Add(animation);
+
+                storyboard.Begin();
+            }
+            else
+            {
+                // Row is not selected → reset any previous offset
+                if (selectionIndicator.RenderTransform is TranslateTransform tt)
+                    tt.Y = 0;
+                else
+                    selectionIndicator.RenderTransform = null;
+            }
+        }
+
 
         _selectionBackground ??= _itemPresenter?.FindDescendants()
                                                 .OfType<Border>()
