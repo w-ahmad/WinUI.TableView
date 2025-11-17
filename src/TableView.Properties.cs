@@ -279,6 +279,15 @@ public partial class TableView
     public IList<FilterDescription> FilterDescriptions => _collectionView.FilterDescriptions;
 
     /// <summary>
+    /// Gets or sets a value indicating whether live shaping is enabled.
+    /// </summary>
+    public bool AllowLiveShaping
+    {
+        get => _collectionView.AllowLiveShaping;
+        set => _collectionView.AllowLiveShaping = value;
+    }
+
+    /// <summary>
     /// Gets or sets the last selection unit used.
     /// </summary>
     internal TableViewSelectionUnit LastSelectionUnit { get; set; }
