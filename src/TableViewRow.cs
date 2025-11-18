@@ -506,7 +506,9 @@ public partial class TableViewRow : ListViewItem
             selectionIndicator = fontIcon?.Parent as Border;
         }
 
-        if (selectionIndicator is not null)
+        if (selectionIndicator is not null 
+                    &&TableView is not null
+                    && TableView.RowDetailsVisibilityMode == TableViewRowDetailsVisibilityMode.VisibleWhenSelected)
         {
             if (IsSelected)
             {
@@ -532,7 +534,8 @@ public partial class TableViewRow : ListViewItem
             else
             {
                 // Row is not selected → reset any previous offset
-                if (selectionIndicator.RenderTransform is TranslateTransform tt)
+                if (selectionIndicator.RenderTransform is TranslateTransform tt
+                     )
                     tt.Y = 0;
                 else
                     selectionIndicator.RenderTransform = null;
