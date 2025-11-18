@@ -455,4 +455,9 @@ public partial class TableViewRowPresenter : Control
     /// Gets or sets the TableView associated with the presenter.
     /// </summary>
     public TableView? TableView { get; private set; }
+
+    /// <summary>
+    /// Gets a value indicating whether the row details panel is currently visible.
+    /// </summary>
+    internal bool IsDetailsPanelVisible => _detailsPanel?.Visibility is Visibility.Visible;
 }
