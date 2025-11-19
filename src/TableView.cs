@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -78,6 +79,11 @@ public partial class TableView : ListView
         CurrentCellSlot = null;
         OnCellSelectionChanged();
 
+        if (IsRowKeyboardContext)//Keeps alignment with base ListView selection
+        {
+            CurrentRowIndex = SelectedIndex;
+        }
+
         if (SelectedItems?.Count == 1)
         {
             DispatcherQueue.TryEnqueue(async () => await ScrollRowIntoView(SelectedIndex));
@@ -112,6 +118,12 @@ public partial class TableView : ListView
         return row;
     }
 
+    private bool IsRowKeyboardContext =>
+               (UseListViewHotkeys == true) &&   //Not sure if I'm solving a bug or adding a feature, so I've made it apply only when the UseListViewHotkeys is set to true just in case.
+    (SelectionUnit == TableViewSelectionUnit.Row ||
+    (SelectionUnit == TableViewSelectionUnit.CellOrRow &&
+     LastSelectionUnit == TableViewSelectionUnit.Row));
+
     /// <inheritdoc/>
     protected override async void OnKeyDown(KeyRoutedEventArgs e)
     {
@@ -124,8 +136,94 @@ public partial class TableView : ListView
             return;
         }
 
+        if (!IsEditing && IsRowKeyboardContext)
+        {
+            if (!shiftKey &&
+                !ctrlKey &&
+                SelectionMode == ListViewSelectionMode.Multiple &&
+                e.Key == VirtualKey.Enter)
+            {
+                ToggleCurrentRowSelection();
+                e.Handled = true;
+                return;
+            }
+
+            var rowSelectionOnly = SelectionUnit == TableViewSelectionUnit.Row;
+
+            if (e.Key is VirtualKey.Up or VirtualKey.Down or
+                    VirtualKey.Home or VirtualKey.End or
+                    VirtualKey.PageUp or VirtualKey.PageDown ||
+                (rowSelectionOnly && (e.Key is VirtualKey.Left or VirtualKey.Right)))
+            {
+                int? prevCellRow = null;
+                if (SelectionUnit == TableViewSelectionUnit.Row && CurrentCellSlot.HasValue)
+                {
+                    prevCellRow = CurrentCellSlot.Value.Row;
+                }
+
+                base.OnKeyDown(e); // Let ListView move the row focus / selection
+
+                var focusedIndex = GetFocusedRowIndex();
+                if (focusedIndex >= 0)
+                {
+                    CurrentRowIndex = focusedIndex;
+                    SelectionStartRowIndex ??= focusedIndex;
+                }
+
+                if (SelectionUnit == TableViewSelectionUnit.Row &&
+                    prevCellRow.HasValue &&
+                    focusedIndex >= 0 &&
+                    focusedIndex != prevCellRow.Value)
+                {
+                    CurrentCellSlot = null;  // will un-apply old cell's current-state border
+                }
+                return;
+            }
+        }
+        // Everything else (cell nav, F2 in cell mode, Space, etc.)
         await HandleNavigations(e, shiftKey, ctrlKey);
     }
+
+
+
+    private void ToggleCurrentRowSelection()
+    {
+
+        var index = GetFocusedRowIndex();
+
+        if (index < 0)
+        {
+            var rowIndex = CurrentRowIndex ?? SelectedIndex;
+
+            if (rowIndex is < 0 || rowIndex >= Items.Count)
+            {
+                return;
+            }
+
+            index = rowIndex;
+        }
+
+
+        if (index < 0 || index >= Items.Count) { return;}
+
+        var isSelected = SelectedRanges.Any(r => r.IsInRange(index));
+
+        var singleIndexRange = new ItemIndexRange(index, 1u);
+
+        if (isSelected)
+        {
+            DeselectRange(singleIndexRange);
+        }
+        else
+        {
+            SelectRange(singleIndexRange);
+        }
+
+        SelectionStartRowIndex = index;
+        CurrentRowIndex = index;
+
+    }
+
 
     /// <summary>
     /// Handles navigation keys.
@@ -252,6 +350,34 @@ public partial class TableView : ListView
         }
 
         return false;
+    }
+
+    private int GetFocusedRowIndex()
+    {
+        if (XamlRoot is null)
+            return -1;
+
+        var focused = FocusManager.GetFocusedElement(XamlRoot) as DependencyObject;
+        if (focused is null)
+            return -1;
+
+        var row = GetRowFromElement(focused);
+        return row?.Index ?? -1;
+    }
+
+    private static TableViewRow? GetRowFromElement(DependencyObject element)
+    {
+        var current = element;
+
+        while (current is not null)
+        {
+            if (current is TableViewRow row)
+                return row;
+
+            current = VisualTreeHelper.GetParent(current);
+        }
+
+        return null;
     }
 
     /// <inheritdoc/>
