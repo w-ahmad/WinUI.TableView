@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data;
 using System.Linq;
+using System.Threading.Tasks;
 using Windows.Foundation;
 using WinUI.TableView.Helpers;
 
@@ -506,42 +507,6 @@ public partial class TableViewRow : ListViewItem
             selectionIndicator = fontIcon?.Parent as Border;
         }
 
-        if (selectionIndicator is not null 
-                    &&TableView is not null
-                    && TableView.RowDetailsVisibilityMode == TableViewRowDetailsVisibilityMode.VisibleWhenSelected)
-        {
-            if (IsSelected)
-            {
-                // Assign a TranslateTransform for animation
-                var translateTransform = new TranslateTransform();
-                selectionIndicator.RenderTransform = translateTransform;
-
-                var toValue = Math.Round(-detailsHeight / 2); // move up or down
-
-                var animation = new DoubleAnimation
-                {
-                    To = toValue,
-                    Duration = new Duration(TimeSpan.Zero)
-                };
-
-                var storyboard = new Storyboard();
-                Storyboard.SetTarget(animation, translateTransform);
-                Storyboard.SetTargetProperty(animation, "Y"); // vertical movement
-                storyboard.Children.Add(animation);
-
-                storyboard.Begin();
-            }
-            else
-            {
-                // Row is not selected → reset any previous offset
-                if (selectionIndicator.RenderTransform is TranslateTransform tt
-                     )
-                    tt.Y = 0;
-                else
-                    selectionIndicator.RenderTransform = null;
-            }
-        }
-
 
         _selectionBackground ??= _itemPresenter?.FindDescendants()
                                                 .OfType<Border>()
@@ -553,6 +518,7 @@ public partial class TableViewRow : ListViewItem
             _focusVisualMargin.Right,
             _focusVisualMargin.Bottom + GetHorizontalGridlineHeight());
 
+        EnsureSelectionIndicatorPosition(detailsHeight, selectionIndicator);
 #endif
         if (_selectionBackground is not null)
         {
@@ -562,6 +528,36 @@ public partial class TableViewRow : ListViewItem
                 _selectionBackgroundMargin.Top,
                 _selectionBackgroundMargin.Right,
                 _selectionBackgroundMargin.Bottom + GetHorizontalGridlineHeight() + detailsHeight);
+        }
+    }
+
+    /// <summary>
+    /// Ensures the position of the selection indicator.
+    /// </summary>
+    private async void EnsureSelectionIndicatorPosition(double detailsHeight, Border? selectionIndicator)
+    {
+        await Task.Yield(); // let the animations and visual state changes complete
+
+        if (selectionIndicator is not null)
+        {
+            // Assign a TranslateTransform for animation
+            var translateTransform = new TranslateTransform();
+            selectionIndicator.RenderTransform = translateTransform;
+
+            var toValue = RowPresenter?.IsDetailsPanelVisible ?? false ? Math.Round(-detailsHeight / 2) : 0; // move up or down
+
+            var animation = new DoubleAnimation
+            {
+                To = toValue,
+                Duration = new Duration(TimeSpan.Zero)
+            };
+
+            var storyboard = new Storyboard();
+            Storyboard.SetTarget(animation, translateTransform);
+            Storyboard.SetTargetProperty(animation, "Y"); // vertical movement
+            storyboard.Children.Add(animation);
+
+            storyboard.Begin();
         }
     }
 
