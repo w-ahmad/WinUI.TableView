@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
@@ -254,12 +254,6 @@ public partial class TableView
     /// Identifies the CanReorderColumns dependency property.
     /// </summary>
     public static readonly DependencyProperty CanReorderColumnsProperty = DependencyProperty.Register(nameof(CanReorderColumns), typeof(bool), typeof(TableView), new PropertyMetadata(true));
-
-    /// <summary>
-    /// Identifies the UseListViewHotkeys dependency property.
-    /// </summary>
-    public static readonly DependencyProperty UseListViewHotkeysProperty = DependencyProperty.Register(nameof(UseListViewHotkeys), typeof(bool), typeof(TableView), new PropertyMetadata(false));
-
     /// <summary>
     /// Gets or sets a value indicating whether opening the column filter over header right-click is enabled.
     /// </summary>
@@ -757,15 +751,6 @@ public partial class TableView
     {
         get => (bool)GetValue(CanReorderColumnsProperty);
         set => SetValue(CanReorderColumnsProperty, value);
-    }
-
-    /// <summary>
-    /// Gets or sets whether the TableView should use ListView like hotkeys for navigation and selection.
-    /// </summary>
-    public bool UseListViewHotkeys
-    {
-        get => (bool)GetValue(UseListViewHotkeysProperty);
-        set => SetValue(UseListViewHotkeysProperty, value);
     }
 
     /// <summary>
