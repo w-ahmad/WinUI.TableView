@@ -6,10 +6,10 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
-using WinUI.TableView.Extensions;
 using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
@@ -84,6 +84,7 @@ public partial class TableViewCell : ContentControl
         _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
 
         EnsureGridLines();
+        EnsureStyle(Row?.Content);
     }
 
     /// <inheritdoc/>
@@ -111,7 +112,7 @@ public partial class TableViewCell : ContentControl
             if (Column is TableViewTemplateColumn)
             {
 #if WINDOWS
-                if (element is ContentControl { ContentTemplateRoot: FrameworkElement root }) 
+                if (element is ContentControl { ContentTemplateRoot: FrameworkElement root })
 #else
                 if (element.FindDescendant<ContentPresenter>() is { ContentTemplateRoot: FrameworkElement root })
 #endif
@@ -368,7 +369,6 @@ public partial class TableViewCell : ContentControl
         return false;
     }
 
-
     /// <summary>
     /// Prepares the cell for editing.
     /// </summary>
@@ -529,6 +529,20 @@ public partial class TableViewCell : ContentControl
                                      || TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
                                      ? Visibility.Visible : Visibility.Collapsed;
         }
+    }
+
+    /// <summary>
+    /// Ensures the correct style is applied to the cell.
+    /// </summary>
+    /// <param name="item"></param>
+    internal void EnsureStyle(object? item)
+    {
+        IList<TableViewConditionalCellStyle> cellStyles = [
+            .. Column?.ConditionalCellStyles ?? [], // Column styles have first priority
+            .. TableView?.ConditionalCellStyles ?? []]; // TableView styles have second priority
+
+        Style = cellStyles.FirstOrDefault(c => c.Predicate?.Invoke(new(Column!, item)) is true)?
+                          .Style ?? Column?.CellStyle ?? TableView?.CellStyle;
     }
 
     /// <summary>

@@ -20,8 +20,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:TableViewCell">
-                    <Grid Background="{TemplateBinding Background}"
-                          BorderBrush="{TemplateBinding BorderBrush}"
+                    <Grid BorderBrush="{TemplateBinding BorderBrush}"
                           BorderThickness="{TemplateBinding BorderThickness}"
                           CornerRadius="{TemplateBinding CornerRadius}">
                         <Grid.ColumnDefinitions>
@@ -58,9 +57,15 @@
                                 </VisualState>
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
+
+                        <Border x:Name="BackgroundBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="{ThemeResource TableViewRowCellSelectionBorderCornerRadius}" />
+
                         <Border x:Name="SelectionBorder"
                                 BorderThickness="{ThemeResource TableViewCellSelectionBorderThickness}"
                                 CornerRadius="{ThemeResource TableViewRowCellSelectionBorderCornerRadius}" />
+
                         <Border x:Name="RootBorder"
                                 Margin="{ThemeResource TableViewCellSelectionBorderThickness}"
                                 CornerRadius="{ThemeResource TableViewRowCellSelectionBorderCornerRadius}">
@@ -69,7 +74,7 @@
                                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                               HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
                         </Border>
-                        
+
                         <Rectangle x:Name="VerticalGridLine"
                                    Grid.Column="1"
                                    Width="1"
