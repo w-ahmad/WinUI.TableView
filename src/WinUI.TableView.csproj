@@ -1,13 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>
-      net8.0;
-      net9.0;
       net8.0-windows10.0.19041.0;
       net9.0-windows10.0.19041.0;
+      net8.0;
+      net9.0;
     </TargetFrameworks> 
     <Nullable>enable</Nullable> 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsAOTCompatible>true</IsAOTCompatible>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$([MSBuild]::GetTargetPlatformIdentifier($(TargetFramework)))' == 'windows'">
@@ -29,7 +30,7 @@
   </ItemGroup>
   
   <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) != 'windows'">
-    <PackageReference Include="Uno.WinUI" Version="6.0.465" />
+    <PackageReference Include="Uno.WinUI" Version="6.2.87" />
   </ItemGroup>
   
   <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
@@ -44,6 +45,12 @@
     </Compile>
     <PRIResource Include="**\*.resw" Exclude="bin\**\*.resw;obj\**\*.resw" />
   </ItemGroup>
+
+	<ItemGroup>
+		<Compile Update="TableView.*.cs">
+			<DependentUpon>TableView.cs</DependentUpon>
+		</Compile>
+	</ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <PackageId>WinUI.TableView</PackageId>

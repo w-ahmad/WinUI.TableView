@@ -1,10 +1,13 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                     xmlns:local="using:WinUI.TableView"
                     xmlns:helpers="using:WinUI.TableView.Helpers"
                     xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
                     xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
-                    xmlns:win="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+                    xmlns:win="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:not_win="http://uno.ui/not_win"
+                    mc:Ignorable="not_win">
 
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/Resources.xaml" />
@@ -71,13 +74,13 @@
                 </ItemsPanelTemplate>
             </Setter.Value>
         </Setter>
-        <Setter Property="ItemTemplate">
-            <Setter.Value>
+        <win:Setter Property="ItemTemplate">
+            <win:Setter.Value>
                 <DataTemplate>
-                    <local:TableViewCellsPresenter IsTabStop="False" />
+                    <local:TableViewRowPresenter IsTabStop="False" />
                 </DataTemplate>
-            </Setter.Value>
-        </Setter>
+            </win:Setter.Value>
+        </win:Setter>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:TableView">
@@ -100,7 +103,7 @@
 
                             <ScrollViewer x:Name="ScrollViewer"
                                           Grid.Row="1"
-                                          helpers:ScrollViewerHelper.FrozenColumnScrollBarSpace="{TemplateBinding RowHeaderMinWidth}"
+                                          helpers:AttachedPropertiesHelper.FrozenColumnScrollBarSpace="{TemplateBinding RowHeaderMinWidth}"
                                           TabNavigation="{TemplateBinding TabNavigation}"
                                           HorizontalScrollMode="{TemplateBinding ScrollViewer.HorizontalScrollMode}"
                                           HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
@@ -360,7 +363,7 @@
                       Grid.ColumnSpan="2" />
                 <Grid Grid.Column="1"
                       Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
-                      Padding="{ThemeResource ScrollViewerScrollBarMargin}">
+                      win:Padding="{ThemeResource ScrollViewerScrollBarMargin}">
                     <ScrollBar x:Name="VerticalScrollBar"
                                IsTabStop="False"
                                Maximum="{TemplateBinding ScrollableHeight}"
@@ -371,7 +374,7 @@
                 </Grid>
                 <Grid Grid.Row="1"
                       Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}"
-                      Padding="{ThemeResource ScrollViewerScrollBarMargin}">
+                      win:Padding="{ThemeResource ScrollViewerScrollBarMargin}">
 
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -379,8 +382,8 @@
                     </Grid.ColumnDefinitions>
 
                     <Border Opacity="0"
-                            MinWidth="{Binding (helpers:ScrollViewerHelper.FrozenColumnScrollBarSpace), RelativeSource={RelativeSource TemplatedParent}}"
-                            Background="{ThemeResource ScrollViewerScrollBarSeparatorBackground}" />
+                            MinWidth="{Binding (helpers:AttachedPropertiesHelper.FrozenColumnScrollBarSpace), RelativeSource={RelativeSource TemplatedParent}}"
+                            win:Background="{ThemeResource ScrollViewerScrollBarSeparatorBackground}" />
 
                     <ScrollBar x:Name="HorizontalScrollBar2"
                                Grid.Column="1"
@@ -393,7 +396,7 @@
                         Grid.Row="1"
                         Grid.Column="1"
                         Opacity="0"
-                        Background="{ThemeResource ScrollViewerScrollBarSeparatorBackground}" />
+                        win:Background="{ThemeResource ScrollViewerScrollBarSeparatorBackground}" />
 
             </Grid>
         </Border>

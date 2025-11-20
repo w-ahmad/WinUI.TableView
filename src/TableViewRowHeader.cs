@@ -1,8 +1,8 @@
-﻿using CommunityToolkit.WinUI;
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using Windows.Foundation;
+using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView;
 
@@ -12,7 +12,6 @@ namespace WinUI.TableView;
 public partial class TableViewRowHeader : ContentControl
 {
     private ContentPresenter? _contentPresenter;
-    private TableViewCellsPresenter? _cellPresenter;
 
     /// <summary>
     /// Initializes a new instance of the TableViewRowHeader class.
@@ -46,7 +45,7 @@ public partial class TableViewRowHeader : ContentControl
 
             element?.Measure(availableSize: new Size(double.PositiveInfinity, double.PositiveInfinity));
 
-            var desiredWidth = Math.Clamp(GetContentDesiredWidth(element), TableView.RowHeaderMinWidth, TableView.RowHeaderMaxWidth);
+            var desiredWidth = GetContentDesiredWidth(element);
             TableView?.SetValue(TableView.RowHeaderActualWidthProperty, desiredWidth);
 
             #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860
@@ -80,7 +79,6 @@ public partial class TableViewRowHeader : ContentControl
         desiredWidth += BorderThickness.Right;
         desiredWidth = TableView.RowHeaderWidth is double.NaN ? desiredWidth : TableView.RowHeaderWidth;
         desiredWidth = Math.Max(TableView.RowHeaderActualWidth, desiredWidth);
-        desiredWidth = Math.Clamp(desiredWidth, TableView.RowHeaderMinWidth, TableView.RowHeaderMaxWidth);
 
         return desiredWidth;
     }
@@ -99,9 +97,8 @@ public partial class TableViewRowHeader : ContentControl
 
     private double GetContentHeight(FrameworkElement? element)
     {
-        var rowHeight = TableViewRow?.Height is double.NaN ? double.PositiveInfinity : TableViewRow?.Height ?? 0;
-        var rowMaxHeight = TableViewRow?.MaxHeight ?? double.PositiveInfinity;
-        var contentHeight = Math.Min(rowHeight, rowMaxHeight);
+        var height = Height is double.NaN ? double.PositiveInfinity : Height;
+        var contentHeight = Math.Min(height, MaxHeight);
         contentHeight -= element?.Margin.Top ?? 0;
         contentHeight -= element?.Margin.Bottom ?? 0;
         contentHeight -= Padding.Top;
@@ -113,12 +110,12 @@ public partial class TableViewRowHeader : ContentControl
     }
 
     /// <summary>
-    /// Retrieves the height of the horizontal gridline.
+    /// Gets the height of the horizontal gridlines.
     /// </summary>
     private double GetHorizontalGridlineHeight()
     {
-        _cellPresenter ??= this?.FindAscendant<TableViewCellsPresenter>();
-        return _cellPresenter?.GetHorizontalGridlineHeight() ?? 0d;
+        return TableView?.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Horizontal
+            ? TableView.HorizontalGridLinesStrokeThickness : 0d;
     }
 
     /// <summary>

@@ -44,4 +44,29 @@ public partial class TableViewTextColumn : TableViewBoundColumn
 #endif
         return textBox;
     }
+
+    /// <inheritdoc/>
+    protected internal override object? PrepareCellForEdit(TableViewCell cell, RoutedEventArgs routedEvent)
+    {
+        if (cell.Content is TextBox textBox)
+        {
+            textBox.SelectAll();
+            return textBox.Text;
+        }
+
+        return base.PrepareCellForEdit(cell, routedEvent);
+    }
+
+    /// <inheritdoc/>
+    protected internal override void EndCellEditing(TableViewCell cell, object? dataItem, TableViewEditAction editAction, object? uneditedValue)
+    {
+        if (cell.Content is TextBox textBox)
+        {
+            if (editAction == TableViewEditAction.Commit)
+            {
+                var bindingExpression = textBox.GetBindingExpression(TextBox.TextProperty);
+                bindingExpression?.UpdateSource();
+            }
+        }
+    }
 }

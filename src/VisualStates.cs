@@ -308,6 +308,41 @@ internal static class VisualStates
     /// </summary>
     public const string GroupCornerButton = "CornerButtonStates";
 
+    // Group Row Details
+
+    /// <summary>
+    /// Row details are visible state
+    /// </summary>
+    public const string StateDetailsVisible = "DetailsVisible";
+
+    /// <summary>
+    /// Row details are collapsed state
+    /// </summary>
+    public const string StateDetailsCollapsed = "DetailsCollapsed";
+
+    /// <summary>
+    /// Row details state group
+    /// </summary>
+    public const string GroupRowDetails = "DetailsStates";
+
+    // Group Row Details Button
+
+    /// <summary>
+    /// Row details are visible state
+    /// </summary>
+    public const string StateDetailsButtonVisible = "DetailsButtonVisible";
+
+    /// <summary>
+    /// Row details are collapsed state
+    /// </summary>
+    public const string StateDetailsButtonCollapsed = "DetailsButtonCollapsed";
+
+    /// <summary>
+    /// Row details button state group
+    /// </summary>
+    public const string GroupRowDetailsButton = "DetailsButtonStates";
+
+
     /// <summary>
     /// Use VisualStateManager to change the visual state of the control.
     /// </summary>

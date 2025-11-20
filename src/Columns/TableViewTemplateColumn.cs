@@ -30,6 +30,8 @@ public partial class TableViewTemplateColumn : TableViewColumn
     {
         return new ContentControl
         {
+            VerticalContentAlignment = VerticalAlignment.Stretch,
+            HorizontalContentAlignment = HorizontalAlignment.Stretch,
             ContentTemplate = CellTemplateSelector?.SelectTemplate(dataItem) ?? CellTemplate
         };
     }
@@ -47,6 +49,8 @@ public partial class TableViewTemplateColumn : TableViewColumn
         {
             return new ContentControl
             {
+                VerticalContentAlignment = VerticalAlignment.Stretch,
+                HorizontalContentAlignment = HorizontalAlignment.Stretch,
                 ContentTemplate = EditingTemplateSelector?.SelectTemplate(dataItem) ?? EditingTemplate
             };
         }

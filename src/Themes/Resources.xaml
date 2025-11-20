@@ -1,6 +1,10 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:converters="using:WinUI.TableView.Converters">
+                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                    xmlns:converters="using:WinUI.TableView.Converters"
+                    xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
+                    xmlns:not_win="http://uno.ui/not_win"
+                    mc:Ignorable="not_win">
     
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
@@ -19,6 +23,8 @@
             <x:Boolean x:Key="TableViewRowSelectionCheckMarkVisualEnabled">True</x:Boolean>
             <x:Boolean x:Key="TableViewRowSelectionIndicatorVisualEnabled">True</x:Boolean>
             <Thickness x:Key="TableViewCellSelectionBorderThickness">2</Thickness>
+            <Thickness x:Key="TableViewDetailsPadding">8</Thickness>
+            <Thickness x:Key="TableViewDetailsToggleButtonMargin">4,2,4,2</Thickness>
             <CornerRadius x:Key="TableViewRowCellSelectionBorderCornerRadius">4</CornerRadius>
             <CornerRadius x:Key="TableViewRowCornerRadius">4</CornerRadius>
             <CornerRadius x:Key="TableViewRowCheckBoxCornerRadius">3</CornerRadius>
@@ -67,7 +73,8 @@
             <StaticResource x:Key="TableViewRowSelectionIndicatorPressedBrush" ResourceKey="AccentFillColorDefaultBrush" />
             <StaticResource x:Key="TableViewRowSelectionIndicatorDisabledBrush" ResourceKey="AccentFillColorDisabledBrush" />
             <StaticResource x:Key="TableViewHorizontalGridLineStroke" ResourceKey="CardStrokeColorDefaultBrush" />
-            <StaticResource x:Key="TableViewVerticalGridLineStroke" ResourceKey="CardStrokeColorDefaultBrush" />            
+            <StaticResource x:Key="TableViewVerticalGridLineStroke" ResourceKey="CardStrokeColorDefaultBrush" />
+            <SolidColorBrush x:Key="TableViewRowDetailsBackgroundBrush" Color="{StaticResource CardBackgroundFillColorSecondary}" />
         </ResourceDictionary>
         
         <ResourceDictionary x:Key="Dark">
@@ -86,6 +93,8 @@
             <x:Boolean x:Key="TableViewRowSelectionCheckMarkVisualEnabled">True</x:Boolean>
             <x:Boolean x:Key="TableViewRowSelectionIndicatorVisualEnabled">True</x:Boolean>
             <Thickness x:Key="TableViewCellSelectionBorderThickness">2</Thickness>
+            <Thickness x:Key="TableViewDetailsPadding">8</Thickness>
+            <Thickness x:Key="TableViewDetailsToggleButtonMargin">4,2,4,2</Thickness>
             <CornerRadius x:Key="TableViewRowCellSelectionBorderCornerRadius">4</CornerRadius>
             <CornerRadius x:Key="TableViewRowCornerRadius">4</CornerRadius>
             <CornerRadius x:Key="TableViewRowCheckBoxCornerRadius">3</CornerRadius>
@@ -135,6 +144,7 @@
             <StaticResource x:Key="TableViewRowSelectionIndicatorDisabledBrush" ResourceKey="AccentFillColorDisabledBrush" />
             <StaticResource x:Key="TableViewHorizontalGridLineStroke" ResourceKey="ControlStrokeColorDefaultBrush" />
             <StaticResource x:Key="TableViewVerticalGridLineStroke" ResourceKey="ControlStrokeColorDefaultBrush" />
+            <SolidColorBrush x:Key="TableViewRowDetailsBackgroundBrush" Color="{StaticResource CardBackgroundFillColorSecondary}" />
         </ResourceDictionary>
 
         <ResourceDictionary x:Key="HighContrast">
@@ -153,6 +163,8 @@
             <x:Boolean x:Key="TableViewRowSelectionCheckMarkVisualEnabled">True</x:Boolean>
             <x:Boolean x:Key="TableViewRowSelectionIndicatorVisualEnabled">True</x:Boolean>
             <Thickness x:Key="TableViewCellSelectionBorderThickness">2</Thickness>
+            <Thickness x:Key="TableViewDetailsPadding">8</Thickness>
+            <Thickness x:Key="TableViewDetailsToggleButtonMargin">4,2,4,2</Thickness>
             <CornerRadius x:Key="TableViewRowCellSelectionBorderCornerRadius">4</CornerRadius>
             <CornerRadius x:Key="TableViewRowCornerRadius">4</CornerRadius>
             <CornerRadius x:Key="TableViewRowCheckBoxCornerRadius">3</CornerRadius>
@@ -172,6 +184,7 @@
             <SolidColorBrush x:Key="TableViewRowBackgroundSelectedPressed" Color="{ThemeResource SystemColorHighlightColor}" />
             <SolidColorBrush x:Key="TableViewRowForeground" Color="{ThemeResource SystemColorButtonTextColor}" />
             <SolidColorBrush x:Key="TableViewRowForegroundPointerOver" Color="{ThemeResource SystemColorHighlightTextColor}" />
+            <SolidColorBrush x:Key="TableViewRowForegroundSelected" Color="{ThemeResource SystemColorHighlightTextColor}" />
             <SolidColorBrush x:Key="TableViewRowFocusVisualPrimaryBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
             <SolidColorBrush x:Key="TableViewRowFocusVisualSecondaryBrush" Color="{ThemeResource SystemColorWindowColor}" />
             <SolidColorBrush x:Key="TableViewRowFocusBorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
@@ -201,7 +214,250 @@
             <SolidColorBrush x:Key="TableViewRowSelectionIndicatorDisabledBrush" Color="{ThemeResource SystemColorGrayTextColor}" />
             <StaticResource x:Key="TableViewHorizontalGridLineStroke" ResourceKey="SystemColorButtonTextColorBrush" />
             <StaticResource x:Key="TableViewVerticalGridLineStroke" ResourceKey="SystemColorButtonTextColorBrush" />
+            <SolidColorBrush x:Key="TableViewRowDetailsBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
-    
+
+    <Style x:Key="DetailsExpanderToggleButtonStyle"
+           TargetType="ToggleButton">
+        <Setter Property="Padding" Value="2" />
+        <Setter Property="CornerRadius" Value="{ThemeResource ControlCornerRadius}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Grid x:Name="ToggleButtonGrid"
+                          CornerRadius="{TemplateBinding CornerRadius}"
+                          Background="{TemplateBinding Background}"
+                          Padding="{TemplateBinding Padding}">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal">
+
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ToggleButtonGrid"
+                                                                       Storyboard.TargetProperty="BorderBrush">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="{ThemeResource ExpanderHeaderBorderBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ExpandCollapseChevron"
+                                                                       Storyboard.TargetProperty="Foreground">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="{ThemeResource ExpanderChevronForeground}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ToggleButtonGrid"
+                                                                       Storyboard.TargetProperty="Background">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="{ThemeResource ExpanderChevronBackground}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+
+                                <VisualState x:Name="PointerOver">
+
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ToggleButtonGrid"
+                                                                       Storyboard.TargetProperty="BorderBrush">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="{ThemeResource ExpanderHeaderBorderPointerOverBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ExpandCollapseChevron"
+                                                                       Storyboard.TargetProperty="Foreground">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="{ThemeResource ExpanderChevronPointerOverForeground}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ToggleButtonGrid"
+                                                                       Storyboard.TargetProperty="Background">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="{ThemeResource ExpanderChevronPointerOverBackground}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                    <VisualState.Setters>
+                                        <Setter Target="ExpandCollapseChevron.(AnimatedIcon.State)"
+                                                Value="PointerOverOff" />
+
+                                    </VisualState.Setters>
+                                </VisualState>
+
+                                <VisualState x:Name="Pressed">
+
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ToggleButtonGrid"
+                                                                       Storyboard.TargetProperty="BorderBrush">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="{ThemeResource ExpanderHeaderBorderPressedBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ExpandCollapseChevron"
+                                                                       Storyboard.TargetProperty="Foreground">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="{ThemeResource ExpanderChevronPressedForeground}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ToggleButtonGrid"
+                                                                       Storyboard.TargetProperty="Background">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="{ThemeResource ExpanderChevronPressedBackground}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                    <VisualState.Setters>
+                                        <Setter Target="ExpandCollapseChevron.(AnimatedIcon.State)"
+                                                Value="PressedOff" />
+
+                                    </VisualState.Setters>
+                                </VisualState>
+
+                                <VisualState x:Name="Disabled">
+
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ToggleButtonGrid"
+                                                                       Storyboard.TargetProperty="BorderBrush">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="{ThemeResource ExpanderHeaderDisabledBorderBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ExpandCollapseChevron"
+                                                                       Storyboard.TargetProperty="Foreground">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="{ThemeResource ExpanderHeaderDisabledForeground}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ToggleButtonGrid"
+                                                                       Storyboard.TargetProperty="Background">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="{ThemeResource ExpanderChevronBackground}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+
+                                <VisualState x:Name="Checked">
+
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ToggleButtonGrid"
+                                                                       Storyboard.TargetProperty="BorderBrush">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="{ThemeResource ExpanderHeaderBorderBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ExpandCollapseChevron"
+                                                                       Storyboard.TargetProperty="Foreground">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="{ThemeResource ExpanderChevronForeground}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ToggleButtonGrid"
+                                                                       Storyboard.TargetProperty="Background">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="{ThemeResource ExpanderChevronBackground}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                    <VisualState.Setters>
+                                        <Setter Target="ExpandCollapseChevron.(AnimatedIcon.State)"
+                                                Value="NormalOn" />
+
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="CheckedPointerOver">
+
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ToggleButtonGrid"
+                                                                       Storyboard.TargetProperty="BorderBrush">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="{ThemeResource ExpanderHeaderBorderPointerOverBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ExpandCollapseChevron"
+                                                                       Storyboard.TargetProperty="Foreground">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="{ThemeResource ExpanderChevronPointerOverForeground}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ToggleButtonGrid"
+                                                                       Storyboard.TargetProperty="Background">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="{ThemeResource ExpanderChevronPointerOverBackground}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                    <VisualState.Setters>
+                                        <Setter Target="ExpandCollapseChevron.(AnimatedIcon.State)"
+                                                Value="PointerOverOn" />
+
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="CheckedPressed">
+
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ToggleButtonGrid"
+                                                                       Storyboard.TargetProperty="BorderBrush">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="{ThemeResource ExpanderHeaderBorderPressedBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ExpandCollapseChevron"
+                                                                       Storyboard.TargetProperty="Foreground">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="{ThemeResource ExpanderChevronPressedForeground}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ToggleButtonGrid"
+                                                                       Storyboard.TargetProperty="Background">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="{ThemeResource ExpanderChevronPressedBackground}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                    <VisualState.Setters>
+                                        <Setter Target="ExpandCollapseChevron.(AnimatedIcon.State)"
+                                                Value="PressedOn" />
+
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="CheckedDisabled">
+
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ToggleButtonGrid"
+                                                                       Storyboard.TargetProperty="BorderBrush">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="{ThemeResource ExpanderHeaderDisabledBorderBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ExpandCollapseChevron"
+                                                                       Storyboard.TargetProperty="Foreground">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="{ThemeResource ExpanderHeaderDisabledForeground}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ToggleButtonGrid"
+                                                                       Storyboard.TargetProperty="Background">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="{ThemeResource ExpanderChevronBackground}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                    <VisualState.Setters>
+                                        <Setter Target="ExpandCollapseChevron.(AnimatedIcon.State)"
+                                                Value="NormalOn" />
+
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Indeterminate" />
+                                <VisualState x:Name="IndeterminatePointerOver" />
+                                <VisualState x:Name="IndeterminatePressed" />
+                                <VisualState x:Name="IndeterminateDisabled" />
+
+                            </VisualStateGroup>
+
+                        </VisualStateManager.VisualStateGroups>
+
+                        <AnimatedIcon Width="{StaticResource ExpanderChevronGlyphSize}"
+                                      Height="{StaticResource ExpanderChevronGlyphSize}"
+                                      x:Name="ExpandCollapseChevron"
+                                      RenderTransformOrigin="0.5, 0.5"
+                                      Foreground="{ThemeResource ExpanderChevronForeground}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      AutomationProperties.AccessibilityView="Raw"
+                                      local:AnimatedIcon.State="NormalOff"
+                                      xmlns:local="using:Microsoft.UI.Xaml.Controls">
+                            <animatedvisuals:AnimatedChevronUpDownSmallVisualSource />
+                            <AnimatedIcon.FallbackIconSource>
+                                <FontIconSource Glyph="{StaticResource ExpanderChevronDownGlyph}"
+                                                FontFamily="{StaticResource SymbolThemeFontFamily}"
+                                                FontSize="12"
+                                                IsTextScaleFactorEnabled="False" />
+                            </AnimatedIcon.FallbackIconSource>
+                            <AnimatedIcon.RenderTransform />
+                        </AnimatedIcon>
+                    </Grid>
+
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
 </ResourceDictionary>

@@ -1,4 +1,7 @@
 ﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Data;
+using System;
+using WinUI.TableView.Extensions;
 using SD = WinUI.TableView.SortDirection;
 
 namespace WinUI.TableView;
@@ -15,6 +18,7 @@ public abstract partial class TableViewColumn : DependencyObject
     private SD? _sortDirection;
     private bool _isFiltered;
     private bool _isFrozen;
+    private Func<object, object?>? _funcCompiledPropertyPath;
 
     /// <summary>
     /// Generates a display element for the cell.
@@ -38,6 +42,29 @@ public abstract partial class TableViewColumn : DependencyObject
     /// <param name="cell">The cell for which the element is refreshed.</param>
     /// <param name="dataItem">The data item associated with the cell.</param>
     public virtual void RefreshElement(TableViewCell cell, object? dataItem) { }
+
+    /// <summary>
+    /// Called to prepare the cell for editing.
+    /// </summary>
+    /// <param name="cell">The cell to prepare for editing.</param>
+    /// <param name="routedEvent">The routed event.</param>
+    /// <returns>Should return the unedited cell value.</returns>
+    protected internal virtual object? PrepareCellForEdit(TableViewCell cell, RoutedEventArgs routedEvent)
+    {
+        return default;
+    }
+
+    /// <summary>
+    /// Called to end the editing session for the cell.
+    /// </summary>
+    /// <param name="cell">The cell whose editing session is being ended.</param>
+    /// <param name="dataItem">The data item associated with the cell.</param>
+    /// <param name="editAction">The edit action.</param>
+    /// <param name="uneditedValue">The unedited value of the cell.</param>
+    protected internal virtual void EndCellEditing(TableViewCell cell, object? dataItem, TableViewEditAction editAction, object? uneditedValue)
+    {
+        // Nothing to do here by default. Derived classes can override to commit changes if needed.
+    }
 
     /// <summary>
     /// Updates the state of the element for the cell.
@@ -72,6 +99,34 @@ public abstract partial class TableViewColumn : DependencyObject
     public virtual object? GetCellContent(object? dataItem)
     {
         return default;
+    }
+
+    /// <summary>
+    /// Gets the clipboard content of the cell for the specified data item.
+    /// </summary>
+    /// <param name="dataItem">The data item.</param>
+    /// <returns>The clipboard content of the cell.</returns>
+    public virtual object? GetClipboardContent(object? dataItem)
+    {
+        if (dataItem is null)
+            return null;
+
+        if (_funcCompiledPropertyPath is null && !string.IsNullOrWhiteSpace(ClipboardContentBindingPropertyPath))
+            _funcCompiledPropertyPath = dataItem.GetFuncCompiledPropertyPath(ClipboardContentBindingPropertyPath!);
+
+        if (_funcCompiledPropertyPath is not null)
+            dataItem = _funcCompiledPropertyPath(dataItem);
+
+        if (ClipboardContentBinding?.Converter is not null)
+        {
+            dataItem = ClipboardContentBinding.Converter.Convert(
+                dataItem,
+                typeof(object),
+                ClipboardContentBinding.ConverterParameter,
+                ClipboardContentBinding.ConverterLanguage);
+        }
+
+        return dataItem;
     }
 
     /// <summary>
@@ -146,7 +201,6 @@ public abstract partial class TableViewColumn : DependencyObject
         set => SetValue(HeaderStyleProperty, value);
     }
 
-
     /// <summary>
     /// Gets or sets the style that is used to render cells in the column.
     /// </summary>
@@ -212,6 +266,15 @@ public abstract partial class TableViewColumn : DependencyObject
     {
         get => (int?)GetValue(OrderProperty);
         set => SetValue(OrderProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the column can be reordered.
+    /// </summary>
+    public bool CanReorder
+    {
+        get => (bool)GetValue(CanReorderProperty);
+        set => SetValue(CanReorderProperty, value);
     }
 
     internal TableViewColumnsCollection? OwningCollection { get; set; }
@@ -283,6 +346,16 @@ public abstract partial class TableViewColumn : DependencyObject
             }
         }
     }
+
+    /// <summary>
+    /// Gets or sets the data binding used to retrieve cell content when copying to the clipboard.
+    /// </summary>
+    public virtual Binding? ClipboardContentBinding { get; set; }
+
+    /// <summary>
+    /// Gets the property path for the <see cref="ClipboardContentBinding"/>.
+    /// </summary>
+    internal string? ClipboardContentBindingPropertyPath => ClipboardContentBinding?.Path?.Path;
 
     /// <summary>
     /// Gets the owning TableView for the column.
@@ -433,4 +506,9 @@ public abstract partial class TableViewColumn : DependencyObject
     /// Identifies the Order dependency property.
     /// </summary>
     public static readonly DependencyProperty OrderProperty = DependencyProperty.Register(nameof(Order), typeof(int?), typeof(TableViewColumn), new PropertyMetadata(null, OnPropertyChanged));
+
+    /// <summary>
+    /// Identifies the CanReorder dependency property.
+    /// </summary>
+    public static readonly DependencyProperty CanReorderProperty = DependencyProperty.Register(nameof(CanReorder), typeof(bool), typeof(TableViewColumn), new PropertyMetadata(true));
 }

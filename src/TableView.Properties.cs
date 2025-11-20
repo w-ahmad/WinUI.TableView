@@ -226,6 +226,35 @@ public partial class TableView
     public static readonly DependencyProperty FrozenColumnCountProperty = DependencyProperty.Register(nameof(FrozenColumnCount), typeof(int), typeof(TableView), new PropertyMetadata(0, OnFrozenColumnCountChanged));
 
     /// <summary>
+    /// Identifies the RowDetailsVisibilityMode dependency property.
+    /// </summary>
+    public static readonly DependencyProperty RowDetailsVisibilityModeProperty = DependencyProperty.Register(nameof(RowDetailsVisibilityMode), typeof(TableViewRowDetailsVisibilityMode), typeof(TableView), new PropertyMetadata(TableViewRowDetailsVisibilityMode.VisibleWhenExpanded, OnRowDetailsVisibilityModeChanged));
+
+    /// <summary>
+    /// Identifies the RowDetailsTemplate dependency property.
+    /// </summary>
+    public static readonly DependencyProperty RowDetailsTemplateProperty = DependencyProperty.Register(nameof(RowDetailsTemplate), typeof(DataTemplate), typeof(TableView), new PropertyMetadata(null, OnRowDetailsTemplateChanged));
+
+    /// <summary>
+    /// Identifies the RowDetailsTemplateSelector dependency property.
+    /// </summary>
+    public static readonly DependencyProperty RowDetailsTemplateSelectorProperty = DependencyProperty.Register(nameof(RowDetailsTemplateSelector), typeof(DataTemplateSelector), typeof(TableView), new PropertyMetadata(null, OnRowDetailsTemplateChanged));
+
+    /// <summary>
+    /// Identifies the AreRowDetailsFrozen dependency property.
+    /// </summary>
+    public static readonly DependencyProperty AreRowDetailsFrozenProperty = DependencyProperty.Register(nameof(AreRowDetailsFrozen), typeof(bool), typeof(TableView), new PropertyMetadata(false, OnAreRowDetailsFrozen));
+
+    /// <summary>
+    /// Identifies the CellsVerticalOffset dependency property.
+    /// </summary>
+    public static readonly DependencyProperty CellsHorizontalOffsetProperty = DependencyProperty.Register(nameof(CellsHorizontalOffset), typeof(double), typeof(TableView), new PropertyMetadata(16d));
+
+    /// <summary>
+    /// Identifies the CanReorderColumns dependency property.
+    /// </summary>
+    public static readonly DependencyProperty CanReorderColumnsProperty = DependencyProperty.Register(nameof(CanReorderColumns), typeof(bool), typeof(TableView), new PropertyMetadata(true));
+    /// <summary>
     /// Gets or sets a value indicating whether opening the column filter over header right-click is enabled.
     /// </summary>
     public bool UseRightClickForColumnFilter
@@ -248,6 +277,15 @@ public partial class TableView
     /// Gets the collection of filter descriptions applied to the items.
     /// </summary>
     public IList<FilterDescription> FilterDescriptions => _collectionView.FilterDescriptions;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether live shaping is enabled.
+    /// </summary>
+    public bool AllowLiveShaping
+    {
+        get => _collectionView.AllowLiveShaping;
+        set => _collectionView.AllowLiveShaping = value;
+    }
 
     /// <summary>
     /// Gets or sets the last selection unit used.
@@ -662,6 +700,60 @@ public partial class TableView
     }
 
     /// <summary>
+    /// Gets or sets the visibility mode of the row details.
+    /// </summary>
+    public TableViewRowDetailsVisibilityMode RowDetailsVisibilityMode
+    {
+        get => (TableViewRowDetailsVisibilityMode)GetValue(RowDetailsVisibilityModeProperty);
+        set => SetValue(RowDetailsVisibilityModeProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the data template for the row details.
+    /// </summary>
+    public DataTemplate? RowDetailsTemplate
+    {
+        get => (DataTemplate?)GetValue(RowDetailsTemplateProperty);
+        set => SetValue(RowDetailsTemplateProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the data template selector for the row details.
+    /// </summary>
+    public DataTemplateSelector RowDetailsTemplateSelector
+    {
+        get => (DataTemplateSelector)GetValue(RowDetailsTemplateSelectorProperty);
+        set => SetValue(RowDetailsTemplateSelectorProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the row details are frozen during horizontal scrolling.
+    /// </summary>
+    public bool AreRowDetailsFrozen
+    {
+        get => (bool)GetValue(AreRowDetailsFrozenProperty);
+        set => SetValue(AreRowDetailsFrozenProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the horizontal offset for the cells.
+    /// </summary>
+    public double CellsHorizontalOffset
+    {
+        get => (double)GetValue(CellsHorizontalOffsetProperty);
+        internal set => SetValue(CellsHorizontalOffsetProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether columns can be reordered by dragging headers.
+    /// </summary>
+    public bool CanReorderColumns
+    {
+        get => (bool)GetValue(CanReorderColumnsProperty);
+        set => SetValue(CanReorderColumnsProperty, value);
+    }
+
+    /// <summary>
     /// Handles changes to the ItemsSource property.
     /// </summary>
     private static void OnItemsSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -736,7 +828,7 @@ public partial class TableView
     {
         if (d is TableView tableView)
         {
-            tableView.IsReadOnlyChanged?.Invoke(d, e);
+            tableView.OnIsReadOnlyChanged(e);
 
             if ((tableView.SelectionMode is ListViewSelectionMode.None
                 || tableView.SelectionUnit is TableViewSelectionUnit.Row)
@@ -849,7 +941,7 @@ public partial class TableView
     {
         if (d is not TableView tableView) return;
 
-        tableView.CurrentCellChanged?.Invoke(d, e);
+        tableView.OnCurrentCellChanged(e);
 
         var oldSlot = e.OldValue as TableViewCellSlot?;
         var newSlot = e.NewValue as TableViewCellSlot?;
@@ -868,7 +960,7 @@ public partial class TableView
 
             foreach (var row in tableView._rows)
             {
-                row?.CellPresenter?.InvalidateArrange();
+                row?.RowPresenter?.InvalidateArrange();
             }
         }
     }
@@ -882,11 +974,9 @@ public partial class TableView
         {
             await Task.Yield();
 
-            tableView._headerRow?.SetRowHeaderWidth();
-
             foreach (var row in tableView._rows)
             {
-                row.CellPresenter?.SetRowHeaderWidth();
+                row.RowPresenter?.SetRowHeaderWidth();
             }
         }
     }
@@ -914,7 +1004,7 @@ public partial class TableView
 
             foreach (var row in tableView._rows)
             {
-                row.CellPresenter?.SetRowHeaderTemplate();
+                row.RowPresenter?.SetRowHeaderTemplate();
             }
         }
     }
@@ -932,6 +1022,49 @@ public partial class TableView
             if (tableView.Columns is TableViewColumnsCollection columnsCollection)
             {
                 columnsCollection.UpdateFrozenColumns();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the RowDetailsVisibilityMode property.
+    /// </summary>
+    private static void OnRowDetailsVisibilityModeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            foreach (var row in tableView._rows)
+            {
+                row.RowPresenter?.SetRowHeaderVisibility();
+                row.RowPresenter?.SetRowDetailsVisibility();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the RowDetailsTemplate and RowDetailsTemplateSelector properties.
+    /// </summary>
+    private static void OnRowDetailsTemplateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            foreach (var row in tableView._rows)
+            {
+                row.RowPresenter?.SetRowDetailsTemplate();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the AreRowDetailsFrozen property.
+    /// </summary>
+    private static void OnAreRowDetailsFrozen(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            foreach (var row in tableView._rows)
+            {
+                row.RowPresenter?.InvalidateArrange();
             }
         }
     }
