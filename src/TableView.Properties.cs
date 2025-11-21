@@ -311,6 +311,11 @@ public partial class TableView
     public static readonly DependencyProperty ShowDragRectangleProperty = DependencyProperty.Register(nameof(ShowDragRectangle), typeof(bool), typeof(TableView), new PropertyMetadata(true, OnShowDragRectangleChanged));
 
     /// <summary>
+    /// Identifies the <see cref="UseListViewHotkeys"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty UseListViewHotkeysProperty = DependencyProperty.Register(nameof(UseListViewHotkeys), typeof(bool), typeof(TableView), new PropertyMetadata(false));
+
+    /// <summary>
     /// Gets or sets a value indicating whether opening the column filter over header right-click is enabled.
     /// </summary>
     public bool UseRightClickForColumnFilter
@@ -867,6 +872,15 @@ public partial class TableView
     {
         get => (bool)GetValue(CanReorderColumnsProperty);
         set => SetValue(CanReorderColumnsProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether the TableView should use ListView like hotkeys for navigation and selection.
+    /// </summary>
+    public bool UseListViewHotkeys
+    {
+        get => (bool)GetValue(UseListViewHotkeysProperty);
+        set => SetValue(UseListViewHotkeysProperty, value);
     }
 
     /// <summary>
