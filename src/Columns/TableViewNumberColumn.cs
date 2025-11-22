@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView;
 
@@ -65,6 +66,8 @@ public partial class TableViewNumberColumn : TableViewBoundColumn
         {
             if (editAction == TableViewEditAction.Commit)
             {
+                numberBox.UpdateValue();
+
                 var bindingExpression = numberBox.GetBindingExpression(NumberBox.ValueProperty);
                 bindingExpression?.UpdateSource();
             }
