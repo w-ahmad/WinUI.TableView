@@ -55,6 +55,7 @@ public partial class TableView : ListView
         RegisterPropertyChangedCallback(ListViewBase.SelectionModeProperty, OnBaseSelectionModeChanged);
         Loaded += OnLoaded;
         SelectionChanged += TableView_SelectionChanged;
+        _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
     }
 
     /// <summary>
@@ -84,6 +85,16 @@ public partial class TableView : ListView
         }
     }
 
+    /// <summary>
+    /// Handles the PropertyChanged event of an item in the TableView.
+    /// </summary>
+    private void OnItemPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        var row = ContainerFromItem(sender) as TableViewRow;
+
+        row?.EnsureCellsStyle(default, sender);
+    }
+
     /// <inheritdoc/>
     protected override void PrepareContainerForItemOverride(DependencyObject element, object item)
     {
@@ -93,6 +104,7 @@ public partial class TableView : ListView
         {
             if (element is TableViewRow row)
             {
+                row.EnsureCellsStyle(default, item);
                 row.ApplyCellsSelectionState();
 
                 if (CurrentCellSlot.HasValue)

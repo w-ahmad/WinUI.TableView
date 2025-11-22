@@ -371,6 +371,8 @@ public partial class TableViewRowPresenter : Control
 
             _scrollableCellsPanel.Children.Insert(index, cell);
         }
+
+        cell.EnsureStyle(TableViewRow?.Content);
     }
 
     /// <summary>
