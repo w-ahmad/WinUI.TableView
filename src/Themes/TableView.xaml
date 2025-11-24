@@ -19,12 +19,14 @@
                 Value="{ThemeResource ContentControlThemeFontFamily}" />
         <Setter Property="FontSize"
                 Value="{ThemeResource ControlContentThemeFontSize}" />
+        <Setter Property="RowMinHeight"
+                Value="{ThemeResource ListViewItemMinHeight}" />
         <Setter Property="IsTabStop"
                 Value="False" />
         <Setter Property="TabNavigation"
                 Value="Cycle" />
         <win:Setter Property="IsSwipeEnabled"
-                Value="False" />
+                    Value="False" />
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility"
                 Value="Auto" />
         <Setter Property="ScrollViewer.VerticalScrollBarVisibility"
@@ -32,15 +34,15 @@
         <Setter Property="ScrollViewer.HorizontalScrollMode"
                 Value="Auto" />
         <win:Setter Property="ScrollViewer.IsHorizontalRailEnabled"
-                Value="True" />
+                    Value="True" />
         <Setter Property="ScrollViewer.VerticalScrollMode"
                 Value="Enabled" />
         <win:Setter Property="ScrollViewer.IsVerticalRailEnabled"
-                Value="True" />
+                    Value="True" />
         <Setter Property="ScrollViewer.ZoomMode"
                 Value="Disabled" />
         <win:Setter Property="ScrollViewer.IsDeferredScrollingEnabled"
-                Value="False" />
+                    Value="False" />
         <Setter Property="ScrollViewer.BringIntoViewOnFocusChange"
                 Value="True" />
         <Setter Property="UseSystemFocusVisuals"
@@ -94,7 +96,8 @@
                             CornerRadius="{TemplateBinding CornerRadius}">
                         <Grid>
                             <Grid.RowDefinitions>
-                                <RowDefinition x:Name="HeaderRowDefinition" Height="Auto" />
+                                <RowDefinition x:Name="HeaderRowDefinition"
+                                               Height="Auto" />
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
 
