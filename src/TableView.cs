@@ -107,11 +107,15 @@ public partial class TableView : ListView
     protected override DependencyObject GetContainerForItemOverride()
     {
         var row = new TableViewRow { TableView = this };
-        _rows.Add(row);
 
+        // Set bindings for FontFamily and FontSize to propagate from TableView to TableViewRow
+        row.SetBinding(FontFamilyProperty, new Binding { Path = new("TableView.FontFamily"), RelativeSource = new() { Mode = RelativeSourceMode.Self } });
+        row.SetBinding(FontSizeProperty, new Binding { Path = new("TableView.FontSize"), RelativeSource = new() { Mode = RelativeSourceMode.Self } });
+
+        _rows.Add(row);
         return row;
     }
-
+        
     /// <inheritdoc/>
     protected override async void OnKeyDown(KeyRoutedEventArgs e)
     {
