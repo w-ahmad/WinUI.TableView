@@ -62,7 +62,6 @@
                                 BorderThickness="{ThemeResource TableViewCellSelectionBorderThickness}"
                                 CornerRadius="{ThemeResource TableViewRowCellSelectionBorderCornerRadius}" />
                         <Border x:Name="RootBorder"
-                                Margin="{ThemeResource TableViewCellSelectionBorderThickness}"
                                 CornerRadius="{ThemeResource TableViewRowCellSelectionBorderCornerRadius}">
                             <ContentPresenter x:Name="Content"
                                               Margin="{TemplateBinding Padding}"

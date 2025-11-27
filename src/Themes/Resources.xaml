@@ -17,7 +17,6 @@
             <x:Double x:Key="TableViewRowDragThemeOpacity">0.80</x:Double>
             <x:Double x:Key="TableViewRowReorderHintThemeOffset">10.0</x:Double>
             <x:Double x:Key="TableViewRowMinWidth">88</x:Double>
-            <x:Double x:Key="TableViewRowMinHeight">40</x:Double>
             <x:Double x:Key="TableViewHorizontalGridLineStrokeThickness">1</x:Double>
             <x:Double x:Key="TableViewVerticalGridLineStrokeThickness">1</x:Double>
             <x:Boolean x:Key="TableViewRowSelectionCheckMarkVisualEnabled">True</x:Boolean>
@@ -87,7 +86,6 @@
             <x:Double x:Key="TableViewRowDragThemeOpacity">0.80</x:Double>
             <x:Double x:Key="TableViewRowReorderHintThemeOffset">10.0</x:Double>
             <x:Double x:Key="TableViewRowMinWidth">88</x:Double>
-            <x:Double x:Key="TableViewRowMinHeight">40</x:Double>
             <x:Double x:Key="TableViewHorizontalGridLineStrokeThickness">1</x:Double>
             <x:Double x:Key="TableViewVerticalGridLineStrokeThickness">1</x:Double>
             <x:Boolean x:Key="TableViewRowSelectionCheckMarkVisualEnabled">True</x:Boolean>
@@ -157,7 +155,6 @@
             <x:Double x:Key="TableViewRowDragThemeOpacity">0.80</x:Double>
             <x:Double x:Key="TableViewRowReorderHintThemeOffset">10.0</x:Double>
             <x:Double x:Key="TableViewRowMinWidth">88</x:Double>
-            <x:Double x:Key="TableViewRowMinHeight">40</x:Double>
             <x:Double x:Key="TableViewHorizontalGridLineStrokeThickness">1</x:Double>
             <x:Double x:Key="TableViewVerticalGridLineStrokeThickness">1</x:Double>
             <x:Boolean x:Key="TableViewRowSelectionCheckMarkVisualEnabled">True</x:Boolean>
