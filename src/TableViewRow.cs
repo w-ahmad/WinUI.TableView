@@ -35,7 +35,6 @@ public partial class TableViewRow : ListViewItem
 
     private TableView? _tableView;
     private ListViewItemPresenter? _itemPresenter;
-    private TableViewRowPresenter? _rowPresenter;
     private Border? _selectionBackground;
     private bool _ensureCells = true;
     private Brush? _cellPresenterBackground;
@@ -125,7 +124,7 @@ public partial class TableViewRow : ListViewItem
         _cellPresenterForeground = Foreground;
         _itemPresenter = GetTemplateChild("Root") as ListViewItemPresenter;
 #if !WINDOWS
-        _rowPresenter = GetTemplateChild("RowPresenter") as TableViewRowPresenter;
+        RowPresenter = GetTemplateChild("RowPresenter") as TableViewRowPresenter;
         _selectionBackground = GetTemplateChild("SelectionBackground") as Border;
 #endif
     }
@@ -212,7 +211,7 @@ public partial class TableViewRow : ListViewItem
             return;
         }
 
-        if (RowPresenter is not null && (_ensureCells || _rowPresenter != RowPresenter))
+        if (RowPresenter is not null && _ensureCells)
         {
             RowPresenter.ClearCells();
 
@@ -352,8 +351,7 @@ public partial class TableViewRow : ListViewItem
                     Column = column,
                     TableView = TableView,
                     Index = TableView.Columns.VisibleColumns.IndexOf(column),
-                    Width = column.ActualWidth,
-                    Style = column.CellStyle ?? TableView.CellStyle
+                    Width = column.ActualWidth
                 };
 
                 cell.SetBinding(HeightProperty, new Binding
@@ -435,14 +433,13 @@ public partial class TableViewRow : ListViewItem
     /// <summary>
     /// Ensures the cells style is applied.
     /// </summary>
-    internal void EnsureCellsStyle(TableViewColumn? column = null)
+    internal void EnsureCellsStyle(TableViewColumn? column = null, object? dataItem = null)
     {
         var cells = Cells.Where(x => column is null || x.Column == column);
 
         foreach (var cell in cells)
         {
-            var style = cell.Column?.CellStyle ?? TableView?.CellStyle;
-            cell.Style = style;
+            cell.EnsureStyle(dataItem ?? Content);
         }
     }
 
@@ -623,13 +620,9 @@ public partial class TableViewRow : ListViewItem
 
     /// <inheritdoc/>
     public TableViewRowPresenter? RowPresenter
-    {
-        get
-        {
 #if WINDOWS
-            _rowPresenter ??= ContentTemplateRoot as TableViewRowPresenter;
+       => ContentTemplateRoot as TableViewRowPresenter;
+#else
+    { get; private set; }
 #endif
-            return _rowPresenter;
-        }
-    }
 }

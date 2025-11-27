@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 using System;
+using System.Collections.Generic;
 using WinUI.TableView.Extensions;
 using SD = WinUI.TableView.SortDirection;
 
@@ -19,6 +20,14 @@ public abstract partial class TableViewColumn : DependencyObject
     private bool _isFiltered;
     private bool _isFrozen;
     private Func<object, object?>? _funcCompiledPropertyPath;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TableViewColumn"/> class with default conditional cell styles.
+    /// </summary>
+    public TableViewColumn()
+    {
+        SetValue(ConditionalCellStylesProperty, new TableViewConditionalCellStylesCollection());
+    }
 
     /// <summary>
     /// Generates a display element for the cell.
@@ -277,6 +286,15 @@ public abstract partial class TableViewColumn : DependencyObject
         set => SetValue(CanReorderProperty, value);
     }
 
+    /// <summary>
+    /// Gets or sets the collection of conditional cell styles for the column.
+    /// </summary>
+    public IList<TableViewConditionalCellStyle> ConditionalCellStyles
+    {
+        get => (IList<TableViewConditionalCellStyle>)GetValue(ConditionalCellStylesProperty);
+        set => SetValue(ConditionalCellStylesProperty, value);
+    }
+
     internal TableViewColumnsCollection? OwningCollection { get; set; }
 
     /// <summary>
@@ -511,4 +529,9 @@ public abstract partial class TableViewColumn : DependencyObject
     /// Identifies the CanReorder dependency property.
     /// </summary>
     public static readonly DependencyProperty CanReorderProperty = DependencyProperty.Register(nameof(CanReorder), typeof(bool), typeof(TableViewColumn), new PropertyMetadata(true));
+
+    /// <summary>
+    /// Identifies the <see cref="ConditionalCellStyles"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ConditionalCellStylesProperty = DependencyProperty.Register(nameof(ConditionalCellStyles), typeof(IList<TableViewConditionalCellStyle>), typeof(TableViewColumn), new PropertyMetadata(default));
 }

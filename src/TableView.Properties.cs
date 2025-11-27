@@ -254,6 +254,12 @@ public partial class TableView
     /// Identifies the CanReorderColumns dependency property.
     /// </summary>
     public static readonly DependencyProperty CanReorderColumnsProperty = DependencyProperty.Register(nameof(CanReorderColumns), typeof(bool), typeof(TableView), new PropertyMetadata(true));
+
+    /// <summary>
+    /// Identifies the <see cref="ConditionalCellStyles"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ConditionalCellStylesProperty = DependencyProperty.Register(nameof(ConditionalCellStyles), typeof(IList<TableViewConditionalCellStyle>), typeof(TableView), new PropertyMetadata(default));
+
     /// <summary>
     /// Gets or sets a value indicating whether opening the column filter over header right-click is enabled.
     /// </summary>
@@ -299,6 +305,15 @@ public partial class TableView
     {
         get => (TableViewCellSlot?)GetValue(CurrentCellSlotProperty);
         set => SetValue(CurrentCellSlotProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the collection of conditional cell styles.
+    /// </summary>
+    public IList<TableViewConditionalCellStyle> ConditionalCellStyles
+    {
+        get => (IList<TableViewConditionalCellStyle>)GetValue(ConditionalCellStylesProperty);
+        set => SetValue(ConditionalCellStylesProperty, value);
     }
 
     /// <summary>
