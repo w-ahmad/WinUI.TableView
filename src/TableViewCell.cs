@@ -534,7 +534,7 @@ public partial class TableViewCell : ContentControl
     /// <summary>
     /// Ensures the correct style is applied to the cell.
     /// </summary>
-    /// <param name="item"></param>
+    /// <param name="item">The data item associated with the cell.</param>
     internal void EnsureStyle(object? item)
     {
         IList<TableViewConditionalCellStyle> cellStyles = [
