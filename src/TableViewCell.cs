@@ -32,6 +32,7 @@ public partial class TableViewCell : ContentControl
     private Rectangle? _v_gridLine;
     private object? _uneditedValue;
     private RoutedEventArgs? _editingArgs;
+    private IList<TableViewConditionalCellStyle>? _cellStyles;
 
     /// <summary>
     /// Initializes a new instance of the TableViewCell class.
@@ -537,11 +538,11 @@ public partial class TableViewCell : ContentControl
     /// <param name="item">The data item associated with the cell.</param>
     internal void EnsureStyle(object? item)
     {
-        IList<TableViewConditionalCellStyle> cellStyles = [
+        _cellStyles ??= [
             .. Column?.ConditionalCellStyles ?? [], // Column styles have first priority
             .. TableView?.ConditionalCellStyles ?? []]; // TableView styles have second priority
 
-        Style = cellStyles.FirstOrDefault(c => c.Predicate?.Invoke(new(Column!, item)) is true)?
+        Style = _cellStyles.FirstOrDefault(c => c.Predicate?.Invoke(new(Column!, item)) is true)?
                           .Style ?? Column?.CellStyle ?? TableView?.CellStyle;
     }
 
