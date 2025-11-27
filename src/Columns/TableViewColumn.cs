@@ -22,6 +22,14 @@ public abstract partial class TableViewColumn : DependencyObject
     private Func<object, object?>? _funcCompiledPropertyPath;
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="TableViewColumn"/> class with default conditional cell styles.
+    /// </summary>
+    public TableViewColumn()
+    {
+        SetValue(ConditionalCellStylesProperty, new TableViewConditionalCellStylesCollection());
+    }
+
+    /// <summary>
     /// Generates a display element for the cell.
     /// </summary>
     /// <param name="cell">The cell for which the element is generated.</param>
@@ -525,5 +533,5 @@ public abstract partial class TableViewColumn : DependencyObject
     /// <summary>
     /// Identifies the <see cref="ConditionalCellStyles"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty ConditionalCellStylesProperty = DependencyProperty.Register(nameof(ConditionalCellStyles), typeof(IList<TableViewConditionalCellStyle>), typeof(TableViewColumn), new PropertyMetadata(new TableViewConditionalCellStylesCollection()));
+    public static readonly DependencyProperty ConditionalCellStylesProperty = DependencyProperty.Register(nameof(ConditionalCellStyles), typeof(IList<TableViewConditionalCellStyle>), typeof(TableViewColumn), new PropertyMetadata(default));
 }

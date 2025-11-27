@@ -258,7 +258,7 @@ public partial class TableView
     /// <summary>
     /// Identifies the <see cref="ConditionalCellStyles"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty ConditionalCellStylesProperty = DependencyProperty.Register(nameof(ConditionalCellStyles), typeof(IList<TableViewConditionalCellStyle>), typeof(TableView), new PropertyMetadata(new TableViewConditionalCellStylesCollection()));
+    public static readonly DependencyProperty ConditionalCellStylesProperty = DependencyProperty.Register(nameof(ConditionalCellStyles), typeof(IList<TableViewConditionalCellStyle>), typeof(TableView), new PropertyMetadata(default));
 
     /// <summary>
     /// Gets or sets a value indicating whether opening the column filter over header right-click is enabled.

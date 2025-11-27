@@ -1,5 +1,4 @@
 using CommunityToolkit.WinUI;
-using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -8,6 +7,7 @@ using Microsoft.UI.Xaml.Input;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
@@ -19,7 +19,6 @@ using Windows.Foundation;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.System;
-using WinRT.Interop;
 using WinUI.TableView.Extensions;
 using WinUI.TableView.Helpers;
 
@@ -49,10 +48,14 @@ public partial class TableView : ListView
 
         Columns = new TableViewColumnsCollection(this);
         FilterHandler = new ColumnFilterHandler(this);
+
         base.ItemsSource = _collectionView;
         base.SelectionMode = SelectionMode;
+
+        SetValue(ConditionalCellStylesProperty, new TableViewConditionalCellStylesCollection());
         RegisterPropertyChangedCallback(ItemsControl.ItemsSourceProperty, OnBaseItemsSourceChanged);
         RegisterPropertyChangedCallback(ListViewBase.SelectionModeProperty, OnBaseSelectionModeChanged);
+
         Loaded += OnLoaded;
         SelectionChanged += TableView_SelectionChanged;
         _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
@@ -88,7 +91,7 @@ public partial class TableView : ListView
     /// <summary>
     /// Handles the PropertyChanged event of an item in the TableView.
     /// </summary>
-    private void OnItemPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    private void OnItemPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         var row = ContainerFromItem(sender) as TableViewRow;
 
@@ -747,8 +750,8 @@ public partial class TableView : ListView
         var savePicker = new FileSavePicker();
         savePicker.FileTypeChoices.Add("CSV (Comma delimited)", [".csv"]);
 #if WINDOWS
-        var hWnd = Win32Interop.GetWindowFromWindowId(XamlRoot.ContentIslandEnvironment.AppWindowId);
-        InitializeWithWindow.Initialize(savePicker, hWnd);
+        var hWnd = Microsoft.UI.Win32Interop.GetWindowFromWindowId(XamlRoot.ContentIslandEnvironment.AppWindowId);
+        WinRT.Interop.InitializeWithWindow.Initialize(savePicker, hWnd);
 #endif
 
         return await savePicker.PickSaveFileAsync();
