@@ -76,6 +76,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <None Include="..\README.md" Pack="true" PackagePath="\" />
+	  <None Include="..\package-icon.png" Pack="true" PackagePath="\icon.png"/>
   </ItemGroup>
 
 </Project>
