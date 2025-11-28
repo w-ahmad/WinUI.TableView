@@ -3,9 +3,12 @@
     <TargetFrameworks>
       net8.0-windows10.0.19041.0;
       net9.0-windows10.0.19041.0;
+      net10.0-windows10.0.19041.0;
       net8.0;
       net9.0;
-    </TargetFrameworks> 
+      net10.0;
+    </TargetFrameworks>
+    <LangVersion>12</LangVersion>
     <Nullable>enable</Nullable> 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IsAOTCompatible>true</IsAOTCompatible>
