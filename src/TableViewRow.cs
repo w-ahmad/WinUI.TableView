@@ -294,27 +294,11 @@ public partial class TableViewRow : ListViewItem
         }
         else if (e.PropertyName is nameof(TableViewBoundColumn.ElementStyle))
         {
-            foreach (var cell in Cells)
-            {
-                if (cell.Column == e.Column
-                    && cell.Content is FrameworkElement element
-                    && cell.Column is TableViewBoundColumn boundColumn
-                    && (TableView?.IsEditing is false || TableView?.CurrentCellSlot != cell.Slot))
-                {
-                    element.Style = boundColumn.ElementStyle;
-                }
-            }
+            EnsureElementStyle(e.Column);
         }
         else if (e.PropertyName is nameof(TableViewBoundColumn.EditingElementStyle))
         {
-            if (TableView?.IsEditing is true
-                && TableView.CurrentCellSlot is not null
-                && e.Column is TableViewBoundColumn boundColumn
-                && TableView.GetCellFromSlot(TableView.CurrentCellSlot.Value) is { } cell
-                && cell.Content is FrameworkElement element)
-            {
-                element.Style = boundColumn.EditingElementStyle;
-            }
+            EnsureEditingElementStyle(e.Column);
         }
     }
 
@@ -427,6 +411,33 @@ public partial class TableViewRow : ListViewItem
         foreach (var cell in Cells)
         {
             cell.UpdateElementState();
+        }
+    }
+
+    private void EnsureElementStyle(TableViewColumn column)
+    {
+        foreach (var cell in Cells)
+        {
+            if (cell.Column == column
+                && cell.Content is FrameworkElement element
+                && cell.Column is TableViewBoundColumn boundColumn
+                && (TableView?.IsEditing is false || TableView?.CurrentCellSlot != cell.Slot))
+            {
+                element.Style = boundColumn.ElementStyle;
+            }
+        }
+    }
+
+    private void EnsureEditingElementStyle(TableViewColumn column)
+    {
+        if (TableView?.IsEditing is true
+            && TableView.CurrentCellSlot is not null
+            && column is TableViewBoundColumn boundColumn
+            && TableView.GetCellFromSlot(TableView.CurrentCellSlot.Value) is { } cell
+            && cell.Column == column
+            && cell.Content is FrameworkElement element)
+        {
+            element.Style = boundColumn.EditingElementStyle;
         }
     }
 
