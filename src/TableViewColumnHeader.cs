@@ -1,4 +1,3 @@
-﻿using CommunityToolkit.WinUI;
 using Microsoft.UI;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;

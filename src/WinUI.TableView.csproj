@@ -23,12 +23,6 @@
     </AssemblyAttribute>
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="CommunityToolkit.WinUI.Behaviors" Version="8.2.250402" />
-    <!--CommunityToolkit.WinUI.Behaviors version 8.2 is not supported on .net8.0 so let's downgrade it-->
-    <PackageReference Update="CommunityToolkit.WinUI.Behaviors" Version="8.1.240916" Condition="'$(TargetFramework)' == 'net8.0'" />
-  </ItemGroup>
-  
   <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) != 'windows'">
     <PackageReference Include="Uno.WinUI" Version="6.2.87" />
   </ItemGroup>
