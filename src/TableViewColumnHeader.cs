@@ -228,8 +228,23 @@ public partial class TableViewColumnHeader : ContentControl
         _optionsButton.Tapped += OnOptionsButtonTaped;
         _optionsButton.DataContext = _optionsFlyoutViewModel = new OptionsFlyoutViewModel(_tableView, this);
 
-        var menuItem = _optionsFlyout.Items.FirstOrDefault(x => x.Name == "ItemsCheckFlyoutItem");
-        menuItem?.ApplyTemplate();
+        if (_optionsFlyout.Items.FirstOrDefault(x => x.Name == "ItemsCheckFlyoutItem") is { } menuItem)
+        {
+            menuItem.Loaded += OnItemsCheckFlyoutItemLoaded;
+        }
+
+        SetFilterButtonVisibility();
+        EnsureGridLines();
+    }
+
+    /// <summary>
+    /// Handles the Loaded event for the items check flyout item.
+    /// </summary>
+    private void OnItemsCheckFlyoutItemLoaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuFlyoutItem menuItem) return;
+
+        menuItem.Loaded -= OnItemsCheckFlyoutItemLoaded;
 
         if (menuItem?.FindDescendant<CheckBox>(x => x.Name == "SelectAllCheckBox") is { } checkBox)
         {
@@ -237,14 +252,8 @@ public partial class TableViewColumnHeader : ContentControl
             _selectAllCheckBox.Content = TableViewLocalizedStrings.SelectAllParenthesized;
             _selectAllCheckBox.Checked += OnSelectAllCheckBoxChecked;
             _selectAllCheckBox.Unchecked += OnSelectAllCheckBoxUnchecked;
+            _optionsFlyoutViewModel.SetSelectAllCheckBoxState();
         }
-
-#if !WINDOWS
-        if (menuItem?.FindDescendant<ListView>(x => x.Name is "FilterItemsList") is { } filterItemsList)
-        {
-            filterItemsList.Margin = new Thickness(12, 0, 0, 0);
-        }
-#endif
 
         if (menuItem?.FindDescendant<TextBox>(x => x.Name == "SearchBox") is { } searchBox)
         {
@@ -259,9 +268,6 @@ public partial class TableViewColumnHeader : ContentControl
             // Handle Space key to prevent MenuFlyoutItem performing click action.
             menuItem.PreviewKeyUp += static (_, e) => e.Handled = e.Key is VirtualKey.Space;
         }
-
-        SetFilterButtonVisibility();
-        EnsureGridLines();
     }
 
     /// <summary>

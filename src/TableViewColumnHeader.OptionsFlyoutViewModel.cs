@@ -128,7 +128,7 @@ public partial class TableViewColumnHeader
         /// <summary>
         /// Sets the state of the select all checkbox.
         /// </summary>
-        private void SetSelectAllCheckBoxState()
+        internal void SetSelectAllCheckBoxState()
         {
             if (ColumnHeader._selectAllCheckBox is null || !_canSetState)
             {
