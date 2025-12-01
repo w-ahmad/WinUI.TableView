@@ -257,6 +257,8 @@ public partial class TableViewColumnHeader : ContentControl
 #else
             _searchBox.KeyDown += OnSearchBoxKeyDown;
 #endif
+            // Handle Space key to prevent MenuFlyoutItem performing click action.
+            menuItem.PreviewKeyUp += static (_, e) => e.Handled = e.Key is VirtualKey.Space;
         }
 
         SetFilterButtonVisibility();
