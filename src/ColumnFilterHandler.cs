@@ -48,7 +48,7 @@ public class ColumnFilterHandler : IColumnFilterHandler
 
                                      })
                                      .OfType<TableViewFilterItem>()
-                                     .OrderByDescending(x => _tableView.ShowFilterItemCounts ? x.Count : 0)];
+                                     .OrderByDescending(x => _tableView.ShowFilterItemsCount ? x.Count : 0)];
         }
 
         return [];
