@@ -12,7 +12,7 @@ public partial class TableViewColumnHeader
     /// <summary>
     /// ViewModel for the options flyout in the TableViewColumnHeader.
     /// </summary>
-    private partial class OptionsFlyoutViewModel : INotifyPropertyChanged
+    internal partial class OptionsFlyoutViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         private IList<TableViewFilterItem> _filterItems = [];
@@ -114,7 +114,7 @@ public partial class TableViewColumnHeader
 
                 DetachPropertyChangedHandlers();
                 _filterItems = value;
-                AttachPropertyChangedHandlers();
+                AttachPropertyChangedHandlers();                
                 SetSelectAllCheckBoxState();
                 OnPropertyChanged();
             }

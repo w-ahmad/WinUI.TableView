@@ -4,11 +4,14 @@
                     xmlns:local="using:WinUI.TableView"
                     xmlns:win="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:not_win="http://uno.ui/not_win"
+                    xmlns:converters="using:WinUI.TableView.Converters"
                     mc:Ignorable="not_win">
     
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/Resources.xaml" />
     </ResourceDictionary.MergedDictionaries>
+
+    <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
 
     <Style x:Key="DefaultTableViewColumnHeaderStyle"
            TargetType="local:TableViewColumnHeader">
@@ -152,7 +155,7 @@
                                                 <MenuFlyoutItem.Template>
                                                     <ControlTemplate TargetType="MenuFlyoutItem">
                                                         <Grid Margin="8,4"
-                                                              Width="220"
+                                                              Width="250"
                                                               Height="300">
                                                             <Grid.RowDefinitions>
                                                                 <RowDefinition Height="Auto" />
@@ -182,13 +185,32 @@
                                                                                 Value="36" />
                                                                         <Setter Property="Height"
                                                                                 Value="36" />
+                                                                        <Setter Property="HorizontalAlignment"
+                                                                                Value="Stretch" />
+                                                                        <Setter Property="HorizontalContentAlignment"
+                                                                                Value="Stretch" />
                                                                     </Style>
                                                                 </ListView.ItemContainerStyle>
                                                                 <ListView.ItemTemplate>
                                                                     <DataTemplate>
-                                                                        <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}">
-                                                                            <TextBlock Text="{Binding Value}"
-                                                                                       TextWrapping="NoWrap" />
+                                                                        <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                                                  HorizontalAlignment="Stretch"
+                                                                                  HorizontalContentAlignment="Stretch">
+                                                                            <Grid>
+                                                                                <Grid.ColumnDefinitions>
+                                                                                    <ColumnDefinition Width="*" />
+                                                                                    <ColumnDefinition Width="Auto" />
+                                                                                </Grid.ColumnDefinitions>
+                                                                                
+                                                                                <TextBlock Text="{Binding Value}"
+                                                                                           TextWrapping="NoWrap" />
+                                                                                
+                                                                                <TextBlock Grid.Column="1"
+                                                                                           Visibility="{Binding DataContext.TableView.ShowFilterItemCounts, ElementName=FilterItemsList, Converter={StaticResource BoolToVisibility}}">
+                                                                                    <Run Text="Count:" />
+                                                                                    <Run Text="{Binding Count}" />
+                                                                                </TextBlock>
+                                                                            </Grid>
                                                                         </CheckBox>
                                                                     </DataTemplate>
                                                                 </ListView.ItemTemplate>
