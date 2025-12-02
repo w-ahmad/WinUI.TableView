@@ -46,6 +46,7 @@ public partial class TableViewColumnHeader : ContentControl
     private double _reorderStartingPosition;
     private bool _reorderStarted;
     private RenderTargetBitmap? _dragVisuals;
+    private ListView? _filterItemsList;
 
     /// <summary>
     /// Initializes a new instance of the TableViewColumnHeader class.
@@ -268,6 +269,8 @@ public partial class TableViewColumnHeader : ContentControl
             // Handle Space key to prevent MenuFlyoutItem performing click action.
             menuItem.PreviewKeyUp += static (_, e) => e.Handled = e.Key is VirtualKey.Space;
         }
+
+        _filterItemsList = menuItem?.FindDescendant<ListView>(x => x.Name is "FilterItemsList");
     }
 
     /// <summary>
@@ -326,6 +329,11 @@ public partial class TableViewColumnHeader : ContentControl
         {
             await Task.Delay(100);
             await FocusManager.TryFocusAsync(_searchBox, FocusState.Programmatic);
+        }
+
+        if (_filterItemsList is not null && _optionsFlyoutViewModel.FilterItems.Count > 0)
+        {
+            _filterItemsList.ScrollIntoView(_optionsFlyoutViewModel.FilterItems[0]);
         }
     }
 
