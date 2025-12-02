@@ -1,4 +1,3 @@
-using CommunityToolkit.WinUI;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -13,6 +12,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using Windows.Foundation;
 using WinUI.TableView.Converters;
+using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView;
 
