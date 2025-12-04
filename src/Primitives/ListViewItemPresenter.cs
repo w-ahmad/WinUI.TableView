@@ -1,5 +1,5 @@
-﻿using CommunityToolkit.WinUI;
-using Windows.Foundation;
+﻿using Windows.Foundation;
+using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView.Primitives;
 

@@ -141,6 +141,8 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     /// </summary>
     private void OnItemPropertyChanged(object? item, PropertyChangedEventArgs e)
     {
+        ItemPropertyChanged?.Invoke(item, e);
+
         if (!AllowLiveShaping || item is null || string.IsNullOrEmpty(e.PropertyName))
         {
             return;
