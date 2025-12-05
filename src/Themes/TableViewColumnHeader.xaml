@@ -206,7 +206,7 @@
                                                                                            TextWrapping="NoWrap" />
                                                                                 
                                                                                 <TextBlock Grid.Column="1"
-                                                                                           Visibility="{Binding DataContext.TableView.ShowFilterItemCounts, ElementName=FilterItemsList, Converter={StaticResource BoolToVisibility}}">
+                                                                                           Visibility="{Binding DataContext.TableView.ShowFilterItemsCount, ElementName=FilterItemsList, Converter={StaticResource BoolToVisibility}}">
                                                                                     <Run Text="Count:" />
                                                                                     <Run Text="{Binding Count}" />
                                                                                 </TextBlock>
