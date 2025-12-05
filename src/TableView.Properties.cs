@@ -261,6 +261,11 @@ public partial class TableView
     public static readonly DependencyProperty ConditionalCellStylesProperty = DependencyProperty.Register(nameof(ConditionalCellStyles), typeof(IList<TableViewConditionalCellStyle>), typeof(TableView), new PropertyMetadata(default));
 
     /// <summary>
+    /// Identifies the <see cref="ShowFilterItemsCount"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ShowFilterItemsCountProperty =  DependencyProperty.Register(nameof(ShowFilterItemsCount), typeof(bool), typeof(TableView), new PropertyMetadata(false));
+
+    /// <summary>
     /// Gets or sets a value indicating whether opening the column filter over header right-click is enabled.
     /// </summary>
     public bool UseRightClickForColumnFilter
@@ -314,6 +319,15 @@ public partial class TableView
     {
         get => (IList<TableViewConditionalCellStyle>)GetValue(ConditionalCellStylesProperty);
         set => SetValue(ConditionalCellStylesProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value that indicates whether the TableView displays items count next to each filter item in filter flyout.
+    /// </summary>
+    public bool ShowFilterItemsCount
+    {
+        get => (bool)GetValue(ShowFilterItemsCountProperty);
+        set => SetValue(ShowFilterItemsCountProperty, value);
     }
 
     /// <summary>

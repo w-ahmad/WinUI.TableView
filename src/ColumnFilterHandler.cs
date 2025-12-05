@@ -30,26 +30,25 @@ public class ColumnFilterHandler : IColumnFilterHandler
                 column.TableView.FilterDescriptions.Where(
                 x => x is not ColumnFilterDescription columnFilter || columnFilter.Column != column));
 
-            var filterValues = new SortedSet<object?>();
+            return [.. collectionView.Select(column.GetCellContent)
+                                     .Select(x => IsBlank(x) ? null : x)
+                                     .GroupBy(x => x)
+                                     .OrderBy(x => x.Key)
+                                     .Select(x =>
+                                     {
+                                         var value = x.Key;
+                                         value ??= TableViewLocalizedStrings.BlankFilterValue;
+                                         var isSelected = !column.IsFiltered || !string.IsNullOrEmpty(searchText) ||
+                                           (column.IsFiltered && SelectedValues[column].Contains(value));
 
-            foreach (var item in collectionView)
-            {
-                var value = column.GetCellContent(item);
-                filterValues.Add(IsBlank(value) ? null : value);
-            }
+                                         return string.IsNullOrEmpty(searchText)
+                                               || value?.ToString()?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true
+                                               ? new TableViewFilterItem(isSelected, value, x.Count())
+                                               : null;
 
-            return [.. filterValues.Select(value =>
-            {
-                value ??= TableViewLocalizedStrings.BlankFilterValue;
-                var isSelected = !column.IsFiltered || !string.IsNullOrEmpty(searchText) ||
-                  (column.IsFiltered && SelectedValues[column].Contains(value));
-
-                return string.IsNullOrEmpty(searchText)
-                      || value?.ToString()?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true
-                      ? new TableViewFilterItem(isSelected, value)
-                      : null;
-
-            }).OfType<TableViewFilterItem>()];
+                                     })
+                                     .OfType<TableViewFilterItem>()
+                                     .OrderByDescending(x => _tableView.ShowFilterItemsCount ? x.Count : 0)];
         }
 
         return [];
