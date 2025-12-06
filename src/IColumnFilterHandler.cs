@@ -38,4 +38,17 @@ public interface IColumnFilterHandler
     /// <param name="item">The item to check.</param>
     /// <returns>True if the item passes the filter; otherwise, false.</returns>
     bool Filter(TableViewColumn column, object? item);
+
+    /// <summary>
+    /// UNIFIED: Applies fast sorting to the specified column with the given direction.
+    /// </summary>
+    /// <param name="column">The column to sort.</param>
+    /// <param name="direction">The sort direction.</param>
+    void ApplyUnifiedSort(TableViewColumn column, SortDirection direction);
+
+    /// <summary>
+    /// UNIFIED: Clears fast sorting from the specified column.
+    /// </summary>
+    /// <param name="column">The column to clear sorting from.</param>
+    void ClearUnifiedSort(TableViewColumn column);
 }
