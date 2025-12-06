@@ -8,7 +8,21 @@
 [![nuget](https://img.shields.io/nuget/v/WinUI.TableView)](https://www.nuget.org/packages/WinUI.TableView/)
 [![nuget](https://img.shields.io/nuget/dt/WinUI.TableView)](https://www.nuget.org/packages/WinUI.TableView/)
 
-### [SampleApp](https://github.com/w-ahmad/WinUI.TableView.SampleApp)
+### [Samples App](https://github.com/w-ahmad/WinUI.TableView.SampleApp)
+
+Explore the interactive `WinUI.TableView` samples with code snippets in a Samples App on Microsoft Store or Uno Platorm WASM:
+
+<a href="https://apps.microsoft.com/detail/9ntgb6lmjzx3?referrer=appbadge&mode=direct">
+  <img src="https://get.microsoft.com/images/en-us%20dark.svg" width="200"/>
+</a>
+
+<br>
+
+<a href="https://tableview.samples.w-ahmad.dev/">
+   <img align=center width="18%" src="https://raw.githubusercontent.com/unoplatform/styleguide/master/logo/uno-platform-logo-with-text.png" />
+</a>
+
+####
 
 ![WinUI TableView SampleApp](https://raw.githubusercontent.com/w-ahmad/WinUI.TableView.SampleApp/main/WinUI.TableView%20SampleApp.gif)
 
