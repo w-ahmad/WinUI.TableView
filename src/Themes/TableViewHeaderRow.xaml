@@ -13,7 +13,22 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:TableViewHeaderRow">
-                    <Grid>
+                    <Grid x:Name="root"
+                          Background="{TemplateBinding Background}"
+                          BorderBrush="{TemplateBinding BorderBrush}"
+                          BorderThickness="{TemplateBinding BorderThickness}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition x:Name="cornerButtonColumn" Width="Auto" />
+                            <ColumnDefinition x:Name="VerticalGridLineColumn" Width="Auto" />
+                            <ColumnDefinition x:Name="FrozenHeadersPanelColumn" Width="Auto" />
+                            <ColumnDefinition x:Name="ScrollableHeadersPanelColumn" Width="*" />
+                        </Grid.ColumnDefinitions>
+                            
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CommonStates">
                                 <VisualState x:Name="Normal" />
@@ -52,8 +67,6 @@
                                     <VisualState.Setters>
                                         <Setter Target="selectAllCheckBox.Visibility"
                                                 Value="Visible" />
-                                        <Setter Target="cornerButtonColumn.Width"
-                                                Value="40" />
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="SelectAllCheckBoxDisabled">
@@ -62,41 +75,27 @@
                                                 Value="False" />
                                         <Setter Target="selectAllCheckBox.Visibility"
                                                 Value="Visible" />
-                                        <Setter Target="cornerButtonColumn.Width"
-                                                Value="40" />
                                     </VisualState.Setters>
                                 </VisualState>
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
 
-                        <Grid x:Name="root"
-                              Background="{TemplateBinding Background}"
-                              BorderBrush="{TemplateBinding BorderBrush}"
-                              BorderThickness="{TemplateBinding BorderThickness}">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="*" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition x:Name="cornerButtonColumn"
-                                                  MinWidth="16"
-                                                  Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
+                        <Grid x:Name="CornerButtonPanel">
 
                             <Button x:Name="selectAllButton"
                                     BorderThickness="0"
                                     Background="Transparent"
-                                    Padding="0"
+                                    Padding="0,0,2,2"
                                     CornerRadius="4,0,0,0"
                                     Visibility="Collapsed"
                                     IsTabStop="False"
                                     HorizontalAlignment="Stretch"
-                                    VerticalAlignment="Stretch">
+                                    VerticalAlignment="Stretch"
+                                    VerticalContentAlignment="Bottom"
+                                    HorizontalContentAlignment="Right">
                                 <FontIcon Opacity="0.5"
+                                          Margin="-12,0,0,0"
                                           Glyph="&#xE788;"
-                                          Margin="-8,6,0,0"
                                           VerticalAlignment="Bottom" />
                             </Button>
 
@@ -111,7 +110,6 @@
                                     IsTabStop="False">
                                 <FontIcon FontSize="12"
                                           MaxWidth="10"
-                                          Margin="-2,0,0,0"
                                           VerticalAlignment="Center"
                                           HorizontalAlignment="Center"
                                           Glyph="{ThemeResource OptionsButtonIcon}"
@@ -173,27 +171,63 @@
 
                             <CheckBox x:Name="selectAllCheckBox"
                                       Padding="0"
+                                      Margin="10,0,0,0"
                                       MinWidth="20"
                                       MinHeight="20"
                                       IsTabStop="False"
                                       Visibility="Collapsed"
                                       VerticalAlignment="Center"
-                                      HorizontalAlignment="Center" />
-
-                            <Rectangle x:Name="VerticalGridLine"
-                                       Grid.Column="1"
-                                       Width="1"
-                                       VerticalAlignment="Stretch" />
-
-                            <Rectangle x:Name="HorizontalGridLine"
-                                       Grid.Row="1"
-                                       Grid.ColumnSpan="3"
-                                       HorizontalAlignment="Stretch" />
-
-                            <StackPanel x:Name="HeadersStackPanel"
-                                        Grid.Column="2"
-                                        Orientation="Horizontal" />
+                                      HorizontalAlignment="Left" />
                         </Grid>
+
+                        <Rectangle x:Name="VerticalGridLine"
+                                   Grid.Column="1"
+                                   Width="1"
+                                   VerticalAlignment="Stretch" />
+
+                        <StackPanel x:Name="FrozenHeadersPanel"
+                                    Grid.Column="2"
+                                    Orientation="Horizontal" />
+
+                        <StackPanel x:Name="ScrollableHeadersPanel"
+                                    Grid.Column="3"
+                                    Orientation="Horizontal" />
+
+                        <Border x:Name="ColumnDropIndicator"
+                                Grid.ColumnSpan="4"
+                                Visibility="Collapsed"
+                                HorizontalAlignment="Left"
+                                Translation="0, 0, 32"
+                                BorderThickness="1"
+                                RenderTransformOrigin="0.5,0.5"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                            <Border.Shadow>
+                                <ThemeShadow />
+                            </Border.Shadow>
+                            <Border.RenderTransform>
+                                <TranslateTransform x:Name="ColumnDropIndicatorTransform" />
+                            </Border.RenderTransform>
+                            <Grid>
+                                <FontIcon Glyph="&#xEB0F;"
+                                          FontSize="12"
+                                          Margin="0,-2,0,0"
+                                          VerticalAlignment="Top" 
+                                          Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                                <FontIcon Glyph="&#xEB11;"
+                                          FontSize="12"
+                                          Margin="0,0,0,-2"
+                                          VerticalAlignment="Bottom" 
+                                          Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                                <Image x:Name="DragHeaderImage"
+                                       Stretch="None"
+                                       Source="{Binding Visuals}"/>
+                            </Grid>
+                        </Border>
+                        <Rectangle x:Name="HorizontalGridLine"
+                                   Grid.Row="1"
+                                   Grid.ColumnSpan="4"
+                                   HorizontalAlignment="Stretch" />
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>

@@ -1,15 +1,12 @@
-﻿using CommunityToolkit.WinUI;
-using CommunityToolkit.WinUI.Animations.Expressions;
-using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Input;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
@@ -21,7 +18,6 @@ using Windows.Foundation;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.System;
-using WinRT.Interop;
 using WinUI.TableView.Extensions;
 using WinUI.TableView.Helpers;
 
@@ -36,6 +32,7 @@ public partial class TableView : ListView
 {
     private TableViewHeaderRow? _headerRow;
     private ScrollViewer? _scrollViewer;
+    private RowDefinition? _headerRowDefinition;
     private bool _shouldThrowSelectionModeChangedException;
     private bool _ensureColumns = true;
     private readonly List<TableViewRow> _rows = [];
@@ -48,14 +45,19 @@ public partial class TableView : ListView
     {
         DefaultStyleKey = typeof(TableView);
 
-        Columns.TableView = this;
+        Columns = new TableViewColumnsCollection(this);
         FilterHandler = new ColumnFilterHandler(this);
+
         base.ItemsSource = _collectionView;
         base.SelectionMode = SelectionMode;
+
+        SetValue(ConditionalCellStylesProperty, new TableViewConditionalCellStylesCollection());
         RegisterPropertyChangedCallback(ItemsControl.ItemsSourceProperty, OnBaseItemsSourceChanged);
         RegisterPropertyChangedCallback(ListViewBase.SelectionModeProperty, OnBaseSelectionModeChanged);
+
         Loaded += OnLoaded;
         SelectionChanged += TableView_SelectionChanged;
+        _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
     }
 
     /// <summary>
@@ -85,6 +87,16 @@ public partial class TableView : ListView
         }
     }
 
+    /// <summary>
+    /// Handles the PropertyChanged event of an item in the TableView.
+    /// </summary>
+    private void OnItemPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        var row = ContainerFromItem(sender) as TableViewRow;
+
+        row?.EnsureCellsStyle(default, sender);
+    }
+
     /// <inheritdoc/>
     protected override void PrepareContainerForItemOverride(DependencyObject element, object item)
     {
@@ -94,6 +106,7 @@ public partial class TableView : ListView
         {
             if (element is TableViewRow row)
             {
+                row.EnsureCellsStyle(default, item);
                 row.ApplyCellsSelectionState();
 
                 if (CurrentCellSlot.HasValue)
@@ -104,37 +117,21 @@ public partial class TableView : ListView
         });
     }
 
-
     /// <inheritdoc/>
     protected override DependencyObject GetContainerForItemOverride()
     {
         var row = new TableViewRow { TableView = this };
 
-        row.SetBinding(HeightProperty, new Binding
-        {
-            Path = new PropertyPath($"{nameof(TableViewRow.TableView)}.{nameof(RowHeight)}"),
-            RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
-        });
-
-        row.SetBinding(MaxHeightProperty, new Binding
-        {
-            Path = new PropertyPath($"{nameof(TableViewRow.TableView)}.{nameof(RowMaxHeight)}"),
-            RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
-        });
-
-        row.SetBinding(MinHeightProperty, new Binding
-        {
-            Path = new PropertyPath($"{nameof(TableViewRow.TableView)}.{nameof(RowMinHeight)}"),
-            RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
-        });
+        // Set bindings for FontFamily and FontSize to propagate from TableView to TableViewRow
+        row.SetBinding(FontFamilyProperty, new Binding { Path = new("TableView.FontFamily"), RelativeSource = new() { Mode = RelativeSourceMode.Self } });
+        row.SetBinding(FontSizeProperty, new Binding { Path = new("TableView.FontSize"), RelativeSource = new() { Mode = RelativeSourceMode.Self } });
 
         _rows.Add(row);
-
         return row;
     }
-
+        
     /// <inheritdoc/>
-    protected override void OnKeyDown(KeyRoutedEventArgs e)
+    protected override async void OnKeyDown(KeyRoutedEventArgs e)
     {
         var shiftKey = KeyboardHelper.IsShiftKeyDown();
         var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
@@ -145,26 +142,24 @@ public partial class TableView : ListView
             return;
         }
 
-        HandleNavigations(e, shiftKey, ctrlKey);
+        await HandleNavigations(e, shiftKey, ctrlKey);
     }
 
     /// <summary>
     /// Handles navigation keys.
     /// </summary>
-    private void HandleNavigations(KeyRoutedEventArgs e, bool shiftKey, bool ctrlKey)
+    private async Task HandleNavigations(KeyRoutedEventArgs e, bool shiftKey, bool ctrlKey)
     {
         var currentCell = CurrentCellSlot.HasValue ? GetCellFromSlot(CurrentCellSlot.Value) : default;
 
         if (e.Key is VirtualKey.F2 && currentCell is { IsReadOnly: false } && !IsEditing)
         {
-            currentCell.PrepareForEdit();
-            e.Handled = true;
+            e.Handled = await currentCell.BeginCellEditing(e);
         }
         else if (e.Key is VirtualKey.Escape && currentCell is not null && IsEditing)
         {
+            e.Handled = EndCellEditing(TableViewEditAction.Cancel, currentCell);
             SetIsEditing(false);
-            currentCell?.SetElement();
-            e.Handled = true;
         }
         else if (e.Key is VirtualKey.Space && currentCell is not null && CurrentCellSlot.HasValue && !IsEditing)
         {
@@ -191,14 +186,17 @@ public partial class TableView : ListView
 
             } while (isEditing && Columns[newSlot.Column].IsReadOnly);
 
-
-            MakeSelection(newSlot, false);
-
             if (isEditing && currentCell is not null)
             {
-                currentCell = GetCellFromSlot(newSlot);
-                currentCell?.PrepareForEdit();
+                if (!EndCellEditing(TableViewEditAction.Commit, currentCell)) return;
+
+                if (CurrentCellSlot == newSlot || GetCellFromSlot(newSlot) is not { } nextCell || !await nextCell.BeginCellEditing(e))
+                {
+                    SetIsEditing(false);
+                }
             }
+
+            MakeSelection(newSlot, false);
 
             e.Handled = true;
         }
@@ -232,6 +230,24 @@ public partial class TableView : ListView
         }
     }
 
+    internal bool EndCellEditing(TableViewEditAction editAction, TableViewCell cell)
+    {
+        var editingElement = cell.Content as FrameworkElement;
+        var endingArgs = new TableViewCellEditEndingEventArgs(cell, cell.Row?.Content, cell.Column!, editingElement!, editAction);
+        OnCellEditEnding(endingArgs);
+        if (endingArgs.Cancel)
+        {
+            return false;
+        }
+
+        cell.EndEditing(editAction);
+
+        var endArgs = new TableViewCellEditEndedEventArgs(cell, cell.Row?.Content, cell.Column!, editAction);
+        OnCellEditEnded(endArgs);
+
+        return true;
+    }
+
     /// <summary>
     /// Handles shortcut keys.
     /// </summary>
@@ -263,26 +279,62 @@ public partial class TableView : ListView
 
         _headerRow = GetTemplateChild("HeaderRow") as TableViewHeaderRow;
         _scrollViewer = GetTemplateChild("ScrollViewer") as ScrollViewer;
-
+        _headerRowDefinition = GetTemplateChild("HeaderRowDefinition") as RowDefinition;
         if (IsLoaded)
         {
             while (ItemsPanelRoot is null) await Task.Yield();
 
-            ApplyItemsClip();
-            UpdateVerticalScrollBarMargin();
             EnsureAutoColumns();
         }
-    }
 
+        SetHeadersVisibility();
+    }
 
     /// <summary>
     /// Handles the Loaded event of the TableView control.
     /// </summary>
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
+        var scrollPresenter = _scrollViewer?.FindDescendant<ScrollContentPresenter>();
+        var xScrollBar = _scrollViewer?.FindDescendant<ScrollBar>(sb => sb.Name is "HorizontalScrollBar2");
+        var yScrollBar = _scrollViewer?.FindDescendant<ScrollBar>(sb => sb.Name is "VerticalScrollBar");
+
+        if (scrollPresenter is not null)
+        {
+            scrollPresenter.PointerWheelChanged += OnScrollContentPresenterPointerWheelChanged;
+        }
+
+        if (yScrollBar is not null)
+        {
+            yScrollBar.ValueChanged += (_, _) => SetValue(VerticalOffsetProperty, yScrollBar.Value);
+        }
+
+        xScrollBar?.SetBinding(RangeBase.ValueProperty, new Binding
+        {
+            Path = new PropertyPath(nameof(HorizontalOffset)),
+            Mode = BindingMode.TwoWay,
+            Source = this
+        });
+
         EnsureAutoColumns();
-        ApplyItemsClip();
-        UpdateVerticalScrollBarMargin();
+    }
+
+    /// <summary>
+    /// Handles the PointerWheelChanged event of the ScrollContentPresenter.
+    /// </summary>
+    private void OnScrollContentPresenterPointerWheelChanged(object sender, PointerRoutedEventArgs e)
+    {
+        var pointerPoint = e.GetCurrentPoint(this);
+        var isShiftButton = KeyboardHelper.IsShiftKeyDown();
+        var isHorizontalScroll = isShiftButton || pointerPoint.Properties.IsHorizontalMouseWheel;
+
+        if (isHorizontalScroll && _scrollViewer?.ComputedHorizontalScrollBarVisibility is Visibility.Visible)
+        {
+            e.Handled = true;
+            var mouseWheelDelta = isShiftButton ? -pointerPoint.Properties.MouseWheelDelta : pointerPoint.Properties.MouseWheelDelta;
+            var xOffset = HorizontalOffset + (mouseWheelDelta / 4.0);
+            SetValue(HorizontalOffsetProperty, Math.Clamp(xOffset, 0, _scrollViewer.ScrollableWidth));
+        }
     }
 
     /// <summary>
@@ -347,17 +399,8 @@ public partial class TableView : ListView
         }
 
         var package = new DataPackage();
-        package.SetText(GetSelectedContent(includeHeaders));
+        package.SetText(GetSelectedClipboardContent(includeHeaders));
         Clipboard.SetContent(package);
-    }
-
-    /// <summary>
-    /// Called before the CopyToClipboard event occurs.
-    /// </summary>
-    /// <param name="args">Handleable event args.</param>
-    protected virtual void OnCopyToClipboard(TableViewCopyToClipboardEventArgs args)
-    {
-        CopyToClipboard?.Invoke(this, args);
     }
 
     /// <summary>
@@ -367,6 +410,26 @@ public partial class TableView : ListView
     /// <param name="separator">The character used to separate cell values (default is tab).</param>
     /// <returns>A string of selected cell content separated by the specified character.</returns>
     public string GetSelectedContent(bool includeHeaders, char separator = '\t')
+    {
+        var slots = GetSelectedCellSlots();
+
+        return GetCellsContent(slots, includeHeaders, separator);
+    }
+
+    /// <summary>
+    /// Returns the selected cells' or rows' clipboard content as a string, optionally including headers, with values separated by the given character.
+    /// </summary>
+    /// <param name="includeHeaders">Whether to include headers in the output.</param>
+    /// <param name="separator">The character used to separate cell values (default is tab).</param>
+    /// <returns>A string of selected cell clipboard content separated by the specified character.</returns>
+    public string GetSelectedClipboardContent(bool includeHeaders, char separator = '\t')
+    {
+        var slots = GetSelectedCellSlots();
+
+        return GetCellsContent(slots, includeHeaders, separator, true);
+    }
+
+    private IEnumerable<TableViewCellSlot> GetSelectedCellSlots()
     {
         var slots = Enumerable.Empty<TableViewCellSlot>();
 
@@ -384,7 +447,7 @@ public partial class TableView : ListView
             slots = [CurrentCellSlot.Value];
         }
 
-        return GetCellsContent(slots, includeHeaders, separator);
+        return slots;
     }
 
     /// <summary>
@@ -426,6 +489,11 @@ public partial class TableView : ListView
     /// <returns>A string of specified cell content separated by the specified character.</returns>
     public string GetCellsContent(IEnumerable<TableViewCellSlot> slots, bool includeHeaders, char separator = '\t')
     {
+        return GetCellsContent(slots, includeHeaders, separator, false);
+    }
+
+    private string GetCellsContent(IEnumerable<TableViewCellSlot> slots, bool includeHeaders, char separator, bool isClipboardContent)
+    {
         if (!slots.Any())
         {
             return string.Empty;
@@ -433,9 +501,7 @@ public partial class TableView : ListView
 
         var minColumn = slots.Select(x => x.Column).Min();
         var maxColumn = slots.Select(x => x.Column).Max();
-
         var stringBuilder = new StringBuilder();
-        var properties = new Dictionary<string, (PropertyInfo, object?)[]>();
 
         if (includeHeaders)
         {
@@ -456,7 +522,8 @@ public partial class TableView : ListView
                     continue;
                 }
 
-                stringBuilder.Append($"{column.GetCellContent(item)}{separator}");
+                var content = isClipboardContent ? column.GetClipboardContent(item) : column.GetCellContent(item);
+                stringBuilder.Append($"{content}{separator}");
             }
 
             stringBuilder.Remove(stringBuilder.Length - 1, 1); // remove extra separator at the end of the line
@@ -541,15 +608,6 @@ public partial class TableView : ListView
         newColumn.IsAutoGenerated = true;
 
         return new TableViewAutoGeneratingColumnEventArgs(propertyName!, propertyType, newColumn);
-    }
-
-    /// <summary>
-    /// Called before the AutoGeneratingColumn event occurs.
-    /// </summary>
-    /// <param name="args">Cancelable event args.</param>
-    protected virtual void OnAutoGeneratingColumn(TableViewAutoGeneratingColumnEventArgs args)
-    {
-        AutoGeneratingColumn?.Invoke(this, args);
     }
 
     /// <summary>
@@ -658,15 +716,6 @@ public partial class TableView : ListView
     }
 
     /// <summary>
-    /// Called before the ExportSelectedContent event occurs.
-    /// </summary>
-    /// <param name="args">Handleable event args.</param>
-    protected virtual void OnExportSelectedContent(TableViewExportContentEventArgs args)
-    {
-        ExportSelectedContent?.Invoke(this, args);
-    }
-
-    /// <summary>
     /// Exports all rows content to a CSV file.
     /// </summary>
     internal async void ExportAllToCSV()
@@ -697,15 +746,6 @@ public partial class TableView : ListView
     }
 
     /// <summary>
-    /// Called before the ExportAllContent event occurs.
-    /// </summary>
-    /// <param name="args">Handleable event args.</param>
-    protected virtual void OnExportAllContent(TableViewExportContentEventArgs args)
-    {
-        ExportAllContent?.Invoke(this, args);
-    }
-
-    /// <summary>
     /// Gets a storage file for saving the CSV.
     /// </summary>
     private async Task<StorageFile> GetStorageFile()
@@ -713,49 +753,29 @@ public partial class TableView : ListView
         var savePicker = new FileSavePicker();
         savePicker.FileTypeChoices.Add("CSV (Comma delimited)", [".csv"]);
 #if WINDOWS
-        var hWnd = Win32Interop.GetWindowFromWindowId(XamlRoot.ContentIslandEnvironment.AppWindowId);
-        InitializeWithWindow.Initialize(savePicker, hWnd);
+        var hWnd = Microsoft.UI.Win32Interop.GetWindowFromWindowId(XamlRoot.ContentIslandEnvironment.AppWindowId);
+        WinRT.Interop.InitializeWithWindow.Initialize(savePicker, hWnd);
 #endif
 
         return await savePicker.PickSaveFileAsync();
     }
 
     /// <summary>
-    /// Applies clipping to the items panel. This will allow header row to stay on top while scrolling
+    /// Refreshes the items view of the TableView.
     /// </summary>
-    private void ApplyItemsClip()
+    public void RefreshView()
     {
-#if WINDOWS
-        if (_scrollViewer is null || ItemsPanelRoot is null) return;
-
-        Canvas.SetZIndex(ItemsPanelRoot, -1);
-
-        var scrollProperties = ElementCompositionPreview.GetScrollViewerManipulationPropertySet(_scrollViewer);
-        var compositor = scrollProperties.Compositor;
-        var scrollPropSet = scrollProperties.GetSpecializedReference<ManipulationPropertySetReferenceNode>();
-        var itemsPanelVisual = ElementCompositionPreview.GetElementVisual(ItemsPanelRoot);
-        var contentClip = compositor.CreateInsetClip();
-        var expressionClipAnimation = ExpressionFunctions.Max(-scrollPropSet.Translation.Y, 0);
-
-        itemsPanelVisual.Clip = contentClip;
-        contentClip.TopInset = (float)Math.Max(-_scrollViewer.VerticalOffset, 0);
-        contentClip.StartAnimation("TopInset", expressionClipAnimation);
-#endif
+        DeselectAll();
+        _collectionView.Refresh();
     }
 
     /// <summary>
-    /// Updates the margin of the vertical scroll bar to always show under the header row.
+    /// Refreshes the sorting applied to the items in the TableView.
     /// </summary>
-    private void UpdateVerticalScrollBarMargin()
+    public void RefreshSorting()
     {
-        if (GetTemplateChild("ScrollViewer") is ScrollViewer scrollViewer)
-        {
-            var verticalScrollBar = scrollViewer.FindDescendant<ScrollBar>(x => x.Name == "VerticalScrollBar");
-            if (verticalScrollBar is not null)
-            {
-                verticalScrollBar.Margin = new Thickness(0, _headerRow?.ActualHeight ?? 0, 0, 0);
-            }
-        }
+        DeselectAll();
+        _collectionView.RefreshSorting();
     }
 
     /// <summary>
@@ -1084,7 +1104,6 @@ public partial class TableView : ListView
         if (oldSlot.HasValue)
         {
             var cell = GetCellFromSlot(oldSlot.Value);
-            cell?.SetElement();
             cell?.ApplyCurrentCellState();
         }
 
@@ -1127,7 +1146,7 @@ public partial class TableView : ListView
 
         if (removedCells.Count > 0 || addedCells.Count > 0)
         {
-            CellSelectionChanged?.Invoke(this, new TableViewCellSelectionChangedEventArgs(removedCells, addedCells));
+            OnCellSelectionChanged(new TableViewCellSelectionChangedEventArgs(removedCells, addedCells));
         }
     }
 
@@ -1148,11 +1167,12 @@ public partial class TableView : ListView
         var cellLeft = Columns.VisibleColumns.Take(slot.Column).Sum(x => x.ActualWidth);
         var cellWidth = Columns.VisibleColumns[slot.Column].ActualWidth;
         var cellRight = cellLeft + cellWidth;
-        var viewportLeft = _scrollViewer.HorizontalOffset;
-        var viewportRight = viewportLeft + _scrollViewer.ViewportWidth - SelectionIndicatorWidth;
+        var viewportLeft = HorizontalOffset;
+        var headersOffset = CellsHorizontalOffset;
+        var viewportRight = viewportLeft + _scrollViewer.ViewportWidth - headersOffset;
 
         // If cell is wider than the viewport, align left edge
-        if (cellWidth > _scrollViewer.ViewportWidth - SelectionIndicatorWidth)
+        if (cellWidth > _scrollViewer.ViewportWidth - headersOffset)
         {
             xOffset = cellLeft;
         }
@@ -1164,38 +1184,17 @@ public partial class TableView : ListView
         // If cell is right of the viewport, scroll so its right edge is visible
         else if (cellRight > viewportRight)
         {
-            xOffset = cellRight - (_scrollViewer.ViewportWidth - SelectionIndicatorWidth);
+            xOffset = cellRight - (_scrollViewer.ViewportWidth - headersOffset);
         }
 
         // If cell is fully in view, just return
         if ((cellLeft >= viewportLeft && cellRight <= viewportRight) ||
-            xOffset == _scrollViewer.HorizontalOffset)
+            xOffset == HorizontalOffset)
         {
             return row.Cells.ElementAt(slot.Column);
         }
 
-        var tcs = new TaskCompletionSource<object?>();
-
-        void ViewChanged(object? _, ScrollViewerViewChangedEventArgs e)
-        {
-            if (e.IsIntermediate)
-            {
-                return;
-            }
-
-            tcs.TrySetResult(result: default);
-        }
-
-        try
-        {
-            _scrollViewer.ViewChanged += ViewChanged;
-            _scrollViewer.ChangeView(xOffset, _scrollViewer.VerticalOffset, null, true);
-            await tcs.Task;
-        }
-        finally
-        {
-            _scrollViewer.ViewChanged -= ViewChanged;
-        }
+        SetValue(HorizontalOffsetProperty, xOffset);
 
         return row?.Cells.ElementAt(slot.Column)!;
     }
@@ -1208,7 +1207,6 @@ public partial class TableView : ListView
     {
         if (_scrollViewer is null) return default!;
 
-        var xOffset = _scrollViewer.HorizontalOffset;
         var item = Items[index];
         index = Items.IndexOf(item); // if the ItemsSource has duplicate items in it. ScrollIntoView will only bring first index of item.
         ScrollIntoView(item);
@@ -1231,7 +1229,7 @@ public partial class TableView : ListView
                     try
                     {
                         _scrollViewer.ViewChanged += ViewChanged;
-                        _scrollViewer.ChangeView(xOffset, yOffset, null, true);
+                        _scrollViewer.ChangeView(0, yOffset, null, true);
                         await tcs.Task;
                     }
                     finally
@@ -1275,9 +1273,12 @@ public partial class TableView : ListView
         var start = -1;
         var end = -1;
         var width = 0d;
+        var headersOffset = CellsHorizontalOffset;
+
         foreach (var column in Columns.VisibleColumns)
         {
-            if (width >= _scrollViewer.HorizontalOffset && width + column.ActualWidth <= _scrollViewer.HorizontalOffset + _scrollViewer.ViewportWidth - SelectionIndicatorWidth)
+            if (width >= HorizontalOffset &&
+                width + column.ActualWidth <= HorizontalOffset + _scrollViewer.ViewportWidth - headersOffset)
             {
                 if (start == -1)
                 {
@@ -1304,9 +1305,14 @@ public partial class TableView : ListView
 
         base.SelectionMode = SelectionUnit is TableViewSelectionUnit.Cell ? ListViewSelectionMode.None : SelectionMode;
 
+        UpdateHorizontalScrollBarMargin();
+        _headerRow?.SetHeadersVisibility();
+
         foreach (var row in _rows)
         {
             row.EnsureLayout();
+            row.RowPresenter?.SetRowHeaderVisibility();
+
         }
 
         _shouldThrowSelectionModeChangedException = false;
@@ -1321,7 +1327,7 @@ public partial class TableView : ListView
 
         foreach (var row in _rows)
         {
-            row.EnsureGridLines();
+            row.RowPresenter?.EnsureGridLines();
         }
     }
 
@@ -1380,14 +1386,14 @@ public partial class TableView : ListView
     internal bool ShowRowContext(TableViewRow row, Point position)
     {
         var eventArgs = new TableViewRowContextFlyoutEventArgs(row.Index, row, row.Content, RowContextFlyout);
-        RowContextFlyoutOpening?.Invoke(this, eventArgs);
+        OnRowContextFlyoutOpening(eventArgs);
 
         if (RowContextFlyout is not null && !eventArgs.Handled)
         {
 #if !WINDOWS
             RowContextFlyout.DataContext = row.Content;
 #endif
-            RowContextFlyout.ShowAt(row.CellPresenter, new FlyoutShowOptions
+            RowContextFlyout.ShowAt(row.RowPresenter, new FlyoutShowOptions
             {
 #if WINDOWS
                 ShowMode = FlyoutShowMode.Standard,
@@ -1408,7 +1414,7 @@ public partial class TableView : ListView
     internal bool ShowCellContext(TableViewCell cell, Point position)
     {
         var eventArgs = new TableViewCellContextFlyoutEventArgs(cell.Slot, cell, cell.Row?.Content!, CellContextFlyout);
-        CellContextFlyoutOpening?.Invoke(this, eventArgs);
+        OnCellContextFlyoutOpening(eventArgs);
 
         if (CellContextFlyout is not null && !eventArgs.Handled)
         {
@@ -1460,73 +1466,33 @@ public partial class TableView : ListView
         UpdateCornerButtonState();
     }
 
-    /// <inheritdoc/>
-    public virtual void OnSorting(TableViewSortingEventArgs eventArgs)
+    /// <summary>
+    /// Sets the visibility of the headers.
+    /// </summary>
+    private void SetHeadersVisibility()
     {
-        Sorting?.Invoke(this, eventArgs);
+        if (_headerRowDefinition is not null)
+        {
+            var areColumnHeadersVisible = HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Columns;
+            _headerRowDefinition.Height = areColumnHeadersVisible ? GridLength.Auto : new(0);
+        }
+
+        _headerRow?.SetHeadersVisibility();
+
+        foreach (var row in _rows)
+        {
+            row.RowPresenter?.SetRowHeaderVisibility();
+        }
     }
 
     /// <summary>
-    /// Called before the ClearSorting event occurs.
+    /// Updates the margin of the horizontal scroll bar to account for frozen columns and row headers.
     /// </summary>
-    /// <param name="eventArgs">The event data.</param>
-    public virtual void OnClearSorting(TableViewClearSortingEventArgs eventArgs)
+    internal void UpdateHorizontalScrollBarMargin()
     {
-        ClearSorting?.Invoke(this, eventArgs);
+        if (_scrollViewer is null) return;
+
+        var offset = CellsHorizontalOffset + Columns.VisibleColumns.Where(c => c.IsFrozen).Sum(c => c.ActualWidth);
+        AttachedPropertiesHelper.SetFrozenColumnScrollBarSpace(_scrollViewer, offset);
     }
-
-    /// <summary>
-    /// Event triggered when a column is auto-generating.
-    /// </summary>
-    public event EventHandler<TableViewAutoGeneratingColumnEventArgs>? AutoGeneratingColumn;
-
-    /// <summary>
-    /// Event triggered when exporting all rows content.
-    /// </summary>
-    public event EventHandler<TableViewExportContentEventArgs>? ExportAllContent;
-
-    /// <summary>
-    /// Event triggered when exporting selected rows or cells content.
-    /// </summary>
-    public event EventHandler<TableViewExportContentEventArgs>? ExportSelectedContent;
-
-    /// <summary>
-    /// Event triggered when copying selected rows or cell content to the clipboard.
-    /// </summary>
-    public event EventHandler<TableViewCopyToClipboardEventArgs>? CopyToClipboard;
-
-    /// <summary>
-    /// Event triggered when the IsReadOnly property changes.
-    /// </summary>
-    public event DependencyPropertyChangedEventHandler? IsReadOnlyChanged;
-
-    /// <summary>
-    /// Event triggered when the row context flyout is opening.
-    /// </summary>
-    public event EventHandler<TableViewRowContextFlyoutEventArgs>? RowContextFlyoutOpening;
-
-    /// <summary>
-    /// Event triggered when the cell context flyout is opening.
-    /// </summary>
-    public event EventHandler<TableViewCellContextFlyoutEventArgs>? CellContextFlyoutOpening;
-
-    /// <summary>
-    /// Occurs when a sorting is being applied to a column in the TableView.
-    /// </summary>
-    public event EventHandler<TableViewSortingEventArgs>? Sorting;
-
-    /// <summary>
-    /// Occurs when sorting is cleared from a column in the TableView.
-    /// </summary>
-    public event EventHandler<TableViewClearSortingEventArgs>? ClearSorting;
-
-    /// <summary>
-    /// Event triggered when selected cells change.
-    /// </summary>
-    public event EventHandler<TableViewCellSelectionChangedEventArgs>? CellSelectionChanged;
-
-    /// <summary>
-    /// Event triggered when the current cell changes.
-    /// </summary>
-    public event DependencyPropertyChangedEventHandler? CurrentCellChanged;
 }

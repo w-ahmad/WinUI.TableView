@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView;
 
@@ -8,7 +9,10 @@ namespace WinUI.TableView;
 /// </summary>
 [StyleTypedProperty(Property = nameof(ElementStyle), StyleTargetType = typeof(TextBlock))]
 [StyleTypedProperty(Property = nameof(EditingElementStyle), StyleTargetType = typeof(NumberBox))]
-public class TableViewNumberColumn : TableViewBoundColumn
+#if WINDOWS
+[WinRT.GeneratedBindableCustomProperty]
+#endif
+public partial class TableViewNumberColumn : TableViewBoundColumn
 {
     /// <summary>
     /// Generates a TextBlock element for the cell.
@@ -42,5 +46,31 @@ public class TableViewNumberColumn : TableViewBoundColumn
         numberBox.DataContext = dataItem;
 #endif
         return numberBox;
+    }
+
+    /// <inheritdoc/>
+    protected internal override object? PrepareCellForEdit(TableViewCell cell, RoutedEventArgs routedEvent)
+    {
+        if (cell.Content is NumberBox numberBox)
+        {
+            return numberBox.Value;
+        }
+
+        return base.PrepareCellForEdit(cell, routedEvent);
+    }
+
+    /// <inheritdoc/>
+    protected internal override void EndCellEditing(TableViewCell cell, object? dataItem, TableViewEditAction editAction, object? uneditedValue)
+    {
+        if (cell.Content is NumberBox numberBox)
+        {
+            if (editAction == TableViewEditAction.Commit)
+            {
+                numberBox.UpdateValue();
+
+                var bindingExpression = numberBox.GetBindingExpression(NumberBox.ValueProperty);
+                bindingExpression?.UpdateSource();
+            }
+        }
     }
 }

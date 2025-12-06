@@ -1,12 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>
-      net8.0;
-      net9.0;
       net8.0-windows10.0.19041.0;
       net9.0-windows10.0.19041.0;
-    </TargetFrameworks> 
+      net10.0-windows10.0.19041.0;
+      net8.0;
+      net9.0;
+      net10.0;
+    </TargetFrameworks>
+    <LangVersion>12</LangVersion>
     <Nullable>enable</Nullable> 
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsAOTCompatible>true</IsAOTCompatible>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$([MSBuild]::GetTargetPlatformIdentifier($(TargetFramework)))' == 'windows'">
@@ -21,14 +26,8 @@
     </AssemblyAttribute>
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="CommunityToolkit.WinUI.Behaviors" Version="8.2.250402" />
-    <!--CommunityToolkit.WinUI.Behaviors version 8.2 is not supported on .net8.0 so let's downgrade it-->
-    <PackageReference Update="CommunityToolkit.WinUI.Behaviors" Version="8.1.240916" Condition="'$(TargetFramework)' == 'net8.0'" />
-  </ItemGroup>
-  
   <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) != 'windows'">
-    <PackageReference Include="Uno.WinUI" Version="6.0.465" />
+    <PackageReference Include="Uno.WinUI" Version="6.2.87" />
   </ItemGroup>
   
   <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
@@ -44,19 +43,24 @@
     <PRIResource Include="**\*.resw" Exclude="bin\**\*.resw;obj\**\*.resw" />
   </ItemGroup>
 
+	<ItemGroup>
+		<Compile Update="TableView.*.cs">
+			<DependentUpon>TableView.cs</DependentUpon>
+		</Compile>
+	</ItemGroup>
+
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <PackageId>WinUI.TableView</PackageId>
     <DebugType>portable</DebugType>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <GenerateLibraryLayout>true</GenerateLibraryLayout>
     <Description>TableView/DataGrid control for WinUI.</Description>
     <PackageTags>WinUI, WinAppSDK, Windows, UNO, XAML, TableView, DataGrid</PackageTags>
     <Product>WinUI TableView Control</Product>
     <RepositoryUrl>https://github.com/w-ahmad/WinUI.TableView</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/w-ahmad/WinUI.TableView</PackageProjectUrl>
+    <PackageProjectUrl>https://w-ahmad.github.io/WinUI.TableView/</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageOutputPath>$(MSBuildThisFileDirectory)..\artifacts\NuGet\$(Configuration)\</PackageOutputPath>
@@ -69,6 +73,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <None Include="..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\package-icon.png" Pack="true" PackagePath="\icon.png"/>
   </ItemGroup>
 
 </Project>

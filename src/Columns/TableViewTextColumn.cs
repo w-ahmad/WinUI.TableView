@@ -9,7 +9,10 @@ namespace WinUI.TableView;
 /// </summary>
 [StyleTypedProperty(Property = nameof(ElementStyle), StyleTargetType = typeof(TextBlock))]
 [StyleTypedProperty(Property = nameof(EditingElementStyle), StyleTargetType = typeof(TextBox))]
-public class TableViewTextColumn : TableViewBoundColumn
+#if WINDOWS
+[WinRT.GeneratedBindableCustomProperty]
+#endif
+public partial class TableViewTextColumn : TableViewBoundColumn
 {
     /// <summary>
     /// Generates a TextBlock element for the cell.
@@ -45,5 +48,30 @@ public class TableViewTextColumn : TableViewBoundColumn
 #endif
         
         return textBox;
+    }
+
+    /// <inheritdoc/>
+    protected internal override object? PrepareCellForEdit(TableViewCell cell, RoutedEventArgs routedEvent)
+    {
+        if (cell.Content is TextBox textBox)
+        {
+            textBox.SelectAll();
+            return textBox.Text;
+        }
+
+        return base.PrepareCellForEdit(cell, routedEvent);
+    }
+
+    /// <inheritdoc/>
+    protected internal override void EndCellEditing(TableViewCell cell, object? dataItem, TableViewEditAction editAction, object? uneditedValue)
+    {
+        if (cell.Content is TextBox textBox)
+        {
+            if (editAction == TableViewEditAction.Commit)
+            {
+                var bindingExpression = textBox.GetBindingExpression(TextBox.TextProperty);
+                bindingExpression?.UpdateSource();
+            }
+        }
     }
 }

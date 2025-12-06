@@ -2,9 +2,21 @@
 
 **WinUI.TableView** is a lightweight and fast data grid control made for [WinUI](https://learn.microsoft.com/en-us/windows/apps/winui/winui3) apps and now supports the [Uno Platform](https://platform.uno/). It is easy to use, and capable of handling large numbers of items with a focus on performance. It's derived from `ListView` so you will experience fluent look and feel in your project. It comes with all the essential features you need, plus extras like an Excel like column filter, options buttons (for columns and the TableView) and easy data export.
 
-## [SampleApp](https://github.com/w-ahmad/WinUI.TableView.SampleApp)
+## [Samples App](https://github.com/w-ahmad/WinUI.TableView.SampleApp)
+
+Explore the interactive `WinUI.TableView` samples with code snippets in a Samples App on Microsoft Store or Uno Platorm WASM:
+
+<a href="https://apps.microsoft.com/detail/9ntgb6lmjzx3?referrer=appbadge&mode=direct">
+  <img src="https://get.microsoft.com/images/en-us%20dark.svg" width="200"/>
+</a>
 
 <br>
+
+<a href="https://tableview.samples.w-ahmad.dev/">
+   <img align=center width="18%" src="https://raw.githubusercontent.com/unoplatform/styleguide/master/logo/uno-platform-logo-with-text.png" />
+</a>
+
+####
 
 ![WinUI TableView SampleApp](https://raw.githubusercontent.com/w-ahmad/WinUI.TableView.SampleApp/main/WinUI.TableView%20SampleApp.gif)
 

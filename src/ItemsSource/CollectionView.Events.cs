@@ -83,4 +83,9 @@ partial class CollectionView
     /// Occurs when a property value changes.
     /// </summary>
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    /// <summary>
+    /// Occurs when an item's property value changes.
+    /// </summary>
+    public event PropertyChangedEventHandler? ItemPropertyChanged;
 }

@@ -10,7 +10,10 @@ namespace WinUI.TableView;
 /// </summary>
 [StyleTypedProperty(Property = nameof(ElementStyle), StyleTargetType = typeof(TextBlock))]
 [StyleTypedProperty(Property = nameof(EditingElementStyle), StyleTargetType = typeof(ComboBox))]
-public class TableViewComboBoxColumn : TableViewBoundColumn
+#if WINDOWS
+[WinRT.GeneratedBindableCustomProperty]
+#endif
+public partial class TableViewComboBoxColumn : TableViewBoundColumn
 {
     private Binding? _textBinding;
     private Binding? _selectedValueBinding;
@@ -27,7 +30,17 @@ public class TableViewComboBoxColumn : TableViewBoundColumn
         {
             Margin = new Thickness(12, 0, 12, 0),
         };
-        textBlock.SetBinding(TextBlock.TextProperty, Binding);
+
+        if (!string.IsNullOrEmpty(DisplayMemberPath))
+        {
+            textBlock.SetBinding(FrameworkElement.DataContextProperty, Binding);
+            textBlock.SetBinding(TextBlock.TextProperty, new Binding { Path = new PropertyPath(DisplayMemberPath) });
+        }
+        else
+        {
+            textBlock.SetBinding(TextBlock.TextProperty, Binding);
+        }
+
         return textBlock;
     }
 
@@ -57,6 +70,30 @@ public class TableViewComboBoxColumn : TableViewBoundColumn
         }
 
         return comboBox;
+    }
+
+    /// <inheritdoc/>
+    protected internal override object? PrepareCellForEdit(TableViewCell cell, RoutedEventArgs routedEvent)
+    {
+        if (cell.Content is ComboBox comboBox)
+        {
+            return comboBox.SelectedItem;
+        }
+
+        return base.PrepareCellForEdit(cell, routedEvent);
+    }
+
+    /// <inheritdoc/>
+    protected internal override void EndCellEditing(TableViewCell cell, object? dataItem, TableViewEditAction editAction, object? uneditedValue)
+    {
+        if (cell.Content is ComboBox comboBox)
+        {
+            if (editAction == TableViewEditAction.Commit)
+            {
+                var bindingExpression = comboBox.GetBindingExpression(Selector.SelectedItemProperty);
+                bindingExpression?.UpdateSource();
+            }
+        }
     }
 
     /// <summary>

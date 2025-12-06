@@ -9,7 +9,10 @@ namespace WinUI.TableView;
 /// Represents a column in a TableView that displays a CheckBox.
 /// </summary>
 [StyleTypedProperty(Property = nameof(ElementStyle), StyleTargetType = typeof(CheckBox))]
-public class TableViewCheckBoxColumn : TableViewBoundColumn
+#if WINDOWS
+[WinRT.GeneratedBindableCustomProperty]
+#endif
+public partial class TableViewCheckBoxColumn : TableViewBoundColumn
 {
     /// <summary>
     /// Initializes a new instance of the TableViewCheckBoxColumn class.
@@ -54,6 +57,30 @@ public class TableViewCheckBoxColumn : TableViewBoundColumn
         if (cell?.Content is CheckBox checkBox)
         {
             UpdateCheckBoxState(checkBox);
+        }
+    }
+
+    /// <inheritdoc/>
+    protected internal override object? PrepareCellForEdit(TableViewCell cell, RoutedEventArgs routedEvent)
+    {
+        if (cell.Content is CheckBox checkBox)
+        {
+            return checkBox.IsChecked;
+        }
+
+        return base.PrepareCellForEdit(cell, routedEvent);
+    }
+
+    /// <inheritdoc/>
+    protected internal override void EndCellEditing(TableViewCell cell, object? dataItem, TableViewEditAction editAction, object? uneditedValue)
+    {
+        if (cell.Content is CheckBox checkBox)
+        {
+            if (editAction == TableViewEditAction.Commit)
+            {
+                var bindingExpression = checkBox.GetBindingExpression(CheckBox.IsCheckedProperty);
+                bindingExpression?.UpdateSource();
+            }
         }
     }
 
