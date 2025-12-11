@@ -448,7 +448,7 @@ public partial class TableViewCell : ContentControl
             element.Style = boundColumn.ElementStyle;
         }
 
-            Content = element;
+        Content = element;
 
 #if !WINDOWS
         DispatcherQueue.TryEnqueue(async () =>
