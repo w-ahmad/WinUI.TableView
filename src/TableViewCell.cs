@@ -23,6 +23,9 @@ namespace WinUI.TableView;
 [TemplateVisualState(Name = VisualStates.StateCurrent, GroupName = VisualStates.GroupCurrent)]
 [TemplateVisualState(Name = VisualStates.StateSelected, GroupName = VisualStates.GroupSelection)]
 [TemplateVisualState(Name = VisualStates.StateUnselected, GroupName = VisualStates.GroupSelection)]
+#if WINDOWS
+[WinRT.GeneratedBindableCustomProperty]
+#endif
 public partial class TableViewCell : ContentControl
 {
     private TableViewColumn? _column;
@@ -445,7 +448,7 @@ public partial class TableViewCell : ContentControl
             element.Style = boundColumn.ElementStyle;
         }
 
-        Content = element;
+            Content = element;
 
 #if !WINDOWS
         DispatcherQueue.TryEnqueue(async () =>
