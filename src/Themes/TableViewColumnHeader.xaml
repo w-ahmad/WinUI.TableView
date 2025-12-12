@@ -6,7 +6,7 @@
                     xmlns:not_win="http://uno.ui/not_win"
                     xmlns:converters="using:WinUI.TableView.Converters"
                     mc:Ignorable="not_win">
-    
+
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/Resources.xaml" />
     </ResourceDictionary.MergedDictionaries>
@@ -201,15 +201,17 @@
                                                                                     <ColumnDefinition Width="*" />
                                                                                     <ColumnDefinition Width="Auto" />
                                                                                 </Grid.ColumnDefinitions>
-                                                                                
+
                                                                                 <TextBlock Text="{Binding Value}"
                                                                                            TextWrapping="NoWrap" />
-                                                                                
-                                                                                <TextBlock Grid.Column="1"
-                                                                                           Visibility="{Binding DataContext.TableView.ShowFilterItemsCount, ElementName=FilterItemsList, Converter={StaticResource BoolToVisibility}}">
-                                                                                    <Run Text="Count:" />
-                                                                                    <Run Text="{Binding Count}" />
-                                                                                </TextBlock>
+
+                                                                                <StackPanel Grid.Column="1"
+                                                                                            Orientation="Horizontal"
+                                                                                            Visibility="{Binding DataContext.TableView.ShowFilterItemsCount, ElementName=FilterItemsList, Converter={StaticResource BoolToVisibility}}">
+                                                                                    <TextBlock Text="(" />
+                                                                                    <TextBlock Text="{Binding Count}" />
+                                                                                    <TextBlock Text=")" />
+                                                                                </StackPanel>
                                                                             </Grid>
                                                                         </CheckBox>
                                                                     </DataTemplate>
