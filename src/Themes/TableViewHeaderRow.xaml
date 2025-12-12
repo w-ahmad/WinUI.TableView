@@ -200,6 +200,7 @@
                                 Translation="0, 0, 32"
                                 BorderThickness="1"
                                 RenderTransformOrigin="0.5,0.5"
+                                DataContext="{x:Null}"
                                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
                             <Border.Shadow>
