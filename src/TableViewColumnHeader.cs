@@ -46,6 +46,7 @@ public partial class TableViewColumnHeader : ContentControl
     private double _reorderStartingPosition;
     private bool _reorderStarted;
     private RenderTargetBitmap? _dragVisuals;
+    private ListView? _filterItemsList;
 
     /// <summary>
     /// Initializes a new instance of the TableViewColumnHeader class.
@@ -228,8 +229,23 @@ public partial class TableViewColumnHeader : ContentControl
         _optionsButton.Tapped += OnOptionsButtonTaped;
         _optionsButton.DataContext = _optionsFlyoutViewModel = new OptionsFlyoutViewModel(_tableView, this);
 
-        var menuItem = _optionsFlyout.Items.FirstOrDefault(x => x.Name == "ItemsCheckFlyoutItem");
-        menuItem?.ApplyTemplate();
+        if (_optionsFlyout.Items.FirstOrDefault(x => x.Name == "ItemsCheckFlyoutItem") is { } menuItem)
+        {
+            menuItem.Loaded += OnItemsCheckFlyoutItemLoaded;
+        }
+
+        SetFilterButtonVisibility();
+        EnsureGridLines();
+    }
+
+    /// <summary>
+    /// Handles the Loaded event for the items check flyout item.
+    /// </summary>
+    private void OnItemsCheckFlyoutItemLoaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuFlyoutItem menuItem) return;
+
+        menuItem.Loaded -= OnItemsCheckFlyoutItemLoaded;
 
         if (menuItem?.FindDescendant<CheckBox>(x => x.Name == "SelectAllCheckBox") is { } checkBox)
         {
@@ -237,14 +253,8 @@ public partial class TableViewColumnHeader : ContentControl
             _selectAllCheckBox.Content = TableViewLocalizedStrings.SelectAllParenthesized;
             _selectAllCheckBox.Checked += OnSelectAllCheckBoxChecked;
             _selectAllCheckBox.Unchecked += OnSelectAllCheckBoxUnchecked;
+            _optionsFlyoutViewModel.SetSelectAllCheckBoxState();
         }
-
-#if !WINDOWS
-        if (menuItem?.FindDescendant<ListView>(x => x.Name is "FilterItemsList") is { } filterItemsList)
-        {
-            filterItemsList.Margin = new Thickness(12, 0, 0, 0);
-        }
-#endif
 
         if (menuItem?.FindDescendant<TextBox>(x => x.Name == "SearchBox") is { } searchBox)
         {
@@ -260,8 +270,7 @@ public partial class TableViewColumnHeader : ContentControl
             menuItem.PreviewKeyUp += static (_, e) => e.Handled = e.Key is VirtualKey.Space;
         }
 
-        SetFilterButtonVisibility();
-        EnsureGridLines();
+        _filterItemsList = menuItem?.FindDescendant<ListView>(x => x.Name is "FilterItemsList");
     }
 
     /// <summary>
@@ -320,6 +329,11 @@ public partial class TableViewColumnHeader : ContentControl
         {
             await Task.Delay(100);
             await FocusManager.TryFocusAsync(_searchBox, FocusState.Programmatic);
+        }
+
+        if (_filterItemsList is not null && _optionsFlyoutViewModel.FilterItems.Count > 0)
+        {
+            _filterItemsList.ScrollIntoView(_optionsFlyoutViewModel.FilterItems[0]);
         }
     }
 
