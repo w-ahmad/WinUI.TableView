@@ -9,6 +9,9 @@ namespace WinUI.TableView;
 /// <summary>
 /// Represents a header for row in TableView.
 /// </summary>
+#if WINDOWS
+[WinRT.GeneratedBindableCustomProperty]
+#endif
 public partial class TableViewRowHeader : ContentControl
 {
     private ContentPresenter? _contentPresenter;
