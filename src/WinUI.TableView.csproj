@@ -10,7 +10,6 @@
     </TargetFrameworks>
     <LangVersion>12</LangVersion>
     <Nullable>enable</Nullable> 
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IsAOTCompatible>true</IsAOTCompatible>
   </PropertyGroup>
 
@@ -52,6 +51,7 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <PackageId>WinUI.TableView</PackageId>
     <DebugType>portable</DebugType>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
