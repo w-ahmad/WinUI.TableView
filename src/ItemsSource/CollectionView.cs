@@ -15,11 +15,11 @@ namespace WinUI.TableView;
 /// <summary>
 /// A collection view implementation that supports filtering, sorting, and incremental loading.
 /// </summary>
-internal partial class CollectionView : ICollectionView, ISupportIncrementalLoading, INotifyPropertyChanged, IComparer<object>
+internal partial class CollectionView : ICollectionView, ISupportIncrementalLoading, INotifyPropertyChanged, IComparer<object?>
 {
     private IList _source = default!;
     private bool _allowLiveShaping;
-    private readonly List<object> _view = [];
+    private readonly List<object?> _view = [];
     private readonly ObservableCollection<FilterDescription> _filterDescriptions = [];
     private readonly ObservableCollection<SortDescription> _sortDescriptions = [];
     private CollectionChangedListener<CollectionView>? _collectionChangedListener;
@@ -259,7 +259,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
             }
         }
 
-        var viewHash = new HashSet<object>(_view);
+        var viewHash = new HashSet<object?>(_view);
         var viewIndex = 0;
         for (var index = 0; index < _source.Count; index++)
         {
@@ -442,7 +442,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     /// </summary>
     /// <param name="item">The item to locate in the collection.</param>
     /// <returns>The index of the item if found in the collection; otherwise, -1.</returns>
-    public int IndexOf(object item)
+    public int IndexOf(object? item)
     {
         return _view.IndexOf(item);
     }
@@ -464,7 +464,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     /// </summary>
     /// <param name="item">The item to move to.</param>
     /// <returns>true if the operation is successful; otherwise, false.</returns>
-    public bool MoveCurrentTo(object item)
+    public bool MoveCurrentTo(object? item)
     {
         return item == CurrentItem || MoveCurrentToIndex(IndexOf(item));
     }
@@ -520,7 +520,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     /// </summary>
     /// <param name="item">The item to remove.</param>
     /// <returns>true if the item was successfully removed; otherwise, false.</returns>
-    public bool Remove(object item)
+    public bool Remove(object? item)
     {
         if (IsReadOnly) throw new NotSupportedException("Collection is read-only.");
 
