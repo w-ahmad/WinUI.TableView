@@ -649,8 +649,7 @@ public partial class TableView : ListView
     /// </summary>
     private void ItemsSourceChanged(DependencyPropertyChangedEventArgs e)
     {
-        var defer = _collectionView.DeferRefresh();
-        {
+        using var defer = _collectionView.DeferRefresh();
             _collectionView.Source = null!;
 
             if (e.NewValue is IList source)
@@ -660,8 +659,6 @@ public partial class TableView : ListView
                 _collectionView.Source = source;
             }
         }
-        defer.Complete();
-    }
 
     /// <summary>
     /// Ensures that columns are automatically generated based on the current state of the control.
@@ -925,6 +922,7 @@ public partial class TableView : ListView
     private void DeselectAllCells()
     {
         if (SelectedCellRanges.Count is 0) return;
+
         SelectedCellRanges.Clear();
         OnCellSelectionChanged();
         CurrentCellSlot = null;
@@ -1208,10 +1206,10 @@ public partial class TableView : ListView
     /// <param name="index">The index of the row to scroll into view.</param>
     public async Task<TableViewRow?> ScrollRowIntoView(int index)
     {
-        if (_scrollViewer is null) return default!;
+        if (_scrollViewer is null || index < 0) return default!;
 
         var item = Items[index];
-        index = Items.IndexOf(item); // if the ItemsSource has duplicate items in it. ScrollIntoView will only bring first index of item.
+        index = Items.IndexOf(item); // if the ItemsSource has duplicate items in it. ScrollIntoView will only bring first index of the item.
         ScrollIntoView(item);
 
         var tries = 0;
