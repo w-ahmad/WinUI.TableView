@@ -905,6 +905,8 @@ public partial class TableView : ListView
     /// </summary>
     private void DeselectAllItems()
     {
+        if (SelectedRanges.Count is 0) return;
+
         switch (SelectionMode)
         {
             case ListViewSelectionMode.Single:
@@ -922,6 +924,7 @@ public partial class TableView : ListView
     /// </summary>
     private void DeselectAllCells()
     {
+        if (SelectedCellRanges.Count is 0) return;
         SelectedCellRanges.Clear();
         OnCellSelectionChanged();
         CurrentCellSlot = null;
