@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.System;
@@ -161,12 +162,28 @@ public partial class TableViewColumnHeader : ContentControl
         }
         else if (_tableView is not null)
         {
-            _optionsFlyoutViewModel.SelectedValues = [.. _optionsFlyoutViewModel.FilterItems.Where(x => x.IsSelected).Select(x => x.Value)];
-            {
+            _optionsFlyoutViewModel.SelectedValues = GetSelectedValues();
                 _tableView.FilterHandler.SelectedValues[Column!] = _optionsFlyoutViewModel.SelectedValues;
                 _tableView.FilterHandler?.ApplyFilter(Column!);
             }
         }
+
+    private ICollection<object?> GetSelectedValues()
+    {
+        var selectedValues = _optionsFlyoutViewModel.FilterItems.Where(x => x.IsSelected).Select(x => x.Value);
+        var firstItem = selectedValues.FirstOrDefault(x => x is not null);
+        var firstItemType = firstItem?.GetType();
+
+        return firstItemType switch
+        {
+            Type t when t == typeof(int) => new ObjectBackedTypedSet<int?>(selectedValues),
+            Type t when t == typeof(DateTime) => new ObjectBackedTypedSet<DateTime?>(selectedValues),
+            Type t when t == typeof(bool) => new ObjectBackedTypedSet<bool?>(selectedValues),
+            Type t when t == typeof(long) => new ObjectBackedTypedSet<long?>(selectedValues),
+            Type t when t == typeof(double) => new ObjectBackedTypedSet<double?>(selectedValues),
+
+            _ => [.. selectedValues],
+        };
     }
 
     /// <summary>

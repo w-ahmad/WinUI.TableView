@@ -18,7 +18,7 @@ public partial class TableViewFilterItem : INotifyPropertyChanged
     /// <param name="isSelected">Indicates whether the filter item is selected.</param>
     /// <param name="value">The value of the filter item.</param>
     /// <param name="count">The count of occurrences for the filter item.</param>
-    public TableViewFilterItem(bool isSelected, object value, int count = 1)
+    public TableViewFilterItem(bool isSelected, object? value, int count = 1)
     {
         IsSelected = isSelected;
         Value = value;
@@ -41,10 +41,17 @@ public partial class TableViewFilterItem : INotifyPropertyChanged
     /// <summary>
     /// Gets the value of the filter item.
     /// </summary>
-    public object Value { get; }
+    public object? Value { get; }
 
     /// <summary>
     /// Gets or sets the count of occurrences for the filter item.
     /// </summary>
     public int Count { get; set; }
+
+
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        return Value is null ? TableViewLocalizedStrings.BlankFilterValue : $"{Value}";
+    }
 }
