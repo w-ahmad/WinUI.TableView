@@ -122,5 +122,5 @@ public class ColumnFilterHandler : IColumnFilterHandler
     }
 
     /// <inheritdoc/>
-    public IDictionary<TableViewColumn, IList<object>> SelectedValues { get; } = new Dictionary<TableViewColumn, IList<object>>();
+    public IDictionary<TableViewColumn, ICollection<object?>> SelectedValues { get; } = new Dictionary<TableViewColumn, ICollection<object?>>();
 }
