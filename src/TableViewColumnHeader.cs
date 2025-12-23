@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Windows.System;
 using Windows.UI.Core;
+using WinUI.TableView.Collections;
 using WinUI.TableView.Extensions;
 using SD = WinUI.TableView.SortDirection;
 
@@ -97,28 +98,23 @@ public partial class TableViewColumnHeader : ContentControl
     {
         if (CanSort && Column is not null && _tableView is { CollectionView: CollectionView { } collectionView })
         {
-            var defer = collectionView.DeferRefresh();
+            using var defer = collectionView.DeferRefresh();
+            if (singleSorting)
             {
-                if (singleSorting)
-                {
-                    _tableView.ClearAllSortingWithEvent();
-                }
-                else
-                {
-                    ClearSortingWithEvent();
-                }
-
-                if (direction is not null)
-                {
-                    var boundColumn = Column as TableViewBoundColumn;
-                    Column.SortDirection = direction;
-                    _tableView.SortDescriptions.Add(
-                        new ColumnSortDescription(Column!, boundColumn?.PropertyPath, direction.Value));
-
-                    _tableView.EnsureAlternateRowColors();
-                }
+                _tableView.ClearAllSortingWithEvent();
             }
-            defer.Complete();
+            else
+            {
+                ClearSortingWithEvent();
+            }
+
+            if (direction is not null)
+            {
+                var boundColumn = Column as TableViewBoundColumn;
+                Column.SortDirection = direction;
+                _tableView.SortDescriptions.Add(
+                    new ColumnSortDescription(Column!, boundColumn?.PropertyPath, direction.Value));
+            }
         }
     }
 
@@ -135,11 +131,12 @@ public partial class TableViewColumnHeader : ContentControl
             return;
         }
 
-        if (CanSort && _tableView is not null && Column is not null)
+        if (CanSort && _tableView?.CollectionView is CollectionView { } collectionView && Column is not null)
         {
+            using var defer = collectionView.DeferRefresh();
             _tableView.DeselectAll();
             Column.SortDirection = null;
-            _tableView.SortDescriptions.RemoveWhere(x => x is ColumnSortDescription columnSort && columnSort.Column == Column);
+            collectionView.SortDescriptions.RemoveWhere(x => x is ColumnSortDescription columnSort && columnSort.Column == Column);
         }
     }
 
@@ -163,10 +160,10 @@ public partial class TableViewColumnHeader : ContentControl
         else if (_tableView is not null)
         {
             _optionsFlyoutViewModel.SelectedValues = GetSelectedValues();
-                _tableView.FilterHandler.SelectedValues[Column!] = _optionsFlyoutViewModel.SelectedValues;
-                _tableView.FilterHandler?.ApplyFilter(Column!);
-            }
+            _tableView.FilterHandler.SelectedValues[Column!] = _optionsFlyoutViewModel.SelectedValues;
+            _tableView.FilterHandler?.ApplyFilter(Column!);
         }
+    }
 
     private ICollection<object?> GetSelectedValues()
     {
