@@ -48,7 +48,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
         if (e.Action == NotifyCollectionChangedAction.Reset)
             HandleSourceChanged();
         else
-        HandleFilterChanged();
+            HandleFilterChanged();
     }
 
     /// <summary>
@@ -61,7 +61,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
         if (e.Action == NotifyCollectionChangedAction.Reset)
             HandleSourceChanged();
         else
-        HandleSortChanged();
+            HandleSortChanged();
     }
 
     /// <summary>
@@ -216,28 +216,21 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
 
         if (Source is not null)
         {
-            if (FilterDescriptions.Any() || SortDescriptions.Any())
+            if (FilterDescriptions.Count > 0)
             {
                 foreach (var item in Source)
                 {
-                    if (FilterDescriptions is not null && !FilterDescriptions.All(x => x.Predicate(item)))
-                    {
-                        continue;
-                    }
-
-                    var targetIndex = _view.BinarySearch(item, this);
-                    if (targetIndex < 0)
-                    {
-                        targetIndex = ~targetIndex;
-                    }
-
-                    _view.Insert(targetIndex, item);
+                    if (FilterDescriptions.All(x => x.Predicate(item)))
+                        _view.Add(item);
                 }
             }
             else
             {
                 _view.AddRange(_source.OfType<object>());
             }
+
+            if (SortDescriptions.Count > 0)
+                _view.Sort(this);
         }
 
         OnVectorChanged(new VectorChangedEventArgs(CollectionChange.Reset));
