@@ -786,7 +786,7 @@ public partial class TableView : ListView
         DeselectAll();
         SortDescriptions.Clear();
 
-        foreach (var column in Columns)
+        foreach (var column in Columns.Where(c => c.SortDirection is not null))
         {
             if (column is not null)
             {
