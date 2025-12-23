@@ -43,6 +43,11 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     /// </summary>
     private void OnFilterDescriptionsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
+        if (_deferCounter > 0) return;
+
+        if (e.Action == NotifyCollectionChangedAction.Reset)
+            HandleSourceChanged();
+        else
         HandleFilterChanged();
     }
 
@@ -51,11 +56,11 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     /// </summary>
     private void OnSortDescriptionsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        if (_deferCounter > 0)
-        {
-            return;
-        }
+        if (_deferCounter > 0) return;
 
+        if (e.Action == NotifyCollectionChangedAction.Reset)
+            HandleSourceChanged();
+        else
         HandleSortChanged();
     }
 
