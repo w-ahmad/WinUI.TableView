@@ -21,6 +21,11 @@ internal class ColumnSortDescription : SortDescription
 
     public override object? GetPropertyValue(object? item)
     {
+        // If a property name SortMemberPath was provided
+        if (!string.IsNullOrEmpty(PropertyName))
+        {
+            return base.GetPropertyValue(item);
+        }
         return Column.GetCellContent(item);
     }
 
