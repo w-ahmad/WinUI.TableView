@@ -457,7 +457,6 @@ public abstract partial class TableViewColumn : DependencyObject
 
     /// <summary>
     /// Gets or sets the member path to use for sorting instead of the default binding path.
-    /// Holds the name of the member to use for sorting, if not using the default.
     /// </summary>
     public string? SortMemberPath
     {
