@@ -456,6 +456,20 @@ public abstract partial class TableViewColumn : DependencyObject
     }
 
     /// <summary>
+    /// Gets or sets the member path to use for sorting instead of the default binding path.
+    /// </summary>
+    public string? SortMemberPath
+    {
+        get => (string?)GetValue(SortMemberPathProperty);
+        set => SetValue(SortMemberPathProperty, value);
+    }
+
+    /// <summary>
+    /// Identifies the SortMemberPath dependency property.
+    /// </summary>
+    public static readonly DependencyProperty SortMemberPathProperty = DependencyProperty.Register(nameof(SortMemberPath), typeof(string), typeof(TableViewColumn), new PropertyMetadata(null));
+
+    /// <summary>
     /// Identifies the HeaderStyle dependency property.
     /// </summary>
     public static readonly DependencyProperty HeaderStyleProperty = DependencyProperty.Register(nameof(HeaderStyle), typeof(Style), typeof(TableViewColumn), new PropertyMetadata(null, OnHeaderStyleChanged));
