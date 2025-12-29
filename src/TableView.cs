@@ -56,6 +56,7 @@ public partial class TableView : ListView
         RegisterPropertyChangedCallback(ListViewBase.SelectionModeProperty, OnBaseSelectionModeChanged);
 
         Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
         SelectionChanged += TableView_SelectionChanged;
         _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
     }
@@ -317,6 +318,17 @@ public partial class TableView : ListView
         });
 
         EnsureAutoColumns();
+    }
+
+    /// <summary>
+    /// Handles the Unloaded event of the TableView control.
+    /// </summary>
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        if (IsEditing && CurrentCellSlot.HasValue && GetCellFromSlot(CurrentCellSlot.Value) is { } currentCell)
+        {
+            currentCell.EndEditing(TableViewEditAction.Commit);
+        }
     }
 
     /// <summary>

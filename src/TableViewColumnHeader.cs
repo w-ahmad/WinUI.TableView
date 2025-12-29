@@ -112,8 +112,12 @@ public partial class TableViewColumnHeader : ContentControl
             {
                 var boundColumn = Column as TableViewBoundColumn;
                 Column.SortDirection = direction;
+
+                // Prefer explicit SortMemberPath if provided, otherwise use bound column's property path
+                var sortPath = Column.SortMemberPath ?? boundColumn?.PropertyPath;
+
                 _tableView.SortDescriptions.Add(
-                    new ColumnSortDescription(Column!, boundColumn?.PropertyPath, direction.Value));
+                    new ColumnSortDescription(Column!, sortPath, direction.Value));
             }
         }
     }
