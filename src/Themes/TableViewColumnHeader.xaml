@@ -202,7 +202,7 @@
                                                                                     <ColumnDefinition Width="Auto" />
                                                                                 </Grid.ColumnDefinitions>
 
-                                                                                <TextBlock Text="{Binding Value}"
+                                                                                <TextBlock Text="{Binding}"
                                                                                            TextWrapping="NoWrap" />
 
                                                                                 <StackPanel Grid.Column="1"

@@ -55,7 +55,7 @@ partial class CollectionView
     /// </summary>
     /// <param name="index">The zero-based index of the item to get or set.</param>
     /// <returns>The item at the specified index.</returns>
-    public object this[int index]
+    public object? this[int index]
     {
         get => _view[index];
         set => _view[index] = value;
@@ -69,7 +69,7 @@ partial class CollectionView
     /// <summary>
     /// Gets or sets the current item in the view.
     /// </summary>
-    public object CurrentItem
+    public object? CurrentItem
     {
         get => CurrentPosition > -1 && CurrentPosition < _view.Count ? _view[CurrentPosition] : null!;
         set => MoveCurrentTo(value);
