@@ -30,8 +30,8 @@
   </ItemGroup>
   
   <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.250108002" />
-    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.WinUI" Version="1.8.250906003" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3179.45" PrivateAssets="all" />
   </ItemGroup>
   
   <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) != 'windows'">
@@ -42,11 +42,11 @@
     <PRIResource Include="**\*.resw" Exclude="bin\**\*.resw;obj\**\*.resw" />
   </ItemGroup>
 
-	<ItemGroup>
-		<Compile Update="TableView.*.cs">
-			<DependentUpon>TableView.cs</DependentUpon>
-		</Compile>
-	</ItemGroup>
+    <ItemGroup>
+        <Compile Update="TableView.*.cs">
+            <DependentUpon>TableView.cs</DependentUpon>
+        </Compile>
+    </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <PackageId>WinUI.TableView</PackageId>
