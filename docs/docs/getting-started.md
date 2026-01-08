@@ -14,6 +14,9 @@ Install-Package WinUI.TableView
 ```
 ### 3. Add `WinUI.TableView` to Your XAML
 
+> [!TIP]
+> Make sure to read the [docs](https://github.com/w-ahmad/WinUI.TableView/tree/main/docs) to learn more about TableView.
+
 In your `MainWindow.xaml`, add the `WinUI.TableView` control:
 
 ```xml
@@ -128,4 +131,3 @@ Build and run your application. You should see the `WinUI.TableView` populated w
 
 
 ![image](https://github.com/user-attachments/assets/e00bffc7-19e0-40bd-bbda-07198d6bc60a)
-
