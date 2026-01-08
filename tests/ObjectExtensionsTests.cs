@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -16,6 +17,22 @@ public class ObjectExtensionsTests
         Assert.IsNotNull(func);
         var result = func(testItem);
         Assert.AreEqual(7, result);
+    }
+
+    [TestMethod]
+    public void GetFuncCompiledPropertyPath_ShouldAccessSimpleNullableProperty()
+    {
+        var today = DateTimeOffset.Now;
+        var testItem = new TestItem { CompletedDate = today };
+        var func = testItem.GetFuncCompiledPropertyPath("CompletedDate");
+        Assert.IsNotNull(func);
+
+        var result = func(testItem);
+        Assert.AreEqual(today, result);
+
+        testItem.CompletedDate = null;
+        result = func(testItem);
+        Assert.IsNull(result);
     }
 
     [TestMethod]
@@ -347,6 +364,7 @@ public class ObjectExtensionsTests
     private class TestItem
     {
         public int Number { get; set; } = 0;
+        public DateTimeOffset? CompletedDate { get; set; }
         public TestStruct ValueTypeStruct { get; set; }
         public IList NonGenericList { get; set; } = new ArrayList();
         public List<SubItem> SubItems { get; set; } = [];
