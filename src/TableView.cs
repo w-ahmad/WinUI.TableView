@@ -1461,6 +1461,14 @@ public partial class TableView : ListView
         OnRowDoubleTapped(eventArgs);
     }
     /// <summary>
+    /// Raises the CellDoubleTapped event.
+    /// </summary>
+    internal void RaiseCellDoubleTappedEvent(TableViewCell cell)
+    {
+        var eventArgs = new TableViewCellDoubleTappedEventArgs(cell.Slot, cell, cell.Row?.Content!);
+        OnCellDoubleTapped(eventArgs);
+    }
+    /// <summary>
     /// Sets the state of the corner button.
     /// </summary>
     internal void UpdateCornerButtonState()

@@ -93,7 +93,7 @@ partial class TableView
     }
 
     /// <summary>
-    /// Event triggered when a row is double-tapped/clicked.
+    /// Event triggered when a row is double-tapped.
     /// </summary>
     public event EventHandler<TableViewRowDoubleTappedEventArgs>? RowDoubleTapped;
 
@@ -106,6 +106,19 @@ partial class TableView
         RowDoubleTapped?.Invoke(this, args);
     }
 
+    /// <summary>
+    /// Event triggered when a cell is double-tapped.
+    /// </summary>
+    public event EventHandler<TableViewCellDoubleTappedEventArgs>? CellDoubleTapped;
+
+    /// <summary>
+    /// Called before the <see cref="CellDoubleTapped"/> event occurs.
+    /// </summary>
+    /// <param name="args">The event data.</param>
+    protected virtual void OnCellDoubleTapped(TableViewCellDoubleTappedEventArgs args)
+    {
+        CellDoubleTapped?.Invoke(this, args);
+    }
     /// <summary>
     /// Event triggered when the cell context flyout is opening.
     /// </summary>
