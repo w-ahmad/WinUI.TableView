@@ -207,6 +207,7 @@ You can customize the appearance and behavior of the `TableView` by modifying it
 6. TableViewTemplateColumn
 7. TableViewTimeColumn
 8. TableViewDateColumn
+9. TableViewHyperlinkColumn
 
 ## Contributing
 

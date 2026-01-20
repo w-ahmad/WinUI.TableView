@@ -111,4 +111,12 @@ public class TypeExtensionsTests
         Assert.IsTrue(typeof(DateOnly).IsInheritedFromIComparable());
         Assert.IsFalse(typeof(object).IsInheritedFromIComparable());
     }
+
+    [TestMethod]
+    public void IsUri_WorksForUriType()
+    {
+        Assert.IsTrue(typeof(Uri).IsUri());
+        Assert.IsFalse(typeof(string).IsUri());
+        Assert.IsFalse(typeof(object).IsUri());
+    }
 }

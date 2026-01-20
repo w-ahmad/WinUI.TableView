@@ -173,4 +173,12 @@ internal static class TypeExtensions
     {
         return FindGenericType(typeof(IEnumerable<>), enumerableType) != null;
     }
+
+    /// <summary>
+    /// Determines whether the specified type is a Uri.
+    /// </summary>
+    internal static bool IsUri(this Type type)
+    {
+        return type == typeof(Uri);
+    }
 }

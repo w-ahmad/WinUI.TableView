@@ -650,6 +650,10 @@ public partial class TableView : ListView
         {
             column = new TableViewCheckBoxColumn();
         }
+        else if(type.IsUri())
+        {
+            column = new TableViewHyperlinkColumn();
+        }
 
         column.Binding = binding;
 
