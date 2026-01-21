@@ -13,7 +13,7 @@ public partial class TableViewRowDoubleTappedEventArgs : HandledEventArgs
     /// <param name="index">The index of the row.</param>
     /// <param name="row">The TableViewRow associated with the event.</param>
     /// <param name="item">The row associated with double tap/click.</param>
-    public TableViewRowDoubleTappedEventArgs(int index, TableViewRow row, object item)
+    public TableViewRowDoubleTappedEventArgs(int index, TableViewRow row, object? item)
     {
         Index = index;
         Row = row;
