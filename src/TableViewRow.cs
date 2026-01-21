@@ -72,6 +72,11 @@ public partial class TableViewRow : ListViewItem
     {
         if (!e.TryGetPosition(sender, out var position)) return;
 #endif
+
+        // select the row before showing the context menu
+        if (TableView is not null && !IsSelected)
+            TableView.MakeSelection(new TableViewCellSlot(Index, 0), false);
+
         e.Handled = TableView?.ShowRowContext(this, position) is true;
     }
 
