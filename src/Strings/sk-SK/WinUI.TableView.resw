@@ -163,7 +163,7 @@
     <value>Odznač všetky riadky.</value>
   </data>
   <data name="ExportAll" xml:space="preserve">
-    <value>Exportuj všetko do CSC</value>
+    <value>Exportuj všetko do CSV</value>
   </data>
   <data name="ExportSelected" xml:space="preserve">
     <value>Exportuj vybrané do CSV</value>
@@ -172,7 +172,7 @@
     <value>Vyber všetky riadky.</value>
   </data>
   <data name="SelectAll" xml:space="preserve">
-    <value>Označ všetko</value>
+    <value>Vyber všetko</value>
   </data>
   <data name="SearchBoxPlaceholder" xml:space="preserve">
     <value>Hľadaj...</value>
