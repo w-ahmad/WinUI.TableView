@@ -191,10 +191,11 @@ public partial class TableViewRow : ListViewItem
     /// <inheritdoc/>
     protected override void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
     {
-        base.OnDoubleTapped(e);
+        var eventArgs = new TableViewRowDoubleTappedEventArgs(Index, this, Content);
+        TableView?.OnRowDoubleTapped(eventArgs);
+        e.Handled = eventArgs.Handled;
 
-        TableView?.RaiseRowDoubleTappedEvent(this);
-        e.Handled = true;
+        base.OnDoubleTapped(e);
     }
 
     /// <inheritdoc/>

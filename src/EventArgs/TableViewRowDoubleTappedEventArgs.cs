@@ -33,5 +33,5 @@ public partial class TableViewRowDoubleTappedEventArgs : HandledEventArgs
     /// <summary>
     /// Gets the item associated with the row.
     /// </summary>
-    public object Item { get; }
+    public object? Item { get; }
 }

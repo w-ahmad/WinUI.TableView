@@ -101,7 +101,7 @@ partial class TableView
     /// Called before the <see cref="RowDoubleTapped"/> event occurs.
     /// </summary>
     /// <param name="args">The event data.</param>
-    protected virtual void OnRowDoubleTapped(TableViewRowDoubleTappedEventArgs args)
+    protected internal virtual void OnRowDoubleTapped(TableViewRowDoubleTappedEventArgs args)
     {
         RowDoubleTapped?.Invoke(this, args);
     }
@@ -115,10 +115,11 @@ partial class TableView
     /// Called before the <see cref="CellDoubleTapped"/> event occurs.
     /// </summary>
     /// <param name="args">The event data.</param>
-    protected virtual void OnCellDoubleTapped(TableViewCellDoubleTappedEventArgs args)
+    protected internal virtual void OnCellDoubleTapped(TableViewCellDoubleTappedEventArgs args)
     {
         CellDoubleTapped?.Invoke(this, args);
     }
+
     /// <summary>
     /// Event triggered when the cell context flyout is opening.
     /// </summary>
