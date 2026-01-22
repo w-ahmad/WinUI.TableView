@@ -30,7 +30,7 @@
         <Setter Property="ScrollViewer.VerticalScrollBarVisibility"
                 Value="Auto" />
         <Setter Property="ScrollViewer.HorizontalScrollMode"
-                Value="Auto" />
+                Value="Disabled" />
         <win:Setter Property="ScrollViewer.IsHorizontalRailEnabled"
                     Value="True" />
         <Setter Property="ScrollViewer.VerticalScrollMode"
