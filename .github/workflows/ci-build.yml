@@ -33,7 +33,7 @@ jobs:
         msbuild /restore `
                 /t:Build,Pack src/WinUI.TableView.csproj `
                 /p:Configuration=Release `
-                /p:Version=1.0.${{ github.run_number }}
+                /p:Version=0.0.${{ github.run_number }}-dev
 
     - name: Setup VSTest
       uses: darenm/Setup-VSTest@v1
@@ -55,3 +55,7 @@ jobs:
       with:
         name: NuGet Packages
         path: artifacts/NuGet/Release
+
+    - name: Push to NuGet
+      run: |
+        dotnet nuget push artifacts\NuGet\Release\*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
