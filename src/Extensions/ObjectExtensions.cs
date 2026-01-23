@@ -134,10 +134,8 @@ internal static partial class ObjectExtensions
 
     private static Expression EnsureObjectCompatibleResult(Expression expression)
     {
-        // Only convert to object if the expression type is not already assignable to object without boxing
-        if (expression.Type.IsValueType
-            && !expression.Type.IsNullableType()  // e.g. int? is considered a ValueType, but also nullable, which means it can be converted to object without boxing
-           )
+        // Ensure the final expression can be used in an object-returning lambda (boxing value types, including nullable value types)
+        if (expression.Type.IsValueType)
             return Expression.Convert(expression, typeof(object));
         return expression;
     }

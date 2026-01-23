@@ -189,6 +189,16 @@ public partial class TableViewRow : ListViewItem
     }
 
     /// <inheritdoc/>
+    protected override void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
+    {
+        var eventArgs = new TableViewRowDoubleTappedEventArgs(Index, this, Content);
+        TableView?.OnRowDoubleTapped(eventArgs);
+        e.Handled = eventArgs.Handled;
+
+        base.OnDoubleTapped(e);
+    }
+
+    /// <inheritdoc/>
     protected override Size ArrangeOverride(Size finalSize)
     {
         finalSize = base.ArrangeOverride(finalSize);

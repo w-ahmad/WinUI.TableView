@@ -311,9 +311,21 @@ public partial class TableViewCell : ContentControl
     /// <inheritdoc/>
     protected override async void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
     {
+        var eventArgs = new TableViewCellDoubleTappedEventArgs(Slot, this, Row?.Content);
+        TableView?.OnCellDoubleTapped(eventArgs);
+        e.Handled = eventArgs.Handled;
+
+        if (e.Handled) return;
+
+        base.OnDoubleTapped(e);
+
         if (!IsReadOnly && TableView is not null && !TableView.IsEditing && !Column?.UseSingleElement is true)
         {
             e.Handled = await BeginCellEditing(e);
+        }
+        else
+        {
+            e.Handled = true;
         }
     }
 
