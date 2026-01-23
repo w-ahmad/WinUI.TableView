@@ -272,6 +272,8 @@ dotnet_naming_style.private_field_name.capitalization = camel_case
 
 # CS1591: Missing XML comment for publicly visible type or member
 dotnet_diagnostic.CS1591.severity = error
+# IDE0290: Use primary constructor
+dotnet_diagnostic.IDE0290.severity = silent
 
 [*.{cs,vb}]
 dotnet_style_coalesce_expression = true:suggestion

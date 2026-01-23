@@ -7,10 +7,12 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.System;
 using Windows.UI.Core;
+using WinUI.TableView.Collections;
 using WinUI.TableView.Extensions;
 using SD = WinUI.TableView.SortDirection;
 
@@ -96,32 +98,27 @@ public partial class TableViewColumnHeader : ContentControl
     {
         if (CanSort && Column is not null && _tableView is { CollectionView: CollectionView { } collectionView })
         {
-            var defer = collectionView.DeferRefresh();
+            using var defer = collectionView.DeferRefresh();
+            if (singleSorting)
             {
-                if (singleSorting)
-                {
-                    _tableView.ClearAllSortingWithEvent();
-                }
-                else
-                {
-                    ClearSortingWithEvent();
-                }
-
-                if (direction is not null)
-                {
-                    var boundColumn = Column as TableViewBoundColumn;
-                    Column.SortDirection = direction;
-
-                    // Prefer explicit SortMemberPath if provided, otherwise use bound column's property path
-                    var sortPath = Column.SortMemberPath ?? boundColumn?.PropertyPath;
-
-                    _tableView.SortDescriptions.Add(
-                        new ColumnSortDescription(Column!, sortPath, direction.Value));
-
-                    _tableView.EnsureAlternateRowColors();
-                }
+                _tableView.ClearAllSortingWithEvent();
             }
-            defer.Complete();
+            else
+            {
+                ClearSortingWithEvent();
+            }
+
+            if (direction is not null)
+            {
+                var boundColumn = Column as TableViewBoundColumn;
+                Column.SortDirection = direction;
+
+                // Prefer explicit SortMemberPath if provided, otherwise use bound column's property path
+                var sortPath = Column.SortMemberPath ?? boundColumn?.PropertyPath;
+
+                _tableView.SortDescriptions.Add(
+                    new ColumnSortDescription(Column!, sortPath, direction.Value));
+            }
         }
     }
 
@@ -138,11 +135,12 @@ public partial class TableViewColumnHeader : ContentControl
             return;
         }
 
-        if (CanSort && _tableView is not null && Column is not null)
+        if (CanSort && _tableView?.CollectionView is CollectionView { } collectionView && Column is not null)
         {
+            using var defer = collectionView.DeferRefresh();
             _tableView.DeselectAll();
             Column.SortDirection = null;
-            _tableView.SortDescriptions.RemoveWhere(x => x is ColumnSortDescription columnSort && columnSort.Column == Column);
+            collectionView.SortDescriptions.RemoveWhere(x => x is ColumnSortDescription columnSort && columnSort.Column == Column);
         }
     }
 
@@ -165,12 +163,28 @@ public partial class TableViewColumnHeader : ContentControl
         }
         else if (_tableView is not null)
         {
-            _optionsFlyoutViewModel.SelectedValues = [.. _optionsFlyoutViewModel.FilterItems.Where(x => x.IsSelected).Select(x => x.Value)];
-            {
-                _tableView.FilterHandler.SelectedValues[Column!] = _optionsFlyoutViewModel.SelectedValues;
-                _tableView.FilterHandler?.ApplyFilter(Column!);
-            }
+            _optionsFlyoutViewModel.SelectedValues = GetSelectedValues();
+            _tableView.FilterHandler.SelectedValues[Column!] = _optionsFlyoutViewModel.SelectedValues;
+            _tableView.FilterHandler?.ApplyFilter(Column!);
         }
+    }
+
+    private ICollection<object?> GetSelectedValues()
+    {
+        var selectedValues = _optionsFlyoutViewModel.FilterItems.Where(x => x.IsSelected).Select(x => x.Value);
+        var firstItem = selectedValues.FirstOrDefault(x => x is not null);
+        var firstItemType = firstItem?.GetType();
+
+        return firstItemType switch
+        {
+            Type t when t == typeof(int) => new ObjectBackedTypedSet<int?>(selectedValues),
+            Type t when t == typeof(DateTime) => new ObjectBackedTypedSet<DateTime?>(selectedValues),
+            Type t when t == typeof(bool) => new ObjectBackedTypedSet<bool?>(selectedValues),
+            Type t when t == typeof(long) => new ObjectBackedTypedSet<long?>(selectedValues),
+            Type t when t == typeof(double) => new ObjectBackedTypedSet<double?>(selectedValues),
+
+            _ => [.. selectedValues],
+        };
     }
 
     /// <summary>

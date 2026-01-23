@@ -123,7 +123,7 @@ public partial class TableViewColumnHeader
         /// <summary>
         /// Gets the selected values for the filter.
         /// </summary>
-        public List<object> SelectedValues { get; set; } = [];
+        public ICollection<object?> SelectedValues { get; set; } = [];
 
         /// <summary>
         /// Sets the state of the select all checkbox.
