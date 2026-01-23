@@ -110,7 +110,7 @@
                                           Grid.Row="1"
                                           helpers:AttachedPropertiesHelper.FrozenColumnScrollBarSpace="{TemplateBinding RowHeaderMinWidth}"
                                           TabNavigation="{TemplateBinding TabNavigation}"
-                                          HorizontalScrollMode="{TemplateBinding ScrollViewer.HorizontalScrollMode}"
+                                          HorizontalScrollMode="Disabled"
                                           HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
                                           win:IsHorizontalScrollChainingEnabled="{TemplateBinding ScrollViewer.IsHorizontalScrollChainingEnabled}"
                                           VerticalScrollMode="{TemplateBinding ScrollViewer.VerticalScrollMode}"
