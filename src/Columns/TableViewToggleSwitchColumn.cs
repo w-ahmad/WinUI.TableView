@@ -8,7 +8,10 @@ namespace WinUI.TableView;
 /// Represents a column in a TableView that displays a ToggleSwitch.
 /// </summary>
 [StyleTypedProperty(Property = nameof(ElementStyle), StyleTargetType = typeof(ToggleSwitch))]
-public class TableViewToggleSwitchColumn : TableViewBoundColumn
+#if WINDOWS
+[WinRT.GeneratedBindableCustomProperty]
+#endif
+public partial class TableViewToggleSwitchColumn : TableViewBoundColumn
 {
     /// <summary>
     /// Initializes a new instance of the TableViewToggleSwitchColumn class.
@@ -40,16 +43,42 @@ public class TableViewToggleSwitchColumn : TableViewBoundColumn
         return toggleSwitch;
     }
 
+    /// <inheritdoc/>
     public override FrameworkElement GenerateEditingElement(TableViewCell cell, object? dataItem)
     {
         throw new NotImplementedException();
     }
 
+    /// <inheritdoc/>
     public override void UpdateElementState(TableViewCell cell, object? dataItem)
     {
         if (cell?.Content is ToggleSwitch toggleSwitch)
         {
             UpdateToggleButtonState(toggleSwitch);
+        }
+    }
+
+    /// <inheritdoc/>
+    protected internal override object? PrepareCellForEdit(TableViewCell cell, RoutedEventArgs routedEvent)
+    {
+        if (cell.Content is ToggleSwitch toggleSwitch)
+        {
+            return toggleSwitch.IsOn;
+        }
+
+        return base.PrepareCellForEdit(cell, routedEvent);
+    }
+
+    /// <inheritdoc/>
+    protected internal override void EndCellEditing(TableViewCell cell, object? dataItem, TableViewEditAction editAction, object? uneditedValue)
+    {
+        if (cell.Content is ToggleSwitch toggleSwitch)
+        {
+            if (editAction == TableViewEditAction.Commit)
+            {
+                var bindingExpression = toggleSwitch.GetBindingExpression(ToggleSwitch.IsOnProperty);
+                bindingExpression?.UpdateSource();
+            }
         }
     }
 

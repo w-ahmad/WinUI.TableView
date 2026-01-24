@@ -1,4 +1,3 @@
-﻿using CommunityToolkit.WinUI;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -6,9 +5,11 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
+using WinUI.TableView.Extensions;
 using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
@@ -22,6 +23,9 @@ namespace WinUI.TableView;
 [TemplateVisualState(Name = VisualStates.StateCurrent, GroupName = VisualStates.GroupCurrent)]
 [TemplateVisualState(Name = VisualStates.StateSelected, GroupName = VisualStates.GroupSelection)]
 [TemplateVisualState(Name = VisualStates.StateUnselected, GroupName = VisualStates.GroupSelection)]
+#if WINDOWS
+[WinRT.GeneratedBindableCustomProperty]
+#endif
 public partial class TableViewCell : ContentControl
 {
     private TableViewColumn? _column;
@@ -29,7 +33,9 @@ public partial class TableViewCell : ContentControl
     private ContentPresenter? _contentPresenter;
     private Border? _selectionBorder;
     private Rectangle? _v_gridLine;
-    private TableViewCellsPresenter? _cellPresenter;
+    private object? _uneditedValue;
+    private RoutedEventArgs? _editingArgs;
+    private IList<TableViewConditionalCellStyle>? _cellStyles;
 
     /// <summary>
     /// Initializes a new instance of the TableViewCell class.
@@ -45,6 +51,7 @@ public partial class TableViewCell : ContentControl
     }
 
 #if !WINDOWS
+    /// <inheritdoc/>
     protected override void OnRightTapped(RightTappedRoutedEventArgs e)
     {
         base.OnRightTapped(e);
@@ -71,6 +78,7 @@ public partial class TableViewCell : ContentControl
         ApplySelectionState();
     }
 
+    /// <inheritdoc/>
     protected override void OnApplyTemplate()
     {
         base.OnApplyTemplate();
@@ -80,18 +88,48 @@ public partial class TableViewCell : ContentControl
         _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
 
         EnsureGridLines();
+        EnsureStyle(Row?.Content);
     }
 
+    /// <inheritdoc/>
+    protected override void OnContentChanged(object oldContent, object newContent)
+    {
+        base.OnContentChanged(oldContent, newContent);
+
+        if (newContent is ContentControl contentControl)
+        {
+            contentControl.Loaded += OnContentLoaded;
+        }
+
+        void OnContentLoaded(object sender, RoutedEventArgs e)
+        {
+            ((ContentControl)sender).Loaded -= OnContentLoaded;
+            Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        }
+    }
+
+    /// <inheritdoc/>
     protected override Size MeasureOverride(Size availableSize)
     {
         if (Column is not null && Row is not null && _contentPresenter is not null && Content is FrameworkElement element)
         {
+            if (Column is TableViewTemplateColumn)
+            {
 #if WINDOWS
+                if (element is ContentControl { ContentTemplateRoot: FrameworkElement root })
+#else
+                if (element.FindDescendant<ContentPresenter>() is { ContentTemplateRoot: FrameworkElement root })
+#endif
+                    element = root;
+                else
+                    return base.MeasureOverride(availableSize);
+            }
+
             #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860           
             element.MaxWidth = double.PositiveInfinity;
             element.MaxHeight = double.PositiveInfinity;
             #endregion
-#endif
+
             element.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
 
             var desiredWidth = element.DesiredSize.Width;
@@ -105,7 +143,6 @@ public partial class TableViewCell : ContentControl
 
             Column.DesiredWidth = Math.Max(Column.DesiredWidth, desiredWidth);
 
-#if WINDOWS
             #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860
             var contentWidth = Column.ActualWidth;
             contentWidth -= element.Margin.Left;
@@ -118,9 +155,8 @@ public partial class TableViewCell : ContentControl
             contentWidth -= _selectionBorder?.BorderThickness.Right ?? 0;
             contentWidth -= _v_gridLine?.ActualWidth ?? 0d;
 
-            var rowHeight = Row.Height is double.NaN ? double.PositiveInfinity : Row.Height;
-            var rowMaxHeight = Row.MaxHeight;
-            var contentHeight = Math.Min(rowHeight, rowMaxHeight);
+            var height = Height is double.NaN ? double.PositiveInfinity : Height;
+            var contentHeight = Math.Min(height, MaxHeight);
             contentHeight -= element.Margin.Top;
             contentHeight -= element.Margin.Bottom;
             contentHeight -= Padding.Top;
@@ -129,7 +165,7 @@ public partial class TableViewCell : ContentControl
             contentHeight -= BorderThickness.Bottom;
             contentHeight -= _selectionBorder?.BorderThickness.Top ?? 0;
             contentHeight -= _selectionBorder?.BorderThickness.Bottom ?? 0;
-            contentHeight -= GetHorizonalGridlineHeight();
+            contentHeight -= GetHorizontalGridlineHeight();
 
             if (contentWidth < 0 || contentHeight < 0)
             {
@@ -142,21 +178,12 @@ public partial class TableViewCell : ContentControl
                 _contentPresenter.Visibility = Visibility.Visible;
             }
             #endregion
-#endif
         }
 
         return base.MeasureOverride(availableSize);
     }
 
-    /// <summary>
-    /// Retrieves the height of the horizontal gridline.
-    /// </summary>
-    private double GetHorizonalGridlineHeight()
-    {
-        _cellPresenter ??= this?.FindAscendant<TableViewCellsPresenter>();
-        return _cellPresenter?.GetHorizonalGridlineHeight() ?? 0d;
-    }
-
+    /// <inheritdoc/>
     protected override void OnPointerEntered(PointerRoutedEventArgs e)
     {
         base.OnPointerEntered(e);
@@ -169,6 +196,7 @@ public partial class TableViewCell : ContentControl
         }
     }
 
+    /// <inheritdoc/>
     protected override void OnPointerExited(PointerRoutedEventArgs e)
     {
         base.OnPointerEntered(e);
@@ -181,17 +209,29 @@ public partial class TableViewCell : ContentControl
         }
     }
 
-    protected override void OnTapped(TappedRoutedEventArgs e)
+    /// <inheritdoc/>
+    protected override async void OnTapped(TappedRoutedEventArgs e)
     {
         base.OnTapped(e);
 
-        if (TableView?.SelectionUnit is not TableViewSelectionUnit.Row || TableView.CurrentCellSlot != Slot)
+        if ((TableView?.IsEditing ?? false) &&
+             TableView.CurrentCellSlot != Slot &&
+             TableView.CurrentCellSlot.HasValue &&
+             TableView.GetCellFromSlot(TableView.CurrentCellSlot.Value) is { } currentCell)
+        {
+            e.Handled = !TableView.EndCellEditing(TableViewEditAction.Commit, currentCell);
+
+            if (e.Handled) return;
+        }
+
+        if (TableView?.CurrentCellSlot != Slot)
         {
             MakeSelection();
             e.Handled = true;
         }
     }
 
+    /// <inheritdoc/>
     protected override void OnPointerPressed(PointerRoutedEventArgs e)
     {
         base.OnPointerPressed(e);
@@ -204,6 +244,7 @@ public partial class TableViewCell : ContentControl
         }
     }
 
+    /// <inheritdoc/>
     protected override void OnPointerReleased(PointerRoutedEventArgs e)
     {
         base.OnPointerReleased(e);
@@ -220,6 +261,7 @@ public partial class TableViewCell : ContentControl
         e.Handled = true;
     }
 
+    /// <inheritdoc/>
     protected override void OnManipulationDelta(ManipulationDeltaRoutedEventArgs e)
     {
         base.OnManipulationDelta(e);
@@ -228,7 +270,7 @@ public partial class TableViewCell : ContentControl
         {
             var cell = FindCell(e.Position);
 
-            if (cell is not null && cell != this)
+            if (cell is not null && cell.Slot != TableView?.CurrentCellSlot)
             {
                 var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
                 TableView?.MakeSelection(cell.Slot, true, ctrlKey);
@@ -237,37 +279,53 @@ public partial class TableViewCell : ContentControl
     }
 
     /// <summary>
+    /// Gets the height of the horizontal gridlines/>.
+    /// </summary>
+    private double GetHorizontalGridlineHeight()
+    {
+        return TableView?.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Horizontal
+            ? TableView.HorizontalGridLinesStrokeThickness : 0d;
+    }
+
+    /// <summary>
     /// Finds the cell at the specified position.
     /// </summary>
     private TableViewCell? FindCell(Point position)
     {
         _scrollViewer ??= TableView?.FindDescendant<ScrollViewer>();
+        if (_scrollViewer is null) return null;
 
-        if (_scrollViewer is { })
-        {
+        var transformedPoint = TransformToVisual(null).TransformPoint(position);
 #if WINDOWS
-            var transform = _scrollViewer.TransformToVisual(this).Inverse;
-            var point = transform.TransformPoint(position);
-            var transformedPoint = _scrollViewer.TransformToVisual(null).TransformPoint(point);
-            return VisualTreeHelper.FindElementsInHostCoordinates(transformedPoint, _scrollViewer)
+        return VisualTreeHelper.FindElementsInHostCoordinates(transformedPoint, _scrollViewer)
 #else
-            return VisualTreeHelper.FindElementsInHostCoordinates(position, _scrollViewer, true)
-                                   .OfType<ContentPresenter>()
-                                   .Where(x => x.Name is "Content")
-                                   .Select(x => x.FindAscendant<TableViewCell>() is { } cell ? cell : default)
+        return VisualTreeHelper.FindElementsInHostCoordinates(transformedPoint, _scrollViewer, true)
+                               .OfType<ContentPresenter>()
+                               .Where(x => x.Name is "Content")
+                               .Select(x => x.FindAscendant<TableViewCell>() is { } header ? header : default)
 #endif
-                                   .OfType<TableViewCell>()
-                                   .FirstOrDefault();
-        }
-
-        return null;
+                               .OfType<TableViewCell>()
+                               .FirstOrDefault();
     }
 
-    protected override void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
+    /// <inheritdoc/>
+    protected override async void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
     {
+        var eventArgs = new TableViewCellDoubleTappedEventArgs(Slot, this, Row?.Content);
+        TableView?.OnCellDoubleTapped(eventArgs);
+        e.Handled = eventArgs.Handled;
+
+        if (e.Handled) return;
+
+        base.OnDoubleTapped(e);
+
         if (!IsReadOnly && TableView is not null && !TableView.IsEditing && !Column?.UseSingleElement is true)
         {
-            PrepareForEdit();
+            e.Handled = await BeginCellEditing(e);
+        }
+        else
+        {
+            e.Handled = true;
         }
     }
 
@@ -308,18 +366,86 @@ public partial class TableViewCell : ContentControl
     }
 
     /// <summary>
+    /// Initiates editing mode for the current cell, raising the beginning edit event and allowing cancellation.
+    /// </summary>
+    /// <param name="editingArgs">The event data associated with the editing request. Cannot be null.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result is <see langword="true"/> if cell editing was
+    /// successfully started; otherwise, <see langword="false"/> if the operation was canceled.</returns>
+    internal async Task<bool> BeginCellEditing(RoutedEventArgs editingArgs)
+    {
+        var args = new TableViewBeginningEditEventArgs(this, Row?.Content, Column!, editingArgs);
+        TableView?.OnBeginningEdit(args);
+
+        if (!args.Cancel)
+        {
+            PrepareForEdit(editingArgs);
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Prepares the cell for editing.
     /// </summary>
-    internal async void PrepareForEdit()
+    internal void PrepareForEdit(RoutedEventArgs editingArgs)
     {
-        SetEditingElement();
+        var editingElement = SetEditingElement();
+        Content = editingElement;
 
-        await Task.Delay(20);
-
-        if (Content is UIElement { IsHitTestVisible: true } editingElement)
+        if (TableView is not null)
         {
-            editingElement.Focus(FocusState.Pointer);
+            TableView.SetIsEditing(true);
+            TableView.UpdateCornerButtonState();
         }
+
+        if (editingElement is { IsHitTestVisible: true })
+        {
+            _editingArgs = editingArgs;
+            editingElement.Loaded += OnEditingElementLoaded;
+        }
+    }
+
+    private void OnEditingElementLoaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement editingElement)
+        {
+            editingElement.Loaded -= OnEditingElementLoaded;
+            editingElement.Focus(FocusState.Pointer);
+            _editingArgs ??= new RoutedEventArgs();
+
+            var args = new TableViewPreparingCellForEditEventArgs(this, Row?.Content, Column!, editingElement, _editingArgs);
+            _uneditedValue = Column?.PrepareCellForEdit(this, _editingArgs);
+            TableView?.OnPreparingCellForEdit(args);
+        }
+    }
+
+    /// <summary>
+    /// Sets the editing element for the cell.
+    /// </summary>
+    private FrameworkElement? SetEditingElement()
+    {
+        if (Column?.UseSingleElement ?? false)
+        {
+            return Content as FrameworkElement;
+        }
+        else
+        {
+            var element = Column?.GenerateEditingElement(this, Row?.Content);
+
+            if (element is not null && Column is TableViewBoundColumn { EditingElementStyle: { } } boundColumn)
+            {
+                element.Style = boundColumn.EditingElementStyle;
+            }
+
+            return element;
+        }
+    }
+
+    internal void EndEditing(TableViewEditAction editAction)
+    {
+        Column?.EndCellEditing(this, Row?.Content, editAction, _uneditedValue);
+        SetElement();
     }
 
     /// <summary>
@@ -343,30 +469,6 @@ public partial class TableViewCell : ContentControl
             Focus(FocusState.Pointer);
         });
 #endif
-    }
-
-    /// <summary>
-    /// Sets the editing element for the cell.
-    /// </summary>
-    private void SetEditingElement()
-    {
-        if (Column?.UseSingleElement is false)
-        {
-            var element = Column.GenerateEditingElement(this, Row?.Content);
-
-            if (element is not null && Column is TableViewBoundColumn { EditingElementStyle: { } } boundColumn)
-            {
-                element.Style = boundColumn.EditingElementStyle;
-            }
-
-            Content = element;
-        }
-
-        if (TableView is not null)
-        {
-            TableView.SetIsEditing(true);
-            TableView.UpdateCornerButtonState();
-        }
     }
 
     /// <summary>
@@ -443,6 +545,20 @@ public partial class TableViewCell : ContentControl
                                      || TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
                                      ? Visibility.Visible : Visibility.Collapsed;
         }
+    }
+
+    /// <summary>
+    /// Ensures the correct style is applied to the cell.
+    /// </summary>
+    /// <param name="item">The data item associated with the cell.</param>
+    internal void EnsureStyle(object? item)
+    {
+        _cellStyles ??= [
+            .. Column?.ConditionalCellStyles ?? [], // Column styles have first priority
+            .. TableView?.ConditionalCellStyles ?? []]; // TableView styles have second priority
+
+        Style = _cellStyles.FirstOrDefault(c => c.Predicate?.Invoke(new(Column!, item)) is true)?
+                          .Style ?? Column?.CellStyle ?? TableView?.CellStyle;
     }
 
     /// <summary>

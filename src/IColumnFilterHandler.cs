@@ -10,7 +10,7 @@ public interface IColumnFilterHandler
     /// <summary>
     /// Gets or sets the selected values for the filter per column.
     /// </summary>
-    IDictionary<TableViewColumn, IList<object>> SelectedValues { get; }
+    IDictionary<TableViewColumn, ICollection<object?>> SelectedValues { get; }
 
     /// <summary>
     /// Get the filter items for the specified column.

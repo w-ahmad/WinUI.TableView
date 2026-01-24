@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="src/WinUI.TableView.csproj" />
+  <Project Path="tests/WinUI.TableView.Tests.csproj">
+    <Platform Project="x64" />
+    <Deploy />
+  </Project>
+</Solution>

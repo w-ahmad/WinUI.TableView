@@ -5,7 +5,7 @@ namespace WinUI.TableView;
 /// <summary>
 /// Provides data for the ColumnPropertyChanged event.
 /// </summary>
-internal class TableViewColumnPropertyChangedEventArgs : EventArgs
+public class TableViewColumnPropertyChangedEventArgs : EventArgs
 {
     /// <summary>
     /// Initializes a new instance of the TableViewColumnPropertyChanged class.

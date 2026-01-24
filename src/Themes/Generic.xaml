@@ -6,18 +6,22 @@
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/TableView.xaml" />
         <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/TableViewCell.xaml" />
-        <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/TableViewCellsPresenter.xaml" />
+        <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/TableViewRowPresenter.xaml" />
         <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/TableViewColumnHeader.xaml" />
         <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/TableViewHeaderRow.xaml" />
         <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/TableViewRow.xaml" />
+        <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/TableViewRowHeader.xaml" />
         <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/TableViewTimePicker.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <!--Hack for auto generated resize issue-->
     <local:TableViewTextColumn x:Key="ThisNeedsToBeHere" />
 
-    <Style BasedOn="{StaticResource DefaultTableViewCellsPresenterStyle}"
-           TargetType="local:TableViewCellsPresenter" />
+    <Style TargetType="local:TableViewRowHeader"
+           BasedOn="{StaticResource DefaultTableViewRowHeaderStyle}" />
+    
+    <Style BasedOn="{StaticResource DefaultTableViewRowPresenterStyle}"
+           TargetType="local:TableViewRowPresenter" />
 
     <Style TargetType="local:TableViewHeaderRow"
            BasedOn="{StaticResource DefaultTableViewHeaderRowStyle}" />

@@ -5,11 +5,11 @@ namespace WinUI.TableView;
 /// <summary>
 /// Vector changed EventArgs
 /// </summary>
-/// <remarks>
 internal partial class VectorChangedEventArgs : IVectorChangedEventArgs
 {
+    /// <summary>
     /// Initializes a new instance of the <see cref="VectorChangedEventArgs"/> class.
-    /// </remarks>
+    /// </summary>
     /// <param name="cc">collection change type</param>
     /// <param name="index">index of item changed</param>
     /// <param name="item">item changed</param>

@@ -5,8 +5,9 @@ namespace WinUI.TableView;
 /// <summary>
 /// Represents a filter item used in the options flyout of a TableViewColumnHeader.
 /// </summary>
-public  partial class TableViewFilterItem : INotifyPropertyChanged
+public partial class TableViewFilterItem : INotifyPropertyChanged
 {
+    /// <inheritdoc/>
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private bool _isSelected;
@@ -16,10 +17,12 @@ public  partial class TableViewFilterItem : INotifyPropertyChanged
     /// </summary>
     /// <param name="isSelected">Indicates whether the filter item is selected.</param>
     /// <param name="value">The value of the filter item.</param>
-    public TableViewFilterItem(bool isSelected, object value)
+    /// <param name="count">The count of occurrences for the filter item.</param>
+    public TableViewFilterItem(bool isSelected, object? value, int count = 1)
     {
         IsSelected = isSelected;
         Value = value;
+        Count = count;
     }
 
     /// <summary>
@@ -38,5 +41,17 @@ public  partial class TableViewFilterItem : INotifyPropertyChanged
     /// <summary>
     /// Gets the value of the filter item.
     /// </summary>
-    public object Value { get; }
+    public object? Value { get; }
+
+    /// <summary>
+    /// Gets or sets the count of occurrences for the filter item.
+    /// </summary>
+    public int Count { get; set; }
+
+
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        return Value is null ? TableViewLocalizedStrings.BlankFilterValue : $"{Value}";
+    }
 }
