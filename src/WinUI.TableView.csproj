@@ -62,6 +62,7 @@
     <RepositoryUrl>https://github.com/w-ahmad/WinUI.TableView</RepositoryUrl>
     <PackageProjectUrl>https://w-ahmad.github.io/WinUI.TableView/</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageOutputPath>$(MSBuildThisFileDirectory)..\artifacts\NuGet\$(Configuration)\</PackageOutputPath>
     <Authors>w-ahmad - https://github.com/w-ahmad</Authors>
