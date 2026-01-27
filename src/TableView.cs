@@ -403,6 +403,14 @@ public partial class TableView : ListView
     /// </summary>
     internal void CopyToClipboardInternal(bool includeHeaders)
     {
+        // Skip TableView copy logic when a cell editor already handles Ctrl+C.
+        // TextBox, PasswordBox, and RichEditBox all implement their own copy behavior.
+        var focused = FocusManager.GetFocusedElement() as FrameworkElement;
+        if (focused is TextBox || focused is PasswordBox || focused is RichEditBox)
+        {
+            return;
+        }
+
         var args = new TableViewCopyToClipboardEventArgs(includeHeaders);
         OnCopyToClipboard(args);
 
