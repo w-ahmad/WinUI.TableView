@@ -8,6 +8,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -412,7 +413,19 @@ public partial class TableView : ListView
 
         var package = new DataPackage();
         package.SetText(GetSelectedClipboardContent(includeHeaders));
-        Clipboard.SetContent(package);
+
+        // Try/catch to prevent CLIPBRD_E_CANT_OPEN crashes.
+        try
+        {
+            Clipboard.SetContent(package);
+        }
+        catch (Exception ex)
+        {
+            // Clipboard failures are normal on Windows (e.g., CLIPBRD_E_CANT_OPEN).
+            // Swallow to avoid crashing the application.
+            Debug.WriteLine(
+                $"TableView: Clipboard.SetContent failed: {ex}");
+        }
     }
 
     /// <summary>
