@@ -313,6 +313,22 @@ public partial class TableViewColumnHeader : ContentControl
 
             e.Handled = true;
         }
+        else if (e.Key == VirtualKey.Space)
+        {
+            // Prevent the Space key event from bubbling up to the TableView
+            // but still allow normal text input
+
+            e.Handled = true;
+
+            // Manually add the space character to the TextBox
+            if (_searchBox != null)
+            {
+                var selectionStart = _searchBox.SelectionStart;
+                var currentText = _searchBox.Text ?? string.Empty;
+                _searchBox.Text = currentText.Insert(selectionStart, " ");
+                _searchBox.SelectionStart = selectionStart + 1;
+            }
+        }
     }
 
     /// <summary>
