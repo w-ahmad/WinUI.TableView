@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Linq;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using WinUI.TableView.Extensions;
 using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
@@ -17,7 +18,7 @@ namespace WinUI.TableView;
 /// </summary>
 internal partial class CollectionView : ICollectionView, ISupportIncrementalLoading, INotifyPropertyChanged, IComparer<object?>
 {
-    private IList _source = default!;
+    private IEnumerable _source = new List<object>();
     private bool _allowLiveShaping;
     private readonly List<object?> _view = [];
     private readonly ObservableCollection<FilterDescription> _filterDescriptions = [];
@@ -29,7 +30,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     /// </summary>
     /// <param name="source">The source collection.</param>
     /// <param name="liveShapingEnabled">Indicates whether live shaping is enabled.</param>
-    public CollectionView(IList? source = null, bool liveShapingEnabled = true)
+    public CollectionView(IEnumerable? source = null, bool liveShapingEnabled = true)
     {
         _filterDescriptions.CollectionChanged += OnFilterDescriptionsCollectionChanged;
         _sortDescriptions.CollectionChanged += OnSortDescriptionsCollectionChanged;
@@ -242,7 +243,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     /// </summary>
     private void HandleFilterChanged()
     {
-        if (FilterDescriptions.Any())
+        if (FilterDescriptions.Count > 0)
         {
             for (var index = 0; index < _view.Count; index++)
             {
@@ -259,19 +260,21 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
 
         var viewHash = new HashSet<object?>(_view);
         var viewIndex = 0;
-        for (var index = 0; index < _source.Count; index++)
+        var i = 0;
+        foreach (var item in _source)
         {
-            var item = _source[index]!;
             if (viewHash.Contains(item))
             {
                 viewIndex++;
                 continue;
             }
 
-            if (HandleItemAdded(index, item, viewIndex))
+            if (HandleItemAdded(i, item, viewIndex))
             {
                 viewIndex++;
             }
+
+            i++;
         }
     }
 

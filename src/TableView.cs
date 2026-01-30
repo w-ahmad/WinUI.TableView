@@ -573,7 +573,9 @@ public partial class TableView : ListView
     /// </summary>
     private void GenerateColumns()
     {
-        var dataType = ItemsSource?.GetItemType();
+        if (ItemsSource is not IEnumerable source) return;
+
+        var dataType = source?.GetItemType();
         if (dataType is null || dataType.IsPrimitive())
         {
             var columnArgs = GenerateColumn(dataType, null, "", dataType?.IsInheritedFromIComparable() is true);
@@ -666,15 +668,15 @@ public partial class TableView : ListView
     private void ItemsSourceChanged(DependencyPropertyChangedEventArgs e)
     {
         using var defer = _collectionView.DeferRefresh();
-            _collectionView.Source = null!;
+        _collectionView.Source = null!;
 
-            if (e.NewValue is IList source)
-            {
-                EnsureAutoColumns();
+        if (e.NewValue is IEnumerable source)
+        {
+            EnsureAutoColumns();
 
-                _collectionView.Source = source;
-            }
+            _collectionView.Source = source;
         }
+    }
 
     /// <summary>
     /// Ensures that columns are automatically generated based on the current state of the control.

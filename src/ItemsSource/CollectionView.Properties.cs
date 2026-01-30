@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using Windows.Foundation.Collections;
+using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView;
 
@@ -11,7 +12,7 @@ partial class CollectionView
     /// <summary>
     /// Gets or sets the source collection.
     /// </summary>
-    public IList Source
+    public IEnumerable Source
     {
         get => _source;
         set
@@ -103,7 +104,7 @@ partial class CollectionView
     /// <summary>
     /// Gets a value indicating whether the collection is read-only.
     /// </summary>
-    public bool IsReadOnly => _source == null || _source.IsReadOnly;
+    public bool IsReadOnly => _source == null || _source.IsReadOnly();
 
     /// <summary>
     /// Gets or sets a value indicating whether live shaping is enabled.

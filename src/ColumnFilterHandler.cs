@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -40,7 +41,7 @@ public class ColumnFilterHandler : IColumnFilterHandler
                     }));
             }
 
-            collectionView.Source = column.TableView.ItemsSource;
+            collectionView.Source = (column.TableView.ItemsSource as IEnumerable) ?? Enumerable.Empty<object>();
 
             var items = _tableView.ShowFilterItemsCount ?
                         GetFilterItemsWithCount(column, searchText, collectionView) :
