@@ -1,7 +1,6 @@
 ﻿using Microsoft.UI.Xaml.Data;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using Windows.Foundation.Collections;
 using WinUI.TableView.Extensions;
 
@@ -19,17 +18,15 @@ partial class CollectionView
         {
             if (_source == value) return;
 
-            if (_source is not null) DetachPropertyChangedHandlers(_source);
+            DetachCollectionChangedHandlers(_source);
+            DetachPropertyChangedHandlers(_source);
 
             _source = value;
+
+            AttachCollectionChangedHandlers(_source);
             AttachPropertyChangedHandlers(_source);
 
-            _collectionChangedListener?.Detach();
-
-            if (_source is INotifyCollectionChanged sourceNcc)
-            {
-                _collectionChangedListener = new(this, sourceNcc, OnSourceCollectionChanged);
-            }
+            CreateItemsCopy(_source);
 
             HandleSourceChanged();
             OnPropertyChanged();

@@ -9,7 +9,6 @@ using System.Linq;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using WinUI.TableView.Extensions;
-using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
 
@@ -19,11 +18,11 @@ namespace WinUI.TableView;
 internal partial class CollectionView : ICollectionView, ISupportIncrementalLoading, INotifyPropertyChanged, IComparer<object?>
 {
     private IEnumerable _source = new List<object>();
+    private object[] _itemsCopy = []; // In case the source is ICollection, keep a copy of the items to keep track of removed items.
     private bool _allowLiveShaping;
     private readonly List<object?> _view = [];
     private readonly ObservableCollection<FilterDescription> _filterDescriptions = [];
     private readonly ObservableCollection<SortDescription> _sortDescriptions = [];
-    private CollectionChangedListener<CollectionView>? _collectionChangedListener;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CollectionView"/> class.
@@ -66,6 +65,36 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     }
 
     /// <summary>
+    /// Attaches collection changed handlers to the source collection.
+    /// </summary>
+    private void AttachCollectionChangedHandlers(IEnumerable source)
+    {
+        if (source is INotifyCollectionChanged sourceNcc)
+        {
+            sourceNcc.CollectionChanged += OnSourceCollectionChanged;
+        }
+        else if (source is ICollectionView sourceCV)
+        {
+            sourceCV.VectorChanged += OnSourceVectorChanged;
+        }
+    }
+
+    /// <summary>
+    /// Detaches collection changed handlers from the source collection.
+    /// </summary>
+    private void DetachCollectionChangedHandlers(IEnumerable source)
+    {
+        if (source is INotifyCollectionChanged sourceNcc)
+        {
+            sourceNcc.CollectionChanged -= OnSourceCollectionChanged;
+        }
+        else if (source is ICollectionView sourceCV)
+        {
+            sourceCV.VectorChanged -= OnSourceVectorChanged;
+        }
+    }
+
+    /// <summary>
     /// Attaches property changed handlers to the items in the collection.
     /// </summary>
     /// <param name="items">The items to attach handlers to.</param>
@@ -90,6 +119,75 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
         foreach (var item in items.OfType<INotifyPropertyChanged>())
         {
             item.PropertyChanged -= OnItemPropertyChanged;
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the source vector.
+    /// </summary>
+    private void OnSourceVectorChanged(IObservableVector<object> sender, IVectorChangedEventArgs args)
+    {
+        var index = (int)args.Index;
+
+        switch (args.CollectionChange)
+        {
+            case CollectionChange.ItemInserted:
+                if (_deferCounter <= 0)
+                {
+                    if (index < Count)
+                    {
+                        var item = sender[index];
+                        AttachPropertyChangedHandlers(new object[] { item });
+                        HandleItemAdded(index, item);
+                    }
+                    else
+                    {
+                        HandleSourceChanged();
+                    }
+                }
+
+                break;
+            case CollectionChange.ItemRemoved:
+                if (_deferCounter <= 0)
+                {
+                    if (index < _itemsCopy.Length)
+                    {
+                        var item = _itemsCopy[index];
+                        DetachPropertyChangedHandlers(new object[] { item });
+                        HandleItemRemoved(index, item);
+                    }
+                    else
+                    {
+                        HandleSourceChanged();
+                    }
+                }
+
+                break;
+            case CollectionChange.ItemChanged:
+            case CollectionChange.Reset:
+                if (_deferCounter <= 0)
+                {
+                    HandleSourceChanged();
+                }
+
+                DetachPropertyChangedHandlers(_itemsCopy);
+                AttachPropertyChangedHandlers(_source);
+
+                break;
+        }
+
+        CreateItemsCopy(_source);
+    }
+
+    /// <summary>
+    /// Creates a copy of the items from the collection if it implements ICollectionView.
+    /// </summary>
+    private void CreateItemsCopy(IEnumerable source)
+    {
+        if (source is ICollectionView collectionView)
+        {
+            _itemsCopy = new object[collectionView.Count];
+            collectionView.CopyTo(_itemsCopy, 0);
         }
     }
 
@@ -137,6 +235,9 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
                 {
                     HandleSourceChanged();
                 }
+
+                DetachPropertyChangedHandlers(e.OldItems);
+                AttachPropertyChangedHandlers(_source);
 
                 break;
         }
