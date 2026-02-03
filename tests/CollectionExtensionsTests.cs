@@ -1,4 +1,6 @@
+using Microsoft.UI.Xaml.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -97,6 +99,46 @@ public class CollectionExtensionsTests
         Assert.AreEqual(-1, list.IndexOf("a"));
     }
 
+    [UITestMethod]
+    public void IndexOf_ICollectionView_FindsItemAtCorrectIndex()
+    {
+        var list = new List<string> { "a", "b", "c" };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        Assert.AreEqual(1, collectionView.IndexOf("b"));
+    }
+
+    [UITestMethod]
+    public void IndexOf_ICollectionView_ReturnsNegativeOneWhenNotFound()
+    {
+        var list = new List<string> { "a", "b", "c" };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        Assert.AreEqual(-1, collectionView.IndexOf("d"));
+    }
+
+    [UITestMethod]
+    public void IndexOf_ICollectionView_FindsNullItem()
+    {
+        var list = new List<string?> { "a", null, "c" };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        Assert.AreEqual(1, collectionView.IndexOf(null));
+    }
+
+    [UITestMethod]
+    public void IndexOf_ICollectionView_ReturnsFirstOccurrence()
+    {
+        var list = new List<int> { 1, 2, 3, 2, 4 };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        Assert.AreEqual(1, collectionView.IndexOf(2));
+    }
+
+    [UITestMethod]
+    public void IndexOf_ICollectionView_EmptyList_ReturnsNegativeOne()
+    {
+        var list = new List<string>();
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        Assert.AreEqual(-1, collectionView.IndexOf("a"));
+    }
+
     [TestMethod]
     public void IndexOf_ArrayList_FindsItemAtCorrectIndex()
     {
@@ -151,6 +193,14 @@ public class CollectionExtensionsTests
         Assert.IsTrue(readOnly.IsReadOnly());
     }
 
+    [UITestMethod]
+    public void IsReadOnly_ICollectionView_ReturnsFalse()
+    {
+        var list = new List<int> { 1, 2, 3 };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        Assert.IsFalse(collectionView.IsReadOnly());
+    }
+
     [TestMethod]
     public void IsReadOnly_Array_ReturnsFalse()
     {
@@ -196,6 +246,24 @@ public class CollectionExtensionsTests
     {
         var list = new List<string?> { "a", "b" };
         ((IEnumerable)list).Add(null);
+        CollectionAssert.AreEqual(new[] { "a", "b", null }, list);
+    }
+
+    [UITestMethod]
+    public void Add_ICollectionView_AddsItem()
+    {
+        var list = new List<string> { "a", "b" };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        collectionView.Add("c");
+        CollectionAssert.AreEqual(new[] { "a", "b", "c" }, list);
+    }
+
+    [UITestMethod]
+    public void Add_ICollectionView_AddsNullItem()
+    {
+        var list = new List<string?> { "a", "b" };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        collectionView.Add(null);
         CollectionAssert.AreEqual(new[] { "a", "b", null }, list);
     }
 
@@ -267,6 +335,42 @@ public class CollectionExtensionsTests
         CollectionAssert.AreEqual(new[] { "a", null, "b" }, list);
     }
 
+    [UITestMethod]
+    public void Insert_ICollectionView_InsertsItemAtIndex()
+    {
+        var list = new List<string> { "a", "c" };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        collectionView.Insert(1, "b");
+        CollectionAssert.AreEqual(new[] { "a", "b", "c" }, list);
+    }
+
+    [UITestMethod]
+    public void Insert_ICollectionView_InsertsAtBeginning()
+    {
+        var list = new List<int> { 2, 3 };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        collectionView.Insert(0, 1);
+        CollectionAssert.AreEqual(new[] { 1, 2, 3 }, list);
+    }
+
+    [UITestMethod]
+    public void Insert_ICollectionView_InsertsAtEnd()
+    {
+        var list = new List<int> { 1, 2 };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        collectionView.Insert(2, 3);
+        CollectionAssert.AreEqual(new[] { 1, 2, 3 }, list);
+    }
+
+    [UITestMethod]
+    public void Insert_ICollectionView_InsertsNull()
+    {
+        var list = new List<string?> { "a", "b" };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        collectionView.Insert(1, null);
+        CollectionAssert.AreEqual(new[] { "a", null, "b" }, list);
+    }
+
     [TestMethod]
     public void Insert_ArrayList_InsertsItemAtIndex()
     {
@@ -335,6 +439,42 @@ public class CollectionExtensionsTests
         CollectionAssert.AreEqual(new[] { "a", "b", "c" }, list);
     }
 
+    [UITestMethod]
+    public void Remove_ICollectionView_RemovesItem()
+    {
+        var list = new List<string> { "a", "b", "c" };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        collectionView.Remove("b");
+        CollectionAssert.AreEqual(new[] { "a", "c" }, list);
+    }
+
+    [UITestMethod]
+    public void Remove_ICollectionView_RemovesFirstOccurrence()
+    {
+        var list = new List<int> { 1, 2, 3, 2, 4 };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        collectionView.Remove(2);
+        CollectionAssert.AreEqual(new[] { 1, 3, 2, 4 }, list);
+    }
+
+    [UITestMethod]
+    public void Remove_ICollectionView_RemovesNull()
+    {
+        var list = new List<string?> { "a", null, "c" };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        collectionView.Remove(null);
+        CollectionAssert.AreEqual(new[] { "a", "c" }, list);
+    }
+
+    [UITestMethod]
+    public void Remove_ICollectionView_NonExistentItem_DoesNothing()
+    {
+        var list = new List<string> { "a", "b", "c" };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        collectionView.Remove("d");
+        CollectionAssert.AreEqual(new[] { "a", "b", "c" }, list);
+    }
+
     [TestMethod]
     public void Remove_ArrayList_RemovesItem()
     {
@@ -376,6 +516,15 @@ public class CollectionExtensionsTests
     {
         var list = new List<int> { 1, 2, 3, 4, 5 };
         ((IEnumerable)list).Clear();
+        Assert.AreEqual(0, list.Count);
+    }
+
+    [UITestMethod]
+    public void Clear_ICollectionView_RemovesAllItems()
+    {
+        var list = new List<int> { 1, 2, 3, 4, 5 };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        collectionView.Clear();
         Assert.AreEqual(0, list.Count);
     }
 
