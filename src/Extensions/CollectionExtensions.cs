@@ -49,8 +49,8 @@ internal static class CollectionExtensions
     /// <returns>The index of the item, or -1 if not found.</returns>
     public static int IndexOf(this IEnumerable enumerable, object? item)
     {
-        if (enumerable is ICollection collection)
-            return collection.IndexOf(item);
+        if (enumerable is IList list)
+            return list.IndexOf(item);
 
         if (enumerable is ICollectionView collectionView)
             return collectionView.IndexOf(item);
@@ -86,8 +86,8 @@ internal static class CollectionExtensions
 
     public static void Add(this IEnumerable enumerable, object? item)
     {
-        if (enumerable is ICollection collection)
-            collection.Add(item);
+        if (enumerable is IList list)
+            list.Add(item);
 
         if (enumerable is ICollectionView collectionView)
             collectionView.Add(item);
@@ -95,8 +95,8 @@ internal static class CollectionExtensions
 
     public static void Insert(this IEnumerable enumerable, int index, object? item)
     {
-        if (enumerable is ICollection collection)
-            collection.Insert(index, item);
+        if (enumerable is IList list)
+            list.Insert(index, item);
 
         if (enumerable is ICollectionView collectionView)
             collectionView.Insert(index, item);
@@ -104,8 +104,8 @@ internal static class CollectionExtensions
 
     public static void Remove(this IEnumerable enumerable, object? item)
     {
-        if (enumerable is ICollection collection)
-            collection.Remove(item);
+        if (enumerable is IList list)
+            list.Remove(item);
 
         if (enumerable is ICollectionView collectionView)
             collectionView.Remove(item);
@@ -113,8 +113,8 @@ internal static class CollectionExtensions
 
     public static void Clear(this IEnumerable enumerable)
     {
-        if (enumerable is ICollection collection)
-            collection.Clear();
+        if (enumerable is IList list)
+            list.Clear();
 
         if (enumerable is ICollectionView collectionView)
             collectionView.Clear();
