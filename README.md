@@ -42,7 +42,7 @@ Explore the interactive `WinUI.TableView` samples with code snippets in a Sample
 
 ## Uno Platform Support
 
-`WinUI.TableView` is compatible with the Uno Platform(WASM, Desktop), enabling you to use the control across multiple platforms.
+`WinUI.TableView` is compatible with the Uno Platform, enabling you to use the control across multiple platforms.
 Try the [Uno WASM Sample App](https://github.com/w-ahmad/WinUI.TableView.SampleApp) here 👉 https://tableview.samples.w-ahmad.dev/
 
 ## Getting Started
