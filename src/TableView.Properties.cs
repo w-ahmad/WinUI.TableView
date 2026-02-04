@@ -58,7 +58,7 @@ public partial class TableView
     /// <summary>
     /// Identifies the ShowExportOptions dependency property.
     /// </summary>
-    public static readonly DependencyProperty ShowExportOptionsProperty = DependencyProperty.Register(nameof(ShowExportOptions), typeof(bool), typeof(TableView), new PropertyMetadata(false));
+    public static readonly DependencyProperty ShowExportOptionsProperty = DependencyProperty.Register(nameof(ShowExportOptions), typeof(bool), typeof(TableView), new PropertyMetadata(false, OnShowExportOptionsChanged));
 
     /// <summary>
     /// Identifies the AutoGenerateColumns dependency property.
@@ -262,7 +262,7 @@ public partial class TableView
     /// <summary>
     /// Identifies the <see cref="ShowFilterItemsCount"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty ShowFilterItemsCountProperty =  DependencyProperty.Register(nameof(ShowFilterItemsCount), typeof(bool), typeof(TableView), new PropertyMetadata(false));
+    public static readonly DependencyProperty ShowFilterItemsCountProperty = DependencyProperty.Register(nameof(ShowFilterItemsCount), typeof(bool), typeof(TableView), new PropertyMetadata(false));
 
     /// <summary>
     /// Gets or sets a value indicating whether opening the column filter over header right-click is enabled.
@@ -817,6 +817,17 @@ public partial class TableView
 
             tableView.UpdateBaseSelectionMode();
             tableView.UpdateCornerButtonState();
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the ShowExportOptions property.
+    /// </summary>
+    private static void OnShowExportOptionsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            tableView._headerRow?.SetExportOptionsVisibility();
         }
     }
 

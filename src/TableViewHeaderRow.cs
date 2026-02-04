@@ -70,11 +70,6 @@ public partial class TableViewHeaderRow : Control
             return;
         }
 
-        if (_optionsButton is not null)
-        {
-            _optionsButton.DataContext = new OptionsFlyoutViewModel(TableView);
-        }
-
         if (GetTemplateChild("selectAllButton") is Button selectAllButton)
         {
             selectAllButton.Tapped += OnSelectAllButtonClicked;
@@ -97,6 +92,7 @@ public partial class TableViewHeaderRow : Control
             Path = new PropertyPath(nameof(TableView.CellsHorizontalOffset))
         });
 
+        SetOptionMenuCommands();
         SetExportOptionsVisibility();
         SetCornerButtonState();
         SetHeadersVisibility();
@@ -361,29 +357,6 @@ public partial class TableViewHeaderRow : Control
             _calculatingHeaderWidths = false;
 
             TableView.UpdateHorizontalScrollBarMargin();
-        }
-    }
-
-    /// <summary>
-    /// Sets the visibility of the export options.
-    /// </summary>
-    private void SetExportOptionsVisibility()
-    {
-        var binding = new Binding
-        {
-            Path = new PropertyPath(nameof(TableView.ShowExportOptions)),
-            Source = TableView,
-            Converter = new BoolToVisibilityConverter()
-        };
-
-        if (GetTemplateChild("ExportAllMenuItem") is MenuFlyoutItem exportAll)
-        {
-            exportAll.SetBinding(VisibilityProperty, binding);
-        }
-
-        if (GetTemplateChild("ExportSelectedMenuItem") is MenuFlyoutItem exportSelected)
-        {
-            exportSelected.SetBinding(VisibilityProperty, binding);
         }
     }
 
