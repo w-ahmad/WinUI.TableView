@@ -38,7 +38,7 @@ partial class TableViewHeaderRow
     /// <summary>
     /// Sets commands to option menu items.
     /// </summary>
-    private void SetOptionMenuCommands()
+    private void SetOptionCommands()
     {
         InitializeCommands();
 
@@ -67,7 +67,7 @@ partial class TableViewHeaderRow
     }
 
     /// <summary>
-    /// Initializes the commands for the ViewModel.
+    /// Initializes the commands.
     /// </summary>
     private void InitializeCommands()
     {

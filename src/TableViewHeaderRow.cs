@@ -92,7 +92,7 @@ public partial class TableViewHeaderRow : Control
             Path = new PropertyPath(nameof(TableView.CellsHorizontalOffset))
         });
 
-        SetOptionMenuCommands();
+        SetOptionCommands();
         SetExportOptionsVisibility();
         SetCornerButtonState();
         SetHeadersVisibility();
