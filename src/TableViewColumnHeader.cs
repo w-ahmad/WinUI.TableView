@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Windows.System;
 using Windows.UI.Core;
 using WinUI.TableView.Collections;
+using WinUI.TableView.Controls;
 using WinUI.TableView.Extensions;
 using SD = WinUI.TableView.SortDirection;
 
@@ -39,16 +40,13 @@ public partial class TableViewColumnHeader : ContentControl
     private MenuFlyout? _optionsFlyout;
     private ContentPresenter? _contentPresenter;
     private Rectangle? _v_gridLine;
-    private CheckBox? _selectAllCheckBox;
-    private OptionsFlyoutViewModel _optionsFlyoutViewModel = default!;
     private bool _resizeStarted;
     private double _resizeStartingWidth;
     private bool _resizePreviousStarted;
-    private TextBox? _searchBox;
     private double _reorderStartingPosition;
     private bool _reorderStarted;
     private RenderTargetBitmap? _dragVisuals;
-    private ListView? _filterItemsList;
+    private TableViewFilterItemsControl? _filterItemsControl;
 
     /// <summary>
     /// Initializes a new instance of the TableViewColumnHeader class.
@@ -157,21 +155,23 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     private void ApplyFilter()
     {
-        if (_selectAllCheckBox?.IsChecked is true && string.IsNullOrEmpty(_searchBox?.Text))
+        var shouldApplyFilter = _filterItemsControl?.ShouldApplyFilter ?? false;
+
+        if (!shouldApplyFilter && (Column?.IsFiltered ?? false))
         {
             ClearFilter();
         }
-        else if (_tableView is not null)
+        else if (shouldApplyFilter && _tableView is not null)
         {
-            _optionsFlyoutViewModel.SelectedValues = GetSelectedValues();
-            _tableView.FilterHandler.SelectedValues[Column!] = _optionsFlyoutViewModel.SelectedValues;
+            _tableView.FilterHandler.SelectedValues[Column!] = GetSelectedValues();
             _tableView.FilterHandler?.ApplyFilter(Column!);
         }
     }
 
     private ICollection<object?> GetSelectedValues()
     {
-        var selectedValues = _optionsFlyoutViewModel.FilterItems.Where(x => x.IsSelected).Select(x => x.Value);
+        var filterItems = _filterItemsControl?.FilterItems ?? [];
+        var selectedValues = filterItems.Where(x => x.IsSelected).Select(x => x.Value);
         var firstItem = selectedValues.FirstOrDefault(x => x is not null);
         var firstItemType = firstItem?.GetType();
 
@@ -245,92 +245,22 @@ public partial class TableViewColumnHeader : ContentControl
         _optionsFlyout.Opening += OnOptionsFlyoutOpening;
         _optionsFlyout.Closed += OnOptionsFlyoutClosed;
         _optionsButton.Tapped += OnOptionsButtonTaped;
-        _optionsButton.DataContext = _optionsFlyoutViewModel = new OptionsFlyoutViewModel(_tableView, this);
 
-        if (_optionsFlyout.Items.FirstOrDefault(x => x.Name == "ItemsCheckFlyoutItem") is { } menuItem)
+        if (GetTemplateChild("FilterItemsMenuItem") is MenuFlyoutItem filterItemsMenuItem)
         {
-            menuItem.Loaded += OnItemsCheckFlyoutItemLoaded;
+            filterItemsMenuItem.ApplyTemplate();
+            _filterItemsControl = filterItemsMenuItem.FindDescendant<TableViewFilterItemsControl>();
+
+            if (_filterItemsControl is not null)
+            {
+                _filterItemsControl.TableView = _tableView;
+                _filterItemsControl.ColumnHeader = this;
+            }
         }
 
+        SetOptionCommands();
         SetFilterButtonVisibility();
         EnsureGridLines();
-    }
-
-    /// <summary>
-    /// Handles the Loaded event for the items check flyout item.
-    /// </summary>
-    private void OnItemsCheckFlyoutItemLoaded(object sender, RoutedEventArgs e)
-    {
-        if (sender is not MenuFlyoutItem menuItem) return;
-
-        menuItem.Loaded -= OnItemsCheckFlyoutItemLoaded;
-
-        if (menuItem?.FindDescendant<CheckBox>(x => x.Name == "SelectAllCheckBox") is { } checkBox)
-        {
-            _selectAllCheckBox = checkBox;
-            _selectAllCheckBox.Content = TableViewLocalizedStrings.SelectAllParenthesized;
-            _selectAllCheckBox.Checked += OnSelectAllCheckBoxChecked;
-            _selectAllCheckBox.Unchecked += OnSelectAllCheckBoxUnchecked;
-            _optionsFlyoutViewModel.SetSelectAllCheckBoxState();
-        }
-
-        if (menuItem?.FindDescendant<TextBox>(x => x.Name == "SearchBox") is { } searchBox)
-        {
-            _searchBox = searchBox;
-            _searchBox.PlaceholderText = TableViewLocalizedStrings.SearchBoxPlaceholder;
-            _searchBox.TextChanged += OnSearchBoxTextChanged;
-#if WINDOWS
-            _searchBox.PreviewKeyDown += OnSearchBoxKeyDown;
-#else
-            _searchBox.KeyDown += OnSearchBoxKeyDown;
-#endif
-            // Handle Space key to prevent MenuFlyoutItem performing click action.
-            menuItem.PreviewKeyUp += static (_, e) => e.Handled = e.Key is VirtualKey.Space;
-        }
-
-        _filterItemsList = menuItem?.FindDescendant<ListView>(x => x.Name is "FilterItemsList");
-    }
-
-    /// <summary>
-    /// Handles the TextChanged event for the search box.
-    /// </summary>
-    private void OnSearchBoxTextChanged(object sender, TextChangedEventArgs e)
-    {
-        if (_tableView?.FilterHandler is not null)
-        {
-            _optionsFlyoutViewModel.FilterItems = _tableView.FilterHandler.GetFilterItems(Column!, _searchBox!.Text);
-        }
-    }
-
-    /// <summary>
-    /// Handles the KeyDown event for the search box.
-    /// </summary>
-    private void OnSearchBoxKeyDown(object sender, KeyRoutedEventArgs e)
-    {
-        if (e.Key == VirtualKey.Enter && _searchBox?.Text.Length > 0)
-        {
-            _optionsFlyoutViewModel.OkCommand.Execute(null);
-
-            e.Handled = true;
-        }
-    }
-
-    /// <summary>
-    /// Handles the Checked event for the select all checkbox.
-    /// </summary>
-    private void OnSelectAllCheckBoxChecked(object sender, RoutedEventArgs e)
-    {
-        var checkBox = (CheckBox)sender;
-        _optionsFlyoutViewModel.SetFilterItemsState(checkBox.IsChecked == true);
-    }
-
-    /// <summary>
-    /// Handles the Unchecked event for the select all checkbox.
-    /// </summary>
-    private void OnSelectAllCheckBoxUnchecked(object sender, RoutedEventArgs e)
-    {
-        var checkBox = (CheckBox)sender;
-        _optionsFlyoutViewModel.SetFilterItemsState(checkBox.IsChecked == true);
     }
 
     /// <summary>
@@ -338,21 +268,7 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     private async void OnOptionsFlyoutOpening(object? sender, object e)
     {
-        if (_tableView?.FilterHandler is not null)
-        {
-            _optionsFlyoutViewModel.FilterItems = _tableView.FilterHandler.GetFilterItems(Column!, null);
-        }
-
-        if (_searchBox is not null)
-        {
-            await Task.Delay(100);
-            await FocusManager.TryFocusAsync(_searchBox, FocusState.Programmatic);
-        }
-
-        if (_filterItemsList is not null && _optionsFlyoutViewModel.FilterItems.Count > 0)
-        {
-            _filterItemsList.ScrollIntoView(_optionsFlyoutViewModel.FilterItems[0]);
-        }
+        _filterItemsControl?.Initialize();
     }
 
     /// <summary>
@@ -360,10 +276,7 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     private void OnOptionsFlyoutClosed(object? sender, object e)
     {
-        if (_searchBox is not null)
-        {
-            _searchBox.Text = string.Empty;
-        }
+        _filterItemsControl?.ClearSearchBox();
     }
 
     /// <summary>
