@@ -48,7 +48,6 @@ public partial class TableViewFilterItem : INotifyPropertyChanged
     /// </summary>
     public int Count { get; set; }
 
-
     /// <inheritdoc/>
     public override string ToString()
     {
