@@ -138,19 +138,19 @@
                                     <Button.Flyout>
                                         <MenuFlyout x:Name="OptionsFlyout"
                                                     Placement="Bottom">
-                                            <MenuFlyoutItem Command="{Binding SortAscendingCommand}">
+                                            <MenuFlyoutItem x:Name="SortAscendingMenuItem">
                                                 <MenuFlyoutItem.Icon>
                                                     <FontIcon Glyph="&#xf0ad;" />
                                                 </MenuFlyoutItem.Icon>
                                             </MenuFlyoutItem>
-                                            <MenuFlyoutItem Command="{Binding SortDescendingCommand}">
+                                            <MenuFlyoutItem x:Name="SortDescendingMenuItem">
                                                 <MenuFlyoutItem.Icon>
                                                     <FontIcon Glyph="&#xf0ae;" />
                                                 </MenuFlyoutItem.Icon>
                                             </MenuFlyoutItem>
-                                            <MenuFlyoutItem Command="{Binding ClearSortingCommand}" />
+                                            <MenuFlyoutItem x:Name="ClearSortingMenuItem" />
                                             <MenuFlyoutSeparator />
-                                            <MenuFlyoutItem Command="{Binding ClearFilterCommand}" />
+                                            <MenuFlyoutItem x:Name="ClearFilterMenuItem" />                                            
                                             <MenuFlyoutItem x:Name="ItemsCheckFlyoutItem">
                                                 <MenuFlyoutItem.Template>
                                                     <ControlTemplate TargetType="MenuFlyoutItem">
@@ -222,7 +222,7 @@
                                                 </MenuFlyoutItem.Template>
                                             </MenuFlyoutItem>
                                             <MenuFlyoutSeparator />
-                                            <MenuFlyoutItem>
+                                            <MenuFlyoutItem x:Name="ActionButtonsMenuItem">
                                                 <MenuFlyoutItem.Template>
                                                     <ControlTemplate TargetType="MenuFlyoutItem">
                                                         <Grid Margin="12,4"
@@ -231,10 +231,10 @@
                                                                 <ColumnDefinition Width="*" />
                                                                 <ColumnDefinition Width="*" />
                                                             </Grid.ColumnDefinitions>
-                                                            <Button Command="{Binding OkCommand}"
+                                                            <Button x:Name="OkButton"
                                                                     HorizontalAlignment="Stretch"
                                                                     Style="{StaticResource AccentButtonStyle}" />
-                                                            <Button Command="{Binding CancelCommand}"
+                                                            <Button x:Name="CancelButton"
                                                                     Grid.Column="1"
                                                                     HorizontalAlignment="Stretch" />
                                                         </Grid>
