@@ -4,7 +4,6 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,7 +18,7 @@ public partial class TableView
     /// <summary>
     /// Identifies the ItemsSource dependency property.
     /// </summary>
-    public static readonly new DependencyProperty ItemsSourceProperty = DependencyProperty.Register(nameof(ItemsSource), typeof(IList), typeof(TableView), new PropertyMetadata(null, OnItemsSourceChanged));
+    public static readonly new DependencyProperty ItemsSourceProperty = DependencyProperty.Register(nameof(ItemsSource), typeof(object), typeof(TableView), new PropertyMetadata(null, OnItemsSourceChanged));
 
     /// <summary>
     /// Identifies the SelectionMode dependency property.
@@ -437,9 +436,9 @@ public partial class TableView
     /// <summary>
     ///  Gets or sets an object source used to generate the content of the TableView.
     /// </summary>
-    public new IList? ItemsSource
+    public new object? ItemsSource
     {
-        get => (IList?)GetValue(ItemsSourceProperty);
+        get => GetValue(ItemsSourceProperty);
         set => SetValue(ItemsSourceProperty, value);
     }
 

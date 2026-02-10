@@ -1,6 +1,10 @@
+using Microsoft.UI.Xaml.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView.Tests;
@@ -57,4 +61,512 @@ public class CollectionExtensionsTests
         list.RemoveWhere(x => true);
         CollectionAssert.AreEqual(new int[0], list);
     }
+
+    #region IndexOf Tests
+
+    [TestMethod]
+    public void IndexOf_IList_FindsItemAtCorrectIndex()
+    {
+        var list = new List<string> { "a", "b", "c" };
+        Assert.AreEqual(1, list.IndexOf("b"));
+    }
+
+    [TestMethod]
+    public void IndexOf_IList_ReturnsNegativeOneWhenNotFound()
+    {
+        var list = new List<string> { "a", "b", "c" };
+        Assert.AreEqual(-1, list.IndexOf("d"));
+    }
+
+    [TestMethod]
+    public void IndexOf_IList_FindsNullItem()
+    {
+        var list = new List<string?> { "a", null, "c" };
+        Assert.AreEqual(1, list.IndexOf(null));
+    }
+
+    [TestMethod]
+    public void IndexOf_IList_ReturnsFirstOccurrence()
+    {
+        var list = new List<int> { 1, 2, 3, 2, 4 };
+        Assert.AreEqual(1, list.IndexOf(2));
+    }
+
+    [TestMethod]
+    public void IndexOf_IList_EmptyList_ReturnsNegativeOne()
+    {
+        var list = new List<string>();
+        Assert.AreEqual(-1, list.IndexOf("a"));
+    }
+
+    [UITestMethod]
+    public void IndexOf_ICollectionView_FindsItemAtCorrectIndex()
+    {
+        var list = new List<string> { "a", "b", "c" };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        Assert.AreEqual(1, collectionView.IndexOf("b"));
+    }
+
+    [UITestMethod]
+    public void IndexOf_ICollectionView_ReturnsNegativeOneWhenNotFound()
+    {
+        var list = new List<string> { "a", "b", "c" };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        Assert.AreEqual(-1, collectionView.IndexOf("d"));
+    }
+
+    [UITestMethod]
+    public void IndexOf_ICollectionView_FindsNullItem()
+    {
+        var list = new List<string?> { "a", null, "c" };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        Assert.AreEqual(1, collectionView.IndexOf(null));
+    }
+
+    [UITestMethod]
+    public void IndexOf_ICollectionView_ReturnsFirstOccurrence()
+    {
+        var list = new List<int> { 1, 2, 3, 2, 4 };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        Assert.AreEqual(1, collectionView.IndexOf(2));
+    }
+
+    [UITestMethod]
+    public void IndexOf_ICollectionView_EmptyList_ReturnsNegativeOne()
+    {
+        var list = new List<string>();
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        Assert.AreEqual(-1, collectionView.IndexOf("a"));
+    }
+
+    [TestMethod]
+    public void IndexOf_ArrayList_FindsItemAtCorrectIndex()
+    {
+        var list = new ArrayList { "a", "b", "c" };
+        Assert.AreEqual(1, ((IEnumerable)list).IndexOf("b"));
+    }
+
+    [TestMethod]
+    public void IndexOf_GenericEnumerable_FindsItemAtCorrectIndex()
+    {
+        var enumerable = Enumerable.Range(0, 5).Select(x => x * 2);
+        Assert.AreEqual(2, enumerable.IndexOf(4));
+    }
+
+    [TestMethod]
+    public void IndexOf_GenericEnumerable_ReturnsNegativeOneWhenNotFound()
+    {
+        var enumerable = Enumerable.Range(0, 5).Select(x => x * 2);
+        Assert.AreEqual(-1, enumerable.IndexOf(5));
+    }
+
+    [TestMethod]
+    public void IndexOf_GenericEnumerable_EmptyEnumerable_ReturnsNegativeOne()
+    {
+        var enumerable = Enumerable.Empty<int>();
+        Assert.AreEqual(-1, enumerable.IndexOf(1));
+    }
+
+    [TestMethod]
+    public void IndexOf_GenericEnumerable_WithNull_FindsNull()
+    {
+        var enumerable = new[] { "a", null, "c" }.AsEnumerable();
+        Assert.AreEqual(1, enumerable.IndexOf(null));
+    }
+
+    #endregion
+
+    #region IsReadOnly Tests
+
+    [TestMethod]
+    public void IsReadOnly_MutableList_ReturnsFalse()
+    {
+        var list = new List<int> { 1, 2, 3 };
+        Assert.IsFalse(list.IsReadOnly());
+    }
+
+    [TestMethod]
+    public void IsReadOnly_ReadOnlyCollection_ReturnsTrue()
+    {
+        var list = new List<int> { 1, 2, 3 };
+        var readOnly = new ReadOnlyCollection<int>(list);
+        Assert.IsTrue(readOnly.IsReadOnly());
+    }
+
+    [UITestMethod]
+    public void IsReadOnly_ICollectionView_ReturnsFalse()
+    {
+        var list = new List<int> { 1, 2, 3 };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        Assert.IsFalse(collectionView.IsReadOnly());
+    }
+
+    [TestMethod]
+    public void IsReadOnly_Array_ReturnsFalse()
+    {
+        var array = new[] { 1, 2, 3 };
+        Assert.IsFalse(array.IsReadOnly());
+    }
+
+    [TestMethod]
+    public void IsReadOnly_ArrayList_ReturnsFalse()
+    {
+        var list = new ArrayList { 1, 2, 3 };
+        Assert.IsFalse(list.IsReadOnly());
+    }
+
+    [TestMethod]
+    public void IsReadOnly_GenericEnumerable_ReturnsTrue()
+    {
+        var enumerable = Enumerable.Range(1, 3);
+        Assert.IsTrue(enumerable.IsReadOnly());
+    }
+
+    [TestMethod]
+    public void IsReadOnly_Collection_ReturnsFalse()
+    {
+        var collection = new Collection<string> { "a", "b", "c" };
+        Assert.IsFalse(collection.IsReadOnly());
+    }
+
+    #endregion
+
+    #region Add Tests
+
+    [TestMethod]
+    public void Add_IList_AddsItem()
+    {
+        var list = new List<string> { "a", "b" };
+        ((IEnumerable)list).Add("c");
+        CollectionAssert.AreEqual(new[] { "a", "b", "c" }, list);
+    }
+
+    [TestMethod]
+    public void Add_IList_AddsNullItem()
+    {
+        var list = new List<string?> { "a", "b" };
+        ((IEnumerable)list).Add(null);
+        CollectionAssert.AreEqual(new[] { "a", "b", null }, list);
+    }
+
+    [UITestMethod]
+    public void Add_ICollectionView_AddsItem()
+    {
+        var list = new List<string> { "a", "b" };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        collectionView.Add("c");
+        CollectionAssert.AreEqual(new[] { "a", "b", "c" }, list);
+    }
+
+    [UITestMethod]
+    public void Add_ICollectionView_AddsNullItem()
+    {
+        var list = new List<string?> { "a", "b" };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        collectionView.Add(null);
+        CollectionAssert.AreEqual(new[] { "a", "b", null }, list);
+    }
+
+    [TestMethod]
+    public void Add_ArrayList_AddsItem()
+    {
+        var list = new ArrayList { "a", "b" };
+        ((IEnumerable)list).Add("c");
+        CollectionAssert.AreEqual(new[] { "a", "b", "c" }, list);
+    }
+
+    [TestMethod]
+    public void Add_EmptyList_AddsItem()
+    {
+        var list = new List<int>();
+        ((IEnumerable)list).Add(1);
+        CollectionAssert.AreEqual(new[] { 1 }, list);
+    }
+
+    [TestMethod]
+    public void Add_Collection_AddsItem()
+    {
+        var collection = new Collection<int> { 1, 2 };
+        ((IEnumerable)collection).Add(3);
+        CollectionAssert.AreEqual(new[] { 1, 2, 3 }, collection);
+    }
+
+    [TestMethod]
+    public void Add_GenericEnumerable_DoesNothing()
+    {
+        // This tests that calling Add on a non-IList/ICollectionView enumerable doesn't throw
+        var enumerable = Enumerable.Range(1, 3);
+        enumerable.Add(4); // Should not throw
+    }
+
+    #endregion
+
+    #region Insert Tests
+
+    [TestMethod]
+    public void Insert_IList_InsertsItemAtIndex()
+    {
+        var list = new List<string> { "a", "c" };
+        ((IEnumerable)list).Insert(1, "b");
+        CollectionAssert.AreEqual(new[] { "a", "b", "c" }, list);
+    }
+
+    [TestMethod]
+    public void Insert_IList_InsertsAtBeginning()
+    {
+        var list = new List<int> { 2, 3 };
+        ((IEnumerable)list).Insert(0, 1);
+        CollectionAssert.AreEqual(new[] { 1, 2, 3 }, list);
+    }
+
+    [TestMethod]
+    public void Insert_IList_InsertsAtEnd()
+    {
+        var list = new List<int> { 1, 2 };
+        ((IEnumerable)list).Insert(2, 3);
+        CollectionAssert.AreEqual(new[] { 1, 2, 3 }, list);
+    }
+
+    [TestMethod]
+    public void Insert_IList_InsertsNull()
+    {
+        var list = new List<string?> { "a", "b" };
+        ((IEnumerable)list).Insert(1, null);
+        CollectionAssert.AreEqual(new[] { "a", null, "b" }, list);
+    }
+
+    [UITestMethod]
+    public void Insert_ICollectionView_InsertsItemAtIndex()
+    {
+        var list = new List<string> { "a", "c" };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        collectionView.Insert(1, "b");
+        CollectionAssert.AreEqual(new[] { "a", "b", "c" }, list);
+    }
+
+    [UITestMethod]
+    public void Insert_ICollectionView_InsertsAtBeginning()
+    {
+        var list = new List<int> { 2, 3 };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        collectionView.Insert(0, 1);
+        CollectionAssert.AreEqual(new[] { 1, 2, 3 }, list);
+    }
+
+    [UITestMethod]
+    public void Insert_ICollectionView_InsertsAtEnd()
+    {
+        var list = new List<int> { 1, 2 };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        collectionView.Insert(2, 3);
+        CollectionAssert.AreEqual(new[] { 1, 2, 3 }, list);
+    }
+
+    [UITestMethod]
+    public void Insert_ICollectionView_InsertsNull()
+    {
+        var list = new List<string?> { "a", "b" };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        collectionView.Insert(1, null);
+        CollectionAssert.AreEqual(new[] { "a", null, "b" }, list);
+    }
+
+    [TestMethod]
+    public void Insert_ArrayList_InsertsItemAtIndex()
+    {
+        var list = new ArrayList { "a", "c" };
+        ((IEnumerable)list).Insert(1, "b");
+        CollectionAssert.AreEqual(new[] { "a", "b", "c" }, list);
+    }
+
+    [TestMethod]
+    public void Insert_EmptyList_InsertsAtZero()
+    {
+        var list = new List<int>();
+        ((IEnumerable)list).Insert(0, 1);
+        CollectionAssert.AreEqual(new[] { 1 }, list);
+    }
+
+    [TestMethod]
+    public void Insert_Collection_InsertsItemAtIndex()
+    {
+        var collection = new Collection<int> { 1, 3 };
+        ((IEnumerable)collection).Insert(1, 2);
+        CollectionAssert.AreEqual(new[] { 1, 2, 3 }, collection);
+    }
+
+    [TestMethod]
+    public void Insert_GenericEnumerable_DoesNothing()
+    {
+        // This tests that calling Insert on a non-IList/ICollectionView enumerable doesn't throw
+        var enumerable = Enumerable.Range(1, 3);
+        enumerable.Insert(0, 4); // Should not throw
+    }
+
+    #endregion
+
+    #region Remove Tests
+
+    [TestMethod]
+    public void Remove_IList_RemovesItem()
+    {
+        var list = new List<string> { "a", "b", "c" };
+        ((IEnumerable)list).Remove("b");
+        CollectionAssert.AreEqual(new[] { "a", "c" }, list);
+    }
+
+    [TestMethod]
+    public void Remove_IList_RemovesFirstOccurrence()
+    {
+        var list = new List<int> { 1, 2, 3, 2, 4 };
+        ((IEnumerable)list).Remove(2);
+        CollectionAssert.AreEqual(new[] { 1, 3, 2, 4 }, list);
+    }
+
+    [TestMethod]
+    public void Remove_IList_RemovesNull()
+    {
+        var list = new List<string?> { "a", null, "c" };
+        ((IEnumerable)list).Remove(null);
+        CollectionAssert.AreEqual(new[] { "a", "c" }, list);
+    }
+
+    [TestMethod]
+    public void Remove_IList_NonExistentItem_DoesNothing()
+    {
+        var list = new List<string> { "a", "b", "c" };
+        ((IEnumerable)list).Remove("d");
+        CollectionAssert.AreEqual(new[] { "a", "b", "c" }, list);
+    }
+
+    [UITestMethod]
+    public void Remove_ICollectionView_RemovesItem()
+    {
+        var list = new List<string> { "a", "b", "c" };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        collectionView.Remove("b");
+        CollectionAssert.AreEqual(new[] { "a", "c" }, list);
+    }
+
+    [UITestMethod]
+    public void Remove_ICollectionView_RemovesFirstOccurrence()
+    {
+        var list = new List<int> { 1, 2, 3, 2, 4 };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        collectionView.Remove(2);
+        CollectionAssert.AreEqual(new[] { 1, 3, 2, 4 }, list);
+    }
+
+    [UITestMethod]
+    public void Remove_ICollectionView_RemovesNull()
+    {
+        var list = new List<string?> { "a", null, "c" };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        collectionView.Remove(null);
+        CollectionAssert.AreEqual(new[] { "a", "c" }, list);
+    }
+
+    [UITestMethod]
+    public void Remove_ICollectionView_NonExistentItem_DoesNothing()
+    {
+        var list = new List<string> { "a", "b", "c" };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        collectionView.Remove("d");
+        CollectionAssert.AreEqual(new[] { "a", "b", "c" }, list);
+    }
+
+    [TestMethod]
+    public void Remove_ArrayList_RemovesItem()
+    {
+        var list = new ArrayList { "a", "b", "c" };
+        ((IEnumerable)list).Remove("b");
+        CollectionAssert.AreEqual(new[] { "a", "c" }, list);
+    }
+
+    [TestMethod]
+    public void Remove_Collection_RemovesItem()
+    {
+        var collection = new Collection<int> { 1, 2, 3 };
+        ((IEnumerable)collection).Remove(2);
+        CollectionAssert.AreEqual(new[] { 1, 3 }, collection);
+    }
+
+    [TestMethod]
+    public void Remove_EmptyList_DoesNothing()
+    {
+        var list = new List<int>();
+        ((IEnumerable)list).Remove(1);
+        CollectionAssert.AreEqual(new int[0], list);
+    }
+
+    [TestMethod]
+    public void Remove_GenericEnumerable_DoesNothing()
+    {
+        // This tests that calling Remove on a non-IList/ICollectionView enumerable doesn't throw
+        var enumerable = Enumerable.Range(1, 3);
+        enumerable.Remove(2); // Should not throw
+    }
+
+    #endregion
+
+    #region Clear Tests
+
+    [TestMethod]
+    public void Clear_IList_RemovesAllItems()
+    {
+        var list = new List<int> { 1, 2, 3, 4, 5 };
+        ((IEnumerable)list).Clear();
+        Assert.AreEqual(0, list.Count);
+    }
+
+    [UITestMethod]
+    public void Clear_ICollectionView_RemovesAllItems()
+    {
+        var list = new List<int> { 1, 2, 3, 4, 5 };
+        var collectionView = new CollectionViewSource { Source = list }.View;
+        collectionView.Clear();
+        Assert.AreEqual(0, list.Count);
+    }
+
+    [TestMethod]
+    public void Clear_ArrayList_RemovesAllItems()
+    {
+        var list = new ArrayList { "a", "b", "c" };
+        ((IEnumerable)list).Clear();
+        Assert.AreEqual(0, list.Count);
+    }
+
+    [TestMethod]
+    public void Clear_Collection_RemovesAllItems()
+    {
+        var collection = new Collection<string> { "a", "b", "c" };
+        ((IEnumerable)collection).Clear();
+        Assert.AreEqual(0, collection.Count);
+    }
+
+    [TestMethod]
+    public void Clear_EmptyList_DoesNothing()
+    {
+        var list = new List<int>();
+        ((IEnumerable)list).Clear();
+        Assert.AreEqual(0, list.Count);
+    }
+
+    [TestMethod]
+    public void Clear_ListWithNulls_RemovesAllItems()
+    {
+        var list = new List<string?> { "a", null, "c", null };
+        ((IEnumerable)list).Clear();
+        Assert.AreEqual(0, list.Count);
+    }
+
+    [TestMethod]
+    public void Clear_GenericEnumerable_DoesNothing()
+    {
+        // This tests that calling Clear on a non-IList/ICollectionView enumerable doesn't throw
+        var enumerable = Enumerable.Range(1, 3);
+        enumerable.Clear(); // Should not throw
+    }
+
+    #endregion
 }

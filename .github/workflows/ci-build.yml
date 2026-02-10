@@ -36,7 +36,7 @@ jobs:
                 /p:Version=0.0.${{ github.run_number }}-dev
 
     - name: Setup VSTest
-      uses: darenm/Setup-VSTest@v1
+      uses: darenm/Setup-VSTest@v1.3
 
     - name: Build Tests
       run: |
