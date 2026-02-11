@@ -255,6 +255,9 @@ public partial class TableView
     public static readonly DependencyProperty CanReorderColumnsProperty = DependencyProperty.Register(nameof(CanReorderColumns), typeof(bool), typeof(TableView), new PropertyMetadata(true));
 
     /// <summary>
+    /// Identifies the UseListViewHotkeys dependency property.
+    /// </summary>
+    public static readonly DependencyProperty UseListViewHotkeysProperty = DependencyProperty.Register(nameof(UseListViewHotkeys), typeof(bool), typeof(TableView), new PropertyMetadata(false));
     /// Identifies the <see cref="ConditionalCellStyles"/> dependency property.
     /// </summary>
     public static readonly DependencyProperty ConditionalCellStylesProperty = DependencyProperty.Register(nameof(ConditionalCellStyles), typeof(IList<TableViewConditionalCellStyle>), typeof(TableView), new PropertyMetadata(default));
@@ -779,6 +782,15 @@ public partial class TableView
     {
         get => (bool)GetValue(CanReorderColumnsProperty);
         set => SetValue(CanReorderColumnsProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether the TableView should use ListView like hotkeys for navigation and selection.
+    /// </summary>
+    public bool UseListViewHotkeys
+    {
+        get => (bool)GetValue(UseListViewHotkeysProperty);
+        set => SetValue(UseListViewHotkeysProperty, value);
     }
 
     /// <summary>
