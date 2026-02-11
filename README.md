@@ -39,6 +39,14 @@ Explore the interactive `WinUI.TableView` samples with code snippets in a Sample
 - **Localization**: Support for multiple languages to enhance usability for global audiences.
 - **Alternate Row Colors**: Apply alternate row coloring for better readability and aesthetics.
 - **Cell & Row Context Flyout**: Provides context flyouts for cells and rows to allow quick actions.
+- **Row Detail Template**: Displays expandable additional content for each row using `RowDetailsTemplate`.
+- **Row Headers**: Adds header for each rows to display custom content using `RowHeaderTemplate`.
+- **Editing Events**: Provides events to control and respond to cell edit lifecycle actions.
+- **Column Clipboard Binding**: Enables custom clipboard copy behavior by binding column values for copy operations.
+- **Column Reordering**: Allows users to drag and rearrange columns at runtime.
+- **Frozen Columns**: Keeps specified number of columns fixed in place while horizontally scrolling.
+- **Compact Mode Support**: Reduces row height and padding for higher data density layouts. [Fluent Compact sizing](https://learn.microsoft.com/en-us/windows/apps/design/style/spacing#fluent-compact-sizing)
+- **Conditional Cell Styling**: Applies dynamic styles to rows or cells based on data-driven conditions.
 
 ## Uno Platform Support
 
