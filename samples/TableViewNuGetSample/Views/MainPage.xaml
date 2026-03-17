@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Page
+    x:Class="TableViewNuGetSample.Views.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:TableViewNuGetSample"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:tableView="using:WinUI.TableView"
+    mc:Ignorable="d">
+    <Page.Content>
+        <Grid Padding="24">
+            <tableView:TableView
+                AutoGenerateColumns="False"
+                ChildrenPath="Children"
+                HeadersVisibility="Columns"
+                IndentSize="14"
+                IsExpandedPath="IsExpanded"
+                IsHierarchicalEnabled="True"
+                ItemsSource="{x:Bind Rows}">
+                <tableView:TableView.Columns>
+                    <tableView:TableViewTextColumn Header="Name" Binding="{Binding Name}" MinWidth="260" />
+                    <tableView:TableViewTextColumn Header="Department" Binding="{Binding Department}" MinWidth="170" />
+                    <tableView:TableViewCheckBoxColumn Header="Is Active" Binding="{Binding IsActive}" MinWidth="100" />
+                    <tableView:TableViewNumberColumn Header="Score" Binding="{Binding Score}" MinWidth="100" />
+                </tableView:TableView.Columns>
+            </tableView:TableView>
+        </Grid>
+    </Page.Content>
+</Page>

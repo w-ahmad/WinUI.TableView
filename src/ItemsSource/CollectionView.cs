@@ -271,7 +271,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
             }
         }
 
-        if (SortDescriptions.Any(sd => string.IsNullOrEmpty(sd.PropertyName) || sd.PropertyName == e.PropertyName))
+        if (!SuppressSorting && SortDescriptions.Any(sd => string.IsNullOrEmpty(sd.PropertyName) || sd.PropertyName == e.PropertyName))
         {
             var oldIndex = _view.IndexOf(item);
 
@@ -331,7 +331,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
                 _view.AddRange(_source.OfType<object>());
             }
 
-            if (SortDescriptions.Count > 0)
+            if (!SuppressSorting && SortDescriptions.Count > 0)
                 _view.Sort(this);
         }
 
@@ -384,7 +384,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     /// </summary>
     private void HandleSortChanged()
     {
-        if (SortDescriptions.Count > 0)
+        if (!SuppressSorting && SortDescriptions.Count > 0)
         {
             _view.Sort(this);
         }
@@ -408,7 +408,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
 
         var newViewIndex = newStartingIndex;
 
-        if (_sortDescriptions.Any())
+        if (!SuppressSorting && _sortDescriptions.Any())
         {
             newViewIndex = _view.BinarySearch(newItem!, this);
             if (newViewIndex < 0)

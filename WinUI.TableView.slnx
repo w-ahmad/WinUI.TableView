@@ -1,4 +1,9 @@
 <Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/TableViewNuGetSample/TableViewNuGetSample.csproj">
+      <Platform Project="x86" />
+    </Project>
+  </Folder>
   <Project Path="src/WinUI.TableView.csproj" />
   <Project Path="tests/WinUI.TableView.Tests.csproj">
     <Platform Project="x64" />

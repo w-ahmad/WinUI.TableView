@@ -148,6 +148,7 @@ public partial class TableViewRow : ListViewItem
 
         RowPresenter?.InvalidateMeasure(); // The cells presenter does not measure every time.
         _tableView?.EnsureAlternateRowColors();
+        UpdateHierarchyPresentation();
     }
 
     /// <inheritdoc/>
@@ -368,7 +369,23 @@ public partial class TableViewRow : ListViewItem
 
                 RowPresenter.InsertCell(cell);
             }
+
+            UpdateHierarchyPresentation();
         }
+    }
+
+    /// <summary>
+    /// Applies hierarchy indentation and grouping visuals for the row.
+    /// </summary>
+    internal void UpdateHierarchyPresentation()
+    {
+        foreach (var cell in Cells)
+        {
+            cell.ApplyHierarchyPresentation();
+        }
+
+        RowPresenter?.SetRowHeaderTemplate();
+        RowPresenter?.SetRowHeaderVisibility();
     }
 
     /// <summary>

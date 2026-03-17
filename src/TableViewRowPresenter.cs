@@ -163,6 +163,14 @@ public partial class TableViewRowPresenter : Control
             _rowHeader.ContentTemplate =
                 TableView.RowHeaderTemplateSelector?.SelectTemplate(TableViewRow?.Content)
                 ?? TableView.RowHeaderTemplate;
+
+            _rowHeader.Content = TableView.TryGetGroupHeader(TableViewRow?.Content, out var header)
+                ? header
+                : TableView.RowHeaderTemplate is not null || TableView.RowHeaderTemplateSelector is not null
+                    ? TableViewRow?.Content
+                    : null;
+            _rowHeader.IsHierarchyExpanderVisible = false;
+            _rowHeader.IsHierarchyExpanded = false;
         }
 
         SetRowHeaderVisibility();
@@ -266,9 +274,11 @@ public partial class TableViewRowPresenter : Control
             var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
             var isDetailsToggleButtonVisible = TableView.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded
                                                && (TableView.RowDetailsTemplate is not null || TableView.RowDetailsTemplateSelector is not null);
+            var isGroupHeaderVisible = TableView.TryGetGroupHeader(TableViewRow?.Content, out _);
 
-            if (areHeadersVisible && !isMultiSelection &&
+            if ((areHeadersVisible && !isMultiSelection &&
                (!isDetailsToggleButtonVisible || TableView.RowHeaderTemplate is not null || TableView.RowHeaderTemplateSelector is not null))
+                    || isGroupHeaderVisible)
             {
                 _rowHeader.Visibility = Visibility.Visible;
                 SetRowHeaderWidth();

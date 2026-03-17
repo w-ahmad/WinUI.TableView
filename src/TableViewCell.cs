@@ -1,5 +1,6 @@
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
@@ -9,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
+using Windows.System;
 using WinUI.TableView.Extensions;
 using WinUI.TableView.Helpers;
 
@@ -28,11 +30,15 @@ namespace WinUI.TableView;
 #endif
 public partial class TableViewCell : ContentControl
 {
+    private const double TreeExpanderSlotWidth = 20d;
     private TableViewColumn? _column;
     private ScrollViewer? _scrollViewer;
     private ContentPresenter? _contentPresenter;
+    private Button? _treeExpanderButton;
     private Border? _selectionBorder;
     private Rectangle? _v_gridLine;
+    private Thickness _basePadding;
+    private bool _isBasePaddingInitialized;
     private object? _uneditedValue;
     private RoutedEventArgs? _editingArgs;
     private IList<TableViewConditionalCellStyle>? _cellStyles;
@@ -83,18 +89,74 @@ public partial class TableViewCell : ContentControl
     {
         base.OnApplyTemplate();
 
+        if (!_isBasePaddingInitialized)
+        {
+            _basePadding = Padding;
+            _isBasePaddingInitialized = true;
+        }
+
         _contentPresenter = GetTemplateChild("Content") as ContentPresenter;
+        _treeExpanderButton = GetTemplateChild("TreeExpanderButton") as Button;
         _selectionBorder = GetTemplateChild("SelectionBorder") as Border;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
 
+        if (_treeExpanderButton is not null)
+        {
+            _treeExpanderButton.Click -= OnTreeExpanderButtonClicked;
+            _treeExpanderButton.Click += OnTreeExpanderButtonClicked;
+            _treeExpanderButton.KeyDown -= OnTreeExpanderButtonKeyDown;
+            _treeExpanderButton.KeyDown += OnTreeExpanderButtonKeyDown;
+        }
+
         EnsureGridLines();
         EnsureStyle(Row?.Content);
+        ApplyHierarchyPresentation();
+    }
+
+    private void OnTreeExpanderButtonClicked(object sender, RoutedEventArgs e)
+    {
+        if (TableView is null || Row?.Content is null)
+        {
+            return;
+        }
+
+        TableView.ToggleItemExpansion(Row.Content);
+    }
+
+    private void OnTreeExpanderButtonKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (TableView is null || Row?.Content is null || !TableView.HasChildItems(Row.Content))
+        {
+            return;
+        }
+
+        if (e.Key is VirtualKey.Enter or VirtualKey.Space)
+        {
+            TableView.ToggleItemExpansion(Row.Content);
+            e.Handled = true;
+            return;
+        }
+
+        if (e.Key is VirtualKey.Right && !TableView.IsItemExpanded(Row.Content))
+        {
+            TableView.SetItemExpanded(Row.Content, true);
+            e.Handled = true;
+            return;
+        }
+
+        if (e.Key is VirtualKey.Left && TableView.IsItemExpanded(Row.Content))
+        {
+            TableView.SetItemExpanded(Row.Content, false);
+            e.Handled = true;
+        }
     }
 
     /// <inheritdoc/>
     protected override void OnContentChanged(object oldContent, object newContent)
     {
         base.OnContentChanged(oldContent, newContent);
+
+        ApplyHierarchyPresentation();
 
         if (newContent is ContentControl contentControl)
         {
@@ -106,6 +168,81 @@ public partial class TableViewCell : ContentControl
             ((ContentControl)sender).Loaded -= OnContentLoaded;
             Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         }
+    }
+
+    /// <summary>
+    /// Applies hierarchy-related visual settings for this cell.
+    /// </summary>
+    internal void ApplyHierarchyPresentation()
+    {
+        if (!_isBasePaddingInitialized)
+        {
+            _basePadding = Padding;
+            _isBasePaddingInitialized = true;
+        }
+
+        if (TableView is null || Row is null)
+        {
+            Padding = _basePadding;
+            return;
+        }
+
+        var hierarchyLevel = TableView.GetHierarchyLevel(Row.Content);
+        var indent = hierarchyLevel > 0 ? hierarchyLevel * TableView.HierarchyIndent : 0d;
+        var isTreeColumn = TableView.IsHierarchicalEnabled && Index == 0;
+
+        if (isTreeColumn)
+        {
+            var hasChildren = TableView.HasChildItems(Row.Content);
+            var isExpanded = TableView.IsItemExpanded(Row.Content);
+
+            if (_treeExpanderButton is not null)
+            {
+                _treeExpanderButton.Visibility = Visibility.Visible;
+                _treeExpanderButton.Margin = new Thickness(_basePadding.Left + indent, 0, 4, 0);
+                _treeExpanderButton.Content = hasChildren ? (isExpanded ? "▼" : "▶") : string.Empty;
+                _treeExpanderButton.IsHitTestVisible = hasChildren;
+                _treeExpanderButton.Opacity = hasChildren ? 1d : 0d;
+
+                if (hasChildren)
+                {
+                    var itemLabel = Row.Content?.ToString();
+                    if (string.IsNullOrWhiteSpace(itemLabel))
+                    {
+                        itemLabel = $"row {Row.Index + 1}";
+                    }
+
+                    AutomationProperties.SetName(_treeExpanderButton, isExpanded
+                        ? $"Collapse {itemLabel}"
+                        : $"Expand {itemLabel}");
+                    AutomationProperties.SetHelpText(_treeExpanderButton, "Hierarchy expander");
+                }
+                else
+                {
+                    AutomationProperties.SetName(_treeExpanderButton, string.Empty);
+                    AutomationProperties.SetHelpText(_treeExpanderButton, string.Empty);
+                }
+            }
+
+            Padding = new Thickness(
+                _basePadding.Left + indent + TreeExpanderSlotWidth,
+                _basePadding.Top,
+                _basePadding.Right,
+                _basePadding.Bottom);
+            return;
+        }
+
+        if (_treeExpanderButton is not null)
+        {
+            _treeExpanderButton.Visibility = Visibility.Collapsed;
+            _treeExpanderButton.Content = "▶";
+            _treeExpanderButton.IsHitTestVisible = false;
+            _treeExpanderButton.Opacity = 0d;
+            AutomationProperties.SetName(_treeExpanderButton, string.Empty);
+            AutomationProperties.SetHelpText(_treeExpanderButton, string.Empty);
+        }
+
+        Padding = _basePadding;
     }
 
     /// <inheritdoc/>
@@ -212,6 +349,12 @@ public partial class TableViewCell : ContentControl
     /// <inheritdoc/>
     protected override async void OnTapped(TappedRoutedEventArgs e)
     {
+        if (IsTreeExpanderInteraction(e.OriginalSource))
+        {
+            base.OnTapped(e);
+            return;
+        }
+
         base.OnTapped(e);
 
         if ((TableView?.IsEditing ?? false) &&
@@ -234,6 +377,12 @@ public partial class TableViewCell : ContentControl
     /// <inheritdoc/>
     protected override void OnPointerPressed(PointerRoutedEventArgs e)
     {
+        if (IsTreeExpanderInteraction(e.OriginalSource))
+        {
+            base.OnPointerPressed(e);
+            return;
+        }
+
         base.OnPointerPressed(e);
 
         if (!KeyboardHelper.IsShiftKeyDown() && TableView is not null)
@@ -247,6 +396,12 @@ public partial class TableViewCell : ContentControl
     /// <inheritdoc/>
     protected override void OnPointerReleased(PointerRoutedEventArgs e)
     {
+        if (IsTreeExpanderInteraction(e.OriginalSource))
+        {
+            base.OnPointerReleased(e);
+            return;
+        }
+
         base.OnPointerReleased(e);
 
         if (!KeyboardHelper.IsShiftKeyDown() && TableView is not null)
@@ -259,6 +414,17 @@ public partial class TableViewCell : ContentControl
         ReleasePointerCaptures();
 
         e.Handled = true;
+    }
+
+    private bool IsTreeExpanderInteraction(object? originalSource)
+    {
+        if (_treeExpanderButton is null || originalSource is not DependencyObject source)
+        {
+            return false;
+        }
+
+        return ReferenceEquals(source, _treeExpanderButton)
+            || ReferenceEquals(source.FindAscendant<Button>(), _treeExpanderButton);
     }
 
     /// <inheritdoc/>

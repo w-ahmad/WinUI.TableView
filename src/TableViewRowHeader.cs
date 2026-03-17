@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using System;
 using Windows.Foundation;
 using WinUI.TableView.Extensions;
@@ -15,6 +16,10 @@ namespace WinUI.TableView;
 public partial class TableViewRowHeader : ContentControl
 {
     private ContentPresenter? _contentPresenter;
+    private ToggleButton? _hierarchyToggleButton;
+    private bool _isHierarchyExpanderVisible;
+    private bool _isHierarchyExpanded;
+    private bool _isUpdatingHierarchyToggle;
 
     /// <summary>
     /// Initializes a new instance of the TableViewRowHeader class.
@@ -30,6 +35,46 @@ public partial class TableViewRowHeader : ContentControl
         base.OnApplyTemplate();
 
         _contentPresenter = GetTemplateChild("Content") as ContentPresenter;
+        _hierarchyToggleButton = GetTemplateChild("HierarchyToggleButton") as ToggleButton;
+
+        if (_hierarchyToggleButton is not null)
+        {
+            _hierarchyToggleButton.Checked -= OnHierarchyToggleButtonChanged;
+            _hierarchyToggleButton.Unchecked -= OnHierarchyToggleButtonChanged;
+            _hierarchyToggleButton.Checked += OnHierarchyToggleButtonChanged;
+            _hierarchyToggleButton.Unchecked += OnHierarchyToggleButtonChanged;
+        }
+
+        UpdateHierarchyState();
+    }
+
+    private void OnHierarchyToggleButtonChanged(object sender, RoutedEventArgs e)
+    {
+        if (_isUpdatingHierarchyToggle)
+        {
+            return;
+        }
+
+        if (TableViewRow?.Content is null || TableView is null || _hierarchyToggleButton is null)
+        {
+            return;
+        }
+
+        TableView.SetItemExpanded(TableViewRow.Content, _hierarchyToggleButton.IsChecked is true);
+    }
+
+    private void UpdateHierarchyState()
+    {
+        if (_hierarchyToggleButton is null)
+        {
+            return;
+        }
+
+        _isUpdatingHierarchyToggle = true;
+        _hierarchyToggleButton.Visibility = _isHierarchyExpanderVisible ? Visibility.Visible : Visibility.Collapsed;
+        _hierarchyToggleButton.IsChecked = _isHierarchyExpanded;
+        _hierarchyToggleButton.Content = _isHierarchyExpanded ? "▼" : "▶";
+        _isUpdatingHierarchyToggle = false;
     }
 
     /// <inheritdoc/>
@@ -130,4 +175,30 @@ public partial class TableViewRowHeader : ContentControl
     /// Gets or sets the TableView associated with the presenter.
     /// </summary>
     public TableViewRow? TableViewRow { get; internal set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the hierarchy expander is visible.
+    /// </summary>
+    internal bool IsHierarchyExpanderVisible
+    {
+        get => _isHierarchyExpanderVisible;
+        set
+        {
+            _isHierarchyExpanderVisible = value;
+            UpdateHierarchyState();
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the hierarchy expander is expanded.
+    /// </summary>
+    internal bool IsHierarchyExpanded
+    {
+        get => _isHierarchyExpanded;
+        set
+        {
+            _isHierarchyExpanded = value;
+            UpdateHierarchyState();
+        }
+    }
 }

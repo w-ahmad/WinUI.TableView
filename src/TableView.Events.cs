@@ -98,12 +98,40 @@ partial class TableView
     public event EventHandler<TableViewRowDoubleTappedEventArgs>? RowDoubleTapped;
 
     /// <summary>
+    /// Event triggered when a row is expanded in hierarchical mode.
+    /// </summary>
+    public event EventHandler<TableViewRowExpansionChangedEventArgs>? RowExpanded;
+
+    /// <summary>
+    /// Event triggered when a row is collapsed in hierarchical mode.
+    /// </summary>
+    public event EventHandler<TableViewRowExpansionChangedEventArgs>? RowCollapsed;
+
+    /// <summary>
     /// Called before the <see cref="RowDoubleTapped"/> event occurs.
     /// </summary>
     /// <param name="args">The event data.</param>
     protected internal virtual void OnRowDoubleTapped(TableViewRowDoubleTappedEventArgs args)
     {
         RowDoubleTapped?.Invoke(this, args);
+    }
+
+    /// <summary>
+    /// Called before the <see cref="RowExpanded"/> event occurs.
+    /// </summary>
+    /// <param name="args">The event data.</param>
+    protected internal virtual void OnRowExpanded(TableViewRowExpansionChangedEventArgs args)
+    {
+        RowExpanded?.Invoke(this, args);
+    }
+
+    /// <summary>
+    /// Called before the <see cref="RowCollapsed"/> event occurs.
+    /// </summary>
+    /// <param name="args">The event data.</param>
+    protected internal virtual void OnRowCollapsed(TableViewRowExpansionChangedEventArgs args)
+    {
+        RowCollapsed?.Invoke(this, args);
     }
 
     /// <summary>

@@ -120,4 +120,9 @@ partial class CollectionView
                 DetachPropertyChangedHandlers(_source);
         }
     }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether flat view sorting should be suppressed.
+    /// </summary>
+    public bool SuppressSorting { get; set; }
 }

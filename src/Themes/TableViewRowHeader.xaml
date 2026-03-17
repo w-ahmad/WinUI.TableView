@@ -24,12 +24,21 @@
                           BorderThickness="{TemplateBinding BorderThickness}"
                           CornerRadius="{TemplateBinding CornerRadius}">
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
+                        <ToggleButton x:Name="HierarchyToggleButton"
+                                      VerticalAlignment="Center"
+                                      HorizontalAlignment="Center"
+                                      Padding="4,0"
+                                      Margin="2,0,4,0"
+                                      Visibility="Collapsed" />
+
                         <Border x:Name="RootBorder">
                             <ContentPresenter x:Name="Content"
+                                              Grid.Column="1"
                                               Margin="{TemplateBinding Padding}"
                                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                               HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />

@@ -24,6 +24,7 @@
                           BorderThickness="{TemplateBinding BorderThickness}"
                           CornerRadius="{TemplateBinding CornerRadius}">
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
@@ -67,6 +68,7 @@
                                 CornerRadius="{ThemeResource TableViewRowCellSelectionBorderCornerRadius}" />
 
                         <Border x:Name="RootBorder"
+                                Grid.Column="1"
                                 CornerRadius="{ThemeResource TableViewRowCellSelectionBorderCornerRadius}">
                             <ContentPresenter x:Name="Content"
                                               Margin="{TemplateBinding Padding}"
@@ -74,8 +76,23 @@
                                               HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
                         </Border>
 
+                        <Button x:Name="TreeExpanderButton"
+                            Grid.Column="0"
+                            MinWidth="16"
+                            Height="18"
+                            Padding="0"
+                            Margin="0,0,4,0"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Left"
+                            FontSize="11"
+                            IsTabStop="True"
+                            UseSystemFocusVisuals="False"
+                            BorderThickness="0"
+                            Background="Transparent"
+                            Visibility="Collapsed" />
+
                         <Rectangle x:Name="VerticalGridLine"
-                                   Grid.Column="1"
+                                   Grid.Column="2"
                                    Width="1"
                                    VerticalAlignment="Stretch" />
                     </Grid>
