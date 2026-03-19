@@ -117,6 +117,16 @@ public partial class TableView
     public static readonly DependencyProperty ShowGroupHeadersProperty = DependencyProperty.Register(nameof(ShowGroupHeaders), typeof(bool), typeof(TableView), new PropertyMetadata(true, OnShowGroupHeadersChanged));
 
     /// <summary>
+    /// Identifies the GroupSortDirection dependency property.
+    /// </summary>
+    public static readonly DependencyProperty GroupSortDirectionProperty = DependencyProperty.Register(nameof(GroupSortDirection), typeof(SortDirection), typeof(TableView), new PropertyMetadata(SortDirection.Ascending, OnGroupSortDirectionChanged));
+
+    /// <summary>
+    /// Identifies the ShowGroupItemCount dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ShowGroupItemCountProperty = DependencyProperty.Register(nameof(ShowGroupItemCount), typeof(bool), typeof(TableView), new PropertyMetadata(true, OnShowGroupItemCountChanged));
+
+    /// <summary>
     /// Identifies the IsReadOnly dependency property.
     /// </summary>
     public static readonly DependencyProperty IsReadOnlyProperty = DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(TableView), new PropertyMetadata(false, OnIsReadOnlyChanged));
@@ -611,6 +621,24 @@ public partial class TableView
     }
 
     /// <summary>
+    /// Gets or sets the sorting direction used for grouping.
+    /// </summary>
+    public SortDirection GroupSortDirection
+    {
+        get => (SortDirection)GetValue(GroupSortDirectionProperty);
+        set => SetValue(GroupSortDirectionProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether group headers show item counts.
+    /// </summary>
+    public bool ShowGroupItemCount
+    {
+        get => (bool)GetValue(ShowGroupItemCountProperty);
+        set => SetValue(ShowGroupItemCountProperty, value);
+    }
+
+    /// <summary>
     /// Gets or sets a value indicating whether the TableView is read-only. This will override what is set on individual column.
     /// </summary>
     public bool IsReadOnly
@@ -1030,8 +1058,8 @@ public partial class TableView
     {
         if (d is TableView tableView)
         {
-            tableView.BuildGroupHeadersFromCurrentView();
-            tableView.RefreshRowsGroupingState();
+            tableView.EnsureGroupingSortDescription();
+            tableView.RebuildDisplayedItems();
         }
     }
 
@@ -1042,8 +1070,30 @@ public partial class TableView
     {
         if (d is TableView tableView)
         {
-            tableView.BuildGroupHeadersFromCurrentView();
-            tableView.RefreshRowsGroupingState();
+            tableView.RebuildDisplayedItems();
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the GroupSortDirection property.
+    /// </summary>
+    private static void OnGroupSortDirectionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            tableView.EnsureGroupingSortDescription();
+            tableView.RebuildDisplayedItems();
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the ShowGroupItemCount property.
+    /// </summary>
+    private static void OnShowGroupItemCountChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            tableView.RebuildDisplayedItems();
         }
     }
 
@@ -1311,7 +1361,14 @@ public partial class TableView
     /// </summary>
     private void OnBaseItemsSourceChanged(DependencyObject sender, DependencyProperty dp)
     {
-        throw new InvalidOperationException("Setting this property directly is not allowed. Use TableView.ItemsSource instead.");
+        if (_isUpdatingBaseItemsSource || ReferenceEquals(base.ItemsSource, _displayItems))
+        {
+            return;
+        }
+
+        _isUpdatingBaseItemsSource = true;
+        base.ItemsSource = _displayItems;
+        _isUpdatingBaseItemsSource = false;
     }
 
     /// <summary>
@@ -1321,7 +1378,7 @@ public partial class TableView
     {
         if (!_shouldThrowSelectionModeChangedException)
         {
-            throw new InvalidOperationException("Setting this property directly is not allowed. Use TableView.SelectionMode instead.");
+            UpdateBaseSelectionMode();
         }
     }
 }

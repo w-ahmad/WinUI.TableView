@@ -22,6 +22,9 @@ namespace WinUI.TableView;
 [TemplateVisualState(Name = VisualStates.StateDetailsButtonCollapsed, GroupName = VisualStates.GroupRowDetailsButton)]
 public partial class TableViewRowPresenter : Control
 {
+    private Border? _groupHeaderPanel;
+    private ToggleButton? _groupHeaderToggleButton;
+    private TextBlock? _groupHeaderTextBlock;
     private TableViewRowHeader? _rowHeader;
     private Panel? _rootPanel;
     private StackPanel? _scrollableCellsPanel;
@@ -32,6 +35,7 @@ public partial class TableViewRowPresenter : Control
     private ContentPresenter? _detailsPresenter;
     private ToggleButton? _detailsToggleButton;
     private ListViewItemPresenter? _itemPresenter;
+    private bool _isUpdatingGroupToggle;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TableViewRowPresenter"/> class.
@@ -46,6 +50,9 @@ public partial class TableViewRowPresenter : Control
     {
         base.OnApplyTemplate();
 
+        _groupHeaderPanel = GetTemplateChild("GroupHeaderPanel") as Border;
+        _groupHeaderToggleButton = GetTemplateChild("GroupHeaderToggleButton") as ToggleButton;
+        _groupHeaderTextBlock = GetTemplateChild("GroupHeaderTextBlock") as TextBlock;
         _rowHeader = GetTemplateChild("RowHeader") as TableViewRowHeader;
         _rootPanel = GetTemplateChild("RootPanel") as Panel;
         _scrollableCellsPanel = GetTemplateChild("ScrollableCellsPanel") as StackPanel;
@@ -72,6 +79,14 @@ public partial class TableViewRowPresenter : Control
             _detailsToggleButton.Unchecked += OnDetailsToggleButtonUnChecked;
         }
 
+        if (_groupHeaderToggleButton is not null)
+        {
+            _groupHeaderToggleButton.Checked -= OnGroupHeaderToggleButtonChanged;
+            _groupHeaderToggleButton.Unchecked -= OnGroupHeaderToggleButtonChanged;
+            _groupHeaderToggleButton.Checked += OnGroupHeaderToggleButtonChanged;
+            _groupHeaderToggleButton.Unchecked += OnGroupHeaderToggleButtonChanged;
+        }
+
         if (_detailsPanel is not null)
         {
             _detailsPanel.SizeChanged += (_, _) => TableViewRow?.EnsureLayout();
@@ -84,9 +99,20 @@ public partial class TableViewRowPresenter : Control
         SetRowHeaderBindings();
         SetRowHeaderVisibility();
         SetRowHeaderTemplate();
+        SetGroupHeaderPresentation();
         SetRowHeaderWidth();
         SetRowDetailsVisibility();
         SetRowDetailsTemplate();
+    }
+
+    private void OnGroupHeaderToggleButtonChanged(object sender, RoutedEventArgs e)
+    {
+        if (_isUpdatingGroupToggle)
+        {
+            return;
+        }
+
+        TableView?.ToggleGroupExpansion(TableViewRow?.Content);
     }
 
     /// <inheritdoc/>
@@ -164,9 +190,7 @@ public partial class TableViewRowPresenter : Control
                 TableView.RowHeaderTemplateSelector?.SelectTemplate(TableViewRow?.Content)
                 ?? TableView.RowHeaderTemplate;
 
-            _rowHeader.Content = TableView.TryGetGroupHeader(TableViewRow?.Content, out var header)
-                ? header
-                : TableView.RowHeaderTemplate is not null || TableView.RowHeaderTemplateSelector is not null
+            _rowHeader.Content = TableView.RowHeaderTemplate is not null || TableView.RowHeaderTemplateSelector is not null
                     ? TableViewRow?.Content
                     : null;
             _rowHeader.IsHierarchyExpanderVisible = false;
@@ -242,6 +266,16 @@ public partial class TableViewRowPresenter : Control
             _detailsPresenter.ContentTemplate =
                 TableView.RowDetailsTemplateSelector?.SelectTemplate(TableViewRow?.Content)
                 ?? TableView.RowDetailsTemplate;
+            
+            // Only set content for non-group-header rows to avoid binding to synthetic GroupHeaderRowItem
+            if (TableView.IsGroupHeaderItem(TableViewRow?.Content) is not true)
+            {
+                _detailsPresenter.Content = TableViewRow?.Content;
+            }
+            else
+            {
+                _detailsPresenter.Content = null;
+            }
         }
     }
 
@@ -274,11 +308,9 @@ public partial class TableViewRowPresenter : Control
             var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
             var isDetailsToggleButtonVisible = TableView.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded
                                                && (TableView.RowDetailsTemplate is not null || TableView.RowDetailsTemplateSelector is not null);
-            var isGroupHeaderVisible = TableView.TryGetGroupHeader(TableViewRow?.Content, out _);
 
             if ((areHeadersVisible && !isMultiSelection &&
-               (!isDetailsToggleButtonVisible || TableView.RowHeaderTemplate is not null || TableView.RowHeaderTemplateSelector is not null))
-                    || isGroupHeaderVisible)
+               (!isDetailsToggleButtonVisible || TableView.RowHeaderTemplate is not null || TableView.RowHeaderTemplateSelector is not null)))
             {
                 _rowHeader.Visibility = Visibility.Visible;
                 SetRowHeaderWidth();
@@ -289,6 +321,38 @@ public partial class TableViewRowPresenter : Control
             }
 
             EnsureGridLines();
+        }
+    }
+
+    internal void SetGroupHeaderPresentation()
+    {
+        var header = string.Empty;
+        var isGroupHeaderItem = TableView?.IsGroupHeaderItem(TableViewRow?.Content) is true;
+        var hasGroupHeader = isGroupHeaderItem && TableView?.TryGetGroupHeader(TableViewRow?.Content, out header) is true;
+
+        if (_groupHeaderPanel is not null)
+        {
+            _groupHeaderPanel.Visibility = hasGroupHeader ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        if (_groupHeaderTextBlock is not null)
+        {
+            _groupHeaderTextBlock.Text = hasGroupHeader ? header : string.Empty;
+        }
+
+        if (_groupHeaderToggleButton is not null)
+        {
+            _isUpdatingGroupToggle = true;
+            _groupHeaderToggleButton.IsChecked = hasGroupHeader && TableView?.IsGroupExpanded(TableViewRow?.Content) is true;
+            _groupHeaderToggleButton.Visibility = hasGroupHeader ? Visibility.Visible : Visibility.Collapsed;
+            _isUpdatingGroupToggle = false;
+        }
+
+        if (_rootPanel is not null)
+        {
+            _rootPanel.Visibility = TableView?.ShouldShowGroupedItemContent(TableViewRow?.Content) is false
+                ? Visibility.Collapsed
+                : Visibility.Visible;
         }
     }
 

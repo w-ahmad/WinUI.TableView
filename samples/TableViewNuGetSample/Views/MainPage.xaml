@@ -4,27 +4,122 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="using:TableViewNuGetSample"
+    xmlns:local="using:TableViewNuGetSample.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:tableView="using:WinUI.TableView"
     mc:Ignorable="d">
+
+    <Page.Resources>
+        <DataTemplate x:Key="ExplorerNameTemplate">
+            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <FontIcon Glyph="{Binding IconGlyph}" FontSize="14" />
+                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="TaskNameTemplate">
+            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <FontIcon Glyph="{Binding IconGlyph}" FontSize="14" />
+                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+        </DataTemplate>
+    </Page.Resources>
+
     <Page.Content>
-        <Grid Padding="24">
-            <tableView:TableView
-                AutoGenerateColumns="False"
-                ChildrenPath="Children"
-                HeadersVisibility="Columns"
-                IndentSize="14"
-                IsExpandedPath="IsExpanded"
-                IsHierarchicalEnabled="True"
-                ItemsSource="{x:Bind Rows}">
-                <tableView:TableView.Columns>
-                    <tableView:TableViewTextColumn Header="Name" Binding="{Binding Name}" MinWidth="260" />
-                    <tableView:TableViewTextColumn Header="Department" Binding="{Binding Department}" MinWidth="170" />
-                    <tableView:TableViewCheckBoxColumn Header="Is Active" Binding="{Binding IsActive}" MinWidth="100" />
-                    <tableView:TableViewNumberColumn Header="Score" Binding="{Binding Score}" MinWidth="100" />
-                </tableView:TableView.Columns>
-            </tableView:TableView>
+        <Grid Padding="20" RowSpacing="12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock FontSize="20" FontWeight="SemiBold" Text="WinUI.TableView Samples" VerticalAlignment="Center" />
+
+                <ToggleSwitch x:Name="ThemeToggleSwitch"
+                              Grid.Column="1"
+                              Header="Dark mode"
+                              HorizontalAlignment="Right"
+                              VerticalAlignment="Center"
+                              Toggled="OnThemeToggleToggled" />
+            </Grid>
+
+            <TabView Grid.Row="1">
+                <TabViewItem Header="Features Demo">
+                    <Grid Padding="8">
+                        <tableView:TableView
+                            AutoGenerateColumns="False"
+                            ItemsSource="{x:Bind ProductRows}"
+                            AlternateRowBackground="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            CornerButtonMode="Options"
+                            ShowExportOptions="True"
+                            SelectionMode="Single">
+                            <tableView:TableView.Columns>
+                                <tableView:TableViewTextColumn Header="Product" Binding="{Binding Name}" MinWidth="200" />
+                                <tableView:TableViewTextColumn Header="Category" Binding="{Binding Category}" MinWidth="140" />
+                                <tableView:TableViewNumberColumn Header="Price" Binding="{Binding Price}" MinWidth="100" />
+                                <tableView:TableViewNumberColumn Header="Stock" Binding="{Binding Stock}" MinWidth="90" />
+                                <tableView:TableViewCheckBoxColumn Header="Available" Binding="{Binding IsAvailable}" MinWidth="100" />
+                                <tableView:TableViewDateColumn Header="Added" Binding="{Binding DateAdded}" MinWidth="140" />
+                                <tableView:TableViewComboBoxColumn Header="Rating" Binding="{Binding Rating}" MinWidth="120"
+                                    ItemsSource="{x:Bind RatingOptions}" />
+                            </tableView:TableView.Columns>
+                        </tableView:TableView>
+                    </Grid>
+                </TabViewItem>
+
+                <TabViewItem Header="File Explorer">
+                    <Grid Padding="8">
+                        <tableView:TableView
+                            AutoGenerateColumns="False"
+                            GroupByPath="GroupLabel"
+                            HeadersVisibility="Columns"
+                            ItemsSource="{x:Bind ExplorerRows}"
+                            RowHeight="34"
+                            RowMinHeight="30"
+                            SelectionMode="Single"
+                            ShowGroupItemCount="False">
+                            <tableView:TableView.Columns>
+                                <tableView:TableViewTemplateColumn Header="Name" CellTemplate="{StaticResource ExplorerNameTemplate}" MinWidth="340" />
+                                <tableView:TableViewTextColumn Header="Date modified" Binding="{Binding DateModified}" MinWidth="170" />
+                                <tableView:TableViewTextColumn Header="Type" Binding="{Binding Type}" MinWidth="180" />
+                                <tableView:TableViewTextColumn Header="Size" Binding="{Binding Size}" MinWidth="120" />
+                            </tableView:TableView.Columns>
+                        </tableView:TableView>
+                    </Grid>
+                </TabViewItem>
+
+                <TabViewItem Header="Task Manager">
+                    <Grid Padding="8">
+                        <tableView:TableView
+                            AutoGenerateColumns="False"
+                            ChildrenPath="Children"
+                            GroupByPath="Category"
+                            HeadersVisibility="Columns"
+                            IndentSize="14"
+                            IsExpandedPath="IsExpanded"
+                            IsHierarchicalEnabled="True"
+                            ItemsSource="{x:Bind TaskRows}"
+                            RowHeight="34"
+                            RowMinHeight="30"
+                            SelectionMode="Single"
+                            ShowGroupItemCount="True">
+                            <tableView:TableView.Columns>
+                                <tableView:TableViewTemplateColumn Header="Name" CellTemplate="{StaticResource TaskNameTemplate}" MinWidth="300" />
+                                <tableView:TableViewTextColumn Header="Status" Binding="{Binding Status}" MinWidth="140" />
+                                <tableView:TableViewTextColumn Header="CPU" Binding="{Binding Cpu}" MinWidth="90" />
+                                <tableView:TableViewTextColumn Header="Memory" Binding="{Binding Memory}" MinWidth="130" />
+                                <tableView:TableViewTextColumn Header="Disk" Binding="{Binding Disk}" MinWidth="100" />
+                                <tableView:TableViewTextColumn Header="Network" Binding="{Binding Network}" MinWidth="110" />
+                            </tableView:TableView.Columns>
+                        </tableView:TableView>
+                    </Grid>
+                </TabViewItem>
+            </TabView>
         </Grid>
     </Page.Content>
 </Page>

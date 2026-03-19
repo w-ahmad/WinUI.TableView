@@ -211,7 +211,14 @@ public partial class TableViewColumnHeader : ContentControl
 
             if (!eventArgs.Handled)
             {
-                DoSort(GetNextSortDirection(), !isCtrlButtonDown);
+                try
+                {
+                    DoSort(GetNextSortDirection(), !isCtrlButtonDown);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"TableView header tap sort failed: {ex}");
+                }
             }
         }
 

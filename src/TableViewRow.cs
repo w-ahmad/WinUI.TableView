@@ -132,17 +132,29 @@ public partial class TableViewRow : ListViewItem
     /// <inheritdoc/>
     protected override void OnContentChanged(object oldContent, object newContent)
     {
+        var isGroupHeaderItem = TableView?.IsGroupHeaderItem(newContent) is true;
+
+        // Immediately clear cells and suppress rendering before base.OnContentChanged
+        if (isGroupHeaderItem)
+        {
+            RowPresenter?.ClearCells();
+            _ensureCells = true;
+        }
+
         base.OnContentChanged(oldContent, newContent);
 
-        if (_ensureCells)
+        if (!isGroupHeaderItem)
         {
-            EnsureCells();
-        }
-        else
-        {
-            foreach (var cell in Cells)
+            if (_ensureCells || Cells.Count == 0)
             {
-                cell.RefreshElement();
+                EnsureCells();
+            }
+            else
+            {
+                foreach (var cell in Cells)
+                {
+                    cell.RefreshElement();
+                }
             }
         }
 
@@ -154,6 +166,12 @@ public partial class TableViewRow : ListViewItem
     /// <inheritdoc/>
     protected override void OnPointerPressed(PointerRoutedEventArgs e)
     {
+        if (TableView?.IsGroupHeaderItem(Content) is true)
+        {
+            e.Handled = true;
+            return;
+        }
+
         if (TableView is { IsEditing: false })
         {
             base.OnPointerPressed(e);
@@ -168,6 +186,12 @@ public partial class TableViewRow : ListViewItem
     /// <inheritdoc/>
     protected override void OnPointerReleased(PointerRoutedEventArgs e)
     {
+        if (TableView?.IsGroupHeaderItem(Content) is true)
+        {
+            e.Handled = true;
+            return;
+        }
+
         base.OnPointerReleased(e);
 
         if (!KeyboardHelper.IsShiftKeyDown() && TableView is not null)
@@ -180,6 +204,12 @@ public partial class TableViewRow : ListViewItem
     /// <inheritdoc/>
     protected override void OnTapped(TappedRoutedEventArgs e)
     {
+        if (TableView?.IsGroupHeaderItem(Content) is true)
+        {
+            e.Handled = true;
+            return;
+        }
+
         base.OnTapped(e);
 
         if (TableView?.SelectionUnit is TableViewSelectionUnit.Row or TableViewSelectionUnit.CellOrRow)
@@ -192,6 +222,12 @@ public partial class TableViewRow : ListViewItem
     /// <inheritdoc/>
     protected override void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
     {
+        if (TableView?.IsGroupHeaderItem(Content) is true)
+        {
+            e.Handled = true;
+            return;
+        }
+
         var eventArgs = new TableViewRowDoubleTappedEventArgs(Index, this, Content);
         TableView?.OnRowDoubleTapped(eventArgs);
         e.Handled = eventArgs.Handled;
@@ -219,6 +255,13 @@ public partial class TableViewRow : ListViewItem
     {
         if (TableView is null)
         {
+            return;
+        }
+
+        if (TableView.IsGroupHeaderItem(Content))
+        {
+            RowPresenter?.ClearCells();
+            _ensureCells = true;
             return;
         }
 
@@ -386,6 +429,7 @@ public partial class TableViewRow : ListViewItem
 
         RowPresenter?.SetRowHeaderTemplate();
         RowPresenter?.SetRowHeaderVisibility();
+        RowPresenter?.SetGroupHeaderPresentation();
     }
 
     /// <summary>

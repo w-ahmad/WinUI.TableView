@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml.Navigation;
+using TableViewNuGetSample.Views;
 
 namespace TableViewNuGetSample
 {

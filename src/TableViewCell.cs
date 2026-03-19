@@ -619,6 +619,14 @@ public partial class TableViewCell : ContentControl
     /// </summary>
     internal void SetElement()
     {
+        // Prevent template realization for group header rows; they should have no cell content.
+        if (TableView?.IsGroupHeaderItem(Row?.Content) is true)
+        {
+            Content = null;
+            DataContext = null;
+            return;
+        }
+
         var element = Column?.GenerateElement(this, Row?.Content);
 
         if (element is not null && Column is TableViewBoundColumn { ElementStyle: { } } boundColumn)
