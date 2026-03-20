@@ -1,0 +1,45 @@
+<Window
+    x:Class="DragRectangleSampleApp.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:tv="using:WinUI.TableView"
+    Title="TableView Drag Rectangle Sample">
+
+    <Grid Padding="24" RowSpacing="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="TableView Drag Rectangle Demo"
+                   FontSize="24" FontWeight="Bold" />
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="16">
+            <ToggleSwitch x:Name="DragRectangleToggle"
+                          Header="Show Drag Rectangle"
+                          Toggled="DragRectangleToggle_Toggled" />
+
+            <ComboBox x:Name="SelectionUnitCombo"
+                      Header="Selection Unit"
+                      SelectedIndex="1"
+                      SelectionChanged="SelectionUnitCombo_SelectionChanged">
+                <ComboBoxItem Content="CellOrRow" />
+                <ComboBoxItem Content="Cell" />
+                <ComboBoxItem Content="Row" />
+            </ComboBox>
+        </StackPanel>
+
+        <tv:TableView x:Name="SampleTableView"
+                      Grid.Row="2"
+                      AutoGenerateColumns="False"
+                      SelectionMode="Extended"
+                      GridLinesVisibility="All" />
+
+        <TextBlock x:Name="StatusText"
+                   Grid.Row="3"
+                   TextWrapping="Wrap"
+                   Text="Click and drag across cells to see the drag rectangle selection." />
+    </Grid>
+</Window>

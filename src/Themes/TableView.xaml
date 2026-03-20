@@ -126,6 +126,17 @@
                                           Template="{StaticResource TableViewScrollViewerTemplate}">
                                 <ItemsPresenter Padding="{TemplateBinding Padding}" />
                             </ScrollViewer>
+
+                            <Canvas x:Name="DragRectangleCanvas"
+                                    Grid.Row="1"
+                                    IsHitTestVisible="False"
+                                    Visibility="Collapsed">
+                                <Border x:Name="DragRectangle"
+                                        Background="{ThemeResource TableViewDragRectangleFill}"
+                                        BorderBrush="{ThemeResource TableViewDragRectangleStroke}"
+                                        BorderThickness="1"
+                                        CornerRadius="{ThemeResource TableViewDragRectangleCornerRadius}" />
+                            </Canvas>
                         </Grid>
                     </Border>
                 </ControlTemplate>
