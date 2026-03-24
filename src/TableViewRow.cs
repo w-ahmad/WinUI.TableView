@@ -145,7 +145,13 @@ public partial class TableViewRow : ListViewItem
 
         if (!isGroupHeaderItem)
         {
-            if (_ensureCells || Cells.Count == 0)
+            if (HasRowTemplate)
+            {
+                RowPresenter?.ClearCells();
+                RowPresenter?.SetRowTemplate();
+                _ensureCells = true;
+            }
+            else if (_ensureCells || Cells.Count == 0)
             {
                 EnsureCells();
             }
@@ -265,6 +271,13 @@ public partial class TableViewRow : ListViewItem
             return;
         }
 
+        if (HasRowTemplate)
+        {
+            RowPresenter?.ClearCells();
+            _ensureCells = true;
+            return;
+        }
+
         if (RowPresenter is not null && _ensureCells)
         {
             RowPresenter.ClearCells();
@@ -333,7 +346,11 @@ public partial class TableViewRow : ListViewItem
         }
         else if (e.PropertyName is nameof(TableViewColumn.ActualWidth))
         {
-            if (Cells.FirstOrDefault(x => x.Column == e.Column) is { } cell)
+            if (HasRowTemplate)
+            {
+                RowPresenter?.UpdateRowTemplateWidth();
+            }
+            else if (Cells.FirstOrDefault(x => x.Column == e.Column) is { } cell)
             {
                 cell.Width = e.Column.ActualWidth;
             }
@@ -580,13 +597,6 @@ public partial class TableViewRow : ListViewItem
             selectionIndicator = fontIcon?.Parent as Border;
         }
 
-        if (TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple })
-        {
-            var fontIcon = this.FindDescendant<FontIcon>(x => x.Glyph == Check_Mark);
-            selectionIndicator = fontIcon?.Parent as Border;
-        }
-
-
         _selectionBackground ??= _itemPresenter?.FindDescendants()
                                                 .OfType<Border>()
                                                 .FirstOrDefault(x => x.Name is not Selection_Background && x.Margin == _selectionBackgroundMargin);
@@ -697,6 +707,30 @@ public partial class TableViewRow : ListViewItem
                 _tableView = value;
                 OnTableViewChanged();
             }
+        }
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether a row template is active for this row.
+    /// </summary>
+    internal bool HasRowTemplate => TableView?.RowTemplate is not null || TableView?.RowTemplateSelector is not null;
+
+    /// <summary>
+    /// Applies or removes the row template. When a RowTemplate is set on the TableView,
+    /// cells are cleared and the template is used. When removed, cells are regenerated from columns.
+    /// </summary>
+    internal void ApplyRowTemplate()
+    {
+        if (HasRowTemplate)
+        {
+            RowPresenter?.ClearCells();
+            _ensureCells = true;
+        }
+        else
+        {
+            RowPresenter?.SetRowTemplate();
+            _ensureCells = true;
+            EnsureCells();
         }
     }
 

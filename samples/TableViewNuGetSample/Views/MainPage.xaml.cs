@@ -394,4 +394,69 @@ public partial class MainPage : Page
 
         public List<TaskProcessRow> Children { get; set; } = [];
     }
+
+    public ObservableCollection<ContactRow> ContactRows { get; } =
+    [
+        new ContactRow { FullName = "Alice Johnson",   Title = "Software Engineer",   Email = "alice.j@contoso.com",   Phone = "(425) 555-0101", IsOnline = Visibility.Visible },
+        new ContactRow { FullName = "Bob Martinez",    Title = "Product Manager",     Email = "bob.m@contoso.com",     Phone = "(425) 555-0102", IsOnline = Visibility.Collapsed },
+        new ContactRow { FullName = "Carol Lee",       Title = "UX Designer",         Email = "carol.l@contoso.com",   Phone = "(425) 555-0103", IsOnline = Visibility.Visible },
+        new ContactRow { FullName = "David Kim",       Title = "Data Scientist",      Email = "david.k@contoso.com",   Phone = "(425) 555-0104", IsOnline = Visibility.Visible },
+        new ContactRow { FullName = "Eva Chen",        Title = "DevOps Engineer",     Email = "eva.c@contoso.com",     Phone = "(425) 555-0105", IsOnline = Visibility.Collapsed },
+        new ContactRow { FullName = "Frank Wilson",    Title = "QA Lead",             Email = "frank.w@contoso.com",   Phone = "(425) 555-0106", IsOnline = Visibility.Visible },
+        new ContactRow { FullName = "Grace Taylor",    Title = "Security Analyst",    Email = "grace.t@contoso.com",   Phone = "(425) 555-0107", IsOnline = Visibility.Collapsed },
+        new ContactRow { FullName = "Henry Nguyen",    Title = "Frontend Developer",  Email = "henry.n@contoso.com",   Phone = "(425) 555-0108", IsOnline = Visibility.Visible },
+        new ContactRow { FullName = "Irene Patel",     Title = "Backend Developer",   Email = "irene.p@contoso.com",   Phone = "(425) 555-0109", IsOnline = Visibility.Visible },
+        new ContactRow { FullName = "Jack Robinson",   Title = "Program Manager",     Email = "jack.r@contoso.com",    Phone = "(425) 555-0110", IsOnline = Visibility.Collapsed },
+    ];
+
+    public sealed class ContactRow
+    {
+        public string FullName { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public Visibility IsOnline { get; set; } = Visibility.Collapsed;
+        public string Initials => string.Concat(FullName.Split(' ').Where(s => s.Length > 0).Select(s => s[0]));
+    }
+
+    public ObservableCollection<OrderRow> OrderRows { get; } =
+    [
+        new OrderRow { OrderId = "ORD-001", Customer = "Northwind Traders",   Total = 4250.00, Priority = "Urgent",  Date = new DateTime(2025, 6, 20) },
+        new OrderRow { OrderId = "ORD-002", Customer = "Adventure Works",     Total = 1320.50, Priority = "Normal",  Date = new DateTime(2025, 6, 19) },
+        new OrderRow { OrderId = "ORD-003", Customer = "Fabrikam Inc.",       Total = 8900.00, Priority = "Urgent",  Date = new DateTime(2025, 6, 18) },
+        new OrderRow { OrderId = "ORD-004", Customer = "Contoso Ltd.",        Total = 560.75,  Priority = "Low",     Date = new DateTime(2025, 6, 18) },
+        new OrderRow { OrderId = "ORD-005", Customer = "Tailspin Toys",       Total = 3100.00, Priority = "Normal",  Date = new DateTime(2025, 6, 17) },
+        new OrderRow { OrderId = "ORD-006", Customer = "Wide World Importers",Total = 12750.00,Priority = "Urgent",  Date = new DateTime(2025, 6, 16) },
+        new OrderRow { OrderId = "ORD-007", Customer = "Lucerne Publishing",  Total = 720.00,  Priority = "Normal",  Date = new DateTime(2025, 6, 15) },
+        new OrderRow { OrderId = "ORD-008", Customer = "Proseware Inc.",      Total = 9400.00, Priority = "Urgent",  Date = new DateTime(2025, 6, 14) },
+        new OrderRow { OrderId = "ORD-009", Customer = "Datum Corporation",   Total = 215.00,  Priority = "Low",     Date = new DateTime(2025, 6, 14) },
+        new OrderRow { OrderId = "ORD-010", Customer = "Woodgrove Bank",      Total = 5600.00, Priority = "Normal",  Date = new DateTime(2025, 6, 13) },
+    ];
+
+    public sealed class OrderRow
+    {
+        public string OrderId { get; set; } = string.Empty;
+        public string Customer { get; set; } = string.Empty;
+        public double Total { get; set; }
+        public string Priority { get; set; } = "Normal";
+        public DateTime Date { get; set; }
+        public string TotalDisplay => Total.ToString("C2");
+        public string DateDisplay => Date.ToString("MMM dd, yyyy");
+    }
+}
+
+public class OrderPriorityTemplateSelector : DataTemplateSelector
+{
+    public DataTemplate? HighPriorityTemplate { get; set; }
+    public DataTemplate? NormalTemplate { get; set; }
+
+    protected override DataTemplate? SelectTemplateCore(object item)
+    {
+        if (item is MainPage.OrderRow order && order.Priority == "Urgent")
+        {
+            return HighPriorityTemplate;
+        }
+
+        return NormalTemplate;
+    }
 }

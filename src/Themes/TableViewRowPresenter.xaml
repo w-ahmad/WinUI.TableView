@@ -132,6 +132,13 @@
                                         Grid.Column="3"
                                         Orientation="Horizontal" />
 
+                            <ContentPresenter x:Name="RowTemplatePresenter"
+                                              Grid.Column="2"
+                                              Grid.ColumnSpan="2"
+                                              HorizontalAlignment="Left"
+                                              VerticalAlignment="Stretch"
+                                              Visibility="Collapsed" />
+
                             <Grid x:Name="DetailsPanel"
                                   Grid.Row="1"
                                   Grid.Column="2"

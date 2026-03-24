@@ -23,6 +23,80 @@
                 <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
             </StackPanel>
         </DataTemplate>
+
+        <DataTemplate x:Key="ContactRowTemplate">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="40" />
+                    <ColumnDefinition Width="160" />
+                    <ColumnDefinition Width="200" />
+                    <ColumnDefinition Width="120" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border Background="{ThemeResource AccentFillColorDefaultBrush}"
+                        CornerRadius="20" Width="36" Height="36"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Margin="0,8">
+                    <TextBlock Text="{Binding Initials}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Foreground="White" FontWeight="SemiBold" FontSize="13" />
+                </Border>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,8,0,8">
+                    <TextBlock Text="{Binding FullName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding Title}" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+                <TextBlock Grid.Column="2" Text="{Binding Email}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="8,0,0,0" />
+                <TextBlock Grid.Column="3" Text="{Binding Phone}" VerticalAlignment="Center" Margin="8,0,0,0" />
+                <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" Spacing="4" Margin="8,0,0,0">
+                    <Border Background="{ThemeResource SystemFillColorSuccessBackgroundBrush}"
+                            CornerRadius="4" Padding="8,2"
+                            Visibility="{Binding IsOnline}">
+                        <TextBlock Text="Online" FontSize="11" Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="HighPriorityOrderTemplate">
+            <Grid Background="{ThemeResource SystemFillColorCriticalBackgroundBrush}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="160" />
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="8,8,0,8">
+                    <FontIcon Glyph="&#xE7BA;" FontSize="14" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                    <TextBlock Text="{Binding OrderId}" FontWeight="Bold" />
+                </StackPanel>
+                <TextBlock Grid.Column="1" Text="{Binding Customer}" VerticalAlignment="Center" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Margin="8,0,0,0" />
+                <TextBlock Grid.Column="2" Text="{Binding TotalDisplay}" VerticalAlignment="Center" FontWeight="Bold" Margin="8,0,0,0" />
+                <Border Grid.Column="3" Background="{ThemeResource SystemFillColorCriticalBrush}" CornerRadius="4" Padding="8,2" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="8,0,0,0">
+                    <TextBlock Text="{Binding Priority}" FontSize="11" Foreground="White" />
+                </Border>
+                <TextBlock Grid.Column="4" Text="{Binding DateDisplay}" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="8,0,0,0" />
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="NormalOrderTemplate">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="160" />
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{Binding OrderId}" VerticalAlignment="Center" Margin="8,8,0,8" />
+                <TextBlock Grid.Column="1" Text="{Binding Customer}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="8,0,0,0" />
+                <TextBlock Grid.Column="2" Text="{Binding TotalDisplay}" VerticalAlignment="Center" Margin="8,0,0,0" />
+                <Border Grid.Column="3" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="4" Padding="8,2" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="8,0,0,0">
+                    <TextBlock Text="{Binding Priority}" FontSize="11" />
+                </Border>
+                <TextBlock Grid.Column="4" Text="{Binding DateDisplay}" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="8,0,0,0" />
+            </Grid>
+        </DataTemplate>
     </Page.Resources>
 
     <Page.Content>
@@ -116,6 +190,64 @@
                                 <tableView:TableViewTextColumn Header="Disk" Binding="{Binding Disk}" MinWidth="100" />
                                 <tableView:TableViewTextColumn Header="Network" Binding="{Binding Network}" MinWidth="110" />
                             </tableView:TableView.Columns>
+                        </tableView:TableView>
+                    </Grid>
+                </TabViewItem>
+
+                <TabViewItem Header="Row Template">
+                    <Grid Padding="8" RowSpacing="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="Uses RowTemplate to render each row with a custom contact-card layout instead of column-based cells."
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="WrapWholeWords" />
+                        <tableView:TableView
+                            Grid.Row="1"
+                            AutoGenerateColumns="False"
+                            ItemsSource="{x:Bind ContactRows}"
+                            RowTemplate="{StaticResource ContactRowTemplate}"
+                            AlternateRowBackground="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            SelectionMode="Single"
+                            HeadersVisibility="Columns">
+                            <tableView:TableView.Columns>
+                                <tableView:TableViewTextColumn Header="" MinWidth="40" MaxWidth="40" />
+                                <tableView:TableViewTextColumn Header="Name" MinWidth="160" />
+                                <tableView:TableViewTextColumn Header="Email" MinWidth="200" />
+                                <tableView:TableViewTextColumn Header="Phone" MinWidth="120" />
+                                <tableView:TableViewTextColumn Header="Status" />
+                            </tableView:TableView.Columns>
+                        </tableView:TableView>
+                    </Grid>
+                </TabViewItem>
+
+                <TabViewItem Header="Row Template Selector">
+                    <Grid Padding="8" RowSpacing="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="Uses RowTemplateSelector to pick a different template for high-priority orders vs. normal orders."
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="WrapWholeWords" />
+                        <tableView:TableView
+                            Grid.Row="1"
+                            AutoGenerateColumns="False"
+                            ItemsSource="{x:Bind OrderRows}"
+                            AlternateRowBackground="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            SelectionMode="Single"
+                            HeadersVisibility="Columns">
+                            <tableView:TableView.Columns>
+                                <tableView:TableViewTextColumn Header="Order ID" MinWidth="80" />
+                                <tableView:TableViewTextColumn Header="Customer" MinWidth="160" />
+                                <tableView:TableViewTextColumn Header="Total" MinWidth="100" />
+                                <tableView:TableViewTextColumn Header="Priority" MinWidth="100" />
+                                <tableView:TableViewTextColumn Header="Date" />
+                            </tableView:TableView.Columns>
+                            <tableView:TableView.RowTemplateSelector>
+                                <local:OrderPriorityTemplateSelector
+                                    HighPriorityTemplate="{StaticResource HighPriorityOrderTemplate}"
+                                    NormalTemplate="{StaticResource NormalOrderTemplate}" />
+                            </tableView:TableView.RowTemplateSelector>
                         </tableView:TableView>
                     </Grid>
                 </TabViewItem>
