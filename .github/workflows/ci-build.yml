@@ -60,6 +60,7 @@ jobs:
     needs: build
     runs-on: windows-2022
     environment: ci-nuget-publish
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
     - name: Download artifacts
       uses: actions/download-artifact@v4
@@ -70,16 +71,3 @@ jobs:
     - name: Push to NuGet
       run: |
         dotnet nuget push packages\*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
-
-    - name: Comment on PR
-      if: github.event_name == 'pull_request'
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const packageVersion = '0.0.${{ github.run_number }}-dev';
-          await github.rest.issues.createComment({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            issue_number: context.issue.number,
-            body: `🚀 A NuGet package is now available to test these changes: https://www.nuget.org/packages/WinUI.TableView/${packageVersion}`
-          });
