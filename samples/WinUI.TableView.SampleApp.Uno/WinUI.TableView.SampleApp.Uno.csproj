@@ -1,0 +1,97 @@
+﻿<Project Sdk="Uno.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>
+      $(NetVersion)-desktop;
+      $(NetVersion)-browserwasm;
+      $(NetVersion)-android;
+      $(NetVersion)-ios;
+    </TargetFrameworks>
+
+    <OutputType>Exe</OutputType>
+    <UnoSingleProject>true</UnoSingleProject>
+    <AssemblyName>WinUI.TableView.SampleApp</AssemblyName>
+
+    <!-- Display name -->
+    <ApplicationTitle>WinUI.TableView.SampleApp</ApplicationTitle>
+    <!-- App Identifier -->
+    <ApplicationId>com.W.Ahmad.WinUI.TableView.SampleApp</ApplicationId>
+    <!-- Versions -->
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+    <!-- Package Publisher -->
+    <ApplicationPublisher>W.Ahmad</ApplicationPublisher>
+    <!-- Package Description -->
+    <Description>WinUI.TableView.SampleApp powered by Uno Platform.</Description>
+
+    <!--
+      UnoFeatures let's you quickly add and manage implicit package references based on the features you want to use.
+      https://aka.platform.uno/singleproject-features
+    -->
+    <UnoFeatures>
+      Mvvm;
+      SkiaRenderer;
+    </UnoFeatures>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(IsBrowserWasm) == 'true'">
+    <WasmShellMonoRuntimeExecutionMode>InterpreterAndAOT</WasmShellMonoRuntimeExecutionMode>
+    <WasmShellEmccLinkOptimization>false</WasmShellEmccLinkOptimization>
+    <WasmShellEnableEmccProfiling>true</WasmShellEnableEmccProfiling>
+
+    <!--
+		Uncomment this block to generate a profile
+		<WasmShellGenerateAOTProfile>true</WasmShellGenerateAOTProfile>
+		<WasmShellILLinkerEnabled>false</WasmShellILLinkerEnabled>
+		<UnoXamlResourcesTrimming>false</UnoXamlResourcesTrimming>
+		<WasmShellEnableJiterpreter>false</WasmShellEnableJiterpreter>
+		<DefineConstants>$(DefineConstants);AOT_PROFILE_GEN</DefineConstants>
+		-->
+  </PropertyGroup>
+
+  <ItemGroup>   
+    <Page Include="..\WinUI.TableView.SampleApp\**\*.xaml"
+          Exclude="..\WinUI.TableView.SampleApp\bin\**\*.xaml;..\WinUI.TableView.SampleApp\obj\**\*.xaml">
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    
+    <Compile Include="..\WinUI.TableView.SampleApp\**\*.cs"
+             Exclude="..\WinUI.TableView.SampleApp\bin\**\*.cs;..\WinUI.TableView.SampleApp\obj\**\*.cs">
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <DependentUpon>%(RecursiveDir)%(Filename)</DependentUpon>
+    </Compile>
+    
+    <ApplicationDefinition Include="..\WinUI.TableView.SampleApp\App.Xaml" Link="App.Xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <Generator>MSBuild:Compile</Generator>
+    </ApplicationDefinition>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="Assets\data.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="Assets\sales_data.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="Assets\transactions_data.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="CommunityToolkit.WinUI.Controls.ColorPicker" />
+    <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" />
+    <PackageReference Include="ClosedXML" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <ProjectReference Include="..\..\src\WinUI.TableView.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <PackageReference Include="WinUI.TableView" />
+  </ItemGroup>
+
+</Project>
