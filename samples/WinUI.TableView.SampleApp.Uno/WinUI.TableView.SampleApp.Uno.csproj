@@ -86,12 +86,8 @@
     <PackageReference Include="ClosedXML" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+  <ItemGroup>
     <ProjectReference Include="..\..\src\WinUI.TableView.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(Configuration)' == 'Release'">
-    <PackageReference Include="WinUI.TableView" />
   </ItemGroup>
 
 </Project>

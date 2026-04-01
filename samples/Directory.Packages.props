@@ -6,7 +6,6 @@
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.1.240916" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="9.0.4" />
     <PackageVersion Include="Microsoft.WindowsAppSDK" Version="1.6.250108002" />
-    <PackageVersion Include="WinUI.TableView" Version="1.4.0" />
     <PackageVersion Include="ClosedXML" Version="0.105.0" />
     <PackageVersion Include="WinUIEx" Version="2.6.0" />
   </ItemGroup>
