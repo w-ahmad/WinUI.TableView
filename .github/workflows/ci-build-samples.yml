@@ -5,13 +5,11 @@ on:
     branches: main
     paths-ignore:
       - 'docs/**'
-      - 'src/**'
 
   pull_request:
     branches: main
     paths-ignore:
       - 'docs/**'
-      - 'src/**'
 
 jobs:
   build:
