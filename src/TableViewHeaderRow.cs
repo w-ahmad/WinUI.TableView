@@ -38,8 +38,10 @@ public partial class TableViewHeaderRow : Control
     private StackPanel? _scrollableHeadersPanel;
     private Border? _columnDropIndicator;
     private TranslateTransform? _columnDropIndicatorTransform;
+    private Image? _dragHeaderImage;
     private bool _calculatingHeaderWidths;
     private DispatcherTimer? _timer;
+    private int _dropColumnIndex;
     private readonly Dictionary<DependencyProperty, long> _callbackTokens = [];
 
     /// <summary>
@@ -64,6 +66,7 @@ public partial class TableViewHeaderRow : Control
         _scrollableHeadersPanel = GetTemplateChild("ScrollableHeadersPanel") as StackPanel;
         _columnDropIndicator = GetTemplateChild("ColumnDropIndicator") as Border;
         _columnDropIndicatorTransform = GetTemplateChild("ColumnDropIndicatorTransform") as TranslateTransform;
+        _dragHeaderImage = GetTemplateChild("DragHeaderImage") as Image;
 
         if (TableView is null)
         {
@@ -521,33 +524,36 @@ public partial class TableViewHeaderRow : Control
     {
         if (_columnDropIndicator is not null && FindHeader(new(position, ActualHeight / 2)) is { Column: { } dropColumn } dropHeader)
         {
-            var dropColumnIndex = TableView?.Columns.VisibleColumns.IndexOf(dropColumn) ?? 0;
+            _dropColumnIndex = TableView?.Columns.VisibleColumns.IndexOf(dropColumn) ?? 0;
             var transform = dropHeader.TransformToVisual(this);
             var dropHeaderX = transform.TransformPoint(new Point(0, 0)).X;
             var midPoint = dropHeaderX + (dropHeader.ActualWidth / 2);
             var x = dropHeaderX;
             x += midPoint < position ? dropHeader.ActualWidth : 0d;
             x -= _columnDropIndicator.ActualWidth / 2;
-            dropColumnIndex += midPoint > position ? -1 : 0;
-
-            _columnDropIndicator.DataContext = new DragIndicatorData(dropColumnIndex, headerVisuals);
+            _dropColumnIndex += midPoint > position ? -1 : 0;
             _columnDropIndicator.Visibility = Visibility.Visible;
 
             if (_columnDropIndicatorTransform is not null)
             {
                 _columnDropIndicatorTransform.X = x;
             }
+
+            if (_dragHeaderImage is not null)
+            {
+                _dragHeaderImage.Source = headerVisuals;
+            }
         }
     }
 
     internal void ColumnDropCompleted(TableViewColumn column)
     {
-        if (_columnDropIndicator is { DataContext: DragIndicatorData data } && TableView is not null)
+        if (TableView is not null && _columnDropIndicator is not null)
         {
             _columnDropIndicator.Visibility = Visibility.Collapsed;
 
             var sourceIndex = TableView.Columns.VisibleColumns.IndexOf(column);
-            var dropIndex = sourceIndex > data.DropIndex ? data.DropIndex + 1 : data.DropIndex;
+            var dropIndex = sourceIndex > _dropColumnIndex ? _dropColumnIndex + 1 : _dropColumnIndex;
             dropIndex = Math.Clamp(dropIndex, 0, TableView.Columns.VisibleColumns.Count - 1);
 
             var reorderingArgs = new TableViewColumnReorderingEventArgs(column, dropIndex);
@@ -706,10 +712,3 @@ public partial class TableViewHeaderRow : Control
     /// </summary>
     public static readonly DependencyProperty TableViewProperty = DependencyProperty.Register(nameof(TableView), typeof(TableView), typeof(TableViewHeaderRow), new PropertyMetadata(null, OnTableViewChanged));
 }
-
-/// <summary>
-/// Provides data for the drag indicator during column reordering.
-/// </summary>
-/// <param name="DropIndex">The index where the column is dropped.</param>
-/// <param name="Visuals">The visuals associated with the drag indicator.</param>
-file record struct DragIndicatorData(int DropIndex, RenderTargetBitmap Visuals);
