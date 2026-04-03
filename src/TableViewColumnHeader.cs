@@ -98,6 +98,11 @@ public partial class TableViewColumnHeader : ContentControl
     {
         if (CanSort && Column is not null && _tableView is { CollectionView: CollectionView { } collectionView })
         {
+            var eventArgs = new TableViewSortingEventArgs(Column);
+            _tableView.OnSorting(eventArgs);
+
+            if (eventArgs.Handled) return;
+
             using var defer = collectionView.DeferRefresh();
             if (singleSorting)
             {
@@ -203,13 +208,7 @@ public partial class TableViewColumnHeader : ContentControl
             var isCtrlButtonDown = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control) is
                 CoreVirtualKeyStates.Down or (CoreVirtualKeyStates.Down | CoreVirtualKeyStates.Locked);
 
-            var eventArgs = new TableViewSortingEventArgs(Column);
-            _tableView.OnSorting(eventArgs);
-
-            if (!eventArgs.Handled)
-            {
-                DoSort(GetNextSortDirection(), !isCtrlButtonDown);
-            }
+            DoSort(GetNextSortDirection(), !isCtrlButtonDown);
         }
 
         base.OnTapped(e);
