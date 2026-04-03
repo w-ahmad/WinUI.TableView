@@ -45,6 +45,9 @@ public partial class TableViewFilterItem : INotifyPropertyChanged
     /// </summary>
     public object? Value { get; }
 
+    /// <summary>
+    /// Gets the text representation of the filter item's value, or a localized string for blank values if the value is null.
+    /// </summary>
     public string ValueText => Value?.ToString() ?? TableViewLocalizedStrings.BlankFilterValue;
 
     /// <summary>
