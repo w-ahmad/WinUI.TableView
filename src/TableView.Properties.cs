@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
 
@@ -263,7 +264,7 @@ public partial class TableView
     /// <summary>
     /// Identifies the <see cref="ShowFilterItemsCount"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty ShowFilterItemsCountProperty =  DependencyProperty.Register(nameof(ShowFilterItemsCount), typeof(bool), typeof(TableView), new PropertyMetadata(false));
+    public static readonly DependencyProperty ShowFilterItemsCountProperty = DependencyProperty.Register(nameof(ShowFilterItemsCount), typeof(bool), typeof(TableView), new PropertyMetadata(false));
 
     /// <summary>
     /// Gets or sets a value indicating whether opening the column filter over header right-click is enabled.
@@ -360,6 +361,9 @@ public partial class TableView
     /// </summary>
     internal bool IsEditing { get; private set; }
 
+    /// <summary>
+    /// Gets the visibility states of details pane for each item.
+    /// </summary>
     internal ConditionalWeakTable<object, TValue<bool>> DetailsPaneStates { get; } = [];
 
     /// <summary>

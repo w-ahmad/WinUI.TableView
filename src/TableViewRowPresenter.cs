@@ -14,26 +14,6 @@ using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView;
 
-internal class TValue<T> where T : struct
-{
-    public TValue(T value)
-    {
-        Value = value;
-    }
-
-    public T Value { get; }
-
-    public static implicit operator T(TValue<T> value)
-    {
-        return value.Value;
-    }
-
-    public static implicit operator TValue<T>(T value)
-    {
-        return new(value);
-    }
-}
-
 /// <summary>
 /// Represents a control that presents visuals for the <see cref="WinUI.TableView.TableViewRow"/>.
 /// </summary>
