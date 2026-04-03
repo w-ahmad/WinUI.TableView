@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace WinUI.TableView;
@@ -358,6 +359,8 @@ public partial class TableView
     /// Gets or sets a value indicating whether the TableView is in editing mode.
     /// </summary>
     internal bool IsEditing { get; private set; }
+
+    internal ConditionalWeakTable<object, TValue<bool>> DetailsPaneStates { get; } = [];
 
     /// <summary>
     /// Gets or sets the filter handler for the TableView.
