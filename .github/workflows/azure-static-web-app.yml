@@ -80,7 +80,7 @@ jobs:
 
       - run: |
           cd samples/WinUI.TableView.SampleApp.Uno
-          dotnet publish -c Release -f net10.0-browserwasm "/p:PackageVersion=${{ steps.nbgv.outputs.SemVer2 }}" /bl:../binlogs/output.binlog
+          dotnet publish -c Release -f net10.0-browserwasm "/p:PackageVersion=${{ steps.nbgv.outputs.SemVer2 }}" /p:EnableWindowsTargeting=true /bl:../binlogs/output.binlog
         name: Build Uno Wasm App
 
       - uses: actions/upload-artifact@v4
