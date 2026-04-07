@@ -281,6 +281,8 @@ public partial class TableView : ListView
         _headerRow = GetTemplateChild("HeaderRow") as TableViewHeaderRow;
         _scrollViewer = GetTemplateChild("ScrollViewer") as ScrollViewer;
         _headerRowDefinition = GetTemplateChild("HeaderRowDefinition") as RowDefinition;
+        if (_scrollViewer is not null) _scrollViewer.Loaded += OnScrollViewerLoaded;
+        
         if (IsLoaded)
         {
             while (ItemsPanelRoot is null) await Task.Yield();
@@ -292,9 +294,9 @@ public partial class TableView : ListView
     }
 
     /// <summary>
-    /// Handles the Loaded event of the TableView control.
+    /// Handles the Loaded event of the ScrollViewer control.
     /// </summary>
-    private void OnLoaded(object sender, RoutedEventArgs e)
+    private void OnScrollViewerLoaded(object sender, RoutedEventArgs e)
     {
         var scrollPresenter = _scrollViewer?.FindDescendant<ScrollContentPresenter>();
         var xScrollBar = _scrollViewer?.FindDescendant<ScrollBar>(sb => sb.Name is "HorizontalScrollBar2");
@@ -316,7 +318,13 @@ public partial class TableView : ListView
             Mode = BindingMode.TwoWay,
             Source = this
         });
-
+    }
+    
+    /// <summary>
+    /// Handles the Loaded event of the TableView control.
+    /// </summary>
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {        
         EnsureAutoColumns();
     }
 
