@@ -1,4 +1,4 @@
-name: cd-build-wasm
+name: Azure Static Web Apps CI/CD
 
 on:
   push:
@@ -13,7 +13,7 @@ jobs:
   build_and_deploy_job:
     env:
       DIST_PATH: samples/WinUI.TableView.SampleApp.Uno/bin/Release/net10.0-browserwasm/publish/wwwroot
-      DotnetVersion: '10.0.x'
+      DotnetVersion: '10.0.100'
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
     container: 'unoplatform/wasm-build:3.0'
