@@ -1,0 +1,115 @@
+<Page x:Class="WinUI.TableView.SampleApp.Pages.ExternalFilteringPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:tv="using:WinUI.TableView"
+      xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
+      d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
+      mc:Ignorable="d">
+
+    <Grid>
+        <controls:SamplePresenter Header="External Filter"
+                                  Description="This sample demonstrate how a items can be fitlered using a textbox.">
+            <controls:SamplePresenter.Example>
+                <Grid RowSpacing="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <StackPanel Spacing="8"
+                                Orientation="Horizontal">
+                        <TextBlock Text="Search here:"
+                                   VerticalAlignment="Center" />
+                        <TextBox x:Name="filterText"
+                                 Width="500"
+                                 TextChanged="OnSearchTextChanged"
+                                 PlaceholderText="First Name, Last Name, Email, Gender, Department, Desigation, Address" />
+                    </StackPanel>
+                    <tv:TableView x:Name="tableView"
+                                  Grid.Row="1"                                  
+                                  CanFilterColumns="False"
+                                  ItemsSource="{Binding Items}" />
+                </Grid>
+            </controls:SamplePresenter.Example>
+            <controls:SamplePresenter.Xaml>
+                <x:String xml:space="preserve">
+ &lt;Grid RowSpacing="12">
+    &lt;Grid.RowDefinitions>
+        &lt;RowDefinition Height="Auto" />
+        &lt;RowDefinition Height="*" />
+    &lt;/Grid.RowDefinitions>
+    &lt;StackPanel Spacing="8"
+        Orientation="Horizontal">
+        &lt;TextBlock Text="Search here:"
+            VerticalAlignment="Center" />
+        &lt;TextBox x:Name="filterText"
+            Width="600"
+            TextChanged="OnSearchTextChanged"
+            PlaceholderText="First Name, Last Name, Email, Gender, Department, Desigation, Address" />
+    &lt;/StackPanel>
+    &lt;tv:TableView x:Name="tableView"
+        Grid.Row="1"
+        CanFilterColumns="False"
+        ItemsSource="{Binding Items}" />
+ &lt;/Grid>
+                </x:String>
+            </controls:SamplePresenter.Xaml>
+            <controls:SamplePresenter.CSharp>
+                <x:String xml:space="preserve">
+private CancellationTokenSource? _token;
+
+public ExternalFilteringPage()
+{
+    InitializeComponent();
+
+    tableView.FilterDescriptions.Add(new FilterDescription(string.Empty, Filter));
+}
+
+private bool Filter(object? item)
+{
+    if (string.IsNullOrWhiteSpace(filterText.Text)) return true;
+    if (item is null) return false;
+
+    var model = (ExampleModel)item;
+
+    return model.FirstName?.Contains(filterText.Text, StringComparison.OrdinalIgnoreCase) is true ||
+           model.LastName?.Contains(filterText.Text, StringComparison.OrdinalIgnoreCase) is true ||
+           model.Email?.Contains(filterText.Text, StringComparison.OrdinalIgnoreCase) is true ||
+           model.Gender?.Contains(filterText.Text, StringComparison.OrdinalIgnoreCase) is true ||
+           model.Department?.Contains(filterText.Text, StringComparison.OrdinalIgnoreCase) is true ||
+           model.Designation?.Contains(filterText.Text, StringComparison.OrdinalIgnoreCase) is true ||
+           model.Address?.Contains(filterText.Text, StringComparison.OrdinalIgnoreCase) is true;
+}
+
+private async void OnSearchTextChanged(object sender, TextChangedEventArgs e)
+{
+    if (_token is not null)
+    {
+        _token.Cancel();
+    }
+
+    _token = new CancellationTokenSource();
+    await RefreshFilter(_token.Token);
+}
+
+private async Task RefreshFilter(CancellationToken token)
+{
+    try
+    {
+        await Task.Delay(200, token);
+    }
+    catch
+    {
+        return;
+    }
+
+    _token = null;
+    tableView.RefreshFilter();
+}
+                </x:String>
+            </controls:SamplePresenter.CSharp>
+        </controls:SamplePresenter>
+    </Grid>
+</Page>
