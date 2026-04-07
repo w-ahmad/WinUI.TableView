@@ -8,7 +8,7 @@
 internal record TValue<T>(T Value) where T : struct
 {
     /// <summary>
-    /// Defines an implicit conversion from a TValue<T> instance to its underlying value of type T.
+    /// Defines an implicit conversion from a <see cref="TValue{T}"/> instance to its underlying value of type T.
     /// </summary>
     public static implicit operator T(TValue<T> value)
     {
@@ -16,7 +16,7 @@ internal record TValue<T>(T Value) where T : struct
     }
 
     /// <summary>
-    /// Defines an implicit conversion from the underlying value type to a TValue<T> instance.
+    /// Defines an implicit conversion from the underlying value type to a <see cref="TValue{T}"/> instance.
     /// </summary>
     public static implicit operator TValue<T>(T value)
     {
