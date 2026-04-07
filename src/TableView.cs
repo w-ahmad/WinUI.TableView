@@ -109,6 +109,7 @@ public partial class TableView : ListView
             {
                 row.EnsureCellsStyle(default, item);
                 row.ApplyCellsSelectionState();
+                row.RowPresenter?.ApplyDetailsPaneState(item);
 
                 if (CurrentCellSlot.HasValue)
                 {
@@ -130,7 +131,7 @@ public partial class TableView : ListView
         _rows.Add(row);
         return row;
     }
-        
+
     /// <inheritdoc/>
     protected override async void OnKeyDown(KeyRoutedEventArgs e)
     {
@@ -281,6 +282,8 @@ public partial class TableView : ListView
         _headerRow = GetTemplateChild("HeaderRow") as TableViewHeaderRow;
         _scrollViewer = GetTemplateChild("ScrollViewer") as ScrollViewer;
         _headerRowDefinition = GetTemplateChild("HeaderRowDefinition") as RowDefinition;
+        if (_scrollViewer is not null) _scrollViewer.Loaded += OnScrollViewerLoaded;
+        
         if (IsLoaded)
         {
             while (ItemsPanelRoot is null) await Task.Yield();
@@ -292,9 +295,9 @@ public partial class TableView : ListView
     }
 
     /// <summary>
-    /// Handles the Loaded event of the TableView control.
+    /// Handles the Loaded event of the ScrollViewer control.
     /// </summary>
-    private void OnLoaded(object sender, RoutedEventArgs e)
+    private void OnScrollViewerLoaded(object sender, RoutedEventArgs e)
     {
         var scrollPresenter = _scrollViewer?.FindDescendant<ScrollContentPresenter>();
         var xScrollBar = _scrollViewer?.FindDescendant<ScrollBar>(sb => sb.Name is "HorizontalScrollBar2");
@@ -316,7 +319,13 @@ public partial class TableView : ListView
             Mode = BindingMode.TwoWay,
             Source = this
         });
-
+    }
+    
+    /// <summary>
+    /// Handles the Loaded event of the TableView control.
+    /// </summary>
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {        
         EnsureAutoColumns();
     }
 
@@ -652,7 +661,7 @@ public partial class TableView : ListView
         {
             column = new TableViewCheckBoxColumn();
         }
-        else if(type.IsUri())
+        else if (type.IsUri())
         {
             column = new TableViewHyperlinkColumn();
         }
@@ -667,6 +676,8 @@ public partial class TableView : ListView
     /// </summary>
     private void ItemsSourceChanged(DependencyPropertyChangedEventArgs e)
     {
+        DetailsPaneStates.Clear();
+
         using var defer = _collectionView.DeferRefresh();
         _collectionView.Source = null!;
 
@@ -960,29 +971,20 @@ public partial class TableView : ListView
         {
             ctrlKey = ctrlKey || SelectionMode is ListViewSelectionMode.Multiple;
 
-            if (!ctrlKey || !(SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended))
-            {
-                if (SelectedItems.Count > 0)
-                {
-                    DeselectAllItems();
-                }
-
-                if (SelectedCells.Count > 0)
-                {
-                    SelectedCellRanges.Clear();
-                }
-            }
-
             if (SelectionUnit is TableViewSelectionUnit.Row
                || (LastSelectionUnit is TableViewSelectionUnit.Row && slot.IsValidRow(this) && !slot.IsValidColumn(this))
                || (SelectionUnit is TableViewSelectionUnit.CellOrRow && slot.IsValidRow(this) && !slot.IsValidColumn(this)))
             {
-                SelectRows(slot, shiftKey);
+                if (!ctrlKey)
+                    DeselectAllCells();
+                SelectRows(slot, shiftKey, ctrlKey);
                 LastSelectionUnit = TableViewSelectionUnit.Row;
             }
             else
             {
-                SelectCells(slot, shiftKey);
+                if (!ctrlKey)
+                    DeselectAllItems();
+                SelectCells(slot, shiftKey, ctrlKey);
                 LastSelectionUnit = TableViewSelectionUnit.Cell;
             }
         }
@@ -996,34 +998,46 @@ public partial class TableView : ListView
     /// <summary>
     /// Selects rows based on the specified cell slot.
     /// </summary>
-    private void SelectRows(TableViewCellSlot slot, bool shiftKey)
+    private void SelectRows(TableViewCellSlot slot, bool shiftKey, bool ctrlKey)
     {
         var selectionRange = SelectedRanges.FirstOrDefault(x => x.IsInRange(slot.Row));
         SelectionStartRowIndex ??= slot.Row;
-        CurrentRowIndex = slot.Row;
 
-        if (selectionRange is not null)
+        if (selectionRange is not null && ctrlKey && !shiftKey && (CurrentRowIndex != slot.Row || CurrentCellSlot == slot))
         {
-            DeselectRange(selectionRange);
+            DeselectRange(new ItemIndexRange(slot.Row, 1));
         }
-
-        if (shiftKey && SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended)
+        else if ((!shiftKey && !ctrlKey && SelectedItems.Count <= 1) || SelectionMode is ListViewSelectionMode.Single)
+        {
+            SelectionStartRowIndex = CurrentRowIndex = SelectedIndex = slot.Row;
+        }
+        else if ((!ctrlKey && !shiftKey) || !(SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended))
+        {
+            SelectionStartRowIndex = CurrentRowIndex = SelectedIndex = slot.Row;
+        }
+        else if (SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended)
         {
             var min = Math.Min(SelectionStartRowIndex.Value, slot.Row);
             var max = Math.Max(SelectionStartRowIndex.Value, slot.Row);
+            var newSelection = new ItemIndexRange(min, (uint)(max - min) + 1);
 
-            SelectRange(new ItemIndexRange(min, (uint)(max - min) + 1));
-        }
-        else
-        {
-            SelectionStartRowIndex = slot.Row;
-            if (SelectionMode is ListViewSelectionMode.Single)
+            if (!ctrlKey && newSelection.Length == 1)
             {
-                SelectedIndex = slot.Row;
+                SelectionStartRowIndex = CurrentRowIndex = SelectedIndex = slot.Row;
             }
-            else
+            if (selectionRange?.LastIndex > newSelection.LastIndex)
             {
-                SelectRange(new ItemIndexRange(slot.Row, 1));
+                var deselectRange = new ItemIndexRange(newSelection.LastIndex + 1, (uint)(selectionRange.LastIndex - newSelection.LastIndex));
+                DeselectRange(deselectRange);
+            }
+            else if (selectionRange?.FirstIndex < newSelection.FirstIndex)
+            {
+                var deselectRange = new ItemIndexRange(selectionRange.FirstIndex, (uint)(newSelection.FirstIndex - selectionRange.FirstIndex));
+                DeselectRange(deselectRange);
+            }
+            else if (selectionRange != newSelection)
+            {
+                SelectRange(newSelection);
             }
         }
 
@@ -1044,11 +1058,16 @@ public partial class TableView : ListView
     /// <summary>
     /// Selects cells based on the specified cell slot.
     /// </summary>
-    private void SelectCells(TableViewCellSlot slot, bool shiftKey)
+    private void SelectCells(TableViewCellSlot slot, bool shiftKey, bool ctrlKey)
     {
         if (!slot.IsValid(this))
         {
             return;
+        }
+
+        if (!ctrlKey || !(SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended))
+        {
+            DeselectAll();
         }
 
         var selectionRange = (SelectionStartCellSlot is null ? null : SelectedCellRanges.LastOrDefault(x => SelectionStartCellSlot.HasValue && x.Contains(SelectionStartCellSlot.Value))) ?? [];

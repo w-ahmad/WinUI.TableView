@@ -1,0 +1,207 @@
+<Page x:Class="WinUI.TableView.SampleApp.Pages.CustomizeFilterPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:tv="using:WinUI.TableView"
+      xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
+      d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
+      mc:Ignorable="d">
+
+    <Grid>
+        <controls:SamplePresenter Header="Column Custom Filter"
+                                  Description="This sample demonstrate how filter flyout implementaion can be customized.">
+            <controls:SamplePresenter.Example>
+                <tv:TableView x:Name="tableView"
+                              ItemsSource="{Binding Items}"
+                              AutoGenerateColumns="False"
+                              DataContextChanged="OnDataContextChanged">
+                    <tv:TableView.Columns>
+                        <tv:TableViewNumberColumn Header="Id"
+                                                  Width="100"
+                                                  Binding="{Binding Id}" />
+                        <tv:TableViewTextColumn Header="First Name"
+                                                Width="200"
+                                                Binding="{Binding FirstName}" />
+                        <tv:TableViewTextColumn Header="Last Name"
+                                                Width="200"
+                                                Binding="{Binding LastName}" />
+                        <tv:TableViewTemplateColumn Header="Full Name"
+                                                    CanFilter="True">
+                            <tv:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Margin="12,0"
+                                                Orientation="Horizontal"
+                                                Spacing="2">
+                                        <TextBlock Text="{Binding FirstName}" />
+                                        <TextBlock Text="{Binding LastName}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </tv:TableViewTemplateColumn.CellTemplate>
+                        </tv:TableViewTemplateColumn>
+                        <tv:TableViewTextColumn Header="Email"
+                                                Width="200"
+                                                Binding="{Binding Email}" />
+                        <tv:TableViewTextColumn Header="Gender"
+                                                Width="100"
+                                                Binding="{Binding Gender}" />
+                        <tv:TableViewDateColumn Header="Dob"
+                                                Width="150"
+                                                Binding="{Binding Dob}" />
+                    </tv:TableView.Columns>
+                </tv:TableView>
+            </controls:SamplePresenter.Example>
+            <controls:SamplePresenter.Xaml>
+                <x:String xml:space="preserve">
+&lt;tv:TableView x:Name="tableView"
+    ItemsSource="{Binding Items}"
+    AutoGenerateColumns="False"
+    DataContextChanged="OnDataContextChanged">
+    &lt;tv:TableView.Columns>
+    ............
+    &lt;tv:TableViewTemplateColumn Header="Full Name"
+        CanFilter="True">
+        &lt;tv:TableViewTemplateColumn.CellTemplate>
+            &lt;DataTemplate>
+                &lt;StackPanel Margin="12,0"
+                    Orientation="Horizontal"
+                    Spacing="2">
+                    &lt;TextBlock Text="{Binding FirstName}" />
+                    &lt;TextBlock Text="{Binding LastName}" />
+                &lt;/StackPanel>
+            &lt;/DataTemplate>
+        &lt;/tv:TableViewTemplateColumn.CellTemplate>
+    &lt;/tv:TableViewTemplateColumn>
+    ............
+    &lt;/tv:TableView.Columns>
+&lt;/tv:TableView>
+                </x:String>
+            </controls:SamplePresenter.Xaml>
+            <controls:SamplePresenter.CSharp>
+                <x:String xml:space="preserve">
+private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
+{
+    if (DataContext is not ExampleViewModel viewModel) return;
+
+    tableView.FilterHandler = new FilterHandler(tableView, viewModel);
+    viewModel.Items = new(ExampleViewModel.ItemsList.Take(20));
+}
+
+public class FilterHandler : ColumnFilterHandler
+{
+    private readonly TableView _tableView;
+    private readonly ExampleViewModel _viewModel;
+
+    public FilterHandler(TableView tableView, ExampleViewModel viewModel) : base(tableView)
+    {
+        _tableView = tableView;
+        _viewModel = viewModel;
+    }
+
+    public override IList&lt;TableViewFilterItem> GetFilterItems(TableViewColumn column, string? searchText)
+    {
+        var existingItems = SelectedValues.TryGetValue(column, out var selectedValues) ? selectedValues : [];
+        bool isSelected(object value) => !existingItems.Any() || existingItems.Contains(value);
+        var items = GetItems(column);
+
+        return items.Select(x => GetPropertyValue(x, column))
+                    .Where(x => string.IsNullOrEmpty(searchText) || x?.ToString()?.Contains(searchText, StringComparison.OrdinalIgnoreCase) is true)
+                    .Distinct()
+                    .Order()
+                    .Select(x => x ?? "(Blank)")
+                    .Select(x => new TableViewFilterItem(!string.IsNullOrEmpty(searchText) || isSelected(x), x))
+                    .ToList();
+    }
+
+    public override void ApplyFilter(TableViewColumn column)
+    {
+        _tableView.DeselectAll();
+        _viewModel.Items = new(GetItems().Take(20));
+
+        if (!column.IsFiltered)
+        {
+            column.IsFiltered = true;
+            _tableView.FilterDescriptions.Add(new FilterDescription(
+                GetPropertyName(column),
+                (o) => Filter(column, o)));
+        }
+    }
+
+    public override void ClearFilter(TableViewColumn? column)
+    {
+        if (column is not null)
+        {
+            var fd = _tableView.FilterDescriptions.First(x => x.PropertyName == GetPropertyName(column));
+            _tableView.FilterDescriptions.Remove(fd);
+        }
+
+        base.ClearFilter(column);
+
+        _viewModel.Items = new(GetItems().Take(20));
+    }
+
+    public override bool Filter(TableViewColumn column, object? item)
+    {
+        if (column.Header?.ToString() is "Full Name" &amp;&amp; item is ExampleModel model)
+        {
+            var value = $"{model.FirstName} {model.LastName}";
+            return CompareValue(SelectedValues[column], value);
+        }
+
+        return base.Filter(column, item);
+    }
+
+    private IEnumerable&lt;ExampleModel> GetItems(TableViewColumn? excludeColumns = default)
+    {
+        return ExampleViewModel.ItemsList.Where(x
+            => SelectedValues.All(e =>
+            {
+                if (e.Key == excludeColumns) return true;
+
+                var value = GetPropertyValue(x, e.Key);
+                return CompareValue(e.Value, value);
+            }));
+    }
+
+    private static bool CompareValue(IList&lt;object> selectedValue, object? value)
+    {
+        value = string.IsNullOrWhiteSpace(value?.ToString()) ? "(Blank)" : value;
+        return selectedValue.Contains(value);
+    }
+
+    private static string? GetPropertyName(TableViewColumn column)
+    {
+        return (column?.Header?.ToString()) switch
+        {
+            "Id" => nameof(ExampleModel.Id),
+            "First Name" => nameof(ExampleModel.FirstName),
+            "Last Name" => nameof(ExampleModel.LastName),
+            "Full Name" => "FullName",
+            "Email" => nameof(ExampleModel.Email),
+            "Gender" => nameof(ExampleModel.Gender),
+            "Dob" => nameof(ExampleModel.Dob),
+            _ => null,
+        };
+    }
+
+    private static object? GetPropertyValue(ExampleModel item, TableViewColumn column)
+    {
+        return (column?.Header?.ToString()) switch
+        {
+            "Id" => item.Id,
+            "First Name" => item.FirstName,
+            "Last Name" => item.LastName,
+            "Full Name" => $"{item.FirstName} {item.LastName}",
+            "Email" => item.Email,
+            "Gender" => item.Gender,
+            "Dob" => item.Dob,
+            _ => null,
+        };
+    }
+}
+                </x:String>
+            </controls:SamplePresenter.CSharp>
+        </controls:SamplePresenter>
+    </Grid>
+</Page>

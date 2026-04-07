@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "WinUI.TableView.SampleApp (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "WinUI.TableView.SampleApp (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

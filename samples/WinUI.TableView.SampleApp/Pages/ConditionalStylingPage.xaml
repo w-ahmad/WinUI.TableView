@@ -1,0 +1,363 @@
+<Page x:Class="WinUI.TableView.SampleApp.Pages.ConditionalStylingPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:tv="using:WinUI.TableView"
+      xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
+      mc:Ignorable="d"
+      Loaded="OnPageLoaded">
+
+    <Page.DataContext>
+        <local:SalesViewModel />
+    </Page.DataContext>
+
+    <Grid>
+        <Grid.Resources>
+            <tv:TableViewConditionalCellStylesCollection x:Key="RegionCellStyles">
+                <tv:TableViewConditionalCellStyle Predicate="{x:Bind RegionEastPredicate}">
+                    <Style TargetType="tv:TableViewCell">
+                        <Setter Property="Background" Value="#00695C" />
+                        <Setter Property="Foreground" Value="#E0F2F1" />
+                    </Style>
+                </tv:TableViewConditionalCellStyle>
+                <tv:TableViewConditionalCellStyle Predicate="{x:Bind RegionWestPredicate}">
+                    <Style TargetType="tv:TableViewCell">
+                        <Setter Property="Background" Value="#37474F" />
+                        <Setter Property="Foreground" Value="#ECEFF1" />
+                    </Style>
+                </tv:TableViewConditionalCellStyle>
+                <tv:TableViewConditionalCellStyle Predicate="{x:Bind RegionNorthPredicate}">
+                    <Style TargetType="tv:TableViewCell">
+                        <Setter Property="Background" Value="#283593" />
+                        <Setter Property="Foreground" Value="White" />
+                    </Style>
+                </tv:TableViewConditionalCellStyle>
+                <tv:TableViewConditionalCellStyle Predicate="{x:Bind RegionSouthPredicate}">
+                    <Style TargetType="tv:TableViewCell">
+                        <Setter Property="Background" Value="#6A1B9A" />
+                        <Setter Property="Foreground" Value="#F3E5F5" />
+                    </Style>
+                </tv:TableViewConditionalCellStyle>
+            </tv:TableViewConditionalCellStylesCollection>
+            
+            <tv:TableViewConditionalCellStylesCollection x:Key="SalesCellStyles">
+                <tv:TableViewConditionalCellStyle Predicate="{x:Bind SalesMetTargetPredicate}">
+                    <Style TargetType="tv:TableViewCell">
+                        <Setter Property="Background" Value="#2E7D32" />
+                        <Setter Property="Foreground" Value="White" />
+                    </Style>
+                </tv:TableViewConditionalCellStyle>
+                <tv:TableViewConditionalCellStyle Predicate="{x:Bind SalesBelowTargetPredicate}">
+                    <Style TargetType="tv:TableViewCell">
+                        <Setter Property="Background" Value="#C62828" />
+                        <Setter Property="Foreground" Value="White" />
+                    </Style>
+                </tv:TableViewConditionalCellStyle>
+            </tv:TableViewConditionalCellStylesCollection>
+            
+            <tv:TableViewConditionalCellStylesCollection x:Key="TargetCellStyles">
+                <tv:TableViewConditionalCellStyle Predicate="{x:Bind LowTargetPredicate}">
+                    <Style TargetType="tv:TableViewCell">
+                        <Setter Property="Background" Value="#8E0000" />
+                        <Setter Property="Foreground" Value="White" />
+                    </Style>
+                </tv:TableViewConditionalCellStyle>
+                <tv:TableViewConditionalCellStyle Predicate="{x:Bind MediumTargetPredicate}">
+                    <Style TargetType="tv:TableViewCell">
+                        <Setter Property="Background" Value="#E65100" />
+                        <Setter Property="Foreground" Value="White" />
+                    </Style>
+                </tv:TableViewConditionalCellStyle>
+                <tv:TableViewConditionalCellStyle Predicate="{x:Bind HighTargetPredicate}">
+                    <Style TargetType="tv:TableViewCell">
+                        <Setter Property="Background" Value="#1B5E20" />
+                        <Setter Property="Foreground" Value="White" />
+                    </Style>
+                </tv:TableViewConditionalCellStyle>
+             </tv:TableViewConditionalCellStylesCollection>            
+            
+            <tv:TableViewConditionalCellStylesCollection x:Key="GrowthCellStyles">
+                <tv:TableViewConditionalCellStyle Predicate="{x:Bind GrowthPositivePredicate}">
+                    <Style TargetType="tv:TableViewCell">
+                        <Setter Property="Background" Value="#1B5E20" />
+                        <Setter Property="Foreground" Value="White" />
+                    </Style>
+                </tv:TableViewConditionalCellStyle>
+                <tv:TableViewConditionalCellStyle Predicate="{x:Bind GrowthNegativePredicate}">
+                    <Style TargetType="tv:TableViewCell">
+                        <Setter Property="Background" Value="#8E0000" />
+                        <Setter Property="Foreground" Value="White" />
+                    </Style>
+                </tv:TableViewConditionalCellStyle>
+                <tv:TableViewConditionalCellStyle Predicate="{x:Bind GrowthZeroPredicate}">
+                    <Style TargetType="tv:TableViewCell">
+                        <Setter Property="Background" Value="#616161" />
+                        <Setter Property="Foreground" Value="White" />
+                    </Style>
+                </tv:TableViewConditionalCellStyle>
+            </tv:TableViewConditionalCellStylesCollection>
+            
+            <tv:TableViewConditionalCellStylesCollection x:Key="StatusCellStyles">
+                <tv:TableViewConditionalCellStyle Predicate="{x:Bind AheadPredicate}">
+                    <Style TargetType="tv:TableViewCell">
+                        <Setter Property="Background" Value="#1565C0" />
+                        <Setter Property="Foreground" Value="White" />
+                    </Style>
+                </tv:TableViewConditionalCellStyle>
+                <tv:TableViewConditionalCellStyle Predicate="{x:Bind OnTrackPredicate}">
+                    <Style TargetType="tv:TableViewCell">
+                        <Setter Property="Background" Value="#E65100" />
+                        <Setter Property="Foreground" Value="White" />
+                    </Style>
+                </tv:TableViewConditionalCellStyle>
+                <tv:TableViewConditionalCellStyle Predicate="{x:Bind BehindPredicate}">
+                    <Style TargetType="tv:TableViewCell">
+                        <Setter Property="Background" Value="#263238" />
+                        <Setter Property="Foreground" Value="#ECEFF1" />
+                    </Style>
+                </tv:TableViewConditionalCellStyle>
+             </tv:TableViewConditionalCellStylesCollection>
+        </Grid.Resources>
+        <controls:SamplePresenter Header="Cell Conditional Styling"
+                                  Description="Showcasing rich conditional cell styling.">
+            <controls:SamplePresenter.Example>
+                <tv:TableView ItemsSource="{Binding SalesData}"
+                              AutoGenerateColumns="False">
+                    <tv:TableView.Columns>
+                        <tv:TableViewTextColumn Header="Employee"
+                                                Width="200"
+                                                Binding="{Binding Employee}" />
+                        <tv:TableViewTextColumn Header="Region"
+                                                Width="100"
+                                                Binding="{Binding Region}"
+                                                ConditionalCellStyles="{StaticResource RegionCellStyles}" />
+                        <tv:TableViewNumberColumn Header="Sales"
+                                                  Width="100"
+                                                  Binding="{Binding Sales}"
+                                                  ConditionalCellStyles="{StaticResource SalesCellStyles}" />
+                        <tv:TableViewNumberColumn Header="Target"
+                                                  Width="100"
+                                                  Binding="{Binding Target}"
+                                                  ConditionalCellStyles="{StaticResource TargetCellStyles}" />
+                        <tv:TableViewNumberColumn Header="Growth"
+                                                  Width="100"
+                                                  Binding="{Binding Growth}"
+                                                  ConditionalCellStyles="{StaticResource GrowthCellStyles}" />
+                        <tv:TableViewTextColumn Header="Status"
+                                                Width="100"
+                                                Binding="{Binding Status}"
+                                                ConditionalCellStyles="{StaticResource StatusCellStyles}" />
+                    </tv:TableView.Columns>
+                    <tv:TableView.ItemContainerTransitions>
+                        <TransitionCollection />
+                    </tv:TableView.ItemContainerTransitions>
+                </tv:TableView>
+            </controls:SamplePresenter.Example>
+            <controls:SamplePresenter.Options>
+                <StackPanel Spacing="16">
+                    <ToggleSwitch x:Name="liveUpdates"
+                                  IsOn="False"
+                                  Toggled="OnLiveUpdatesToggled"
+                                  Header="Live Updates" />
+                    <Slider x:Name="updateInterval"
+                            Header="Update Interval (ms)"
+                            Minimum="25"
+                            Maximum="2000"
+                            Value="100" />
+                </StackPanel>
+            </controls:SamplePresenter.Options>
+            <controls:SamplePresenter.Xaml>
+                <x:String xml:space="preserve">
+Define your conditional styles in the resources:                    
+&lt;tv:TableViewConditionalCellStylesCollection x:Key="RegionCellStyles">
+    &lt;tv:TableViewConditionalCellStyle Predicate="{x:Bind RegionEastPredicate}">
+        &lt;Style TargetType="tv:TableViewCell">
+            &lt;Setter Property="Background" Value="#00695C" />
+            &lt;Setter Property="Foreground" Value="#E0F2F1" />
+        &lt;/Style>
+    &lt;/tv:TableViewConditionalCellStyle>
+    &lt;tv:TableViewConditionalCellStyle Predicate="{x:Bind RegionWestPredicate}">
+        &lt;Style TargetType="tv:TableViewCell">
+            &lt;Setter Property="Background" Value="#37474F" />
+            &lt;Setter Property="Foreground" Value="#ECEFF1" />
+        &lt;/Style>
+    &lt;/tv:TableViewConditionalCellStyle>
+    &lt;tv:TableViewConditionalCellStyle Predicate="{x:Bind RegionNorthPredicate}">
+        &lt;Style TargetType="tv:TableViewCell">
+            &lt;Setter Property="Background" Value="#283593" />
+            &lt;Setter Property="Foreground" Value="White" />
+        &lt;/Style>
+    &lt;/tv:TableViewConditionalCellStyle>
+    &lt;tv:TableViewConditionalCellStyle Predicate="{x:Bind RegionSouthPredicate}">
+        &lt;Style TargetType="tv:TableViewCell">
+            &lt;Setter Property="Background" Value="#6A1B9A" />
+            &lt;Setter Property="Foreground" Value="#F3E5F5" />
+        &lt;/Style>
+    &lt;/tv:TableViewConditionalCellStyle>
+&lt;/tv:TableViewConditionalCellStylesCollection>
+
+&lt;tv:TableViewConditionalCellStylesCollection x:Key="SalesCellStyles">
+    &lt;tv:TableViewConditionalCellStyle Predicate="{x:Bind SalesMetTargetPredicate}">
+        &lt;Style TargetType="tv:TableViewCell">
+            &lt;Setter Property="Background" Value="#2E7D32" />
+            &lt;Setter Property="Foreground" Value="White" />
+        &lt;/Style>
+    &lt;/tv:TableViewConditionalCellStyle>
+    &lt;tv:TableViewConditionalCellStyle Predicate="{x:Bind SalesBelowTargetPredicate}">
+        &lt;Style TargetType="tv:TableViewCell">
+            &lt;Setter Property="Background" Value="#C62828" />
+            &lt;Setter Property="Foreground" Value="White" />
+        &lt;/Style>
+    &lt;/tv:TableViewConditionalCellStyle>
+&lt;/tv:TableViewConditionalCellStylesCollection>
+
+&lt;tv:TableViewConditionalCellStylesCollection x:Key="TargetCellStyles">
+    &lt;tv:TableViewConditionalCellStyle Predicate="{x:Bind LowTargetPredicate}">
+        &lt;Style TargetType="tv:TableViewCell">
+            &lt;Setter Property="Background" Value="#8E0000" />
+            &lt;Setter Property="Foreground" Value="White" />
+        &lt;/Style>
+    &lt;/tv:TableViewConditionalCellStyle>
+    &lt;tv:TableViewConditionalCellStyle Predicate="{x:Bind MediumTargetPredicate}">
+        &lt;Style TargetType="tv:TableViewCell">
+            &lt;Setter Property="Background" Value="#E65100" />
+            &lt;Setter Property="Foreground" Value="White" />
+        &lt;/Style>
+    &lt;/tv:TableViewConditionalCellStyle>
+    &lt;tv:TableViewConditionalCellStyle Predicate="{x:Bind HighTargetPredicate}">
+        &lt;Style TargetType="tv:TableViewCell">
+            &lt;Setter Property="Background" Value="#1B5E20" />
+            &lt;Setter Property="Foreground" Value="White" />
+        &lt;/Style>
+    &lt;/tv:TableViewConditionalCellStyle>
+ &lt;/tv:TableViewConditionalCellStylesCollection>            
+
+&lt;tv:TableViewConditionalCellStylesCollection x:Key="GrowthCellStyles">
+    &lt;tv:TableViewConditionalCellStyle Predicate="{x:Bind GrowthPositivePredicate}">
+        &lt;Style TargetType="tv:TableViewCell">
+            &lt;Setter Property="Background" Value="#1B5E20" />
+            &lt;Setter Property="Foreground" Value="White" />
+        &lt;/Style>
+    &lt;/tv:TableViewConditionalCellStyle>
+    &lt;tv:TableViewConditionalCellStyle Predicate="{x:Bind GrowthNegativePredicate}">
+        &lt;Style TargetType="tv:TableViewCell">
+            &lt;Setter Property="Background" Value="#8E0000" />
+            &lt;Setter Property="Foreground" Value="White" />
+        &lt;/Style>
+    &lt;/tv:TableViewConditionalCellStyle>
+    &lt;tv:TableViewConditionalCellStyle Predicate="{x:Bind GrowthZeroPredicate}">
+        &lt;Style TargetType="tv:TableViewCell">
+            &lt;Setter Property="Background" Value="#616161" />
+            &lt;Setter Property="Foreground" Value="White" />
+        &lt;/Style>
+    &lt;/tv:TableViewConditionalCellStyle>
+&lt;/tv:TableViewConditionalCellStylesCollection>
+
+&lt;tv:TableViewConditionalCellStylesCollection x:Key="StatusCellStyles">
+    &lt;tv:TableViewConditionalCellStyle Predicate="{x:Bind AheadPredicate}">
+        &lt;Style TargetType="tv:TableViewCell">
+            &lt;Setter Property="Background" Value="#1565C0" />
+            &lt;Setter Property="Foreground" Value="White" />
+        &lt;/Style>
+    &lt;/tv:TableViewConditionalCellStyle>
+    &lt;tv:TableViewConditionalCellStyle Predicate="{x:Bind OnTrackPredicate}">
+        &lt;Style TargetType="tv:TableViewCell">
+            &lt;Setter Property="Background" Value="#E65100" />
+            &lt;Setter Property="Foreground" Value="White" />
+        &lt;/Style>
+    &lt;/tv:TableViewConditionalCellStyle>
+    &lt;tv:TableViewConditionalCellStyle Predicate="{x:Bind BehindPredicate}">
+        &lt;Style TargetType="tv:TableViewCell">
+            &lt;Setter Property="Background" Value="#263238" />
+            &lt;Setter Property="Foreground" Value="#ECEFF1" />
+        &lt;/Style>
+    &lt;/tv:TableViewConditionalCellStyle>
+ &lt;/tv:TableViewConditionalCellStylesCollection>
+                    
+Assign the conditional styles to the TableView:
+&lt;tv:TableView ItemsSource="{Binding SalesData}"
+              AutoGenerateColumns="False">
+    &lt;tv:TableView.Columns>
+        &lt;tv:TableViewTextColumn Header="Employee"
+                                Width="200"
+                                Binding="{Binding Employee}" />
+        &lt;tv:TableViewTextColumn Header="Region"
+                                Width="100"
+                                Binding="{Binding Region}"
+                                ConditionalCellStyles="{StaticResource RegionCellStyles}" />
+        &lt;tv:TableViewNumberColumn Header="Sales"
+                                  Width="100"
+                                  Binding="{Binding Sales}"
+                                  ConditionalCellStyles="{StaticResource SalesCellStyles}" />
+        &lt;tv:TableViewNumberColumn Header="Target"
+                                  Width="100"
+                                  Binding="{Binding Target}"
+                                  ConditionalCellStyles="{StaticResource TargetCellStyles}" />
+        &lt;tv:TableViewNumberColumn Header="Growth"
+                                  Width="100"
+                                  Binding="{Binding Growth}"
+                                  ConditionalCellStyles="{StaticResource GrowthCellStyles}" />
+        &lt;tv:TableViewTextColumn Header="Status"
+                                Width="100"
+                                Binding="{Binding Status}"
+                                ConditionalCellStyles="{StaticResource StatusCellStyles}" />
+    &lt;/tv:TableView.Columns>
+    &lt;tv:TableView.ItemContainerTransitions>
+        &lt;TransitionCollection />
+    &lt;/tv:TableView.ItemContainerTransitions>
+&lt;/tv:TableView>
+                </x:String>
+            </controls:SamplePresenter.Xaml>
+            <controls:SamplePresenter.CSharp>
+                <x:String xml:space="preserve">
+private Predicate&lt;TableViewConditionalCellStyleContext> SalesMetTargetPredicate =>
+    static context => context.Column.Header is nameof(SalesExampleModel.Sales) &amp;&amp; context.DataItem is SalesExampleModel item &amp;&amp; item?.Sales >= item?.Target;
+
+private Predicate&lt;TableViewConditionalCellStyleContext> SalesBelowTargetPredicate =>
+    static context => context.Column.Header is nameof(SalesExampleModel.Sales) &amp;&amp; context.DataItem is SalesExampleModel item &amp;&amp; item?.Sales &lt; item?.Target;
+
+private Predicate&lt;TableViewConditionalCellStyleContext> GrowthPositivePredicate =>
+    static context => context.Column.Header is nameof(SalesExampleModel.Growth) &amp;&amp; context.DataItem is SalesExampleModel item &amp;&amp; item?.Growth > 0;
+
+private Predicate&lt;TableViewConditionalCellStyleContext> GrowthNegativePredicate =>
+    static context => context.Column.Header is nameof(SalesExampleModel.Growth) &amp;&amp; context.DataItem is SalesExampleModel item &amp;&amp; item?.Growth &lt; 0;
+
+private Predicate&lt;TableViewConditionalCellStyleContext> GrowthZeroPredicate =>
+    static context => context.Column.Header is nameof(SalesExampleModel.Growth) &amp;&amp; context.DataItem is SalesExampleModel item &amp;&amp; item?.Growth == 0;
+
+private Predicate&lt;TableViewConditionalCellStyleContext> LowTargetPredicate =>
+    static context => context.Column.Header is nameof(SalesExampleModel.Target) &amp;&amp; context.DataItem is SalesExampleModel item &amp;&amp; item?.Target &lt; 10_000;
+
+private Predicate&lt;TableViewConditionalCellStyleContext> MediumTargetPredicate =>
+    static context => context.Column.Header is nameof(SalesExampleModel.Target) &amp;&amp; context.DataItem is SalesExampleModel item &amp;&amp; item?.Target >= 10_000 &amp;&amp; item?.Target &lt; 20_000;
+
+private Predicate&lt;TableViewConditionalCellStyleContext> HighTargetPredicate =>
+    static context => context.Column.Header is nameof(SalesExampleModel.Target) &amp;&amp; context.DataItem is SalesExampleModel item &amp;&amp; item?.Target >= 20_000;
+
+private Predicate&lt;TableViewConditionalCellStyleContext> OnTrackPredicate =>
+    static context => context.Column.Header is nameof(SalesExampleModel.Status) &amp;&amp; context.DataItem is SalesExampleModel item &amp;&amp; item?.Status is "On Track";
+
+private Predicate&lt;TableViewConditionalCellStyleContext> AheadPredicate =>
+    static context => context.Column.Header is nameof(SalesExampleModel.Status) &amp;&amp; context.DataItem is SalesExampleModel item &amp;&amp; item?.Status is "Ahead";
+
+private Predicate&lt;TableViewConditionalCellStyleContext> BehindPredicate =>
+    static context => context.Column.Header is nameof(SalesExampleModel.Status) &amp;&amp; context.DataItem is SalesExampleModel item &amp;&amp; item?.Status is "Behind";
+
+private Predicate&lt;TableViewConditionalCellStyleContext> RegionEastPredicate =>
+   static context => context.Column.Header is nameof(SalesExampleModel.Region) &amp;&amp; context.DataItem is SalesExampleModel item &amp;&amp; item?.Region is "East";
+
+private Predicate&lt;TableViewConditionalCellStyleContext> RegionWestPredicate =>
+    static context => context.Column.Header is nameof(SalesExampleModel.Region) &amp;&amp; context.DataItem is SalesExampleModel item &amp;&amp; item?.Region is "West";
+
+private Predicate&lt;TableViewConditionalCellStyleContext> RegionNorthPredicate =>
+    static context => context.Column.Header is nameof(SalesExampleModel.Region) &amp;&amp; context.DataItem is SalesExampleModel item &amp;&amp; item?.Region is "North";
+
+private Predicate&lt;TableViewConditionalCellStyleContext> RegionSouthPredicate =>
+    static context => context.Column.Header is nameof(SalesExampleModel.Region) &amp;&amp; context.DataItem is SalesExampleModel item &amp;&amp; item?.Region is "South";
+                </x:String>
+            </controls:SamplePresenter.CSharp>
+        </controls:SamplePresenter>
+    </Grid>
+</Page>

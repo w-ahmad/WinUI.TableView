@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-2022
+    runs-on: windows-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v4.1.4
@@ -18,7 +18,7 @@ jobs:
         dotnet-version: |
           8.0.x
           9.0.x
-          10.0.x
+          10.0.100
     
     - name: Setup MSBuild.exe
       uses: microsoft/setup-msbuild@v2

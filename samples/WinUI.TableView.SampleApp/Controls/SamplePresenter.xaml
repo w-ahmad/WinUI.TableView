@@ -1,0 +1,123 @@
+<UserControl x:Class="WinUI.TableView.SampleApp.Controls.SamplePresenter"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:WinUI.TableView.SampleApp.Controls"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:converters="using:WinUI.TableView.SampleApp.Converters"
+             mc:Ignorable="d"
+             Loaded="OnLoaded"
+             x:Name="root">
+
+    <Grid Margin="20"
+          RowSpacing="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" MinHeight="300" />
+            <RowDefinition x:Name="sourceRow"
+                           Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Spacing="8">
+            <TextBlock Text="{x:Bind Header}"
+                       Style="{StaticResource TitleTextBlockStyle}" />
+            <TextBlock Text="{x:Bind Description}"
+                       Style="{StaticResource BodyTextBlockStyle}" />
+        </StackPanel>
+
+        <Border x:Name="exampleContainer"
+                Grid.Row="3"
+                CornerRadius="{ThemeResource ControlCornerRadius}">
+            <Grid>
+                <Border x:Name="themeBackground"
+                        Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
+                        Visibility="Collapsed" />
+                <ContentControl Content="{x:Bind Example}"
+                                VerticalContentAlignment="Stretch"
+                                HorizontalContentAlignment="Stretch" />
+            </Grid>
+        </Border>
+
+        <StackPanel Grid.ColumnSpan="2"
+                    Spacing="12"
+                    Orientation="Horizontal"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Right">
+            <Button Click="OnToggleThemeButtonClicked">
+                <StackPanel Spacing="8"
+                            Orientation="Horizontal">
+                    <FontIcon Glyph="&#xE793;" />
+                    <TextBlock Text="Toggle Theme" />
+                </StackPanel>
+            </Button>
+
+            <DropDownButton>
+                <StackPanel Spacing="8"
+                            Orientation="Horizontal">
+                    <PathIcon Data="{StaticResource GitHubIcon}" />
+                    <TextBlock Text="Source" />
+                </StackPanel>
+                <DropDownButton.Flyout>
+                    <Flyout>
+                        <StackPanel>
+                            <HyperlinkButton x:Name="PageMarkupGitHubLink"
+                                             HorizontalAlignment="Stretch"
+                                             HorizontalContentAlignment="Left"
+                                             Margin="-12,4,-12,0"
+                                             ToolTipService.ToolTip="{Binding NavigateUri, ElementName=PageMarkupGitHubLink}">
+                                <TextBlock Text="XAML" />
+                            </HyperlinkButton>
+                            <HyperlinkButton x:Name="PageCodeGitHubLink"
+                                             HorizontalAlignment="Stretch"
+                                             HorizontalContentAlignment="Left"
+                                             Margin="-12,4,-12,0"
+                                             ToolTipService.ToolTip="{Binding NavigateUri, ElementName=PageCodeGitHubLink}">
+                                <TextBlock Text="C#" />
+                            </HyperlinkButton>
+                        </StackPanel>
+                    </Flyout>
+                </DropDownButton.Flyout>
+            </DropDownButton>
+        </StackPanel>
+
+        <Border Grid.Row="3"
+                Grid.Column="1"
+                CornerRadius="4"
+                Padding="20"
+                Margin="8,0,0,0"
+                BorderThickness="1"
+                Visibility="{x:Bind Options, Converter={StaticResource NullToVisibility}}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                Background="{ThemeResource LayerFillColorDefault}">
+            <ScrollViewer>
+                <ContentControl Content="{x:Bind Options}"
+                                VerticalContentAlignment="Stretch"
+                                HorizontalContentAlignment="Stretch" />
+            </ScrollViewer>
+        </Border>
+
+        <Expander x:Name="sourceExpander"
+                  Grid.Row="4"
+                  Grid.ColumnSpan="2"
+                  Header="Source code"
+                  Visibility="Collapsed"
+                  Expanding="OnSourceExpanderExpanded"
+                  Collapsed="OnSourceExpanderCollapsed"
+                  VerticalAlignment="Stretch"
+                  HorizontalAlignment="Stretch"
+                  VerticalContentAlignment="Top">
+            <Pivot x:Name="sourcePivot">
+                <Pivot.Resources>
+                    <x:Double x:Key="PivotHeaderItemFontSize">14</x:Double>
+                </Pivot.Resources>
+            </Pivot>
+        </Expander>
+    </Grid>
+</UserControl>
