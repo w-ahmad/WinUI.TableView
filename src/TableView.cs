@@ -109,6 +109,7 @@ public partial class TableView : ListView
             {
                 row.EnsureCellsStyle(default, item);
                 row.ApplyCellsSelectionState();
+                row.RowPresenter?.ApplyDetailsPaneState(item);
 
                 if (CurrentCellSlot.HasValue)
                 {
@@ -675,6 +676,8 @@ public partial class TableView : ListView
     /// </summary>
     private void ItemsSourceChanged(DependencyPropertyChangedEventArgs e)
     {
+        DetailsPaneStates.Clear();
+
         using var defer = _collectionView.DeferRefresh();
         _collectionView.Source = null!;
 
