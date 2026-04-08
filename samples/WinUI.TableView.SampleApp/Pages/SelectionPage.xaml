@@ -36,6 +36,10 @@
                                   OnContent="True"
                                   OffContent="False"
                                   IsOn="{Binding IsReadOnly, Mode=TwoWay, ElementName=tableView}" />
+                    <ToggleSwitch Header="ShowDragRectangle"
+                                  OnContent="True"
+                                  OffContent="False"
+                                  IsOn="{Binding ShowDragRectangle, Mode=TwoWay, ElementName=tableView}" />
                     <InfoBar IsOpen="True"
                              IsClosable="False"
                              Title="Selected Item">
@@ -79,7 +83,8 @@
     ItemsSource="{Binding Items}"
     SelectionMode="$(SelectionMode)"
     SelectionUnit="$(SelectionUnit)"
-    IsReadOnly="$(IsReadOnly)" /&gt;
+    IsReadOnly="$(IsReadOnly)"
+    ShowDragRectangle="$(ShowDragRectangle)" /&gt;
                 </x:String>
             </controls:SamplePresenter.Xaml>
             <controls:SamplePresenter.Substitutions>
@@ -89,6 +94,8 @@
                                            Value="{x:Bind tableView.SelectionUnit, Mode=OneWay}" />
                 <controls:CodeSubstitution Key="IsReadOnly"
                                            Value="{x:Bind tableView.IsReadOnly, Mode=OneWay}" />
+                <controls:CodeSubstitution Key="ShowDragRectangle"
+                                           Value="{x:Bind tableView.ShowDragRectangle, Mode=OneWay}" />
             </controls:SamplePresenter.Substitutions>
         </controls:SamplePresenter>
     </Grid>

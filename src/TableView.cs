@@ -37,6 +37,12 @@ public partial class TableView : ListView
     private bool _ensureColumns = true;
     private readonly List<TableViewRow> _rows = [];
     private readonly CollectionView _collectionView = [];
+    internal Canvas? _dragRectangleCanvas;
+    private Border? _dragRectangle;
+    private Point? _dragStartPoint;
+    internal bool _isDragging;
+    private TableViewCellSlot? _lastDragSelectionSlot;
+    private bool _cellSelectionDirty;
 
     /// <summary>
     /// Initializes a new instance of the TableView class.
@@ -282,6 +288,8 @@ public partial class TableView : ListView
         _headerRow = GetTemplateChild("HeaderRow") as TableViewHeaderRow;
         _scrollViewer = GetTemplateChild("ScrollViewer") as ScrollViewer;
         _headerRowDefinition = GetTemplateChild("HeaderRowDefinition") as RowDefinition;
+        _dragRectangleCanvas = GetTemplateChild("DragRectangleCanvas") as Canvas;
+        _dragRectangle = GetTemplateChild("DragRectangle") as Border;
         if (_scrollViewer is not null) _scrollViewer.Loaded += OnScrollViewerLoaded;
         
         if (IsLoaded)
@@ -1157,8 +1165,13 @@ public partial class TableView : ListView
     /// </summary>
     private void OnCellSelectionChanged()
     {
-        DispatcherQueue.TryEnqueue(() =>
+        if (_cellSelectionDirty) return;
+        _cellSelectionDirty = true;
+
+        if (!DispatcherQueue.TryEnqueue(() =>
         {
+            _cellSelectionDirty = false;
+
             var oldSelection = SelectedCells;
             SelectedCells = [.. SelectedCellRanges.SelectMany(x => x)];
 
@@ -1171,7 +1184,10 @@ public partial class TableView : ListView
             }
 
             InvokeCellSelectionChangedEvent(oldSelection);
-        });
+        }))
+        {
+            _cellSelectionDirty = false;
+        }
     }
 
     /// <summary>
@@ -1186,6 +1202,165 @@ public partial class TableView : ListView
         {
             OnCellSelectionChanged(new TableViewCellSelectionChangedEventArgs(removedCells, addedCells));
         }
+    }
+
+    /// <summary>
+    /// Starts showing the drag selection rectangle at the specified position.
+    /// </summary>
+    /// <param name="startPoint">The starting point relative to the drag rectangle canvas.</param>
+    internal void StartDragRectangle(Point startPoint)
+    {
+        if (!ShowDragRectangle || _dragRectangleCanvas is null || _dragRectangle is null ||
+            SelectionMode is not (ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended))
+        {
+            return;
+        }
+
+        _dragStartPoint = startPoint;
+        _isDragging = true;
+        _lastDragSelectionSlot = null;
+
+        Canvas.SetLeft(_dragRectangle, startPoint.X);
+        Canvas.SetTop(_dragRectangle, startPoint.Y);
+        _dragRectangle.Width = 0;
+        _dragRectangle.Height = 0;
+
+        _dragRectangleCanvas.Visibility = Visibility.Visible;
+    }
+
+    /// <summary>
+    /// Updates the drag selection rectangle to reflect the current pointer position.
+    /// </summary>
+    /// <param name="currentPoint">The current pointer position relative to the drag rectangle canvas.</param>
+    internal void UpdateDragRectangle(Point currentPoint)
+    {
+        if (!_isDragging || _dragStartPoint is null || _dragRectangleCanvas is null || _dragRectangle is null)
+        {
+            return;
+        }
+
+        var startPoint = _dragStartPoint.Value;
+
+        // Compute edges and clamp to canvas bounds
+        var left = Math.Max(0, Math.Min(startPoint.X, currentPoint.X));
+        var top = Math.Max(0, Math.Min(startPoint.Y, currentPoint.Y));
+        var right = Math.Min(_dragRectangleCanvas.ActualWidth, Math.Max(startPoint.X, currentPoint.X));
+        var bottom = Math.Min(_dragRectangleCanvas.ActualHeight, Math.Max(startPoint.Y, currentPoint.Y));
+        var width = Math.Max(0, right - left);
+        var height = Math.Max(0, bottom - top);
+
+        Canvas.SetLeft(_dragRectangle, left);
+        Canvas.SetTop(_dragRectangle, top);
+        _dragRectangle.Width = Math.Max(0, width);
+        _dragRectangle.Height = Math.Max(0, height);
+
+        SelectCellsInDragRectangle();
+    }
+
+    /// <summary>
+    /// Selects all cells that intersect with the current drag rectangle.
+    /// Uses column widths and row positions for O(columns + rows) performance
+    /// instead of visual tree hit-testing.
+    /// </summary>
+    private void SelectCellsInDragRectangle()
+    {
+        if (!_isDragging || _dragRectangle is null || _dragRectangleCanvas is null ||
+            _scrollViewer is null || SelectionStartCellSlot is null)
+        {
+            return;
+        }
+
+        var rectLeft = Canvas.GetLeft(_dragRectangle);
+        var rectTop = Canvas.GetTop(_dragRectangle);
+        var rectWidth = _dragRectangle.Width;
+        var rectHeight = _dragRectangle.Height;
+
+        if (rectWidth <= 0 || rectHeight <= 0) return;
+
+        var rectRight = rectLeft + rectWidth;
+        var rectBottom = rectTop + rectHeight;
+
+        // Find columns that intersect the rectangle using accumulated widths.
+        // Frozen columns are not shifted by HorizontalOffset since they stay fixed.
+        var headersOffset = CellsHorizontalOffset;
+        var colLeft = headersOffset;
+        var minCol = -1;
+        var maxCol = -1;
+        var visibleColumns = Columns.VisibleColumns;
+        var frozenColumnCount = FrozenColumnCount;
+
+        for (var i = 0; i < visibleColumns.Count; i++)
+        {
+            if (i == frozenColumnCount)
+            {
+                colLeft -= HorizontalOffset;
+            }
+
+            var colRight = colLeft + visibleColumns[i].ActualWidth;
+
+            if (colRight > rectLeft && colLeft < rectRight)
+            {
+                if (minCol == -1) minCol = i;
+                maxCol = i;
+            }
+
+            colLeft = colRight;
+        }
+
+        if (minCol == -1) return;
+
+        // Find rows that intersect the rectangle using visible row containers
+        var minRow = -1;
+        var maxRow = -1;
+
+        foreach (var row in _rows)
+        {
+            try
+            {
+                var rowTop = row.TransformToVisual(_dragRectangleCanvas).TransformPoint(default).Y;
+                var rowBottom = rowTop + row.ActualHeight;
+
+                if (rowBottom > rectTop && rowTop < rectBottom)
+                {
+                    if (minRow == -1 || row.Index < minRow) minRow = row.Index;
+                    if (row.Index > maxRow) maxRow = row.Index;
+                }
+            }
+            catch (ArgumentException)
+            {
+                continue;
+            }
+        }
+
+        if (minRow == -1) return;
+
+        // Compute the end slot farthest from selection start
+        var start = SelectionStartCellSlot.Value;
+        var endRow = Math.Abs(maxRow - start.Row) >= Math.Abs(minRow - start.Row) ? maxRow : minRow;
+        var endCol = Math.Abs(maxCol - start.Column) >= Math.Abs(minCol - start.Column) ? maxCol : minCol;
+        var endSlot = new TableViewCellSlot(endRow, endCol);
+
+        // Skip if selection hasn't changed
+        if (_lastDragSelectionSlot == endSlot) return;
+        _lastDragSelectionSlot = endSlot;
+
+        var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
+        MakeSelection(endSlot, true, ctrlKey);
+    }
+
+    /// <summary>
+    /// Ends and hides the drag selection rectangle.
+    /// </summary>
+    internal void EndDragRectangle()
+    {
+        if (_dragRectangleCanvas is not null)
+        {
+            _dragRectangleCanvas.Visibility = Visibility.Collapsed;
+        }
+
+        _isDragging = false;
+        _dragStartPoint = null;
+        _lastDragSelectionSlot = null;
     }
 
     /// <summary>

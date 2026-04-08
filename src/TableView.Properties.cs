@@ -267,6 +267,11 @@ public partial class TableView
     public static readonly DependencyProperty ShowFilterItemsCountProperty = DependencyProperty.Register(nameof(ShowFilterItemsCount), typeof(bool), typeof(TableView), new PropertyMetadata(false));
 
     /// <summary>
+    /// Identifies the <see cref="ShowDragRectangle"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ShowDragRectangleProperty = DependencyProperty.Register(nameof(ShowDragRectangle), typeof(bool), typeof(TableView), new PropertyMetadata(true, OnShowDragRectangleChanged));
+
+    /// <summary>
     /// Gets or sets a value indicating whether opening the column filter over header right-click is enabled.
     /// </summary>
     public bool UseRightClickForColumnFilter
@@ -329,6 +334,15 @@ public partial class TableView
     {
         get => (bool)GetValue(ShowFilterItemsCountProperty);
         set => SetValue(ShowFilterItemsCountProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the drag selection rectangle is shown during cell drag selection.
+    /// </summary>
+    public bool ShowDragRectangle
+    {
+        get => (bool)GetValue(ShowDragRectangleProperty);
+        set => SetValue(ShowDragRectangleProperty, value);
     }
 
     /// <summary>
@@ -871,6 +885,17 @@ public partial class TableView
             {
                 tableView.CurrentCellSlot = null;
             }
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the ShowDragRectangle property.
+    /// </summary>
+    private static void OnShowDragRectangleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView && e.NewValue is false)
+        {
+            tableView.EndDragRectangle();
         }
     }
 
