@@ -1,0 +1,15 @@
+<Page x:Class="WinUI.TableView.SampleApp.Pages.BlankPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:sampleapp="using:WinUI.TableView.SampleApp"
+      xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
+      d:DataContext="{d:DesignInstance Type=sampleapp:ExampleViewModel}"
+      mc:Ignorable="d"
+      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <controls:SamplePresenter Header="This sample is not available yet!" />
+    </Grid>
+</Page>

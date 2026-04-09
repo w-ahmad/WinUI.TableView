@@ -6,7 +6,9 @@ using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
 
@@ -262,7 +264,7 @@ public partial class TableView
     /// <summary>
     /// Identifies the <see cref="ShowFilterItemsCount"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty ShowFilterItemsCountProperty =  DependencyProperty.Register(nameof(ShowFilterItemsCount), typeof(bool), typeof(TableView), new PropertyMetadata(false));
+    public static readonly DependencyProperty ShowFilterItemsCountProperty = DependencyProperty.Register(nameof(ShowFilterItemsCount), typeof(bool), typeof(TableView), new PropertyMetadata(false));
 
     /// <summary>
     /// Identifies the <see cref="GroupByPath"/> dependency property.
@@ -414,6 +416,11 @@ public partial class TableView
     /// Gets or sets a value indicating whether the TableView is in editing mode.
     /// </summary>
     internal bool IsEditing { get; private set; }
+
+    /// <summary>
+    /// Gets the visibility states of details pane for each item.
+    /// </summary>
+    internal ConditionalWeakTable<object, TValue<bool>> DetailsPaneStates { get; } = [];
 
     /// <summary>
     /// Gets or sets the filter handler for the TableView.

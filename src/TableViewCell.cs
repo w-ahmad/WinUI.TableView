@@ -224,7 +224,7 @@ public partial class TableViewCell : ContentControl
             if (e.Handled) return;
         }
 
-        if (TableView?.CurrentCellSlot != Slot)
+        if (TableView?.CurrentCellSlot != Slot || TableView?.LastSelectionUnit is TableViewSelectionUnit.Row)
         {
             MakeSelection();
             e.Handled = true;
@@ -362,7 +362,6 @@ public partial class TableViewCell : ContentControl
         }
 
         TableView.SetIsEditing(false);
-        TableView.UpdateCornerButtonState();
     }
 
     /// <summary>

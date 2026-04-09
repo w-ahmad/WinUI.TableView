@@ -1,0 +1,104 @@
+name: Azure Static Web Apps CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_deploy_job:
+    env:
+      DIST_PATH: samples/WinUI.TableView.SampleApp.Uno/bin/Release/net10.0-browserwasm/publish/wwwroot
+      DotnetVersion: '10.0.100'
+    runs-on: ubuntu-latest
+    container: 'unoplatform/wasm-build:3.0'
+    name: Build and Deploy Job
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+          lfs: false
+
+      # When running on macos, set the DOTNET_INSTALL_DIR so a workspace local folder
+      # is used to install the SDK. This is required for the Uno.Sdk.Updater to work
+      - name: Set DOTNET_INSTALL_DIR
+        if: runner.os == 'macos' || runner.os == 'linux'
+        shell: bash
+        run: echo "DOTNET_INSTALL_DIR=$GITHUB_WORKSPACE/.dotnet" >> $GITHUB_ENV
+
+      - name: 'Set Wasm cache path'
+        shell: pwsh
+        run: echo "WasmCachePath=${{ github.workspace }}/.emscripten-cache" >> $env:GITHUB_ENV
+
+      - name: Cache EMSDK
+        id: cache-emsdk
+        uses: actions/cache@v4
+        env:
+            cache-name: cache-emsdk-modules
+        with:
+            path: ${{ env.WasmCachePath }}
+            key: ${{ runner.os }}-build-emsdk-${{ env.ValidationUnoCheckVersion }}
+            restore-keys: |
+              ${{ runner.os }}-build-emsdk-${{ env.ValidationUnoCheckVersion }}
+
+      - name: Cache .NET
+        id: cache-dotnet
+        uses: actions/cache@v4
+        env:
+            cache-name: cache-dotnet-install
+        with:
+            path: ${{ github.workspace }}/.dotnet
+            key: ${{ runner.os }}-build-dotnet-${{ env.DotnetVersion }}
+            restore-keys: |
+              ${{ runner.os }}-build-dotnet-${{ env.DotnetVersion }}
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1.7.2
+        with:
+          dotnet-version: ${{ env.DotnetVersion }}
+
+      - uses: dotnet/nbgv@f088059084cb5d872e9d1a994433ca6440c2bf72 # v0.4.2
+        id: nbgv
+        with:
+          toolVersion: 3.6.139
+          setAllVars: true
+
+      - run: |
+          cd samples/WinUI.TableView.SampleApp.Uno
+          dotnet workload restore
+        name: Setup Workloads
+
+      - run: |
+          cd samples/WinUI.TableView.SampleApp.Uno
+          dotnet workload install wasm-tools
+        name: Setup Workloads
+
+      - run: |
+          cd samples/WinUI.TableView.SampleApp.Uno
+          dotnet publish -c Release -f net10.0-browserwasm "/p:PackageVersion=${{ steps.nbgv.outputs.SemVer2 }}" /p:EnableWindowsTargeting=true /bl:../binlogs/output.binlog
+        name: Build Uno Wasm App
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wasm-site
+          path: ${{ env.DIST_PATH }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: logs
+          path: binlogs
+        
+      - name: Build And Deploy
+        id: builddeploy
+        continue-on-error: true
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_LIVELY_GROUND_0D0F6A810 }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for Github integrations (i.e. PR comments)
+          action: "upload"
+          ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
+          # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
+          app_location: "${{ env.DIST_PATH }}" # App source code path
+          api_location: "" # Api source code path - optional
+          output_location: "" # Built app content directory - optional
+          ###### End of Repository/Build Configurations ######
