@@ -76,7 +76,7 @@
             <SolidColorBrush x:Key="TableViewRowDetailsBackgroundBrush" Color="{StaticResource CardBackgroundFillColorSecondary}" />
             <SolidColorBrush x:Key="TableViewDragRectangleFill" Color="{StaticResource SystemAccentColor}" Opacity="0.2" />
             <StaticResource x:Key="TableViewDragRectangleStroke" ResourceKey="AccentFillColorDefaultBrush" />
-            <CornerRadius x:Key="TableViewDragRectangleCornerRadius">4</CornerRadius>
+            <CornerRadius x:Key="TableViewDragRectangleCornerRadius">0</CornerRadius>
         </ResourceDictionary>
         
         <ResourceDictionary x:Key="Dark">
@@ -148,7 +148,7 @@
             <SolidColorBrush x:Key="TableViewRowDetailsBackgroundBrush" Color="{StaticResource CardBackgroundFillColorSecondary}" />
             <SolidColorBrush x:Key="TableViewDragRectangleFill" Color="{StaticResource SystemAccentColor}" Opacity="0.2" />
             <StaticResource x:Key="TableViewDragRectangleStroke" ResourceKey="AccentFillColorDefaultBrush" />
-            <CornerRadius x:Key="TableViewDragRectangleCornerRadius">4</CornerRadius>
+            <CornerRadius x:Key="TableViewDragRectangleCornerRadius">0</CornerRadius>
         </ResourceDictionary>
 
         <ResourceDictionary x:Key="HighContrast">
@@ -220,7 +220,7 @@
             <SolidColorBrush x:Key="TableViewRowDetailsBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
             <SolidColorBrush x:Key="TableViewDragRectangleFill" Color="{ThemeResource SystemColorHighlightColor}" Opacity="0.3" />
             <SolidColorBrush x:Key="TableViewDragRectangleStroke" Color="{ThemeResource SystemColorHighlightColor}" />
-            <CornerRadius x:Key="TableViewDragRectangleCornerRadius">4</CornerRadius>
+            <CornerRadius x:Key="TableViewDragRectangleCornerRadius">0</CornerRadius>
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 

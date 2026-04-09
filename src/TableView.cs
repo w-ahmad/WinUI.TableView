@@ -41,8 +41,12 @@ public partial class TableView : ListView
     private Border? _dragRectangle;
     private Point? _dragStartPoint;
     internal bool _isDragging;
-    private TableViewCellSlot? _lastDragSelectionSlot;
     private bool _cellSelectionDirty;
+    private Point? _lastDragCanvasPoint;
+    private DispatcherTimer? _autoScrollTimer;
+    private double _autoScrollDelta;
+    private double _dragStartVerticalOffset;
+    private double _dragStartHorizontalOffset;
 
     /// <summary>
     /// Initializes a new instance of the TableView class.
@@ -342,6 +346,9 @@ public partial class TableView : ListView
     /// </summary>
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
+        EndDragRectangle();
+        StopAutoScroll();
+
         if (IsEditing && CurrentCellSlot.HasValue && GetCellFromSlot(CurrentCellSlot.Value) is { } currentCell)
         {
             currentCell.EndEditing(TableViewEditAction.Commit);
@@ -1155,8 +1162,18 @@ public partial class TableView : ListView
 
         if (newSlot.HasValue)
         {
-            var cell = await ScrollCellIntoView(newSlot.Value);
-            cell?.ApplyCurrentCellState();
+            // During drag selection, skip expensive scroll-into-view and focus operations.
+            // The drag rectangle handles visual feedback, and focus is restored when dragging ends.
+            if (_isDragging)
+            {
+                var cell = GetCellFromSlot(newSlot.Value);
+                cell?.ApplyCurrentCellState(skipFocus: true);
+            }
+            else
+            {
+                var cell = await ScrollCellIntoView(newSlot.Value);
+                cell?.ApplyCurrentCellState();
+            }
         }
     }
 
@@ -1216,9 +1233,17 @@ public partial class TableView : ListView
             return;
         }
 
+        // Guard against re-entry (e.g., multi-touch) to prevent double ViewChanged subscription
+        if (_isDragging)
+        {
+            EndDragRectangle();
+        }
+
         _dragStartPoint = startPoint;
         _isDragging = true;
-        _lastDragSelectionSlot = null;
+        _lastDragCanvasPoint = startPoint;
+        _dragStartVerticalOffset = _scrollViewer?.VerticalOffset ?? 0;
+        _dragStartHorizontalOffset = HorizontalOffset;
 
         Canvas.SetLeft(_dragRectangle, startPoint.X);
         Canvas.SetTop(_dragRectangle, startPoint.Y);
@@ -1226,133 +1251,169 @@ public partial class TableView : ListView
         _dragRectangle.Height = 0;
 
         _dragRectangleCanvas.Visibility = Visibility.Visible;
+
+        if (_scrollViewer is not null)
+        {
+            _scrollViewer.ViewChanged += OnScrollViewerViewChangedDuringDrag;
+        }
     }
 
     /// <summary>
-    /// Updates the drag selection rectangle to reflect the current pointer position.
+    /// Updates the drag rectangle visual and auto-scroll. Selection is handled separately via FindCell+MakeSelection.
     /// </summary>
     /// <param name="currentPoint">The current pointer position relative to the drag rectangle canvas.</param>
-    internal void UpdateDragRectangle(Point currentPoint)
+    internal void UpdateDragRectangleVisual(Point currentPoint)
     {
         if (!_isDragging || _dragStartPoint is null || _dragRectangleCanvas is null || _dragRectangle is null)
         {
             return;
         }
 
-        var startPoint = _dragStartPoint.Value;
-
-        // Compute edges and clamp to canvas bounds
-        var left = Math.Max(0, Math.Min(startPoint.X, currentPoint.X));
-        var top = Math.Max(0, Math.Min(startPoint.Y, currentPoint.Y));
-        var right = Math.Min(_dragRectangleCanvas.ActualWidth, Math.Max(startPoint.X, currentPoint.X));
-        var bottom = Math.Min(_dragRectangleCanvas.ActualHeight, Math.Max(startPoint.Y, currentPoint.Y));
-        var width = Math.Max(0, right - left);
-        var height = Math.Max(0, bottom - top);
-
-        Canvas.SetLeft(_dragRectangle, left);
-        Canvas.SetTop(_dragRectangle, top);
-        _dragRectangle.Width = Math.Max(0, width);
-        _dragRectangle.Height = Math.Max(0, height);
-
-        SelectCellsInDragRectangle();
+        _lastDragCanvasPoint = currentPoint;
+        PositionDragRectangle(currentPoint);
+        UpdateAutoScroll(currentPoint);
     }
 
     /// <summary>
-    /// Selects all cells that intersect with the current drag rectangle.
-    /// Uses column widths and row positions for O(columns + rows) performance
-    /// instead of visual tree hit-testing.
+    /// Positions the drag rectangle visual from the scroll-adjusted start point to the current point,
+    /// so the rectangle follows the mouse and extends naturally when content scrolls.
     /// </summary>
-    private void SelectCellsInDragRectangle()
+    private void PositionDragRectangle(Point currentPoint)
     {
-        if (!_isDragging || _dragRectangle is null || _dragRectangleCanvas is null ||
-            _scrollViewer is null || SelectionStartCellSlot is null)
+        if (_dragStartPoint is null || _dragRectangleCanvas is null || _dragRectangle is null) return;
+
+        // Adjust the start point by how much the view has scrolled since drag began.
+        // This makes the rectangle extend naturally as content scrolls.
+        var verticalScrollDelta = (_scrollViewer?.VerticalOffset ?? 0) - _dragStartVerticalOffset;
+        var horizontalScrollDelta = HorizontalOffset - _dragStartHorizontalOffset;
+        var adjustedStartY = _dragStartPoint.Value.Y - verticalScrollDelta;
+        var adjustedStartX = _dragStartPoint.Value.X - horizontalScrollDelta;
+
+        var canvasWidth = _dragRectangleCanvas.ActualWidth;
+        var canvasHeight = _dragRectangleCanvas.ActualHeight;
+
+        var left = Math.Max(0, Math.Min(adjustedStartX, currentPoint.X));
+        var top = Math.Max(0, Math.Min(adjustedStartY, currentPoint.Y));
+        var right = Math.Min(canvasWidth, Math.Max(adjustedStartX, currentPoint.X));
+        var bottom = Math.Min(canvasHeight, Math.Max(adjustedStartY, currentPoint.Y));
+
+        Canvas.SetLeft(_dragRectangle, left);
+        Canvas.SetTop(_dragRectangle, top);
+        _dragRectangle.Width = Math.Max(0, right - left);
+        _dragRectangle.Height = Math.Max(0, bottom - top);
+    }
+
+    /// <summary>
+    /// Manages auto-scroll behavior when the pointer is near the top or bottom edge during drag selection.
+    /// </summary>
+    private void UpdateAutoScroll(Point canvasPoint)
+    {
+        if (_scrollViewer is null || _dragRectangleCanvas is null) return;
+
+        const double edgeThreshold = 40;
+        const double maxScrollSpeed = 20;
+        var canvasHeight = _dragRectangleCanvas.ActualHeight;
+        double scrollDelta = 0;
+
+        if (canvasPoint.Y > canvasHeight - edgeThreshold)
         {
+            var proximity = Math.Min(1.0, (canvasPoint.Y - (canvasHeight - edgeThreshold)) / edgeThreshold);
+            scrollDelta = proximity * maxScrollSpeed;
+        }
+        else if (canvasPoint.Y < edgeThreshold)
+        {
+            var proximity = Math.Min(1.0, (edgeThreshold - canvasPoint.Y) / edgeThreshold);
+            scrollDelta = -(proximity * maxScrollSpeed);
+        }
+
+        if (canvasPoint.X > _dragRectangleCanvas.ActualWidth - edgeThreshold)
+        {
+            var proximity = Math.Min(1.0, (canvasPoint.X - (_dragRectangleCanvas.ActualWidth - edgeThreshold)) / edgeThreshold);
+            var hDelta = proximity * maxScrollSpeed;
+            SetValue(HorizontalOffsetProperty, Math.Clamp(HorizontalOffset + hDelta, 0, _scrollViewer.ScrollableWidth));
+        }
+        else if (canvasPoint.X < edgeThreshold)
+        {
+            var proximity = Math.Min(1.0, (edgeThreshold - canvasPoint.X) / edgeThreshold);
+            var hDelta = -(proximity * maxScrollSpeed);
+            SetValue(HorizontalOffsetProperty, Math.Clamp(HorizontalOffset + hDelta, 0, _scrollViewer.ScrollableWidth));
+        }
+
+        if (Math.Abs(scrollDelta) > 0.5)
+        {
+            _autoScrollDelta = scrollDelta;
+            if (_autoScrollTimer is null)
+            {
+                _autoScrollTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
+                _autoScrollTimer.Tick += OnAutoScrollTimerTick;
+            }
+
+            _autoScrollTimer.Start();
+        }
+        else
+        {
+            StopAutoScroll();
+        }
+    }
+
+    /// <summary>
+    /// Handles the auto-scroll timer tick to scroll the view and update drag selection.
+    /// </summary>
+    private void OnAutoScrollTimerTick(object? sender, object e)
+    {
+        if (!_isDragging || _scrollViewer is null)
+        {
+            StopAutoScroll();
             return;
         }
 
-        var rectLeft = Canvas.GetLeft(_dragRectangle);
-        var rectTop = Canvas.GetTop(_dragRectangle);
-        var rectWidth = _dragRectangle.Width;
-        var rectHeight = _dragRectangle.Height;
+        var newOffset = Math.Clamp(
+            _scrollViewer.VerticalOffset + _autoScrollDelta,
+            0,
+            _scrollViewer.ScrollableHeight);
 
-        if (rectWidth <= 0 || rectHeight <= 0) return;
-
-        var rectRight = rectLeft + rectWidth;
-        var rectBottom = rectTop + rectHeight;
-
-        // Find columns that intersect the rectangle using accumulated widths.
-        // Frozen columns are not shifted by HorizontalOffset since they stay fixed.
-        var headersOffset = CellsHorizontalOffset;
-        var colLeft = headersOffset;
-        var minCol = -1;
-        var maxCol = -1;
-        var visibleColumns = Columns.VisibleColumns;
-        var frozenColumnCount = FrozenColumnCount;
-
-        for (var i = 0; i < visibleColumns.Count; i++)
+        if (Math.Abs(newOffset - _scrollViewer.VerticalOffset) < 0.5)
         {
-            if (i == frozenColumnCount)
-            {
-                colLeft -= HorizontalOffset;
-            }
-
-            var colRight = colLeft + visibleColumns[i].ActualWidth;
-
-            if (colRight > rectLeft && colLeft < rectRight)
-            {
-                if (minCol == -1) minCol = i;
-                maxCol = i;
-            }
-
-            colLeft = colRight;
+            StopAutoScroll();
+            return;
         }
 
-        if (minCol == -1) return;
+        _scrollViewer.ChangeView(null, newOffset, null, true);
+    }
 
-        // Find rows that intersect the rectangle using visible row containers
-        var minRow = -1;
-        var maxRow = -1;
+    /// <summary>
+    /// Stops the auto-scroll timer.
+    /// </summary>
+    private void StopAutoScroll()
+    {
+        _autoScrollTimer?.Stop();
+    }
 
-        foreach (var row in _rows)
-        {
-            try
-            {
-                var rowTop = row.TransformToVisual(_dragRectangleCanvas).TransformPoint(default).Y;
-                var rowBottom = rowTop + row.ActualHeight;
+    /// <summary>
+    /// Handles ScrollViewer.ViewChanged during drag to re-evaluate selection when scroll position changes.
+    /// </summary>
+    private void OnScrollViewerViewChangedDuringDrag(object? sender, ScrollViewerViewChangedEventArgs e)
+    {
+        if (!_isDragging || _lastDragCanvasPoint is null) return;
 
-                if (rowBottom > rectTop && rowTop < rectBottom)
-                {
-                    if (minRow == -1 || row.Index < minRow) minRow = row.Index;
-                    if (row.Index > maxRow) maxRow = row.Index;
-                }
-            }
-            catch (ArgumentException)
-            {
-                continue;
-            }
-        }
-
-        if (minRow == -1) return;
-
-        // Compute the end slot farthest from selection start
-        var start = SelectionStartCellSlot.Value;
-        var endRow = Math.Abs(maxRow - start.Row) >= Math.Abs(minRow - start.Row) ? maxRow : minRow;
-        var endCol = Math.Abs(maxCol - start.Column) >= Math.Abs(minCol - start.Column) ? maxCol : minCol;
-        var endSlot = new TableViewCellSlot(endRow, endCol);
-
-        // Skip if selection hasn't changed
-        if (_lastDragSelectionSlot == endSlot) return;
-        _lastDragSelectionSlot = endSlot;
-
-        var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
-        MakeSelection(endSlot, true, ctrlKey);
+        // Reposition the rectangle using scroll-adjusted start point
+        PositionDragRectangle(_lastDragCanvasPoint.Value);
     }
 
     /// <summary>
     /// Ends and hides the drag selection rectangle.
     /// </summary>
-    internal void EndDragRectangle()
+    internal async void EndDragRectangle()
     {
+        if (!_isDragging) return;
+
+        StopAutoScroll();
+
+        if (_scrollViewer is not null)
+        {
+            _scrollViewer.ViewChanged -= OnScrollViewerViewChangedDuringDrag;
+        }
+
         if (_dragRectangleCanvas is not null)
         {
             _dragRectangleCanvas.Visibility = Visibility.Collapsed;
@@ -1360,7 +1421,21 @@ public partial class TableView : ListView
 
         _isDragging = false;
         _dragStartPoint = null;
-        _lastDragSelectionSlot = null;
+        _lastDragCanvasPoint = null;
+
+        // Restore focus and scroll to the current cell now that dragging has ended
+        try
+        {
+            if (CurrentCellSlot.HasValue)
+            {
+                var cell = await ScrollCellIntoView(CurrentCellSlot.Value);
+                cell?.ApplyCurrentCellState();
+            }
+        }
+        catch
+        {
+            // Focus restoration is best-effort after drag ends
+        }
     }
 
     /// <summary>

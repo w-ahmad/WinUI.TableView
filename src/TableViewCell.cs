@@ -288,23 +288,23 @@ public partial class TableViewCell : ContentControl
 
         if (PointerCaptures?.Any() is true)
         {
+            // Update drag rectangle visual and auto-scroll (cheap — just Canvas property sets + edge math)
             if (TableView?._isDragging is true)
             {
                 var canvasPoint = TransformPointToCanvas(e.Position);
                 if (canvasPoint.HasValue)
                 {
-                    TableView.UpdateDragRectangle(canvasPoint.Value);
+                    TableView.UpdateDragRectangleVisual(canvasPoint.Value);
                 }
             }
-            else
-            {
-                var cell = FindCell(e.Position);
 
-                if (cell is not null && cell.Slot != TableView?.CurrentCellSlot)
-                {
-                    var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
-                    TableView?.MakeSelection(cell.Slot, true, ctrlKey);
-                }
+            // Selection via FindCell — same proven path whether rectangle is on or off
+            var cell = FindCell(e.Position);
+
+            if (cell is not null && cell.Slot != TableView?.CurrentCellSlot)
+            {
+                var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
+                TableView?.MakeSelection(cell.Slot, true, ctrlKey);
             }
         }
     }
@@ -539,12 +539,12 @@ public partial class TableViewCell : ContentControl
     /// <summary>
     /// Applies the current cell state to the cell.
     /// </summary>
-    internal async void ApplyCurrentCellState()
+    internal async void ApplyCurrentCellState(bool skipFocus = false)
     {
         var stateName = IsCurrent ? VisualStates.StateCurrent : VisualStates.StateRegular;
         VisualStates.GoToState(this, false, stateName);
 
-        if (IsCurrent)
+        if (IsCurrent && !skipFocus)
         {
             Focus(FocusState.Pointer);
 
