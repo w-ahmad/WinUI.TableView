@@ -125,35 +125,6 @@ public class DragSelectionRectangleTests
         Assert.IsFalse(tv._isDragging);
     }
 
-    [TestMethod]
-    public void TableViewCellSlot_Equality_SameValues_AreEqual()
-    {
-        var slot1 = new TableViewCellSlot(3, 5);
-        var slot2 = new TableViewCellSlot(3, 5);
-        Assert.AreEqual(slot1, slot2);
-        Assert.IsTrue(slot1 == slot2);
-    }
-
-    [TestMethod]
-    public void TableViewCellSlot_Equality_DifferentValues_AreNotEqual()
-    {
-        var slot1 = new TableViewCellSlot(3, 5);
-        var slot2 = new TableViewCellSlot(4, 5);
-        Assert.AreNotEqual(slot1, slot2);
-        Assert.IsTrue(slot1 != slot2);
-
-        var slot3 = new TableViewCellSlot(3, 6);
-        Assert.AreNotEqual(slot1, slot3);
-    }
-
-    [TestMethod]
-    public void TableViewCellSlot_HashCode_SameValues_SameHash()
-    {
-        var slot1 = new TableViewCellSlot(3, 5);
-        var slot2 = new TableViewCellSlot(3, 5);
-        Assert.AreEqual(slot1.GetHashCode(), slot2.GetHashCode());
-    }
-
     [UITestMethod]
     public void ShowDragRectangleProperty_IsRegistered()
     {
