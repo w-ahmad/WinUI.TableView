@@ -35,6 +35,7 @@ public partial class TableViewRow : ListViewItem
 
     private TableView? _tableView;
     private ListViewItemPresenter? _itemPresenter;
+    private TableViewRowPresenter? _rowPresenter;
     private Border? _selectionBackground;
     private bool _ensureCells = true;
     private Brush? _cellPresenterBackground;
@@ -123,8 +124,8 @@ public partial class TableViewRow : ListViewItem
         _cellPresenterBackground = Background;
         _cellPresenterForeground = Foreground;
         _itemPresenter = GetTemplateChild("Root") as ListViewItemPresenter;
+        _rowPresenter = GetTemplateChild("RowPresenter") as TableViewRowPresenter;
 #if !WINDOWS
-        RowPresenter = GetTemplateChild("RowPresenter") as TableViewRowPresenter;
         _selectionBackground = GetTemplateChild("SelectionBackground") as Border;
 #endif
     }
@@ -209,6 +210,15 @@ public partial class TableViewRow : ListViewItem
         _itemPresenter?.Arrange(new Rect(-left, 0, _itemPresenter.ActualWidth + left, _itemPresenter.ActualHeight));
 
         return finalSize;
+    }
+
+    /// <summary>
+    /// Resets the row for a group header item by clearing cells and marking for later recreation if reused.
+    /// </summary>
+    internal void PrepareForGroupHeader()
+    {
+        _ensureCells = true;
+        RowPresenter?.ClearCells();
     }
 
     /// <summary>
@@ -465,13 +475,13 @@ public partial class TableViewRow : ListViewItem
     }
 
     /// <summary>
-    /// Applies the current cell state to the specified slot.
+    /// Applies the current cell state to all cells in the row.
     /// </summary>
-    internal void ApplyCurrentCellState(TableViewCellSlot slot)
+    internal void ApplyCurrentCellState()
     {
-        if (slot.Column >= 0 && slot.Column < Cells.Count)
+        // Iterate all cells so any stale StateCurrent on recycled containers is cleared.
+        foreach (var cell in Cells)
         {
-            var cell = Cells[slot.Column];
             cell.ApplyCurrentCellState();
         }
     }
@@ -511,12 +521,6 @@ public partial class TableViewRow : ListViewItem
                 _selectionIndicatorMargin.Top,
                 _selectionIndicatorMargin.Right,
                 _selectionIndicatorMargin.Bottom);
-        }
-
-        if (TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple })
-        {
-            var fontIcon = this.FindDescendant<FontIcon>(x => x.Glyph == Check_Mark);
-            selectionIndicator = fontIcon?.Parent as Border;
         }
 
         if (TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple })
@@ -640,10 +644,12 @@ public partial class TableViewRow : ListViewItem
     }
 
     /// <inheritdoc/>
-    public TableViewRowPresenter? RowPresenter
-#if WINDOWS
-       => ContentTemplateRoot as TableViewRowPresenter;
-#else
-    { get; private set; }
-#endif
+    public TableViewRowPresenter? RowPresenter => _rowPresenter;
+
+    /// <summary>
+    /// Called by <see cref="TableViewRowPresenter"/> from its <c>OnApplyTemplate</c> to wire up
+    /// the back-pointer. On Windows the ControlTemplate root is <c>ListViewItemPresenter</c> so
+    /// <c>GetTemplateChild("RowPresenter")</c> always returns null; the presenter must self-register.
+    /// </summary>
+    internal void SetRowPresenter(TableViewRowPresenter rowPresenter) => _rowPresenter = rowPresenter;
 }

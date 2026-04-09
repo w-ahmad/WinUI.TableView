@@ -39,6 +39,8 @@ internal partial class TableViewLocalizedStrings
         SortAscending = GetValue(nameof(SortAscending));
         SortDescending = GetValue(nameof(SortDescending));
         TimePickerPlaceholder = GetValue(nameof(TimePickerPlaceholder));
+        ExpandRow = GetValue(nameof(ExpandRow));
+        CollapseRow = GetValue(nameof(CollapseRow));
     }
 
     private static string GetValue(string name)
@@ -85,4 +87,6 @@ internal partial class TableViewLocalizedStrings
     public static string SortAscending { get; set; }
     public static string SortDescending { get; set; }
     public static string TimePickerPlaceholder { get; set; }
+    public static string ExpandRow { get; set; }
+    public static string CollapseRow { get; set; }
 }

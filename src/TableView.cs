@@ -6,6 +6,8 @@ using Microsoft.UI.Xaml.Input;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
@@ -15,6 +17,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
+using Windows.Foundation.Collections;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.System;
@@ -34,9 +37,23 @@ public partial class TableView : ListView
     private ScrollViewer? _scrollViewer;
     private RowDefinition? _headerRowDefinition;
     private bool _shouldThrowSelectionModeChangedException;
+    private bool _isUpdatingBaseItemsSource;
     private bool _ensureColumns = true;
     private readonly List<TableViewRow> _rows = [];
     private readonly CollectionView _collectionView = [];
+    private readonly ObservableCollection<object> _displayItems = [];
+    private const int HierarchyMaxDepth = 1000;
+
+    private readonly Dictionary<object, int> _hierarchyLevelsByItem = new(ReferenceEqualityComparer.Instance);
+    private readonly HashSet<object> _collapsedHierarchyItems = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<object, bool> _hierarchyHasChildrenCache = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<(Type Type, string Path), Func<object, object?>?> _propertyPathAccessorCache = [];
+    private bool _isDisplayedItemsRebuildQueued;
+    private bool _isHierarchyViewRebuildQueued;
+    private bool _suppressIsExpandedPathRebuild;
+    private bool _suppressCurrentCellChanged;
+    private object? _currentCellItem;
+    private readonly HashSet<INotifyCollectionChanged> _observedHierarchyCollections = new(ReferenceEqualityComparer.Instance);
 
     /// <summary>
     /// Initializes a new instance of the TableView class.
@@ -48,7 +65,9 @@ public partial class TableView : ListView
         Columns = new TableViewColumnsCollection(this);
         FilterHandler = new ColumnFilterHandler(this);
 
-        base.ItemsSource = _collectionView;
+        _isUpdatingBaseItemsSource = true;
+        base.ItemsSource = _displayItems;
+        _isUpdatingBaseItemsSource = false;
         base.SelectionMode = SelectionMode;
 
         SetValue(ConditionalCellStylesProperty, new TableViewConditionalCellStylesCollection());
@@ -59,6 +78,9 @@ public partial class TableView : ListView
         Unloaded += OnUnloaded;
         SelectionChanged += TableView_SelectionChanged;
         _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
+        _collectionView.VectorChanged += OnCollectionViewVectorChanged;
+        ((INotifyCollectionChanged)_collectionView.SortDescriptions).CollectionChanged += OnSortDescriptionsChanged;
+        ((INotifyCollectionChanged)_collectionView.FilterDescriptions).CollectionChanged += OnFilterDescriptionsChanged;
     }
 
     /// <summary>
@@ -96,12 +118,37 @@ public partial class TableView : ListView
         var row = ContainerFromItem(sender) as TableViewRow;
 
         row?.EnsureCellsStyle(default, sender);
+
+        if (!IsHierarchicalEnabled || _suppressIsExpandedPathRebuild || sender is null)
+        {
+            return;
+        }
+
+        var propertyLeaf = e.PropertyName;
+
+        var isExpandedChanged = !string.IsNullOrWhiteSpace(IsExpandedPath) &&
+            string.Equals(propertyLeaf, GetPropertyPathLeaf(IsExpandedPath), StringComparison.OrdinalIgnoreCase) &&
+            ResolvePropertyPathValue(sender, IsExpandedPath!) is bool;
+
+        var hasChildrenChanged = !string.IsNullOrWhiteSpace(HasChildrenPath) &&
+            string.Equals(propertyLeaf, GetPropertyPathLeaf(HasChildrenPath), StringComparison.OrdinalIgnoreCase) &&
+            ResolvePropertyPathValue(sender, HasChildrenPath!) is bool;
+
+        if (isExpandedChanged || hasChildrenChanged)
+        {
+            QueueHierarchyViewRebuild();
+        }
     }
 
     /// <inheritdoc/>
     protected override void PrepareContainerForItemOverride(DependencyObject element, object item)
     {
         base.PrepareContainerForItemOverride(element, item);
+
+        if (element is TableViewRow row && !_rows.Contains(row))
+        {
+            _rows.Add(row);
+        }
 
         DispatcherQueue.TryEnqueue(() =>
         {
@@ -111,9 +158,13 @@ public partial class TableView : ListView
                 row.ApplyCellsSelectionState();
                 row.RowPresenter?.ApplyDetailsPaneState(item);
 
-                if (CurrentCellSlot.HasValue)
+                // Always sweep all cells — even when no cell is current — so that any
+                // stale StateCurrent left on a recycled container is cleared to StateRegular.
+                row.ApplyCurrentCellState();
+
+                if (IsHierarchicalEnabled)
                 {
-                    row.ApplyCurrentCellState(CurrentCellSlot.Value);
+                    row.RowPresenter?.UpdateHierarchyPresentation();
                 }
             }
         });
@@ -128,8 +179,18 @@ public partial class TableView : ListView
         row.SetBinding(FontFamilyProperty, new Binding { Path = new("TableView.FontFamily"), RelativeSource = new() { Mode = RelativeSourceMode.Self } });
         row.SetBinding(FontSizeProperty, new Binding { Path = new("TableView.FontSize"), RelativeSource = new() { Mode = RelativeSourceMode.Self } });
 
-        _rows.Add(row);
         return row;
+    }
+
+    /// <inheritdoc/>
+    protected override void ClearContainerForItemOverride(DependencyObject element, object item)
+    {
+        base.ClearContainerForItemOverride(element, item);
+
+        if (element is TableViewRow row)
+        {
+            _rows.Remove(row);
+        }
     }
 
     /// <inheritdoc/>
@@ -153,6 +214,12 @@ public partial class TableView : ListView
     private async Task HandleNavigations(KeyRoutedEventArgs e, bool shiftKey, bool ctrlKey)
     {
         var currentCell = CurrentCellSlot.HasValue ? GetCellFromSlot(CurrentCellSlot.Value) : default;
+
+        if (!IsEditing && e.Key is VirtualKey.Left or VirtualKey.Right && TryHandleHierarchyArrowNavigation(e.Key))
+        {
+            e.Handled = true;
+            return;
+        }
 
         if (e.Key is VirtualKey.F2 && currentCell is { IsReadOnly: false } && !IsEditing)
         {
@@ -327,6 +394,14 @@ public partial class TableView : ListView
     private void OnLoaded(object sender, RoutedEventArgs e)
     {        
         EnsureAutoColumns();
+
+        // Re-establish hierarchy subscriptions cleared by OnUnloaded.
+        // Necessary when NavigationCacheMode.Enabled reuses the same control instance
+        // across navigation — ItemsSource doesn't change, so no ItemsSourceChanged fires.
+        if (IsHierarchicalEnabled && HasHierarchyBinding())
+        {
+            UpdateHierarchySourceSubscription(ItemsSource as IEnumerable);
+        }
     }
 
     /// <summary>
@@ -338,6 +413,8 @@ public partial class TableView : ListView
         {
             currentCell.EndEditing(TableViewEditAction.Commit);
         }
+
+        UpdateHierarchySourceSubscription(null);
     }
 
     /// <summary>
@@ -599,6 +676,11 @@ public partial class TableView : ListView
         {
             foreach (var propertyInfo in dataType.GetProperties())
             {
+                if (ShouldSkipAutoGeneratedHierarchyProperty(propertyInfo.Name))
+                {
+                    continue;
+                }
+
                 var displayAttribute = propertyInfo.GetCustomAttributes().OfType<DisplayAttribute>().FirstOrDefault();
                 var autoGenerateField = displayAttribute?.GetAutoGenerateField();
                 if (autoGenerateField == false)
@@ -677,16 +759,8 @@ public partial class TableView : ListView
     private void ItemsSourceChanged(DependencyPropertyChangedEventArgs e)
     {
         DetailsPaneStates.Clear();
-
-        using var defer = _collectionView.DeferRefresh();
-        _collectionView.Source = null!;
-
-        if (e.NewValue is IEnumerable source)
-        {
-            EnsureAutoColumns();
-
-            _collectionView.Source = source;
-        }
+        _collapsedHierarchyItems.Clear();
+        RefreshProcessedItemsSource(e.NewValue as IEnumerable);
     }
 
     /// <summary>
@@ -792,14 +866,29 @@ public partial class TableView : ListView
     public void RefreshView()
     {
         DeselectAll();
-        _collectionView.Refresh();
+
+        if (IsHierarchicalEnabled)
+        {
+            RebuildHierarchyView();
+            return;
+        }
+
+        RefreshProcessedItemsSource(ItemsSource as IEnumerable);
     }
 
     /// <summary>
     /// Refreshes the sorting applied to the items in the TableView.
+    /// When <see cref="IsHierarchicalEnabled"/> is <see langword="true"/>, sorting is applied
+    /// per-level within the hierarchy rather than globally, so the view is rebuilt.
     /// </summary>
     public void RefreshSorting()
     {
+        if (IsHierarchicalEnabled)
+        {
+            RebuildHierarchyView();
+            return;
+        }
+
         DeselectAll();
         _collectionView.RefreshSorting();
     }
@@ -847,9 +936,18 @@ public partial class TableView : ListView
 
     /// <summary>
     /// Refreshes all applied filters.
+    /// When <see cref="IsHierarchicalEnabled"/> is <see langword="true"/>, the hierarchy
+    /// is rebuilt with subtree-aware filtering applied.
     /// </summary>
     public void RefreshFilter()
     {
+        if (IsHierarchicalEnabled)
+        {
+            DeselectAll();
+            RebuildHierarchyView();
+            return;
+        }
+
         DeselectAll();
         _collectionView.RefreshFilter();
     }
@@ -1532,5 +1630,841 @@ public partial class TableView : ListView
 
         var offset = CellsHorizontalOffset + Columns.VisibleColumns.Where(c => c.IsFrozen).Sum(c => c.ActualWidth);
         AttachedPropertiesHelper.SetFrozenColumnScrollBarSpace(_scrollViewer, offset);
+    }
+
+    // ───────────────────────────────────────────────────────── Hierarchy ──
+
+    private void OnCollectionViewVectorChanged(IObservableVector<object> sender, IVectorChangedEventArgs args)
+    {
+        // In hierarchy mode, RebuildHierarchyView manages _displayItems directly via
+        // a synchronous RebuildDisplayedItems() call.  Letting the CollectionView's
+        // deferred VectorChanged fire an additional async Clear+Add cycle causes
+        // containers to be briefly deassigned, making IndexFromContainer return stale
+        // values inside UpdateAllRowsHierarchyPresentation and leaving stale
+        // StateCurrent visual states on cells that WinUI skips re-preparing.
+        if (IsHierarchicalEnabled)
+        {
+            return;
+        }
+
+        QueueDisplayedItemsRebuild();
+    }
+
+    private void QueueDisplayedItemsRebuild()
+    {
+        if (_isDisplayedItemsRebuildQueued)
+        {
+            return;
+        }
+
+        _isDisplayedItemsRebuildQueued = true;
+
+        if (DispatcherQueue is null)
+        {
+            _isDisplayedItemsRebuildQueued = false;
+            RebuildDisplayedItems();
+            return;
+        }
+
+        if (!DispatcherQueue.TryEnqueue(() =>
+            {
+                _isDisplayedItemsRebuildQueued = false;
+                RebuildDisplayedItems();
+            }))
+        {
+            // Enqueue failed (DispatcherQueue shut down); run synchronously to avoid
+            // the debounce flag staying stuck true and blocking all future rebuilds.
+            _isDisplayedItemsRebuildQueued = false;
+            RebuildDisplayedItems();
+        }
+    }
+
+    private void RefreshProcessedItemsSource(IEnumerable? source)
+    {
+        UpdateHierarchySourceSubscription(source);
+
+        using var defer = _collectionView.DeferRefresh();
+
+        _hierarchyLevelsByItem.Clear();
+        _hierarchyHasChildrenCache.Clear();
+        _displayItems.Clear();
+        _collectionView.Source = null!;
+
+        if (source is not null)
+        {
+            EnsureAutoColumns();
+            _collectionView.Source = BuildProcessedSource(source);
+        }
+
+        RebuildDisplayedItems();
+    }
+
+    private void UpdateHierarchySourceSubscription(IEnumerable? newSource)
+    {
+        foreach (var collection in _observedHierarchyCollections)
+        {
+            collection.CollectionChanged -= OnHierarchyCollectionChanged;
+        }
+
+        _observedHierarchyCollections.Clear();
+
+        if (IsHierarchicalEnabled && HasHierarchyBinding() && newSource is not null)
+        {
+            var visited = new HashSet<object>(ReferenceEqualityComparer.Instance);
+            SubscribeToHierarchyCollections(newSource, visited);
+        }
+    }
+
+    /// <summary>
+    /// Recursively subscribes to every INotifyCollectionChanged collection in the hierarchy tree,
+    /// so that changes at any nesting level (not just the root) trigger a rebuild.
+    /// </summary>
+    private void SubscribeToHierarchyCollections(IEnumerable source, HashSet<object> visited)
+    {
+        if (source is INotifyCollectionChanged incc && _observedHierarchyCollections.Add(incc))
+        {
+            incc.CollectionChanged += OnHierarchyCollectionChanged;
+        }
+
+        foreach (var item in source.OfType<object>())
+        {
+            if (!visited.Add(item))
+            {
+                continue;
+            }
+
+            var children = GetChildren(item);
+            if (children is IEnumerable childrenEnum && children is not string)
+            {
+                SubscribeToHierarchyCollections(childrenEnum, visited);
+            }
+        }
+    }
+
+    private void OnHierarchyCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        // For Reset (e.g. Clear()), OldItems is null by convention; re-scan subscriptions
+        // and purge all collapse state since we don't know which items were removed.
+        if (e.Action == NotifyCollectionChangedAction.Reset)
+        {
+            _collapsedHierarchyItems.Clear();
+            UpdateHierarchySourceSubscription(ItemsSource as IEnumerable);
+            QueueHierarchyViewRebuild();
+            return;
+        }
+
+        // Clean up collapse state for removed items and all their descendants so
+        // they don't linger in _collapsedHierarchyItems and keep objects alive past
+        // their logical lifetime (e.g. a terminated process in a Task Manager view).
+        if (e.OldItems is not null)
+        {
+            foreach (var item in e.OldItems.OfType<object>())
+            {
+                CleanCollapsedStateRecursive(item);
+            }
+        }
+
+        // Subscribe to child collections of newly added items so that mutations
+        // anywhere in the subtree trigger a rebuild, not just at the root level.
+        if (e.NewItems is not null)
+        {
+            var visited = new HashSet<object>(ReferenceEqualityComparer.Instance);
+            foreach (var item in e.NewItems.OfType<object>())
+            {
+                var children = GetChildren(item);
+                if (children is IEnumerable childEnum && children is not string)
+                {
+                    SubscribeToHierarchyCollections(childEnum, visited);
+                }
+            }
+        }
+
+        QueueHierarchyViewRebuild();
+    }
+
+    private void CleanCollapsedStateRecursive(object item, HashSet<object>? visited = null)
+    {
+        visited ??= new HashSet<object>(ReferenceEqualityComparer.Instance);
+
+        if (!visited.Add(item))
+        {
+            return; // circular reference – stop
+        }
+
+        _collapsedHierarchyItems.Remove(item);
+
+        var children = GetChildren(item);
+        if (children is IEnumerable childrenEnum && children is not string)
+        {
+            foreach (var child in childrenEnum.OfType<object>())
+            {
+                CleanCollapsedStateRecursive(child, visited);
+            }
+        }
+    }
+
+    private void OnSortDescriptionsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (IsHierarchicalEnabled)
+        {
+            // Sort changes are user-initiated and infrequent; rebuild synchronously so that
+            // tests and code that read Items immediately after adding a SortDescription see
+            // the updated order without needing an explicit RefreshView() call.
+            RebuildHierarchyView();
+        }
+    }
+
+    private void OnFilterDescriptionsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (IsHierarchicalEnabled)
+        {
+            // Filter changes are user-initiated and infrequent; rebuild synchronously so
+            // that items are immediately hidden/shown and tests see a consistent state.
+            RebuildHierarchyView();
+        }
+    }
+
+    private void RebuildDisplayedItems()
+    {
+        _displayItems.Clear();
+
+        foreach (var item in _collectionView.OfType<object>())
+        {
+            _displayItems.Add(item);
+        }
+    }
+
+    private IEnumerable BuildProcessedSource(IEnumerable source)
+    {
+        _hierarchyLevelsByItem.Clear();
+
+        if (IsHierarchicalEnabled && HasHierarchyBinding())
+        {
+            _collectionView.BypassSort = true;
+            _collectionView.BypassFilter = true;
+            var flattened = new List<object>();
+            var filterVisited = new HashSet<object>(ReferenceEqualityComparer.Instance);
+            FlattenHierarchy(source, flattened, 0, new HashSet<object>(ReferenceEqualityComparer.Instance), filterVisited);
+            return flattened;
+        }
+
+        _collectionView.BypassSort = false;
+        _collectionView.BypassFilter = false;
+        foreach (var item in source.OfType<object>())
+        {
+            _hierarchyLevelsByItem[item] = 0;
+        }
+
+        return source;
+    }
+
+    private void FlattenHierarchy(IEnumerable source, ICollection<object> target, int level, HashSet<object> path, HashSet<object> filterVisited)
+    {
+        if (level >= HierarchyMaxDepth)
+        {
+            System.Diagnostics.Debug.WriteLine($"[WinUI.TableView] Hierarchy depth limit ({HierarchyMaxDepth}) reached; stopping traversal.");
+            return;
+        }
+
+        IEnumerable<object> items = source.OfType<object>();
+
+        if (_collectionView.SortDescriptions.Count > 0)
+        {
+            items = items.OrderBy(x => x, _collectionView);
+        }
+
+        var hasFilter = _collectionView.FilterDescriptions.Count > 0;
+
+        foreach (var item in items)
+        {
+            // Clear the visited set before each call so that nodes explored by a
+            // previous SubtreeMatchesFilter invocation don't falsely trigger the
+            // circular-reference guard when the same node is evaluated again for
+            // a different branch of the tree.
+            filterVisited.Clear();
+
+            // Skip items whose entire subtree has no match for the active filter.
+            if (hasFilter && !SubtreeMatchesFilter(item, filterVisited))
+            {
+                continue;
+            }
+
+            target.Add(item);
+            _hierarchyLevelsByItem[item] = level;
+
+            if (!path.Add(item))
+            {
+                continue; // circular reference – skip recursion
+            }
+
+            try
+            {
+                // When a filter is active, force-expand items that are ancestors of a matching
+                // descendant (but don't directly match themselves) so matching items stay visible.
+                var itemPassesFilter = !hasFilter || _collectionView.FilterDescriptions.All(fd => fd.Predicate(item));
+                var shouldRecurse = IsItemExpanded(item) || (hasFilter && !itemPassesFilter);
+
+                if (!shouldRecurse)
+                {
+                    continue;
+                }
+
+                var children = GetChildren(item);
+
+                if (children is IEnumerable childrenEnumerable && children is not string)
+                {
+                    FlattenHierarchy(childrenEnumerable, target, level + 1, path, filterVisited);
+                }
+            }
+            finally
+            {
+                path.Remove(item);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Returns <see langword="true"/> if <paramref name="item"/> itself passes all active
+    /// filter predicates, or if any descendant in its subtree does.
+    /// Used by <see cref="FlattenHierarchy"/> to decide whether an item should appear in
+    /// the hierarchy view when a filter is active.
+    /// </summary>
+    private bool SubtreeMatchesFilter(object item, HashSet<object>? visited = null)
+    {
+        if (_collectionView.FilterDescriptions.All(fd => fd.Predicate(item)))
+        {
+            return true;
+        }
+
+        var children = GetChildren(item);
+
+        if (children is not null && children is not string)
+        {
+            visited ??= new HashSet<object>(ReferenceEqualityComparer.Instance);
+
+            if (!visited.Add(item))
+            {
+                return false; // circular reference — stop
+            }
+
+            foreach (var child in children.OfType<object>())
+            {
+                if (SubtreeMatchesFilter(child, visited))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Returns every item in the hierarchy tree, ignoring collapse and filter state.
+    /// Used by <see cref="ColumnFilterHandler"/> to enumerate all values for the filter dropdown.
+    /// </summary>
+    internal IEnumerable<object> GetAllHierarchyItemsFlat()
+    {
+        if (ItemsSource is not IEnumerable source)
+        {
+            return [];
+        }
+
+        var visited = new HashSet<object>(ReferenceEqualityComparer.Instance);
+        return GetAllItemsFlatRecursive(source, visited);
+    }
+
+    private IEnumerable<object> GetAllItemsFlatRecursive(IEnumerable source, HashSet<object> visited)
+    {
+        foreach (var item in source.OfType<object>())
+        {
+            if (!visited.Add(item))
+            {
+                continue; // circular reference – skip recursion
+            }
+
+            yield return item;
+
+            var children = GetChildren(item);
+
+            if (children is IEnumerable childEnum && children is not string)
+            {
+                foreach (var descendant in GetAllItemsFlatRecursive(childEnum, visited))
+                {
+                    yield return descendant;
+                }
+            }
+        }
+    }
+
+    private bool HasHierarchyBinding() => ChildrenSelector is not null || !string.IsNullOrWhiteSpace(ChildrenPath);
+
+    private IEnumerable? GetChildren(object item)
+    {
+        if (ChildrenSelector is not null)
+        {
+            return ChildrenSelector(item);
+        }
+
+        if (!string.IsNullOrWhiteSpace(ChildrenPath))
+        {
+            return ResolvePropertyPathValue(item, ChildrenPath!) as IEnumerable;
+        }
+
+        return null;
+    }
+
+    private object? ResolvePropertyPathValue(object item, string propertyPath)
+    {
+        var key = (item.GetType(), propertyPath);
+
+        if (!_propertyPathAccessorCache.TryGetValue(key, out var accessor))
+        {
+            accessor = item.GetFuncCompiledPropertyPath(propertyPath);
+            _propertyPathAccessorCache[key] = accessor;
+        }
+
+        return accessor?.Invoke(item);
+    }
+
+    private bool TrySetSimplePropertyPathValue(object item, string propertyPath, object? value)
+    {
+        try
+        {
+            object current = item;
+            var parts = propertyPath.Split('.', StringSplitOptions.RemoveEmptyEntries);
+
+            for (var index = 0; index < parts.Length - 1; index++)
+            {
+                var propertyInfo = current.GetType().GetProperty(parts[index], BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                if (propertyInfo?.GetValue(current) is not { } next)
+                {
+                    return false;
+                }
+
+                current = next;
+            }
+
+            var targetProperty = current.GetType().GetProperty(parts[^1], BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (targetProperty is null || !targetProperty.CanWrite)
+            {
+                return false;
+            }
+
+            var convertedValue = value;
+            if (value is not null && targetProperty.PropertyType != value.GetType())
+            {
+                var targetType = Nullable.GetUnderlyingType(targetProperty.PropertyType) ?? targetProperty.PropertyType;
+                convertedValue = Convert.ChangeType(value, targetType);
+            }
+
+            targetProperty.SetValue(current, convertedValue);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[WinUI.TableView] Failed to write '{propertyPath}' on {item.GetType().Name}: {ex.Message}. Note: only dot-separated property paths are supported for write-back; indexers are not supported.");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Returns whether the item has child items.
+    /// </summary>
+    public bool HasChildItems(object? item)
+    {
+        if (!IsHierarchicalEnabled || item is null)
+        {
+            return false;
+        }
+
+        if (!string.IsNullOrWhiteSpace(HasChildrenPath) &&
+            ResolvePropertyPathValue(item, HasChildrenPath!) is bool hasChildren)
+        {
+            return hasChildren;
+        }
+
+        if (_hierarchyHasChildrenCache.TryGetValue(item, out var cached))
+        {
+            return cached;
+        }
+
+        var children = GetChildren(item);
+        if (children is null || children is string)
+        {
+            return _hierarchyHasChildrenCache[item] = false;
+        }
+
+        if (children is ICollection collection)
+        {
+            return _hierarchyHasChildrenCache[item] = collection.Count > 0;
+        }
+
+        var enumerator = children.GetEnumerator();
+        bool hasAny;
+        try
+        {
+            hasAny = enumerator.MoveNext();
+        }
+        finally
+        {
+            (enumerator as IDisposable)?.Dispose();
+        }
+
+        return _hierarchyHasChildrenCache[item] = hasAny;
+    }
+
+    /// <summary>
+    /// Returns whether the item is currently expanded.
+    /// </summary>
+    public bool IsItemExpanded(object? item)
+    {
+        if (!IsHierarchicalEnabled || item is null || !HasChildItems(item))
+        {
+            return false;
+        }
+
+        if (!string.IsNullOrWhiteSpace(IsExpandedPath) &&
+            ResolvePropertyPathValue(item, IsExpandedPath!) is bool isExpanded)
+        {
+            return isExpanded;
+        }
+
+        return !_collapsedHierarchyItems.Contains(item);
+    }
+
+    /// <summary>
+    /// Toggles the expansion state of the item.
+    /// </summary>
+    public void ToggleItemExpansion(object? item)
+    {
+        if (item is null || !HasChildItems(item))
+        {
+            return;
+        }
+
+        SetItemExpanded(item, !IsItemExpanded(item));
+    }
+
+    /// <summary>
+    /// Sets the expansion state of the item and rebuilds the visible list.
+    /// </summary>
+    public void SetItemExpanded(object item, bool isExpanded)
+    {
+        if (!HasChildItems(item))
+        {
+            return;
+        }
+
+        // No-op: avoid redundant events and rebuild when the state already matches.
+        if (IsItemExpanded(item) == isExpanded)
+        {
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(IsExpandedPath))
+        {
+            // Suppress the property-change rebuild triggered by setting IsExpandedPath — the
+            // explicit RebuildHierarchyView() call below handles the rebuild synchronously.
+            _suppressIsExpandedPathRebuild = true;
+            try
+            {
+                _ = TrySetSimplePropertyPathValue(item, IsExpandedPath!, isExpanded);
+            }
+            finally
+            {
+                _suppressIsExpandedPathRebuild = false;
+            }
+        }
+
+        if (isExpanded)
+        {
+            _collapsedHierarchyItems.Remove(item);
+            OnRowExpanded(new TableViewRowExpansionChangedEventArgs(item, IndexFromItem(item), true));
+        }
+        else
+        {
+            _collapsedHierarchyItems.Add(item);
+            OnRowCollapsed(new TableViewRowExpansionChangedEventArgs(item, IndexFromItem(item), false));
+        }
+
+        RebuildHierarchyView();
+    }
+
+    /// <summary>
+    /// Expands the specified item so its children are visible.
+    /// </summary>
+    public void ExpandItem(object item) => SetItemExpanded(item, true);
+
+    /// <summary>
+    /// Collapses the specified item, hiding its children.
+    /// </summary>
+    public void CollapseItem(object item) => SetItemExpanded(item, false);
+
+    /// <summary>
+    /// Expands all items in the hierarchy in a single rebuild pass.
+    /// </summary>
+    public void ExpandAll()
+    {
+        if (!IsHierarchicalEnabled)
+        {
+            return;
+        }
+
+        _suppressIsExpandedPathRebuild = true;
+        try
+        {
+            foreach (var item in GetAllHierarchyItemsFlat())
+            {
+                if (!HasChildItems(item))
+                {
+                    continue;
+                }
+
+                if (!string.IsNullOrWhiteSpace(IsExpandedPath))
+                {
+                    _ = TrySetSimplePropertyPathValue(item, IsExpandedPath!, true);
+                }
+
+                _collapsedHierarchyItems.Remove(item);
+            }
+        }
+        finally
+        {
+            _suppressIsExpandedPathRebuild = false;
+        }
+
+        RebuildHierarchyView();
+    }
+
+    /// <summary>
+    /// Collapses all items in the hierarchy in a single rebuild pass.
+    /// </summary>
+    public void CollapseAll()
+    {
+        if (!IsHierarchicalEnabled)
+        {
+            return;
+        }
+
+        _suppressIsExpandedPathRebuild = true;
+        try
+        {
+            foreach (var item in GetAllHierarchyItemsFlat())
+            {
+                if (!HasChildItems(item))
+                {
+                    continue;
+                }
+
+                if (!string.IsNullOrWhiteSpace(IsExpandedPath))
+                {
+                    _ = TrySetSimplePropertyPathValue(item, IsExpandedPath!, false);
+                }
+
+                _collapsedHierarchyItems.Add(item);
+            }
+        }
+        finally
+        {
+            _suppressIsExpandedPathRebuild = false;
+        }
+
+        RebuildHierarchyView();
+    }
+
+    private void QueueHierarchyViewRebuild()
+    {
+        if (_isHierarchyViewRebuildQueued)
+        {
+            return;
+        }
+
+        _isHierarchyViewRebuildQueued = true;
+
+        if (DispatcherQueue is null)
+        {
+            _isHierarchyViewRebuildQueued = false;
+            RebuildHierarchyView();
+            return;
+        }
+
+        if (!DispatcherQueue.TryEnqueue(() =>
+            {
+                _isHierarchyViewRebuildQueued = false;
+                RebuildHierarchyView();
+            }))
+        {
+            // Enqueue failed (DispatcherQueue shut down); run synchronously.
+            _isHierarchyViewRebuildQueued = false;
+            RebuildHierarchyView();
+        }
+    }
+
+    private void RebuildHierarchyView()
+    {
+        _hierarchyHasChildrenCache.Clear();
+        var currentColumn = CurrentCellSlot?.Column ?? -1;
+
+        RefreshProcessedItemsSource(ItemsSource as IEnumerable);
+
+        // After rebuild row indices shift — silently update CurrentCellSlot to track
+        // the same data item at its new position so that OnCurrentCellChanged can
+        // correctly reset the right container later.
+        if (_currentCellItem is not null && currentColumn >= 0)
+        {
+            _suppressCurrentCellChanged = true;
+            try
+            {
+                var newRow = _displayItems.IndexOf(_currentCellItem);
+                if (newRow >= 0)
+                {
+                    CurrentCellSlot = new TableViewCellSlot(newRow, currentColumn);
+                }
+                else
+                {
+                    // Item was collapsed/hidden — clear the current cell.
+                    CurrentCellSlot = null;
+                    _currentCellItem = null;
+                }
+            }
+            finally
+            {
+                _suppressCurrentCellChanged = false;
+            }
+        }
+
+        // Update recycled rows whose OnApplyTemplate already fired before the rebuild.
+        // Fall back to synchronous execution if the DispatcherQueue is unavailable,
+        // rather than silently skipping the visual update.
+        if (DispatcherQueue is null || !DispatcherQueue.TryEnqueue(UpdateAllRowsHierarchyPresentation))
+        {
+            UpdateAllRowsHierarchyPresentation();
+        }
+    }
+
+    /// <summary>
+    /// Updates hierarchy presentation and cell states for all visible rows.
+    /// </summary>
+    internal void UpdateAllRowsHierarchyPresentation()
+    {
+        foreach (var row in _rows)
+        {
+            row.RowPresenter?.UpdateHierarchyPresentation();
+
+            // Re-apply current-cell visual state for all rows — including when
+            // CurrentCellSlot is null (item collapsed/hidden) so that any stale
+            // StateCurrent on previously focused cells is cleared to StateRegular.
+            row.ApplyCurrentCellState();
+        }
+    }
+
+    /// <summary>
+    /// Gets the nesting level of an item in the hierarchy.
+    /// </summary>
+    public int GetHierarchyLevel(object? item)
+    {
+        if (item is not null && _hierarchyLevelsByItem.TryGetValue(item, out var level))
+        {
+            return level;
+        }
+
+        return 0;
+    }
+
+    private int IndexFromItem(object item) => _displayItems.IndexOf(item);
+
+    private bool TryHandleHierarchyArrowNavigation(VirtualKey key)
+    {
+        if (!IsHierarchicalEnabled || Items.Count == 0)
+        {
+            return false;
+        }
+
+        var row = (LastSelectionUnit is TableViewSelectionUnit.Row ? CurrentRowIndex : CurrentCellSlot?.Row) ?? -1;
+        var column = CurrentCellSlot?.Column ?? 0;
+
+        if (row < 0)
+        {
+            row = SelectedIndex;
+        }
+
+        if (row < 0 || row >= Items.Count)
+        {
+            return false;
+        }
+
+        var item = Items[row];
+        var level = GetHierarchyLevel(item);
+        var hasChildren = HasChildItems(item);
+        var isExpanded = IsItemExpanded(item);
+
+        if (key is VirtualKey.Right)
+        {
+            if (hasChildren && !isExpanded)
+            {
+                SetItemExpanded(item, true);
+                return true;
+            }
+
+            if (hasChildren && isExpanded)
+            {
+                var firstChildRow = row + 1;
+                if (firstChildRow < Items.Count && GetHierarchyLevel(Items[firstChildRow]) == level + 1)
+                {
+                    MakeSelection(new TableViewCellSlot(firstChildRow, Math.Max(0, column)), false);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        // Left key
+        if (hasChildren && isExpanded)
+        {
+            SetItemExpanded(item, false);
+            return true;
+        }
+
+        if (level <= 0)
+        {
+            return false;
+        }
+
+        for (var index = row - 1; index >= 0; index--)
+        {
+            if (GetHierarchyLevel(Items[index]) == level - 1)
+            {
+                MakeSelection(new TableViewCellSlot(index, Math.Max(0, column)), false);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool ShouldSkipAutoGeneratedHierarchyProperty(string propertyName)
+    {
+        if (!IsHierarchicalEnabled)
+        {
+            return false;
+        }
+
+        var comparableName = GetPropertyPathLeaf(propertyName);
+        return string.Equals(comparableName, GetPropertyPathLeaf(ChildrenPath), StringComparison.OrdinalIgnoreCase)
+            || string.Equals(comparableName, GetPropertyPathLeaf(HasChildrenPath), StringComparison.OrdinalIgnoreCase)
+            || string.Equals(comparableName, GetPropertyPathLeaf(IsExpandedPath), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string? GetPropertyPathLeaf(string? propertyPath)
+    {
+        if (string.IsNullOrWhiteSpace(propertyPath))
+        {
+            return null;
+        }
+
+        var parts = propertyPath.Split('.', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length > 0 ? parts[^1] : propertyPath;
     }
 }

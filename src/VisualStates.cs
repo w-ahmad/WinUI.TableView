@@ -53,6 +53,11 @@ internal static class VisualStates
     /// </summary>
     public const string StateEmpty = "Empty";
 
+    /// <summary>
+    /// Expanded state group
+    /// </summary>
+    public const string GroupExpanded = "ExpandedStates";
+
     // GroupFocus
 
     /// <summary>

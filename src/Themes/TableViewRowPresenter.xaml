@@ -105,12 +105,20 @@
 
                             <StackPanel x:Name="ScrollableCellsPanel"
                                         Grid.Column="3"
-                                        Orientation="Horizontal">
-                                <!--This is just dummy textblock. It would be removed at runtime-->
-                                <TextBlock Margin="16,0"
-                                           Text="{Binding}"
-                                           VerticalAlignment="Center" />
-                            </StackPanel>
+                                        Orientation="Horizontal" />
+
+                            <!--Hierarchy toggle button: floats above the cells, positioned at the
+                                correct indent level inside the first column via Margin.Left set in code.-->
+                            <ToggleButton x:Name="HierarchyToggleButton"
+                                          Grid.Column="2"
+                                          Grid.ColumnSpan="2"
+                                          HorizontalAlignment="Left"
+                                          VerticalAlignment="Center"
+                                          Style="{StaticResource HierarchyExpanderToggleButtonStyle}"
+                                          Visibility="Collapsed"
+                                          Opacity="0"
+                                          IsTabStop="False"
+                                          AutomationProperties.Name="Expand row" />
 
                             <Grid x:Name="DetailsPanel"
                                   Grid.Row="1"

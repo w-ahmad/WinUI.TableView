@@ -9,6 +9,21 @@ namespace WinUI.TableView;
 partial class CollectionView
 {
     /// <summary>
+    /// Gets or sets a value indicating whether sort descriptions should be ignored when
+    /// rebuilding the view. Set by <see cref="TableView"/> when hierarchical mode is active
+    /// so that per-level sorting is applied during flattening instead of globally.
+    /// </summary>
+    internal bool BypassSort { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether filter descriptions should be ignored when
+    /// rebuilding the view. Set by <see cref="TableView"/> when hierarchical mode is active
+    /// so that subtree-aware filtering is applied during hierarchy flattening instead of
+    /// the flat per-item filter used in normal mode.
+    /// </summary>
+    internal bool BypassFilter { get; set; }
+
+    /// <summary>
     /// Gets or sets the source collection.
     /// </summary>
     public IEnumerable Source

@@ -1,5 +1,6 @@
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
@@ -32,6 +33,15 @@ public partial class TableViewRowPresenter : Control
     private Panel? _detailsPanel;
     private ContentPresenter? _detailsPresenter;
     private ToggleButton? _detailsToggleButton;
+    private ToggleButton? _hierarchyToggleButton;
+    private bool _isUpdatingHierarchyToggle;
+
+    private static readonly DependencyProperty OriginalCellLeftPaddingProperty =
+        DependencyProperty.RegisterAttached(
+            "OriginalCellLeftPadding",
+            typeof(double),
+            typeof(TableViewRowPresenter),
+            new PropertyMetadata(double.NaN));
     private ListViewItemPresenter? _itemPresenter;
 
     /// <summary>
@@ -56,15 +66,29 @@ public partial class TableViewRowPresenter : Control
         _detailsPanel = GetTemplateChild("DetailsPanel") as Panel;
         _detailsPresenter = GetTemplateChild("DetailsPresenter") as ContentPresenter;
         _detailsToggleButton = GetTemplateChild("DetailsToggleButton") as ToggleButton;
+        _hierarchyToggleButton = GetTemplateChild("HierarchyToggleButton") as ToggleButton;
 
         _itemPresenter = this.FindAscendant<ListViewItemPresenter>();
         TableViewRow = this.FindAscendant<TableViewRow>();
         TableView = TableViewRow?.TableView;
 
+        // On Windows, GetTemplateChild("RowPresenter") on TableViewRow always returns null because
+        // TableViewRowPresenter is rendered via ItemTemplate inside ListViewItemPresenter, not as a
+        // named part of TableViewRow's ControlTemplate. Self-register so the back-pointer is valid.
+        TableViewRow?.SetRowPresenter(this);
+
         if (_rowHeader is not null)
         {
             _rowHeader.TableView = TableView;
             _rowHeader.TableViewRow = TableViewRow;
+        }
+
+        if (_hierarchyToggleButton is not null)
+        {
+            _hierarchyToggleButton.Checked -= OnHierarchyToggleButtonChanged;
+            _hierarchyToggleButton.Unchecked -= OnHierarchyToggleButtonChanged;
+            _hierarchyToggleButton.Checked += OnHierarchyToggleButtonChanged;
+            _hierarchyToggleButton.Unchecked += OnHierarchyToggleButtonChanged;
         }
 
         if (_detailsToggleButton is not null)
@@ -79,7 +103,11 @@ public partial class TableViewRowPresenter : Control
                 => TableViewRow?.EnsureLayout());
         }
 
-        TableViewRow?.EnsureCells();
+        // Defer EnsureCells so it runs after both OnApplyTemplate methods have fired.
+        // TableViewRow.OnApplyTemplate fires first and sets _rowPresenter, but
+        // _scrollableCellsPanel in this presenter is only set during THIS method.
+        // A deferred call ensures both are available when cells are created and inserted.
+        DispatcherQueue?.TryEnqueue(() => TableViewRow?.EnsureCells());
         EnsureGridLines();
         SetRowHeaderBindings();
         SetRowHeaderVisibility();
@@ -87,6 +115,12 @@ public partial class TableViewRowPresenter : Control
         SetRowHeaderWidth();
         SetRowDetailsVisibility();
         SetRowDetailsTemplate();
+        UpdateHierarchyPresentation();
+
+        // Deferred retry: handles the case where Content or hierarchy level was not
+        // available yet when OnApplyTemplate fired (timing gap between item assignment
+        // and visual-tree connection).
+        DispatcherQueue?.TryEnqueue(UpdateHierarchyPresentation);
     }
 
     /// <inheritdoc/>
@@ -477,4 +511,101 @@ public partial class TableViewRowPresenter : Control
     /// Gets a value indicating whether the row details panel is currently visible.
     /// </summary>
     internal bool IsDetailsPanelVisible => _detailsPanel?.Visibility is Visibility.Visible;
+
+    /// <summary>
+    /// Updates the hierarchy indent and expander button state for this row.
+    /// </summary>
+    internal void UpdateHierarchyPresentation()
+    {
+        if (TableView is null)
+        {
+            return;
+        }
+
+        if (!TableView.IsHierarchicalEnabled)
+        {
+            // Reset everything when hierarchy mode is turned off.
+            if (_hierarchyToggleButton is not null)
+            {
+                _hierarchyToggleButton.Visibility = Visibility.Collapsed;
+            }
+            SetFirstCellHierarchyMargin(0);
+            return;
+        }
+
+        if (_hierarchyToggleButton is null)
+        {
+            return;
+        }
+
+        var item = TableViewRow?.Content;
+        var level = TableView.GetHierarchyLevel(item);
+        var hasChildren = TableView.HasChildItems(item);
+        var isExpanded = TableView.IsItemExpanded(item);
+        var indent = level * TableView.HierarchyIndent;
+
+        // Position the toggle button at the indent level, overlaying the start of the first cell.
+        // Keep it in the visual tree (Visible) but transparent for leaf nodes so that all rows
+        // at the same level reserve identical space, keeping the cell content aligned.
+        _isUpdatingHierarchyToggle = true;
+        _hierarchyToggleButton.Visibility = Visibility.Visible;
+        _hierarchyToggleButton.Opacity = hasChildren ? 1.0 : 0.0;
+        _hierarchyToggleButton.IsHitTestVisible = hasChildren;
+        _hierarchyToggleButton.Margin = new Thickness(indent, 0, 0, 0);
+        // Pin width to HierarchyIndent so it exactly fills the space reserved in the cell margin.
+        _hierarchyToggleButton.Width = TableView.HierarchyIndent;
+        _hierarchyToggleButton.IsChecked = isExpanded;
+
+        // Force the visual state even when IsChecked didn't change (e.g. recycled row
+        // already had IsChecked=false) so the glyph always reflects the correct state.
+        VisualStateManager.GoToState(_hierarchyToggleButton, isExpanded ? "Checked" : "Unchecked", useTransitions: false);
+        _isUpdatingHierarchyToggle = false;
+
+        AutomationProperties.SetName(
+            _hierarchyToggleButton,
+            isExpanded ? TableViewLocalizedStrings.CollapseRow : TableViewLocalizedStrings.ExpandRow);
+
+        // Offset the first data cell so its content doesn't overlap the toggle button.
+        // Reserve one HierarchyIndent-wide slot for the toggle regardless of level so
+        // that leaf and parent rows at the same level start their text at the same x position.
+        SetFirstCellHierarchyMargin(indent + TableView.HierarchyIndent);
+    }
+
+    private void OnHierarchyToggleButtonChanged(object sender, RoutedEventArgs e)
+    {
+        if (_isUpdatingHierarchyToggle || TableViewRow?.Content is null || TableView is null || _hierarchyToggleButton is null)
+        {
+            return;
+        }
+
+        TableView.SetItemExpanded(TableViewRow.Content, _hierarchyToggleButton.IsChecked is true);
+    }
+
+    private void SetFirstCellHierarchyMargin(double leftMargin)
+    {
+        FrameworkElement? firstCell = null;
+
+        if (_frozenCellsPanel?.Children.Count > 0)
+            firstCell = _frozenCellsPanel.Children[0] as FrameworkElement;
+        else if (_scrollableCellsPanel?.Children.Count > 0)
+            firstCell = _scrollableCellsPanel.Children[0] as FrameworkElement;
+
+        // Use Padding (not Margin) so only the cell's *content* is indented.
+        // Margin would shift all subsequent cells right relative to their column headers.
+        if (firstCell is Control cell)
+        {
+            // Capture the original left padding the first time we touch this cell so that
+            // subsequent calls (e.g. on recycle with a different indent level) always add
+            // the hierarchy margin on top of the template-defined padding rather than
+            // accumulating it on top of a previously modified value.
+            var originalLeft = (double)cell.GetValue(OriginalCellLeftPaddingProperty);
+            if (double.IsNaN(originalLeft))
+            {
+                originalLeft = cell.Padding.Left;
+                cell.SetValue(OriginalCellLeftPaddingProperty, originalLeft);
+            }
+
+            cell.Padding = new Thickness(originalLeft + leftMargin, cell.Padding.Top, cell.Padding.Right, cell.Padding.Bottom);
+        }
+    }
 }

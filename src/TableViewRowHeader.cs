@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using Windows.Foundation;
@@ -38,7 +38,7 @@ public partial class TableViewRowHeader : ContentControl
         if (TableView is not null && TableViewRow is not null && _contentPresenter is not null)
         {
             var element = ContentTemplateRoot as FrameworkElement;
-            #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860           
+            #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860
             if (element is not null)
             {
                 element.MaxWidth = double.PositiveInfinity;
@@ -122,12 +122,12 @@ public partial class TableViewRowHeader : ContentControl
     }
 
     /// <summary>
-    /// Gets or sets the TableViewRow associated with the presenter.
+    /// Gets or sets the TableView associated with the header.
     /// </summary>
     public TableView? TableView { get; internal set; }
 
     /// <summary>
-    /// Gets or sets the TableView associated with the presenter.
+    /// Gets or sets the TableViewRow associated with the header.
     /// </summary>
     public TableViewRow? TableViewRow { get; internal set; }
 }

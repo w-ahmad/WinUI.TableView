@@ -255,7 +255,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
             return;
         }
 
-        if (FilterDescriptions.Any(fd => string.IsNullOrEmpty(fd.PropertyName) || fd.PropertyName == e.PropertyName))
+        if (!BypassFilter && FilterDescriptions.Any(fd => string.IsNullOrEmpty(fd.PropertyName) || fd.PropertyName == e.PropertyName))
         {
             var filterResult = FilterDescriptions.All(x => x.Predicate(item));
             var viewIndex = _view.IndexOf(item);
@@ -318,7 +318,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
 
         if (Source is not null)
         {
-            if (FilterDescriptions.Count > 0)
+            if (!BypassFilter && FilterDescriptions.Count > 0)
             {
                 foreach (var item in Source)
                 {
@@ -331,7 +331,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
                 _view.AddRange(_source.OfType<object>());
             }
 
-            if (SortDescriptions.Count > 0)
+            if (SortDescriptions.Count > 0 && !BypassSort)
                 _view.Sort(this);
         }
 
@@ -344,6 +344,8 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     /// </summary>
     private void HandleFilterChanged()
     {
+        if (BypassFilter) return;
+
         if (FilterDescriptions.Count > 0)
         {
             for (var index = 0; index < _view.Count; index++)
@@ -384,16 +386,18 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     /// </summary>
     private void HandleSortChanged()
     {
-        if (SortDescriptions.Count > 0)
+        if (!BypassSort)
         {
-            _view.Sort(this);
-        }
-        else
-        {
-            HandleSourceChanged();
-        }
+            if (SortDescriptions.Count > 0)
+                _view.Sort(this);
+            else
+                HandleSourceChanged();
 
-        OnVectorChanged(new VectorChangedEventArgs(CollectionChange.Reset));
+            OnVectorChanged(new VectorChangedEventArgs(CollectionChange.Reset));
+        }
+        // When BypassSort is true the external caller (TableView) handles the full
+        // rebuild via RebuildHierarchyView(). Firing VectorChanged here would trigger
+        // a stale RebuildDisplayedItems() before the hierarchy is re-flattened.
     }
 
     /// <summary>
@@ -401,7 +405,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     /// </summary>
     private bool HandleItemAdded(int newStartingIndex, object? newItem, int? viewIndex = null)
     {
-        if (!FilterDescriptions.All(x => x.Predicate(newItem)))
+        if (!BypassFilter && !FilterDescriptions.All(x => x.Predicate(newItem)))
         {
             return false;
         }
