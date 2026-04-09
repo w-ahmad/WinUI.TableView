@@ -35,6 +35,8 @@ public partial class TableView : ListView
     private RowDefinition? _headerRowDefinition;
     private bool _shouldThrowSelectionModeChangedException;
     private bool _ensureColumns = true;
+    private TableViewRow? _editingHighlightRow;
+    private int _editingHighlightRowIndex = -1;
     private readonly List<TableViewRow> _rows = [];
     private readonly CollectionView _collectionView = [];
 
@@ -103,6 +105,17 @@ public partial class TableView : ListView
     {
         base.PrepareContainerForItemOverride(element, item);
 
+        // Reset editing highlight state on recycled containers to prevent
+        // stale _hasEditingHighlight from blocking EnsureAlternateColors.
+        if (element is TableViewRow { } recycledRow)
+        {
+            recycledRow.ApplyEditingHighlight(false);
+            if (_editingHighlightRow == recycledRow)
+            {
+                _editingHighlightRow = null;
+            }
+        }
+
         DispatcherQueue.TryEnqueue(() =>
         {
             if (element is TableViewRow row)
@@ -111,9 +124,24 @@ public partial class TableView : ListView
                 row.ApplyCellsSelectionState();
                 row.RowPresenter?.ApplyDetailsPaneState(item);
 
+                // Reset current cell border on all cells in recycled containers
+                // to clear stale "Current" visual state from previous use.
+                foreach (var cell in row.Cells)
+                {
+                    cell.ApplyCurrentCellState();
+                }
+
                 if (CurrentCellSlot.HasValue)
                 {
                     row.ApplyCurrentCellState(CurrentCellSlot.Value);
+                }
+
+                // Apply editing highlight when the editing row scrolls into view
+                var rowIndex = Items.IndexOf(item);
+                if (_editingHighlightRowIndex >= 0 && rowIndex == _editingHighlightRowIndex)
+                {
+                    _editingHighlightRow = row;
+                    row.ApplyEditingHighlight(true);
                 }
             }
         });
@@ -184,7 +212,7 @@ public partial class TableView : ListView
 
             do
             {
-                newSlot = GetNextSlot(newSlot, shiftKey, e.Key is VirtualKey.Enter);
+                newSlot = GetNextSlot(newSlot, shiftKey, e.Key is VirtualKey.Enter || (e.Key is VirtualKey.Tab && SelectionUnit is TableViewSelectionUnit.Row));
 
             } while (isEditing && Columns[newSlot.Column].IsReadOnly);
 
@@ -195,6 +223,21 @@ public partial class TableView : ListView
                 if (CurrentCellSlot == newSlot || GetCellFromSlot(newSlot) is not { } nextCell || !await nextCell.BeginCellEditing(e))
                 {
                     SetIsEditing(false);
+                }
+                else if (SelectionUnit is TableViewSelectionUnit.Row or TableViewSelectionUnit.CellOrRow && newSlot.Row != currentCell.Slot.Row)
+                {
+                    // Editing moved to a different row — move the highlight
+                    _editingHighlightRow?.ApplyEditingHighlight(false);
+                    _editingHighlightRowIndex = newSlot.Row;
+                    if (ContainerFromIndex(newSlot.Row) is TableViewRow newRow)
+                    {
+                        _editingHighlightRow = newRow;
+                        newRow.ApplyEditingHighlight(true);
+                    }
+                    else
+                    {
+                        _editingHighlightRow = null;
+                    }
                 }
             }
 
@@ -1502,6 +1545,25 @@ public partial class TableView : ListView
 
         IsEditing = value;
         UpdateCornerButtonState();
+
+        if (value && SelectionUnit is TableViewSelectionUnit.Row or TableViewSelectionUnit.CellOrRow)
+        {
+            if (CurrentCellSlot.HasValue)
+            {
+                _editingHighlightRowIndex = CurrentCellSlot.Value.Row;
+                if (ContainerFromIndex(CurrentCellSlot.Value.Row) is TableViewRow row)
+                {
+                    _editingHighlightRow = row;
+                    row.ApplyEditingHighlight(true);
+                }
+            }
+        }
+        else if (!value)
+        {
+            _editingHighlightRow?.ApplyEditingHighlight(false);
+            _editingHighlightRow = null;
+            _editingHighlightRowIndex = -1;
+        }
     }
 
     /// <summary>
