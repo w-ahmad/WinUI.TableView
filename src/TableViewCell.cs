@@ -298,7 +298,9 @@ public partial class TableViewCell : ContentControl
                 }
             }
 
-            // Selection via FindCell — same proven path whether rectangle is on or off
+            // Selection via FindCell — same proven path whether rectangle is on or off.
+            // When the pointer is outside the viewport, FindCell returns null and selection
+            // is updated by the ViewChanged handler on the next auto-scroll tick.
             var cell = FindCell(e.Position);
 
             if (cell is not null && cell.Slot != TableView?.CurrentCellSlot)

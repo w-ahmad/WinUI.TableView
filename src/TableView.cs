@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -1398,6 +1399,48 @@ public partial class TableView : ListView
 
         // Reposition the rectangle using scroll-adjusted start point
         PositionDragRectangle(_lastDragCanvasPoint.Value);
+
+        // Update selection for newly visible rows during auto-scroll or mouse-wheel scroll
+        var cell = FindCellAtCanvasPoint(_lastDragCanvasPoint.Value);
+        if (cell is not null && cell.Slot != CurrentCellSlot)
+        {
+            var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
+            MakeSelection(cell.Slot, true, ctrlKey);
+        }
+    }
+
+    /// <summary>
+    /// Finds the cell at the specified canvas point using visual tree hit-testing.
+    /// Clamps the point to the canvas bounds so that out-of-viewport positions
+    /// resolve to the nearest edge cell.
+    /// </summary>
+    private TableViewCell? FindCellAtCanvasPoint(Point canvasPoint)
+    {
+        if (_dragRectangleCanvas is null || _scrollViewer is null) return null;
+
+        // Clamp to canvas bounds so out-of-viewport positions find the edge cell
+        var clampedPoint = new Point(
+            Math.Clamp(canvasPoint.X, 1, Math.Max(1, _dragRectangleCanvas.ActualWidth - 1)),
+            Math.Clamp(canvasPoint.Y, 1, Math.Max(1, _dragRectangleCanvas.ActualHeight - 1)));
+
+        try
+        {
+            var screenPoint = _dragRectangleCanvas.TransformToVisual(null).TransformPoint(clampedPoint);
+#if WINDOWS
+            return VisualTreeHelper.FindElementsInHostCoordinates(screenPoint, _scrollViewer)
+#else
+            return VisualTreeHelper.FindElementsInHostCoordinates(screenPoint, _scrollViewer, true)
+                                   .OfType<ContentPresenter>()
+                                   .Where(x => x.Name is "Content")
+                                   .Select(x => x.FindAscendant<TableViewCell>() is { } cell ? cell : default)
+#endif
+                                   .OfType<TableViewCell>()
+                                   .FirstOrDefault();
+        }
+        catch (ArgumentException)
+        {
+            return null;
+        }
     }
 
     /// <summary>
