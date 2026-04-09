@@ -299,9 +299,6 @@ public partial class TableView
     public ICollectionView CollectionView => _collectionView;
 
     /// <summary>
-    /// Gets the collection of sort descriptions applied to the items.
-    /// </summary>
-    /// <summary>
     /// Gets or sets the property path used to group items in the TableView.
     /// </summary>
     public string? GroupByPath
@@ -337,6 +334,9 @@ public partial class TableView
         set => SetValue(ShowGroupItemCountProperty, value);
     }
 
+    /// <summary>
+    /// Gets the collection of sort descriptions applied to the items.
+    /// </summary>
     public IList<SortDescription> SortDescriptions => _collectionView.SortDescriptions;
 
     /// <summary>
@@ -1204,14 +1204,12 @@ public partial class TableView
     /// </summary>
     private void OnBaseItemsSourceChanged(DependencyObject sender, DependencyProperty dp)
     {
-        if (_isUpdatingBaseItemsSource || ReferenceEquals(base.ItemsSource, _displayItems))
+        if (_isUpdatingBaseItemsSource)
         {
             return;
         }
 
-        _isUpdatingBaseItemsSource = true;
-        base.ItemsSource = _displayItems;
-        _isUpdatingBaseItemsSource = false;
+        throw new InvalidOperationException("Setting this property directly is not allowed. Use TableView.ItemsSource instead.");
     }
 
     /// <summary>
