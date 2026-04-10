@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using Windows.Foundation;
 
 namespace WinUI.TableView.Tests;
@@ -22,6 +23,13 @@ public class DragSelectionRectangleTests
         return tv;
     }
 
+    private static async Task<TableView> CreateAndLoadTableView(ListViewSelectionMode selectionMode = ListViewSelectionMode.Extended)
+    {
+        var tv = CreateTableView(selectionMode);
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tv);
+        return tv;
+    }
+
     [UITestMethod]
     public void ShowDragRectangle_DefaultsToTrue()
     {
@@ -38,14 +46,17 @@ public class DragSelectionRectangleTests
     }
 
     [UITestMethod]
-    public void StartDragRectangle_SetsIsDragging_WhenExtendedMode()
+    public async Task StartDragRectangle_SetsIsDragging_WhenExtendedMode()
     {
-        var tv = CreateTableView(ListViewSelectionMode.Extended);
+        var tv = await CreateAndLoadTableView(ListViewSelectionMode.Extended);
         Assert.IsFalse(tv._isDragging);
 
         tv.StartDragRectangle(new Point(10, 10));
 
         Assert.IsTrue(tv._isDragging);
+
+        tv.EndDragRectangle();
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tv);
     }
 
     [UITestMethod]
@@ -80,25 +91,30 @@ public class DragSelectionRectangleTests
     }
 
     [UITestMethod]
-    public void StartDragRectangle_Starts_InMultipleMode()
+    public async Task StartDragRectangle_Starts_InMultipleMode()
     {
-        var tv = CreateTableView(ListViewSelectionMode.Multiple);
+        var tv = await CreateAndLoadTableView(ListViewSelectionMode.Multiple);
 
         tv.StartDragRectangle(new Point(10, 10));
 
         Assert.IsTrue(tv._isDragging);
+
+        tv.EndDragRectangle();
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tv);
     }
 
     [UITestMethod]
-    public void EndDragRectangle_ResetsIsDragging()
+    public async Task EndDragRectangle_ResetsIsDragging()
     {
-        var tv = CreateTableView(ListViewSelectionMode.Extended);
+        var tv = await CreateAndLoadTableView(ListViewSelectionMode.Extended);
         tv.StartDragRectangle(new Point(10, 10));
         Assert.IsTrue(tv._isDragging);
 
         tv.EndDragRectangle();
 
         Assert.IsFalse(tv._isDragging);
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tv);
     }
 
     [UITestMethod]
@@ -114,15 +130,17 @@ public class DragSelectionRectangleTests
     }
 
     [UITestMethod]
-    public void ShowDragRectangle_SetFalse_EndsDragIfActive()
+    public async Task ShowDragRectangle_SetFalse_EndsDragIfActive()
     {
-        var tv = CreateTableView(ListViewSelectionMode.Extended);
+        var tv = await CreateAndLoadTableView(ListViewSelectionMode.Extended);
         tv.StartDragRectangle(new Point(10, 10));
         Assert.IsTrue(tv._isDragging);
 
         tv.ShowDragRectangle = false;
 
         Assert.IsFalse(tv._isDragging);
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tv);
     }
 
     [UITestMethod]
