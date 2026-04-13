@@ -139,6 +139,11 @@
                         <NavigationViewItem Content="Custom Sorting" />
                     </NavigationViewItem.MenuItems>
                 </NavigationViewItem>
+                <NavigationViewItem Content="Grouping">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xF168;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
                 <NavigationViewItem Content="Filtering">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE71C;" />
