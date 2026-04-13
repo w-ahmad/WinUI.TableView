@@ -267,26 +267,6 @@ public partial class TableView
     public static readonly DependencyProperty ShowFilterItemsCountProperty = DependencyProperty.Register(nameof(ShowFilterItemsCount), typeof(bool), typeof(TableView), new PropertyMetadata(false));
 
     /// <summary>
-    /// Identifies the <see cref="GroupByPath"/> dependency property.
-    /// </summary>
-    public static readonly DependencyProperty GroupByPathProperty = DependencyProperty.Register(nameof(GroupByPath), typeof(string), typeof(TableView), new PropertyMetadata(null, OnGroupByPathChanged));
-
-    /// <summary>
-    /// Identifies the <see cref="ShowGroupHeaders"/> dependency property.
-    /// </summary>
-    public static readonly DependencyProperty ShowGroupHeadersProperty = DependencyProperty.Register(nameof(ShowGroupHeaders), typeof(bool), typeof(TableView), new PropertyMetadata(true, OnShowGroupHeadersChanged));
-
-    /// <summary>
-    /// Identifies the <see cref="GroupSortDirection"/> dependency property.
-    /// </summary>
-    public static readonly DependencyProperty GroupSortDirectionProperty = DependencyProperty.Register(nameof(GroupSortDirection), typeof(SortDirection), typeof(TableView), new PropertyMetadata(SortDirection.Ascending, OnGroupSortDirectionChanged));
-
-    /// <summary>
-    /// Identifies the <see cref="ShowGroupItemCount"/> dependency property.
-    /// </summary>
-    public static readonly DependencyProperty ShowGroupItemCountProperty = DependencyProperty.Register(nameof(ShowGroupItemCount), typeof(bool), typeof(TableView), new PropertyMetadata(true, OnShowGroupItemCountChanged));
-
-    /// <summary>
     /// Gets or sets a value indicating whether opening the column filter over header right-click is enabled.
     /// </summary>
     public bool UseRightClickForColumnFilter
@@ -299,42 +279,6 @@ public partial class TableView
     /// Gets the collection view associated with the TableView.
     /// </summary>
     public ICollectionView CollectionView => _collectionView;
-
-    /// <summary>
-    /// Gets or sets the property path used to group items in the TableView.
-    /// </summary>
-    public string? GroupByPath
-    {
-        get => (string?)GetValue(GroupByPathProperty);
-        set => SetValue(GroupByPathProperty, value);
-    }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether group headers are shown.
-    /// </summary>
-    public bool ShowGroupHeaders
-    {
-        get => (bool)GetValue(ShowGroupHeadersProperty);
-        set => SetValue(ShowGroupHeadersProperty, value);
-    }
-
-    /// <summary>
-    /// Gets or sets the sorting direction used for grouping.
-    /// </summary>
-    public SortDirection GroupSortDirection
-    {
-        get => (SortDirection)GetValue(GroupSortDirectionProperty);
-        set => SetValue(GroupSortDirectionProperty, value);
-    }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether group headers show item counts.
-    /// </summary>
-    public bool ShowGroupItemCount
-    {
-        get => (bool)GetValue(ShowGroupItemCountProperty);
-        set => SetValue(ShowGroupItemCountProperty, value);
-    }
 
     /// <summary>
     /// Gets the collection of sort descriptions applied to the items.
@@ -1157,52 +1101,6 @@ public partial class TableView
             {
                 row.RowPresenter?.InvalidateArrange();
             }
-        }
-    }
-
-    /// <summary>
-    /// Handles changes to the GroupByPath property.
-    /// </summary>
-    private static void OnGroupByPathChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is TableView tableView)
-        {
-            tableView.EnsureGroupingSortDescription();
-            tableView.RebuildDisplayedItems();
-        }
-    }
-
-    /// <summary>
-    /// Handles changes to the ShowGroupHeaders property.
-    /// </summary>
-    private static void OnShowGroupHeadersChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is TableView tableView)
-        {
-            tableView.RebuildDisplayedItems();
-        }
-    }
-
-    /// <summary>
-    /// Handles changes to the GroupSortDirection property.
-    /// </summary>
-    private static void OnGroupSortDirectionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is TableView tableView)
-        {
-            tableView.EnsureGroupingSortDescription();
-            tableView.RebuildDisplayedItems();
-        }
-    }
-
-    /// <summary>
-    /// Handles changes to the ShowGroupItemCount property.
-    /// </summary>
-    private static void OnShowGroupItemCountChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is TableView tableView)
-        {
-            tableView.RebuildDisplayedItems();
         }
     }
 
