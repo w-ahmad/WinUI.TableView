@@ -5,15 +5,15 @@
       net9.0;
       net10.0;
     </TargetFrameworks>
-    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">
-      $(TargetFrameworks);
-      net8.0-windows10.0.19041.0;
-      net9.0-windows10.0.19041.0;
-      net10.0-windows10.0.19041.0;
-    </TargetFrameworks>
     <LangVersion>12</LangVersion>
     <Nullable>enable</Nullable> 
     <IsAOTCompatible>true</IsAOTCompatible>
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">
+      net8.0-windows10.0.19041.0;
+      net9.0-windows10.0.19041.0;
+      net10.0-windows10.0.19041.0;
+      $(TargetFrameworks);
+    </TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$([MSBuild]::GetTargetPlatformIdentifier($(TargetFramework)))' == 'windows'">
