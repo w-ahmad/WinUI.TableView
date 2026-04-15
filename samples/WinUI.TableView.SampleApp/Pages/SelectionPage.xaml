@@ -36,6 +36,10 @@
                                   OnContent="True"
                                   OffContent="False"
                                   IsOn="{Binding IsReadOnly, Mode=TwoWay, ElementName=tableView}" />
+                    <ToggleSwitch Header="TapToEdit"
+                                  OnContent="True"
+                                  OffContent="False"
+                                  IsOn="{Binding TapToEdit, Mode=TwoWay, ElementName=tableView}" />
                     <InfoBar IsOpen="True"
                              IsClosable="False"
                              Title="Selected Item">

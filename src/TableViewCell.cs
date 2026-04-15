@@ -226,20 +226,25 @@ public partial class TableViewCell : ContentControl
             if (e.Handled) return;
         }
 
+        if (TableView?.TapToEdit is true
+            && TableView.CurrentCellSlot == Slot
+            && !IsReadOnly
+            && !TableView.IsEditing
+            && Column?.UseSingleElement is not true)
+        {
+            if (TableView.SelectionUnit is TableViewSelectionUnit.Row)
+            {
+                MakeSelection();
+            }
+
+            e.Handled = await BeginCellEditing(e);
+            return;
+        }
+
         if (TableView?.CurrentCellSlot != Slot || TableView?.LastSelectionUnit is TableViewSelectionUnit.Row)
         {
             MakeSelection();
             e.Handled = true;
-        }
-        else if (TableView?.SelectionUnit is TableViewSelectionUnit.CellOrRow
-            && !IsReadOnly
-            && TableView is not null
-            && !TableView.IsEditing
-            && Column?.UseSingleElement is not true)
-        {
-            // Second tap on an already-selected cell in CellOrRow mode — start editing
-            // (like File Explorer's tap-pause-tap to rename).
-            e.Handled = await BeginCellEditing(e);
         }
     }
 
@@ -410,6 +415,11 @@ public partial class TableViewCell : ContentControl
             TableView.UpdateCornerButtonState();
         }
 
+        if (TableView?.SelectionUnit is TableViewSelectionUnit.Row or TableViewSelectionUnit.CellOrRow)
+        {
+            Row?.ApplyEditingHighlight(true);
+        }
+
         if (editingElement is { IsHitTestVisible: true })
         {
             _editingArgs = editingArgs;
@@ -456,6 +466,12 @@ public partial class TableViewCell : ContentControl
     internal void EndEditing(TableViewEditAction editAction)
     {
         Column?.EndCellEditing(this, Row?.Content, editAction, _uneditedValue);
+
+        if (TableView?.SelectionUnit is TableViewSelectionUnit.Row or TableViewSelectionUnit.CellOrRow)
+        {
+            Row?.ApplyEditingHighlight(false);
+        }
+
         SetElement();
     }
 

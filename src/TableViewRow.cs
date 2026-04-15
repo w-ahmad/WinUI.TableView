@@ -37,8 +37,6 @@ public partial class TableViewRow : ListViewItem
     private ListViewItemPresenter? _itemPresenter;
     private Border? _selectionBackground;
     private bool _ensureCells = true;
-    private bool _hasEditingHighlight;
-    private bool _isBeginningEdit;
     private Brush? _cellPresenterBackground;
     private Brush? _cellPresenterForeground;
 
@@ -179,7 +177,7 @@ public partial class TableViewRow : ListViewItem
     }
 
     /// <inheritdoc/>
-    protected override async void OnTapped(TappedRoutedEventArgs e)
+    protected override void OnTapped(TappedRoutedEventArgs e)
     {
         base.OnTapped(e);
 
@@ -188,47 +186,14 @@ public partial class TableViewRow : ListViewItem
             TableView.CurrentRowIndex = Index;
             TableView.LastSelectionUnit = TableViewSelectionUnit.Row;
         }
-
-        // When SelectionUnit is Row and the row is already selected, forward the
-        // tap to the target cell so editing can be initiated with a second tap
-        // (like File Explorer's tap-pause-tap to rename).
-        if (TableView?.SelectionUnit is TableViewSelectionUnit.Row
-            && IsSelected
-            && e.OriginalSource is DependencyObject source
-            && source.FindAscendant<TableViewCell>() is { IsReadOnly: false } cell
-            && !TableView.IsEditing
-            && !_isBeginningEdit
-            && cell.Column?.UseSingleElement is not true)
-        {
-            _isBeginningEdit = true;
-            TableView.MakeSelection(cell.Slot, false);
-            e.Handled = await cell.BeginCellEditing(e);
-            _isBeginningEdit = false;
-        }
     }
 
     /// <inheritdoc/>
-    protected override async void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
+    protected override void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
     {
         var eventArgs = new TableViewRowDoubleTappedEventArgs(Index, this, Content);
         TableView?.OnRowDoubleTapped(eventArgs);
         e.Handled = eventArgs.Handled;
-
-        if (e.Handled) { base.OnDoubleTapped(e); return; }
-
-        if (TableView?.SelectionUnit is TableViewSelectionUnit.Row
-            && e.OriginalSource is DependencyObject source
-            && source.FindAscendant<TableViewCell>() is { IsReadOnly: false } cell
-            && !TableView.IsEditing
-            && !_isBeginningEdit
-            && cell.Column?.UseSingleElement is not true)
-        {
-            _isBeginningEdit = true;
-            TableView.MakeSelection(cell.Slot, false);
-            e.Handled = await cell.BeginCellEditing(e);
-            _isBeginningEdit = false;
-            return;
-        }
 
         base.OnDoubleTapped(e);
     }
@@ -619,7 +584,7 @@ public partial class TableViewRow : ListViewItem
     /// </summary>
     internal void EnsureAlternateColors()
     {
-        if (TableView is null || RowPresenter is null || _hasEditingHighlight) return;
+        if (TableView is null || RowPresenter is null) return;
 
         RowPresenter.Background =
             Index % 2 == 1 && TableView.AlternateRowBackground is not null ? TableView.AlternateRowBackground : _cellPresenterBackground;
@@ -643,36 +608,7 @@ public partial class TableViewRow : ListViewItem
     /// </summary>
     internal void ApplyEditingHighlight(bool isEditing)
     {
-        _hasEditingHighlight = isEditing;
-        if (isEditing)
-        {
-#if WINDOWS
-            if (RowPresenter is not null && _itemPresenter?.PointerOverBackground is { } pointerOverBrush)
-            {
-                RowPresenter.Background = pointerOverBrush;
-            }
-#else
-            if (_selectionBackground is not null)
-            {
-                _selectionBackground.Opacity = 1;
-            }
-#endif
-        }
-        else
-        {
-#if WINDOWS
-            if (RowPresenter is not null)
-            {
-                RowPresenter.Background = _cellPresenterBackground;
-            }
-#else
-            if (_selectionBackground is not null)
-            {
-                _selectionBackground.Opacity = IsSelected ? 1 : 0;
-            }
-#endif
-            EnsureAlternateColors();
-        }
+        RowPresenter?.ApplyEditingHighlight(isEditing);
     }
 
     /// <summary>

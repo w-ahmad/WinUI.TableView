@@ -135,6 +135,11 @@
                             </Grid>
                         </Grid>
 
+                        <Border x:Name="EditingHighlightOverlay"
+                                IsHitTestVisible="False"
+                                Background="{ThemeResource TableViewRowEditingHighlightBackground}"
+                                Visibility="Collapsed" />
+
                         <Rectangle x:Name="HorizontalGridLine"
                                    Grid.Row="1"
                                    HorizontalAlignment="Stretch"
