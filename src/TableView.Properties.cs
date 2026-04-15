@@ -267,6 +267,11 @@ public partial class TableView
     public static readonly DependencyProperty ShowFilterItemsCountProperty = DependencyProperty.Register(nameof(ShowFilterItemsCount), typeof(bool), typeof(TableView), new PropertyMetadata(false));
 
     /// <summary>
+    /// Identifies the <see cref="ShowDragRectangle"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ShowDragRectangleProperty = DependencyProperty.Register(nameof(ShowDragRectangle), typeof(bool), typeof(TableView), new PropertyMetadata(false, OnShowDragRectangleChanged));
+
+    /// <summary>
     /// Gets or sets a value indicating whether opening the column filter over header right-click is enabled.
     /// </summary>
     public bool UseRightClickForColumnFilter
@@ -329,6 +334,15 @@ public partial class TableView
     {
         get => (bool)GetValue(ShowFilterItemsCountProperty);
         set => SetValue(ShowFilterItemsCountProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the drag selection rectangle is shown during cell drag selection.
+    /// </summary>
+    public bool ShowDragRectangle
+    {
+        get => (bool)GetValue(ShowDragRectangleProperty);
+        set => SetValue(ShowDragRectangleProperty, value);
     }
 
     /// <summary>
@@ -871,6 +885,23 @@ public partial class TableView
             {
                 tableView.CurrentCellSlot = null;
             }
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the ShowDragRectangle property.
+    /// </summary>
+    private static void OnShowDragRectangleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView && e.NewValue is false)
+        {
+            // Hide the rectangle visual but don't stop drag selection or auto-scroll
+            if (tableView._dragRectangle is not null)
+            {
+                tableView._dragRectangle.Visibility = Visibility.Collapsed;
+            }
+
+            tableView._dragStartPoint = null;
         }
     }
 

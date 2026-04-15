@@ -241,6 +241,14 @@ public partial class TableViewCell : ContentControl
             TableView.SelectionStartCellSlot = TableView.SelectionUnit is not TableViewSelectionUnit.Row || !IsReadOnly ? Slot : default; ;
             TableView.SelectionStartRowIndex = Index;
             CapturePointer(e.Pointer);
+
+            // Start drag selection (auto-scroll + optional rectangle visual)
+            var point = e.GetCurrentPoint(this).Position;
+            var canvasPoint = TransformPointToCanvas(point);
+            if (canvasPoint.HasValue)
+            {
+                TableView.StartDragSelection(canvasPoint.Value);
+            }
         }
     }
 
@@ -256,9 +264,18 @@ public partial class TableViewCell : ContentControl
             TableView.SelectionStartRowIndex = cell?.Slot.Row;
         }
 
+        TableView?.EndDragSelection();
         ReleasePointerCaptures();
 
         e.Handled = true;
+    }
+
+    /// <inheritdoc/>
+    protected override void OnPointerCaptureLost(PointerRoutedEventArgs e)
+    {
+        base.OnPointerCaptureLost(e);
+
+        TableView?.EndDragSelection();
     }
 
     /// <inheritdoc/>
@@ -268,6 +285,19 @@ public partial class TableViewCell : ContentControl
 
         if (PointerCaptures?.Any() is true)
         {
+            // Update drag rectangle visual and auto-scroll
+            if (TableView?._isDragSelecting is true)
+            {
+                var canvasPoint = TransformPointToCanvas(e.Position);
+                if (canvasPoint.HasValue)
+                {
+                    TableView.UpdateDragRectangleVisual(canvasPoint.Value);
+                }
+            }
+
+            // Selection via FindCell — same proven path whether rectangle is on or off.
+            // When the pointer is outside the viewport, FindCell returns null and selection
+            // is updated by the ViewChanged handler on the next auto-scroll tick.
             var cell = FindCell(e.Position);
 
             if (cell is not null && cell.Slot != TableView?.CurrentCellSlot)
@@ -306,6 +336,24 @@ public partial class TableViewCell : ContentControl
 #endif
                                .OfType<TableViewCell>()
                                .FirstOrDefault();
+    }
+
+    /// <summary>
+    /// Transforms a point relative to this cell to coordinates relative to the drag rectangle canvas.
+    /// </summary>
+    private Point? TransformPointToCanvas(Point position)
+    {
+        if (TableView?._dragRectangleCanvas is null) return null;
+
+        try
+        {
+            var transform = TransformToVisual(TableView._dragRectangleCanvas);
+            return transform.TransformPoint(position);
+        }
+        catch (ArgumentException)
+        {
+            return null;
+        }
     }
 
     /// <inheritdoc/>
@@ -490,12 +538,12 @@ public partial class TableViewCell : ContentControl
     /// <summary>
     /// Applies the current cell state to the cell.
     /// </summary>
-    internal async void ApplyCurrentCellState()
+    internal async void ApplyCurrentCellState(bool skipFocus = false)
     {
         var stateName = IsCurrent ? VisualStates.StateCurrent : VisualStates.StateRegular;
         VisualStates.GoToState(this, false, stateName);
 
-        if (IsCurrent)
+        if (IsCurrent && !skipFocus)
         {
             Focus(FocusState.Pointer);
 
