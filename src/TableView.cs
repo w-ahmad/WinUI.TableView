@@ -103,6 +103,11 @@ public partial class TableView : ListView
     {
         base.PrepareContainerForItemOverride(element, item);
 
+        if (element is TableViewRow { } recycledRow)
+        {
+            recycledRow.ApplyEditingHighlight(false);
+        }
+
         DispatcherQueue.TryEnqueue(() =>
         {
             if (element is TableViewRow row)
@@ -110,6 +115,13 @@ public partial class TableView : ListView
                 row.EnsureCellsStyle(default, item);
                 row.ApplyCellsSelectionState();
                 row.RowPresenter?.ApplyDetailsPaneState(item);
+
+                // Reset current cell border on all cells in recycled containers
+                // to clear stale "Current" visual state from previous use.
+                foreach (var cell in row.Cells)
+                {
+                    cell.ApplyCurrentCellState();
+                }
 
                 if (CurrentCellSlot.HasValue)
                 {
@@ -184,7 +196,7 @@ public partial class TableView : ListView
 
             do
             {
-                newSlot = GetNextSlot(newSlot, shiftKey, e.Key is VirtualKey.Enter);
+                newSlot = GetNextSlot(newSlot, shiftKey, e.Key is VirtualKey.Enter || (e.Key is VirtualKey.Tab && SelectionUnit is TableViewSelectionUnit.Row));
 
             } while (isEditing && Columns[newSlot.Column].IsReadOnly);
 
