@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 using System;
@@ -68,8 +69,7 @@ public partial class TableViewRowPresenter : Control
 
         if (_detailsToggleButton is not null)
         {
-            _detailsToggleButton.Checked += OnDetailsToggleButtonChecked;
-            _detailsToggleButton.Unchecked += OnDetailsToggleButtonUnChecked;
+            _detailsToggleButton.Tapped += OnDetailsToggleButtonTapped;
         }
 
         if (_detailsPanel is not null)
@@ -190,11 +190,8 @@ public partial class TableViewRowPresenter : Control
         }
         else if (mode is TableViewRowDetailsVisibilityMode.VisibleWhenSelected)
         {
-            if (_detailsToggleButton is not null)
-                _detailsToggleButton.IsChecked = TableViewRow?.IsSelected ?? false;
-            else
-                VisualStates.GoToState(this, false, (TableViewRow?.IsSelected ?? false) ? VisualStates.StateDetailsVisible : VisualStates.StateDetailsCollapsed);
-
+            var state = (TableViewRow?.IsSelected ?? false) ? VisualStates.StateDetailsVisible : VisualStates.StateDetailsCollapsed;
+            VisualStates.GoToState(this, false, state);
             VisualStates.GoToState(this, false, VisualStates.StateDetailsButtonCollapsed);
         }
         else if (mode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded)
@@ -209,19 +206,37 @@ public partial class TableViewRowPresenter : Control
     }
 
     /// <summary>
-    /// Handles the Checked event of the details toggle button.
+    /// Handles the Tapped event of the details toggle button.
     /// </summary>
-    private void OnDetailsToggleButtonChecked(object sender, RoutedEventArgs e)
+    private void OnDetailsToggleButtonTapped(object sender, TappedRoutedEventArgs e)
     {
-        VisualStates.GoToState(this, false, VisualStates.StateDetailsVisible);
+        ToggleDetailsPane(TableViewRow?.Content, _detailsToggleButton!.IsChecked ?? false);
     }
 
     /// <summary>
-    /// Handles the Unchecked event of the details toggle button.
+    /// Toggles the visibility of the details pane.
     /// </summary>
-    private void OnDetailsToggleButtonUnChecked(object sender, RoutedEventArgs e)
+    private void ToggleDetailsPane(object? content, bool isVisible)
     {
-        VisualStates.GoToState(this, false, VisualStates.StateDetailsCollapsed);
+        if (TableView is null || content is null) return;
+
+        TableView.DetailsPaneStates.AddOrUpdate(content, isVisible);
+        var state = isVisible ? VisualStates.StateDetailsVisible : VisualStates.StateDetailsCollapsed;
+        VisualStates.GoToState(this, false, state);
+    }
+
+    /// <summary>
+    /// Ensures that the details pane visibility is synchronized for the specified item when row.
+    /// </summary>
+    internal void ApplyDetailsPaneState(object? item)
+    {
+        if (TableView?.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded &&
+            _detailsToggleButton is not null && TableView is not null && item is not null)
+        {
+            var isChecked = TableView.DetailsPaneStates.TryGetValue(item, out var value) ? value.Value : false;
+            _detailsToggleButton!.IsChecked = isChecked;
+            ToggleDetailsPane(item, isChecked);
+        }
     }
 
     /// <summary>

@@ -4,10 +4,11 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
 
@@ -19,7 +20,7 @@ public partial class TableView
     /// <summary>
     /// Identifies the ItemsSource dependency property.
     /// </summary>
-    public static readonly new DependencyProperty ItemsSourceProperty = DependencyProperty.Register(nameof(ItemsSource), typeof(IList), typeof(TableView), new PropertyMetadata(null, OnItemsSourceChanged));
+    public static readonly new DependencyProperty ItemsSourceProperty = DependencyProperty.Register(nameof(ItemsSource), typeof(object), typeof(TableView), new PropertyMetadata(null, OnItemsSourceChanged));
 
     /// <summary>
     /// Identifies the SelectionMode dependency property.
@@ -263,7 +264,7 @@ public partial class TableView
     /// <summary>
     /// Identifies the <see cref="ShowFilterItemsCount"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty ShowFilterItemsCountProperty =  DependencyProperty.Register(nameof(ShowFilterItemsCount), typeof(bool), typeof(TableView), new PropertyMetadata(false));
+    public static readonly DependencyProperty ShowFilterItemsCountProperty = DependencyProperty.Register(nameof(ShowFilterItemsCount), typeof(bool), typeof(TableView), new PropertyMetadata(false));
 
     /// <summary>
     /// Gets or sets a value indicating whether opening the column filter over header right-click is enabled.
@@ -361,6 +362,11 @@ public partial class TableView
     internal bool IsEditing { get; private set; }
 
     /// <summary>
+    /// Gets the visibility states of details pane for each item.
+    /// </summary>
+    internal ConditionalWeakTable<object, TValue<bool>> DetailsPaneStates { get; } = [];
+
+    /// <summary>
     /// Gets or sets the filter handler for the TableView.
     /// </summary>
     public IColumnFilterHandler FilterHandler { get; set; }
@@ -437,9 +443,9 @@ public partial class TableView
     /// <summary>
     ///  Gets or sets an object source used to generate the content of the TableView.
     /// </summary>
-    public new IList? ItemsSource
+    public new object? ItemsSource
     {
-        get => (IList?)GetValue(ItemsSourceProperty);
+        get => GetValue(ItemsSourceProperty);
         set => SetValue(ItemsSourceProperty, value);
     }
 

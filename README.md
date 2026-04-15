@@ -8,7 +8,7 @@
 [![nuget](https://img.shields.io/nuget/v/WinUI.TableView)](https://www.nuget.org/packages/WinUI.TableView/)
 [![nuget](https://img.shields.io/nuget/dt/WinUI.TableView)](https://www.nuget.org/packages/WinUI.TableView/)
 
-### [Samples App](https://github.com/w-ahmad/WinUI.TableView.SampleApp)
+### [Samples App](https://github.com/w-ahmad/WinUI.TableView/tree/main/samples/WinUI.TableView.SampleApp)
 
 Explore the interactive `WinUI.TableView` samples with code snippets in a Samples App on Microsoft Store or Uno Platorm WASM:
 
@@ -24,7 +24,7 @@ Explore the interactive `WinUI.TableView` samples with code snippets in a Sample
 
 ####
 
-![WinUI TableView SampleApp](https://raw.githubusercontent.com/w-ahmad/WinUI.TableView.SampleApp/main/WinUI.TableView%20SampleApp.gif)
+![WinUI TableView SampleApp](https://raw.githubusercontent.com/w-ahmad/WinUI.TableView/main/samples/WinUI.TableView%20SampleApp.gif)
 
 ## Features
 
@@ -39,11 +39,19 @@ Explore the interactive `WinUI.TableView` samples with code snippets in a Sample
 - **Localization**: Support for multiple languages to enhance usability for global audiences.
 - **Alternate Row Colors**: Apply alternate row coloring for better readability and aesthetics.
 - **Cell & Row Context Flyout**: Provides context flyouts for cells and rows to allow quick actions.
+- **Row Detail Template**: Displays expandable additional content for each row using `RowDetailsTemplate`.
+- **Row Headers**: Adds header for each rows to display custom content using `RowHeaderTemplate`.
+- **Editing Events**: Provides events to control and respond to cell edit lifecycle actions.
+- **Column Clipboard Binding**: Enables custom clipboard copy behavior by binding column values for copy operations.
+- **Column Reordering**: Allows users to drag and rearrange columns at runtime.
+- **Frozen Columns**: Keeps specified number of columns fixed in place while horizontally scrolling.
+- **Compact Mode Support**: Reduces row height and padding for higher data density layouts. [Fluent Compact sizing](https://learn.microsoft.com/en-us/windows/apps/design/style/spacing#fluent-compact-sizing)
+- **Conditional Cell Styling**: Applies dynamic styles to rows or cells based on data-driven conditions.
 
 ## Uno Platform Support
 
-`WinUI.TableView` is compatible with the Uno Platform(WASM, Desktop), enabling you to use the control across multiple platforms.
-Try the [Uno WASM Sample App](https://github.com/w-ahmad/WinUI.TableView.SampleApp) here 👉 https://tableview.samples.w-ahmad.dev/
+`WinUI.TableView` is compatible with the Uno Platform, enabling you to use the control across multiple platforms.
+Try the [Uno WASM Sample App](https://github.com/w-ahmad/WinUI.TableView/tree/main/samples/WinUI.TableView.SampleApp.Uno) here 👉 https://tableview.samples.w-ahmad.dev/
 
 ## Getting Started
 

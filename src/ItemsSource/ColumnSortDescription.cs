@@ -22,7 +22,7 @@ internal class ColumnSortDescription : SortDescription
     public override object? GetPropertyValue(object? item)
     {
         // Use reflection-based property access when SortMemberPath is explicitly provided; otherwise, fall back to column cell content.
-        if (!string.IsNullOrEmpty(PropertyName))
+        if (!string.IsNullOrEmpty(Column.SortMemberPath))
         {
             return base.GetPropertyValue(item);
         }

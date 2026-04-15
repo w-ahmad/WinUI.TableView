@@ -1,0 +1,92 @@
+<Page x:Class="WinUI.TableView.SampleApp.Pages.LargeDataPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:tv="using:WinUI.TableView"
+      xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
+      xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
+      xmlns:ui="using:CommunityToolkit.WinUI"
+      xmlns:converters="using:WinUI.TableView.SampleApp.Converters"
+      mc:Ignorable="d"
+      Loaded="OnPageLoaded">
+
+    <Page.DataContext>
+        <local:TransactionsViewModel />
+    </Page.DataContext>
+
+    <Grid>
+        <controls:SamplePresenter Header="Displaying large dataset"
+                                  Description="Showcasing TableView with large dataset to demonstrate virtualization and performance (scrolling, sorting, filtering).">
+            <controls:SamplePresenter.Example>
+                <tv:TableView x:Name="tableView"
+                              IsReadOnly="True"
+                              AllowLiveShaping="False"
+                              AutoGenerateColumns="False"
+                              ItemsSource="{Binding TransacationsData}">
+                    <tv:TableView.Columns>
+                        <tv:TableViewNumberColumn Header="Id"
+                                                  Width="85"
+                                                  Binding="{Binding Id}" />
+                        <tv:TableViewDateColumn Header="Date"
+                                                Width="80"
+                                                Binding="{Binding Date}" />
+                        <tv:TableViewNumberColumn Header="Client Id"
+                                                  Width="90"
+                                                  Binding="{Binding ClientId}" />
+                        <tv:TableViewNumberColumn Header="Amount"
+                                                  Width="90"
+                                                  Binding="{Binding Amount}" />
+                        <tv:TableViewTextColumn Header="Use Chicp"
+                                                Width="150"
+                                                Binding="{Binding UseChip}" />
+                        <tv:TableViewNumberColumn Header="Merchant Id"
+                                                  Width="115"
+                                                  Binding="{Binding MerchantId}" />
+                        <tv:TableViewTextColumn Header="Merchant City"
+                                                Width="125"
+                                                Binding="{Binding MerchantCity}" />
+                        <tv:TableViewTextColumn Header="Merchant State"
+                                                Width="135"
+                                                Binding="{Binding MerchantState}" />
+                        <tv:TableViewTextColumn Header="Zip"
+                                                Width="70"
+                                                Binding="{Binding Zip}" />
+                        <tv:TableViewNumberColumn Header="Mcc"
+                                                  Width="65"
+                                                  Binding="{Binding Mcc}" />
+                        <tv:TableViewTextColumn Header="Errors"
+                                                Width="200"
+                                                Binding="{Binding Errors}" />
+                    </tv:TableView.Columns>
+                </tv:TableView>
+            </controls:SamplePresenter.Example>
+
+            <controls:SamplePresenter.Options>
+                <StackPanel Spacing="16">
+                    <Button Content="Set Items source"
+                            Click="OnSetItemsSourceCliced" />
+                    <TextBlock>
+                        <Run Text="Total items:" />
+                        <Run Text="{Binding TransacationsData.Count}" />
+                    </TextBlock>
+
+                    <TextBlock>
+                        <Run Text="Items in view:" />
+                        <Run Text="{Binding CollectionView.Count, ElementName=tableView}" />
+                    </TextBlock>
+                </StackPanel>
+            </controls:SamplePresenter.Options>
+
+            <controls:SamplePresenter.Xaml>
+                <x:String xml:space="preserve">
+&lt;tv:TableView x:Name="tableView"
+    IsReadOnly="True"
+    AllowLiveShaping="False"
+    ItemsSource="{Binding TransacationsData}">
+                </x:String>
+            </controls:SamplePresenter.Xaml>
+        </controls:SamplePresenter>
+    </Grid>
+</Page>

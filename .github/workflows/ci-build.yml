@@ -5,14 +5,16 @@ on:
     branches: main
     paths-ignore:
       - 'docs/**'
+      - 'samples/**'
   pull_request:
     branches: main
     paths-ignore:
       - 'docs/**'
+      - 'samples/**'
 
 jobs:
   build:
-    runs-on: windows-2022
+    runs-on: windows-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v4.1.4
@@ -26,8 +28,7 @@ jobs:
         dotnet-version: |
           8.0.x
           9.0.x
-          10.0.x
-    
+          10.0.100
     - name: Build
       run: |
         msbuild /restore `
@@ -36,7 +37,7 @@ jobs:
                 /p:Version=0.0.${{ github.run_number }}-dev
 
     - name: Setup VSTest
-      uses: darenm/Setup-VSTest@v1
+      uses: darenm/Setup-VSTest@v1.3
 
     - name: Build Tests
       run: |
@@ -56,6 +57,18 @@ jobs:
         name: NuGet Packages
         path: artifacts/NuGet/Release
 
+  publish:
+    needs: build
+    runs-on: windows-latest
+    environment: ci-nuget-publish
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: NuGet Packages
+        path: packages
+
     - name: Push to NuGet
       run: |
-        dotnet nuget push artifacts\NuGet\Release\*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
+        dotnet nuget push packages\*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
