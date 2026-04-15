@@ -59,7 +59,13 @@ public class SortDescription
     /// <returns>An integer that indicates the relative order of the objects being compared.</returns>
     public int Compare(object? x, object? y)
     {
-        return (Comparer ?? Comparer<object>.Default).Compare(x, y);
+        if (Comparer is not null)
+            return Comparer.Compare(x, y);
+
+        if (x is string string1 && y is string string2)
+            return Comparer<string>.Default.Compare(string1, string2);
+
+        return Comparer<object>.Default.Compare(x, y);
     }
 
     /// <summary>

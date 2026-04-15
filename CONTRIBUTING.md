@@ -36,6 +36,14 @@ Before creating a Pull Request, please start a Discussion or open an Issue to de
 
 ---
 
+## 🧪 Testing Dev Packages
+
+When you open a pull request, our CI pipeline automatically builds and publishes a dev package to NuGet.org after a successful build. This allows you to test your changes before they are merged.
+
+**Version Format:** `0.0.{buildnumber}-dev` (e.g., `0.0.1234-dev`)
+
+---
+
 ## 📝 Code Style
 
 - Follow the existing coding conventions and structure.
