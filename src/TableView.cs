@@ -15,6 +15,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
+using Windows.Foundation.Collections;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.System;
@@ -34,6 +35,7 @@ public partial class TableView : ListView
     private ScrollViewer? _scrollViewer;
     private RowDefinition? _headerRowDefinition;
     private bool _shouldThrowSelectionModeChangedException;
+    private bool _isUpdatingBaseItemsSource;
     private bool _ensureColumns = true;
     private readonly List<TableViewRow> _rows = [];
     private readonly CollectionView _collectionView = [];
@@ -48,7 +50,9 @@ public partial class TableView : ListView
         Columns = new TableViewColumnsCollection(this);
         FilterHandler = new ColumnFilterHandler(this);
 
-        base.ItemsSource = _collectionView;
+        _isUpdatingBaseItemsSource = true;
+        base.ItemsSource = _displayItems;
+        _isUpdatingBaseItemsSource = false;
         base.SelectionMode = SelectionMode;
 
         SetValue(ConditionalCellStylesProperty, new TableViewConditionalCellStylesCollection());
@@ -59,6 +63,7 @@ public partial class TableView : ListView
         Unloaded += OnUnloaded;
         SelectionChanged += TableView_SelectionChanged;
         _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
+        InitializeGrouping();
     }
 
     /// <summary>
@@ -403,6 +408,8 @@ public partial class TableView : ListView
             }
         }
 
+        nextRow = GetNextSelectableRowIndex(nextRow, isShiftKeyDown ? -1 : 1);
+
         return new TableViewCellSlot(nextRow, nextColumn);
     }
 
@@ -676,17 +683,27 @@ public partial class TableView : ListView
     /// </summary>
     private void ItemsSourceChanged(DependencyPropertyChangedEventArgs e)
     {
+        if (!ReferenceEquals(e.OldValue, e.NewValue))
+        {
+            _collapsedGroupKeys.Clear();
+        }
+
         DetailsPaneStates.Clear();
 
         using var defer = _collectionView.DeferRefresh();
+
+        EnsureGroupingSortDescription();
+        ClearGroupingState();
+
         _collectionView.Source = null!;
 
         if (e.NewValue is IEnumerable source)
         {
             EnsureAutoColumns();
-
             _collectionView.Source = source;
         }
+
+        RebuildDisplayedItems();
     }
 
     /// <summary>
@@ -967,6 +984,17 @@ public partial class TableView : ListView
             return;
         }
 
+        if (!IsSelectableItem(Items[slot.Row]))
+        {
+            var selectableRow = GetNextSelectableRowIndex(slot.Row, 1);
+            if (selectableRow < 0)
+            {
+                return;
+            }
+
+            slot = new TableViewCellSlot(selectableRow, slot.Column);
+        }
+
         if (SelectionMode != ListViewSelectionMode.None)
         {
             ctrlKey = ctrlKey || SelectionMode is ListViewSelectionMode.Multiple;
@@ -1243,10 +1271,19 @@ public partial class TableView : ListView
     /// <param name="index">The index of the row to scroll into view.</param>
     public async Task<TableViewRow?> ScrollRowIntoView(int index)
     {
-        if (_scrollViewer is null || index < 0) return default!;
+        if (_scrollViewer is null || index < 0 || index >= Items.Count)
+        {
+            return default!;
+        }
 
         var item = Items[index];
         index = Items.IndexOf(item); // if the ItemsSource has duplicate items in it. ScrollIntoView will only bring first index of the item.
+
+        if (index < 0 || index >= Items.Count)
+        {
+            return default!;
+        }
+
         ScrollIntoView(item);
 
         var tries = 0;

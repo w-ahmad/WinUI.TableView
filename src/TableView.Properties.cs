@@ -1109,6 +1109,11 @@ public partial class TableView
     /// </summary>
     private void OnBaseItemsSourceChanged(DependencyObject sender, DependencyProperty dp)
     {
+        if (_isUpdatingBaseItemsSource)
+        {
+            return;
+        }
+
         throw new InvalidOperationException("Setting this property directly is not allowed. Use TableView.ItemsSource instead.");
     }
 
