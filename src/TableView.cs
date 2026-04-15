@@ -41,11 +41,12 @@ public partial class TableView : ListView
     internal Canvas? _dragRectangleCanvas;
     private Border? _dragRectangle;
     private Point? _dragStartPoint;
-    internal bool _isDragging;
+    internal bool _isDragSelecting;
     private bool _cellSelectionDirty;
     private Point? _lastDragCanvasPoint;
     private DispatcherTimer? _autoScrollTimer;
-    private double _autoScrollDelta;
+    private double _autoScrollVerticalDelta;
+    private double _autoScrollHorizontalDelta;
     private double _dragStartVerticalOffset;
     private double _dragStartHorizontalOffset;
 
@@ -347,7 +348,7 @@ public partial class TableView : ListView
     /// </summary>
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
-        EndDragRectangle();
+        EndDragSelection();
         StopAutoScroll();
 
         if (IsEditing && CurrentCellSlot.HasValue && GetCellFromSlot(CurrentCellSlot.Value) is { } currentCell)
@@ -1165,7 +1166,7 @@ public partial class TableView : ListView
         {
             // During drag selection, skip expensive scroll-into-view and focus operations.
             // The drag rectangle handles visual feedback, and focus is restored when dragging ends.
-            if (_isDragging)
+            if (_isDragSelecting)
             {
                 var cell = GetCellFromSlot(newSlot.Value);
                 cell?.ApplyCurrentCellState(skipFocus: true);
@@ -1223,55 +1224,65 @@ public partial class TableView : ListView
     }
 
     /// <summary>
-    /// Starts showing the drag selection rectangle at the specified position.
+    /// Starts drag selection tracking, auto-scroll, and optionally the drag rectangle visual.
     /// </summary>
     /// <param name="startPoint">The starting point relative to the drag rectangle canvas.</param>
-    internal void StartDragRectangle(Point startPoint)
+    internal void StartDragSelection(Point startPoint)
     {
-        if (!ShowDragRectangle || _dragRectangleCanvas is null || _dragRectangle is null ||
-            SelectionMode is not (ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended))
+        if (SelectionMode is not (ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended))
         {
             return;
         }
 
         // Guard against re-entry (e.g., multi-touch) to prevent double ViewChanged subscription
-        if (_isDragging)
+        if (_isDragSelecting)
         {
-            EndDragRectangle();
+            EndDragSelection();
         }
 
-        _dragStartPoint = startPoint;
-        _isDragging = true;
+        _isDragSelecting = true;
         _lastDragCanvasPoint = startPoint;
         _dragStartVerticalOffset = _scrollViewer?.VerticalOffset ?? 0;
         _dragStartHorizontalOffset = HorizontalOffset;
-
-        Canvas.SetLeft(_dragRectangle, startPoint.X);
-        Canvas.SetTop(_dragRectangle, startPoint.Y);
-        _dragRectangle.Width = 0;
-        _dragRectangle.Height = 0;
-
-        _dragRectangleCanvas.Visibility = Visibility.Visible;
 
         if (_scrollViewer is not null)
         {
             _scrollViewer.ViewChanged += OnScrollViewerViewChangedDuringDrag;
         }
+
+        // Show the drag rectangle visual if enabled and template parts are available
+        if (ShowDragRectangle && _dragRectangleCanvas is not null && _dragRectangle is not null)
+        {
+            _dragStartPoint = startPoint;
+
+            Canvas.SetLeft(_dragRectangle, startPoint.X);
+            Canvas.SetTop(_dragRectangle, startPoint.Y);
+            _dragRectangle.Width = 0;
+            _dragRectangle.Height = 0;
+
+            _dragRectangle.Visibility = Visibility.Visible;
+        }
     }
 
     /// <summary>
-    /// Updates the drag rectangle visual and auto-scroll. Selection is handled separately via FindCell+MakeSelection.
+    /// Updates the drag visual and auto-scroll during drag selection.
     /// </summary>
     /// <param name="currentPoint">The current pointer position relative to the drag rectangle canvas.</param>
     internal void UpdateDragRectangleVisual(Point currentPoint)
     {
-        if (!_isDragging || _dragStartPoint is null || _dragRectangleCanvas is null || _dragRectangle is null)
+        if (!_isDragSelecting)
         {
             return;
         }
 
         _lastDragCanvasPoint = currentPoint;
-        PositionDragRectangle(currentPoint);
+
+        // Update the rectangle visual if it's active
+        if (_dragStartPoint is not null && _dragRectangleCanvas is not null && _dragRectangle is not null)
+        {
+            PositionDragRectangle(currentPoint);
+        }
+
         UpdateAutoScroll(currentPoint);
     }
 
@@ -1309,40 +1320,42 @@ public partial class TableView : ListView
     /// </summary>
     private void UpdateAutoScroll(Point canvasPoint)
     {
-        if (_scrollViewer is null || _dragRectangleCanvas is null) return;
+        if (_scrollViewer is null) return;
 
         const double edgeThreshold = 40;
         const double maxScrollSpeed = 20;
-        var canvasHeight = _dragRectangleCanvas.ActualHeight;
-        double scrollDelta = 0;
 
-        if (canvasPoint.Y > canvasHeight - edgeThreshold)
+        var viewportHeight = _scrollViewer.ViewportHeight;
+        var viewportWidth = _scrollViewer.ViewportWidth;
+        double vDelta = 0;
+        double hDelta = 0;
+
+        if (canvasPoint.Y > viewportHeight - edgeThreshold)
         {
-            var proximity = Math.Min(1.0, (canvasPoint.Y - (canvasHeight - edgeThreshold)) / edgeThreshold);
-            scrollDelta = proximity * maxScrollSpeed;
+            var proximity = Math.Min(1.0, (canvasPoint.Y - (viewportHeight - edgeThreshold)) / edgeThreshold);
+            vDelta = proximity * maxScrollSpeed;
         }
         else if (canvasPoint.Y < edgeThreshold)
         {
             var proximity = Math.Min(1.0, (edgeThreshold - canvasPoint.Y) / edgeThreshold);
-            scrollDelta = -(proximity * maxScrollSpeed);
+            vDelta = -(proximity * maxScrollSpeed);
         }
 
-        if (canvasPoint.X > _dragRectangleCanvas.ActualWidth - edgeThreshold)
+        if (canvasPoint.X > viewportWidth - edgeThreshold)
         {
-            var proximity = Math.Min(1.0, (canvasPoint.X - (_dragRectangleCanvas.ActualWidth - edgeThreshold)) / edgeThreshold);
-            var hDelta = proximity * maxScrollSpeed;
-            SetValue(HorizontalOffsetProperty, Math.Clamp(HorizontalOffset + hDelta, 0, _scrollViewer.ScrollableWidth));
+            var proximity = Math.Min(1.0, (canvasPoint.X - (viewportWidth - edgeThreshold)) / edgeThreshold);
+            hDelta = proximity * maxScrollSpeed;
         }
         else if (canvasPoint.X < edgeThreshold)
         {
             var proximity = Math.Min(1.0, (edgeThreshold - canvasPoint.X) / edgeThreshold);
-            var hDelta = -(proximity * maxScrollSpeed);
-            SetValue(HorizontalOffsetProperty, Math.Clamp(HorizontalOffset + hDelta, 0, _scrollViewer.ScrollableWidth));
+            hDelta = -(proximity * maxScrollSpeed);
         }
 
-        if (Math.Abs(scrollDelta) > 0.5)
+        if (Math.Abs(vDelta) > 0.5 || Math.Abs(hDelta) > 0.5)
         {
-            _autoScrollDelta = scrollDelta;
+            _autoScrollVerticalDelta = vDelta;
+            _autoScrollHorizontalDelta = hDelta;
             if (_autoScrollTimer is null)
             {
                 _autoScrollTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
@@ -1362,24 +1375,62 @@ public partial class TableView : ListView
     /// </summary>
     private void OnAutoScrollTimerTick(object? sender, object e)
     {
-        if (!_isDragging || _scrollViewer is null)
+        if (!_isDragSelecting || _scrollViewer is null)
         {
             StopAutoScroll();
             return;
         }
 
-        var newOffset = Math.Clamp(
-            _scrollViewer.VerticalOffset + _autoScrollDelta,
-            0,
-            _scrollViewer.ScrollableHeight);
+        var scrolled = false;
 
-        if (Math.Abs(newOffset - _scrollViewer.VerticalOffset) < 0.5)
+        // Vertical auto-scroll via ChangeView
+        if (Math.Abs(_autoScrollVerticalDelta) > 0.5)
+        {
+            var newOffset = Math.Clamp(
+                _scrollViewer.VerticalOffset + _autoScrollVerticalDelta,
+                0,
+                _scrollViewer.ScrollableHeight);
+
+            if (Math.Abs(newOffset - _scrollViewer.VerticalOffset) >= 0.5)
+            {
+                _scrollViewer.ChangeView(null, newOffset, null, true);
+                scrolled = true;
+            }
+        }
+
+        // Horizontal auto-scroll via HorizontalOffset DP
+        if (Math.Abs(_autoScrollHorizontalDelta) > 0.5)
+        {
+            var newOffset = Math.Clamp(
+                HorizontalOffset + _autoScrollHorizontalDelta,
+                0,
+                _scrollViewer.ScrollableWidth);
+
+            if (Math.Abs(newOffset - HorizontalOffset) >= 0.5)
+            {
+                SetValue(HorizontalOffsetProperty, newOffset);
+                scrolled = true;
+            }
+        }
+
+        if (!scrolled)
         {
             StopAutoScroll();
             return;
         }
 
-        _scrollViewer.ChangeView(null, newOffset, null, true);
+        // Horizontal scroll via HorizontalOffset DP does not fire ViewChanged,
+        // so reposition rectangle and update selection here.
+        // Vertical scroll fires ViewChanged which handles it via OnScrollViewerViewChangedDuringDrag.
+        if (Math.Abs(_autoScrollHorizontalDelta) > 0.5 && _lastDragCanvasPoint is not null)
+        {
+            if (_dragStartPoint is not null && _dragRectangleCanvas is not null && _dragRectangle is not null)
+            {
+                PositionDragRectangle(_lastDragCanvasPoint.Value);
+            }
+
+            SelectCellAtDragPoint();
+        }
     }
 
     /// <summary>
@@ -1387,7 +1438,12 @@ public partial class TableView : ListView
     /// </summary>
     private void StopAutoScroll()
     {
-        _autoScrollTimer?.Stop();
+        if (_autoScrollTimer is not null)
+        {
+            _autoScrollTimer.Stop();
+            _autoScrollTimer.Tick -= OnAutoScrollTimerTick;
+            _autoScrollTimer = null;
+        }
     }
 
     /// <summary>
@@ -1395,60 +1451,69 @@ public partial class TableView : ListView
     /// </summary>
     private void OnScrollViewerViewChangedDuringDrag(object? sender, ScrollViewerViewChangedEventArgs e)
     {
-        if (!_isDragging || _lastDragCanvasPoint is null) return;
+        if (!_isDragSelecting || _lastDragCanvasPoint is null) return;
 
-        // Reposition the rectangle using scroll-adjusted start point
-        PositionDragRectangle(_lastDragCanvasPoint.Value);
-
-        // Update selection for newly visible rows during auto-scroll or mouse-wheel scroll
-        var cell = FindCellAtCanvasPoint(_lastDragCanvasPoint.Value);
-        if (cell is not null && cell.Slot != CurrentCellSlot)
+        // Reposition the rectangle using scroll-adjusted start point (if rectangle is active)
+        if (_dragStartPoint is not null && _dragRectangleCanvas is not null && _dragRectangle is not null)
         {
-            var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
-            MakeSelection(cell.Slot, true, ctrlKey);
+            PositionDragRectangle(_lastDragCanvasPoint.Value);
         }
+
+        // Update selection for newly visible rows during auto-scroll
+        SelectCellAtDragPoint();
     }
 
     /// <summary>
-    /// Finds the cell at the specified canvas point using visual tree hit-testing.
-    /// Clamps the point to the canvas bounds so that out-of-viewport positions
-    /// resolve to the nearest edge cell.
+    /// Selects the cell at the last known drag pointer position.
+    /// Used during auto-scroll to select newly visible cells when the pointer isn't moving.
     /// </summary>
-    private TableViewCell? FindCellAtCanvasPoint(Point canvasPoint)
+    private void SelectCellAtDragPoint()
     {
-        if (_dragRectangleCanvas is null || _scrollViewer is null) return null;
+        if (_scrollViewer is null || _lastDragCanvasPoint is null || _dragRectangleCanvas is null)
+        {
+            return;
+        }
 
-        // Clamp to canvas bounds so out-of-viewport positions find the edge cell
+        // Clamp to the cell area within the viewport.
+        // CellsHorizontalOffset accounts for row headers so we don't hit-test on header area.
+        var canvasPoint = _lastDragCanvasPoint.Value;
+        var minX = CellsHorizontalOffset + 1;
         var clampedPoint = new Point(
-            Math.Clamp(canvasPoint.X, 1, Math.Max(1, _dragRectangleCanvas.ActualWidth - 1)),
-            Math.Clamp(canvasPoint.Y, 1, Math.Max(1, _dragRectangleCanvas.ActualHeight - 1)));
+            Math.Clamp(canvasPoint.X, minX, Math.Max(minX, _scrollViewer.ViewportWidth - 1)),
+            Math.Clamp(canvasPoint.Y, 1, Math.Max(1, _scrollViewer.ViewportHeight - 1)));
 
         try
         {
             var screenPoint = _dragRectangleCanvas.TransformToVisual(null).TransformPoint(clampedPoint);
 #if WINDOWS
-            return VisualTreeHelper.FindElementsInHostCoordinates(screenPoint, _scrollViewer)
+            var cell = VisualTreeHelper.FindElementsInHostCoordinates(screenPoint, _scrollViewer)
 #else
-            return VisualTreeHelper.FindElementsInHostCoordinates(screenPoint, _scrollViewer, true)
-                                   .OfType<ContentPresenter>()
-                                   .Where(x => x.Name is "Content")
-                                   .Select(x => x.FindAscendant<TableViewCell>() is { } cell ? cell : default)
+            var cell = VisualTreeHelper.FindElementsInHostCoordinates(screenPoint, _scrollViewer, true)
+                                       .OfType<ContentPresenter>()
+                                       .Where(x => x.Name is "Content")
+                                       .Select(x => x.FindAscendant<TableViewCell>() is { } c ? c : default)
 #endif
-                                   .OfType<TableViewCell>()
-                                   .FirstOrDefault();
+                                       .OfType<TableViewCell>()
+                                       .FirstOrDefault();
+
+            if (cell is not null && cell.Slot != CurrentCellSlot)
+            {
+                var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
+                MakeSelection(cell.Slot, true, ctrlKey);
+            }
         }
         catch (ArgumentException)
         {
-            return null;
+            // Element not in visual tree during container recycling
         }
     }
 
     /// <summary>
-    /// Ends and hides the drag selection rectangle.
+    /// Ends drag selection tracking, auto-scroll, and hides the drag rectangle if visible.
     /// </summary>
-    internal async void EndDragRectangle()
+    internal async void EndDragSelection()
     {
-        if (!_isDragging) return;
+        if (!_isDragSelecting) return;
 
         StopAutoScroll();
 
@@ -1457,12 +1522,12 @@ public partial class TableView : ListView
             _scrollViewer.ViewChanged -= OnScrollViewerViewChangedDuringDrag;
         }
 
-        if (_dragRectangleCanvas is not null)
+        if (_dragRectangle is not null)
         {
-            _dragRectangleCanvas.Visibility = Visibility.Collapsed;
+            _dragRectangle.Visibility = Visibility.Collapsed;
         }
 
-        _isDragging = false;
+        _isDragSelecting = false;
         _dragStartPoint = null;
         _lastDragCanvasPoint = null;
 
@@ -1475,7 +1540,7 @@ public partial class TableView : ListView
                 cell?.ApplyCurrentCellState();
             }
         }
-        catch
+        catch (Exception)
         {
             // Focus restoration is best-effort after drag ends
         }

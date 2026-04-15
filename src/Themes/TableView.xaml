@@ -129,13 +129,13 @@
 
                             <Canvas x:Name="DragRectangleCanvas"
                                     Grid.Row="1"
-                                    IsHitTestVisible="False"
-                                    Visibility="Collapsed">
+                                    IsHitTestVisible="False">
                                 <Border x:Name="DragRectangle"
                                         Background="{ThemeResource TableViewDragRectangleFill}"
                                         BorderBrush="{ThemeResource TableViewDragRectangleStroke}"
                                         BorderThickness="1"
-                                        CornerRadius="{ThemeResource TableViewDragRectangleCornerRadius}" />
+                                        CornerRadius="{ThemeResource TableViewDragRectangleCornerRadius}"
+                                        Visibility="Collapsed" />
                             </Canvas>
                         </Grid>
                     </Border>

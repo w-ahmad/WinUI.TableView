@@ -242,15 +242,12 @@ public partial class TableViewCell : ContentControl
             TableView.SelectionStartRowIndex = Index;
             CapturePointer(e.Pointer);
 
-            // Only start drag rectangle when cell selection is possible
-            if (TableView.SelectionStartCellSlot.HasValue && TableView.SelectionStartCellSlot.Value.IsValid(TableView))
+            // Start drag selection (auto-scroll + optional rectangle visual)
+            var point = e.GetCurrentPoint(this).Position;
+            var canvasPoint = TransformPointToCanvas(point);
+            if (canvasPoint.HasValue)
             {
-                var point = e.GetCurrentPoint(this).Position;
-                var canvasPoint = TransformPointToCanvas(point);
-                if (canvasPoint.HasValue)
-                {
-                    TableView.StartDragRectangle(canvasPoint.Value);
-                }
+                TableView.StartDragSelection(canvasPoint.Value);
             }
         }
     }
@@ -267,7 +264,7 @@ public partial class TableViewCell : ContentControl
             TableView.SelectionStartRowIndex = cell?.Slot.Row;
         }
 
-        TableView?.EndDragRectangle();
+        TableView?.EndDragSelection();
         ReleasePointerCaptures();
 
         e.Handled = true;
@@ -278,7 +275,7 @@ public partial class TableViewCell : ContentControl
     {
         base.OnPointerCaptureLost(e);
 
-        TableView?.EndDragRectangle();
+        TableView?.EndDragSelection();
     }
 
     /// <inheritdoc/>
@@ -288,8 +285,8 @@ public partial class TableViewCell : ContentControl
 
         if (PointerCaptures?.Any() is true)
         {
-            // Update drag rectangle visual and auto-scroll (cheap — just Canvas property sets + edge math)
-            if (TableView?._isDragging is true)
+            // Update drag rectangle visual and auto-scroll
+            if (TableView?._isDragSelecting is true)
             {
                 var canvasPoint = TransformPointToCanvas(e.Position);
                 if (canvasPoint.HasValue)
