@@ -41,7 +41,9 @@ public class ColumnFilterHandler : IColumnFilterHandler
                     }));
             }
 
-            collectionView.Source = (column.TableView.ItemsSource as IEnumerable) ?? Enumerable.Empty<object>();
+            collectionView.Source = (_tableView.IsHierarchicalEnabled
+                ? (IEnumerable)_tableView.GetAllHierarchyItemsFlat().ToList()
+                : column.TableView.ItemsSource as IEnumerable) ?? Enumerable.Empty<object>();
 
             var items = _tableView.ShowFilterItemsCount ?
                         GetFilterItemsWithCount(column, searchText, collectionView) :

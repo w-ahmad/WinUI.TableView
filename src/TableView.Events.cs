@@ -271,4 +271,30 @@ partial class TableView
     {
         ColumnReordered?.Invoke(this, args);
     }
+
+    /// <summary>
+    /// Occurs when a row is expanded in hierarchical mode.
+    /// </summary>
+    public event EventHandler<TableViewRowExpansionChangedEventArgs>? RowExpanded;
+
+    /// <summary>
+    /// Occurs when a row is collapsed in hierarchical mode.
+    /// </summary>
+    public event EventHandler<TableViewRowExpansionChangedEventArgs>? RowCollapsed;
+
+    /// <summary>
+    /// Called when a row is expanded.
+    /// </summary>
+    protected internal virtual void OnRowExpanded(TableViewRowExpansionChangedEventArgs args)
+    {
+        RowExpanded?.Invoke(this, args);
+    }
+
+    /// <summary>
+    /// Called when a row is collapsed.
+    /// </summary>
+    protected internal virtual void OnRowCollapsed(TableViewRowExpansionChangedEventArgs args)
+    {
+        RowCollapsed?.Invoke(this, args);
+    }
 }
