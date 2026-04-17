@@ -10,6 +10,7 @@
       <Deploy />
     </Project>
   </Folder>
+  <Project Path="generators/WinUI.TableView.SourceGenerators.csproj" />
   <Project Path="src/WinUI.TableView.csproj" />
   <Project Path="tests/WinUI.TableView.Tests.csproj">
     <Platform Project="x64" />

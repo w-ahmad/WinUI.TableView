@@ -1,3 +1,4 @@
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -13,6 +14,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
 using Windows.Storage;
@@ -99,7 +101,7 @@ public partial class TableView : ListView
     }
 
     /// <inheritdoc/>
-    protected override void PrepareContainerForItemOverride(DependencyObject element, object item)
+    protected override void PrepareContainerForItemOverride(DependencyObject element, object? item)
     {
         base.PrepareContainerForItemOverride(element, item);
 
@@ -107,6 +109,7 @@ public partial class TableView : ListView
         {
             if (element is TableViewRow row)
             {
+                row.EnsureCells(item);
                 row.EnsureCellsStyle(default, item);
                 row.ApplyCellsSelectionState();
                 row.RowPresenter?.ApplyDetailsPaneState(item);
@@ -232,6 +235,12 @@ public partial class TableView : ListView
         }
     }
 
+    /// <summary>
+    /// Ends cell editing by raising ending/ended events and applying the requested edit action.
+    /// </summary>
+    /// <param name="editAction">The action to apply when ending edit mode.</param>
+    /// <param name="cell">The cell currently being edited.</param>
+    /// <returns><see langword="true"/> if editing ended; otherwise <see langword="false"/> when canceled by event handlers.</returns>
     internal bool EndCellEditing(TableViewEditAction editAction, TableViewCell cell)
     {
         var editingElement = cell.Content as FrameworkElement;
@@ -292,6 +301,12 @@ public partial class TableView : ListView
         }
 
         SetHeadersVisibility();
+
+        if (MemberValueProvider is null)
+        {
+            // Connect this TableView instance to avoid re-connecting unrelated TableViews.
+            this.FindAscendant<ITableViewConnector>()?.ConnectTableView(this); 
+        }
     }
 
     /// <summary>
@@ -1413,7 +1428,7 @@ public partial class TableView : ListView
     {
         foreach (var row in _rows)
         {
-            row.EnsureCells();
+            row.EnsureCells(row?.Content);
         }
     }
 #endif
@@ -1493,6 +1508,10 @@ public partial class TableView : ListView
         });
     }
 
+    /// <summary>
+    /// Updates the internal editing state and refreshes dependent visual states.
+    /// </summary>
+    /// <param name="value">The new editing-state value.</param>
     internal void SetIsEditing(bool value)
     {
         if (IsEditing == value)

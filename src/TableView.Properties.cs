@@ -372,6 +372,11 @@ public partial class TableView
     public IColumnFilterHandler FilterHandler { get; set; }
 
     /// <summary>
+    /// Gets or sets the provider used to resolve values.
+    /// </summary>
+    public ICellValueProvider? MemberValueProvider { get; set; }
+
+    /// <summary>
     /// Gets a value indicating whether the TableView items are filtered.
     /// </summary>
     public bool IsFiltered => FilterDescriptions.Count > 0 || Columns.Any(x => x.IsFiltered) is true;
