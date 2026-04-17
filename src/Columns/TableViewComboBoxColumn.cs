@@ -29,19 +29,22 @@ public partial class TableViewComboBoxColumn : TableViewBoundColumn
         var textBlock = new TextBlock
         {
             Margin = new Thickness(12, 0, 12, 0),
+            Text = GetDisplayValue(dataItem)
         };
 
-        if (!string.IsNullOrEmpty(DisplayMemberPath))
+        return textBlock;
+    }
+
+    /// <inheritdoc/>
+    protected virtual string? GetDisplayValue(object? dataItem)
+    {
+        if (TableView?.MemberValueProvider is { } provider &&
+            provider.TryGetDisplayMemberValue(DisplayMemberPath, dataItem, out var value))
         {
-            textBlock.SetBinding(FrameworkElement.DataContextProperty, Binding);
-            textBlock.SetBinding(TextBlock.TextProperty, new Binding { Path = new PropertyPath(DisplayMemberPath) });
-        }
-        else
-        {
-            textBlock.SetBinding(TextBlock.TextProperty, Binding);
+            return value?.ToString();
         }
 
-        return textBlock;
+        return GetCellContent(dataItem)?.ToString();
     }
 
     /// <summary>
@@ -70,6 +73,15 @@ public partial class TableViewComboBoxColumn : TableViewBoundColumn
         }
 
         return comboBox;
+    }
+
+    /// <inheritdoc/>
+    public override void RefreshElement(TableViewCell cell, object? dataItem)
+    {
+        if (cell.Content is not TextBlock textBlock)
+            base.RefreshElement(cell, dataItem);
+        else
+            textBlock.Text = GetDisplayValue(dataItem);
     }
 
     /// <inheritdoc/>

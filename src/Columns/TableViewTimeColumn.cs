@@ -40,7 +40,7 @@ public partial class TableViewTimeColumn : TableViewBoundColumn
             Margin = new Thickness(12, 0, 12, 0),
         };
 
-        textBlock.SetBinding(DateTimeFormatHelper.ValueProperty, Binding);
+        DateTimeFormatHelper.SetValue(textBlock, GetCellContent(dataItem));
         textBlock.SetBinding(DateTimeFormatHelper.FormatProperty, new Binding
         {
             Path = new PropertyPath(nameof(ClockIdentifier)),
@@ -71,6 +71,15 @@ public partial class TableViewTimeColumn : TableViewBoundColumn
         timePicker.SetBinding(TableViewTimePicker.SelectedTimeProperty, Binding);
 
         return timePicker;
+    }
+
+    /// <inheritdoc/>
+    public override void RefreshElement(TableViewCell cell, object? dataItem)
+    {
+        if (cell.Content is not TextBlock textBlock)
+            base.RefreshElement(cell, dataItem);
+        else
+            DateTimeFormatHelper.SetValue(textBlock, GetCellContent(dataItem));
     }
 
     /// <inheritdoc/>
@@ -167,6 +176,4 @@ public partial class TableViewTimeColumn : TableViewBoundColumn
     /// Identifies the PlaceholderText dependency property.
     /// </summary>
     public static readonly DependencyProperty PlaceholderTextProperty = DependencyProperty.Register(nameof(PlaceholderText), typeof(string), typeof(TableViewTimeColumn), new PropertyMetadata(null));
-
-
 }

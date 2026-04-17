@@ -24,8 +24,9 @@ public partial class TableViewTextColumn : TableViewBoundColumn
         var textBlock = new TextBlock
         {
             Margin = new Thickness(12, 0, 12, 0),
+            Text = GetCellContent(dataItem)?.ToString()
         };
-        textBlock.SetBinding(TextBlock.TextProperty, Binding);
+
         return textBlock;
     }
 
@@ -37,12 +38,20 @@ public partial class TableViewTextColumn : TableViewBoundColumn
     /// <returns>A TextBox element.</returns>
     public override FrameworkElement GenerateEditingElement(TableViewCell cell, object? dataItem)
     {
-        var textBox = new TextBox();
-        textBox.SetBinding(TextBox.TextProperty, Binding);
+        var textBox = new TextBox { Text = GetCellContent(dataItem)?.ToString() };
 #if !WINDOWS
         textBox.DataContext = dataItem;
 #endif
         return textBox;
+    }
+
+    /// <inheritdoc/>
+    public override void RefreshElement(TableViewCell cell, object? dataItem)
+    {
+        if (cell.Content is not TextBlock textBlock)
+            base.RefreshElement(cell, dataItem);
+        else
+            textBlock.Text = GetCellContent(dataItem)?.ToString();
     }
 
     /// <inheritdoc/>

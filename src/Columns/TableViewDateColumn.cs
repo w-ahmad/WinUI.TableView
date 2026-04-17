@@ -19,6 +19,8 @@ namespace WinUI.TableView;
 #endif
 public partial class TableViewDateColumn : TableViewBoundColumn
 {
+    public const string DefaultDateFormat = "shortdate";
+
     /// <summary>
     /// Generates a TextBlock element for the cell.
     /// </summary>
@@ -31,13 +33,8 @@ public partial class TableViewDateColumn : TableViewBoundColumn
         {
             Margin = new Thickness(12, 0, 12, 0),
         };
-
-        textBlock.SetBinding(DateTimeFormatHelper.ValueProperty, Binding);
-        textBlock.SetBinding(DateTimeFormatHelper.FormatProperty, new Binding
-        {
-            Path = new PropertyPath(nameof(DateFormat)),
-            Source = this
-        });
+        DateTimeFormatHelper.SetValue(textBlock, GetCellContent(dataItem));
+        DateTimeFormatHelper.SetFormat(textBlock, DateFormat ?? DefaultDateFormat);
 
         return textBlock;
     }
@@ -68,6 +65,15 @@ public partial class TableViewDateColumn : TableViewBoundColumn
         timePicker.SetBinding(TableViewDatePicker.SelectedDateProperty, Binding);
 
         return timePicker;
+    }
+
+    /// <inheritdoc/>
+    public override void RefreshElement(TableViewCell cell, object? dataItem)
+    {
+        if (cell.Content is not TextBlock textBlock)
+            base.RefreshElement(cell, dataItem);
+        else
+            DateTimeFormatHelper.SetValue(textBlock, GetCellContent(dataItem));
     }
 
     /// <inheritdoc/>
@@ -247,5 +253,5 @@ public partial class TableViewDateColumn : TableViewBoundColumn
     /// <summary>
     /// Identifies the DateFormat dependency property.
     /// </summary>
-    public static readonly DependencyProperty DateFormatProperty = DependencyProperty.Register(nameof(DateFormat), typeof(string), typeof(TableViewDateColumn), new PropertyMetadata("shortdate"));
+    public static readonly DependencyProperty DateFormatProperty = DependencyProperty.Register(nameof(DateFormat), typeof(string), typeof(TableViewDateColumn), new PropertyMetadata(DefaultDateFormat));
 }

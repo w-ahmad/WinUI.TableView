@@ -118,7 +118,7 @@ internal static class DateTimeFormatHelper
     /// <summary>
     /// Gets the value of the Value attached property.
     /// </summary>
-    public static object GetValue(DependencyObject obj)
+    public static object? GetValue(DependencyObject obj)
     {
         return obj.GetValue(ValueProperty);
     }
@@ -126,7 +126,7 @@ internal static class DateTimeFormatHelper
     /// <summary>
     /// Sets the value of the Value attached property.
     /// </summary>
-    public static void SetValue(DependencyObject obj, object value)
+    public static void SetValue(DependencyObject obj, object? value)
     {
         obj.SetValue(ValueProperty, value);
     }

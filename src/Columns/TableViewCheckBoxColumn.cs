@@ -37,9 +37,9 @@ public partial class TableViewCheckBoxColumn : TableViewBoundColumn
             Margin = new Thickness(12, 0, 12, 0),
             HorizontalAlignment = HorizontalAlignment.Center,
             UseSystemFocusVisuals = false,
+            IsChecked = GetCellContent(dataItem) as bool?
         };
 
-        checkBox.SetBinding(ToggleButton.IsCheckedProperty, Binding);
         UpdateCheckBoxState(checkBox);
 
         return checkBox;
@@ -49,6 +49,15 @@ public partial class TableViewCheckBoxColumn : TableViewBoundColumn
     public override FrameworkElement GenerateEditingElement(TableViewCell cell, object? dataItem)
     {
         throw new NotImplementedException();
+    }
+
+    /// <inheritdoc/>
+    public override void RefreshElement(TableViewCell cell, object? dataItem)
+    {
+        if (cell.Content is not CheckBox checkBox)
+            base.RefreshElement(cell, dataItem);
+        else
+            checkBox.IsChecked = GetCellContent(dataItem) as bool?;
     }
 
     /// <inheritdoc/>

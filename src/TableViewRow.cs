@@ -134,18 +134,6 @@ public partial class TableViewRow : ListViewItem
     {
         base.OnContentChanged(oldContent, newContent);
 
-        if (_ensureCells)
-        {
-            EnsureCells();
-        }
-        else
-        {
-            foreach (var cell in Cells)
-            {
-                cell.RefreshElement();
-            }
-        }
-
         RowPresenter?.InvalidateMeasure(); // The cells presenter does not measure every time.
         _tableView?.EnsureAlternateRowColors();
     }
@@ -214,12 +202,9 @@ public partial class TableViewRow : ListViewItem
     /// <summary>
     /// Ensures cells are created for the row.
     /// </summary>
-    internal void EnsureCells()
+    internal void EnsureCells(object? dataItem)
     {
-        if (TableView is null)
-        {
-            return;
-        }
+        if (TableView is null) return;
 
         if (RowPresenter is not null && _ensureCells)
         {
@@ -228,6 +213,14 @@ public partial class TableViewRow : ListViewItem
             AddCells(TableView.Columns.VisibleColumns);
             _ensureCells = false;
         }
+        else
+        {
+            foreach (var cell in Cells)
+            {
+                cell.RefreshElement(dataItem);
+            }
+        }
+
     }
 
     /// <summary>

@@ -179,7 +179,6 @@ public partial class TableViewCell : ContentControl
             }
             #endregion
         }
-
         return base.MeasureOverride(availableSize);
     }
 
@@ -473,9 +472,9 @@ public partial class TableViewCell : ContentControl
     /// <summary>
     /// Refreshes the element for the cell.
     /// </summary>
-    internal void RefreshElement()
+    internal void RefreshElement(object? dataItem)
     {
-        Column?.RefreshElement(this, Row?.Content);
+        Column?.RefreshElement(this, dataItem);
     }
 
     /// <summary>

@@ -4,6 +4,7 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using WinUI.TableView.Extensions;
+using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
 
@@ -18,6 +19,12 @@ public abstract class TableViewBoundColumn : TableViewColumn
     /// <inheritdoc/>
     public override object? GetCellContent(object? dataItem)
     {
+        if (TableView?.MemberValueProvider is { } provider &&
+           provider.TryGetBindingValue(PropertyPath, dataItem, out var value))
+        {
+            return BindingHelper.ApplyConverter(Binding, value);
+        }
+
         if (dataItem is null)
             return null;
 

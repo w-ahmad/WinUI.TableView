@@ -58,7 +58,7 @@ internal static class DependencyObjectExtensions
     /// <typeparam name="T">The type of ascendant to find.</typeparam>
     /// <param name="element">The element to start searching from.</param>
     /// <returns>The first matching ascendant, or <c>null</c> if none found.</returns>
-    internal static T? FindAscendant<T>(this DependencyObject element) where T : DependencyObject
+    internal static T? FindAscendant<T>(this DependencyObject element)
     {
         foreach (var ascendant in element.FindAscendants())
         {

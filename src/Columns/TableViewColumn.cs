@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Data;
 using System;
 using System.Collections.Generic;
 using WinUI.TableView.Extensions;
+using WinUI.TableView.Helpers;
 using SD = WinUI.TableView.SortDirection;
 
 namespace WinUI.TableView;
@@ -117,6 +118,12 @@ public abstract partial class TableViewColumn : DependencyObject
     /// <returns>The clipboard content of the cell.</returns>
     public virtual object? GetClipboardContent(object? dataItem)
     {
+        if (TableView?.MemberValueProvider is { } provider &&
+           provider.TryGetClipboardContentBindingValue(ClipboardContentBindingPropertyPath, dataItem, out var value))
+        {
+            return BindingHelper.ApplyConverter(ClipboardContentBinding, value);
+        }
+
         if (dataItem is null)
             return null;
 
