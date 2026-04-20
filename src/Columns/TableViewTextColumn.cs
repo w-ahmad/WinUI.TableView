@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
 
@@ -30,7 +31,7 @@ public partial class TableViewTextColumn : TableViewBoundColumn
     }
 
     /// <summary>
-    /// Generates a TextBox element for editing the cell.
+    /// Generates a TextBox element for editing the cell with ESC/Enter key support.
     /// </summary>
     /// <param name="cell">The cell for which the editing element is generated.</param>
     /// <param name="dataItem">The data item associated with the cell.</param>
@@ -38,10 +39,14 @@ public partial class TableViewTextColumn : TableViewBoundColumn
     public override FrameworkElement GenerateEditingElement(TableViewCell cell, object? dataItem)
     {
         var textBox = new TextBox();
-        textBox.SetBinding(TextBox.TextProperty, Binding);
+        
+        // Add ESC/Enter key handling
+        EditingHelper.AddKeyHandling(textBox, cell, dataItem, Binding.Path?.Path);
+
 #if !WINDOWS
         textBox.DataContext = dataItem;
 #endif
+        
         return textBox;
     }
 
