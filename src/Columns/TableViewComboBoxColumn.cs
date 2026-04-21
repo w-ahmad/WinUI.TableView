@@ -55,7 +55,13 @@ public partial class TableViewComboBoxColumn : TableViewBoundColumn
     /// <returns>A ComboBox element.</returns>
     public override FrameworkElement GenerateEditingElement(TableViewCell cell, object? dataItem)
     {
-        var comboBox = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch };
+        var comboBox = new ComboBox
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            SelectedValuePath = SelectedValuePath,
+            DisplayMemberPath = DisplayMemberPath,
+            Text = GetDisplayValue(dataItem),
+        };
         comboBox.SetBinding(ItemsControl.ItemsSourceProperty, new Binding { Source = this, Path = new PropertyPath(nameof(ItemsSource)) });
         comboBox.SetBinding(Selector.SelectedValuePathProperty, new Binding { Source = this, Path = new PropertyPath(nameof(SelectedValuePath)) });
         comboBox.SetBinding(ItemsControl.DisplayMemberPathProperty, new Binding { Source = this, Path = new PropertyPath(nameof(DisplayMemberPath)) });
@@ -85,14 +91,15 @@ public partial class TableViewComboBoxColumn : TableViewBoundColumn
     }
 
     /// <inheritdoc/>
-    protected internal override object? PrepareCellForEdit(TableViewCell cell, RoutedEventArgs routedEvent)
+    protected internal override object? PrepareCellForEdit(TableViewCell cell, object? dataItem, RoutedEventArgs routedEvent)
     {
         if (cell.Content is ComboBox comboBox)
         {
+
             return comboBox.SelectedItem;
         }
 
-        return base.PrepareCellForEdit(cell, routedEvent);
+        return base.PrepareCellForEdit(cell, dataItem, routedEvent);
     }
 
     /// <inheritdoc/>
@@ -102,8 +109,7 @@ public partial class TableViewComboBoxColumn : TableViewBoundColumn
         {
             if (editAction == TableViewEditAction.Commit)
             {
-                var bindingExpression = comboBox.GetBindingExpression(Selector.SelectedItemProperty);
-                bindingExpression?.UpdateSource();
+                TrySetBindingValue(dataItem, comboBox.SelectedItem);
             }
         }
     }

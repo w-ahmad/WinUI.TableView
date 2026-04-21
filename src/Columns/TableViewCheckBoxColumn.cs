@@ -70,14 +70,14 @@ public partial class TableViewCheckBoxColumn : TableViewBoundColumn
     }
 
     /// <inheritdoc/>
-    protected internal override object? PrepareCellForEdit(TableViewCell cell, RoutedEventArgs routedEvent)
+    protected internal override object? PrepareCellForEdit(TableViewCell cell, object? dataItem, RoutedEventArgs routedEvent)
     {
         if (cell.Content is CheckBox checkBox)
         {
             return checkBox.IsChecked;
         }
 
-        return base.PrepareCellForEdit(cell, routedEvent);
+        return base.PrepareCellForEdit(cell, dataItem, routedEvent);
     }
 
     /// <inheritdoc/>
@@ -87,8 +87,7 @@ public partial class TableViewCheckBoxColumn : TableViewBoundColumn
         {
             if (editAction == TableViewEditAction.Commit)
             {
-                var bindingExpression = checkBox.GetBindingExpression(CheckBox.IsCheckedProperty);
-                bindingExpression?.UpdateSource();
+                TrySetBindingValue(dataItem, checkBox.IsChecked);
             }
         }
     }

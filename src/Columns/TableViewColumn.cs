@@ -57,9 +57,10 @@ public abstract partial class TableViewColumn : DependencyObject
     /// Called to prepare the cell for editing.
     /// </summary>
     /// <param name="cell">The cell to prepare for editing.</param>
+    /// <param name="dataItem">The data item associated with the cell.</param>
     /// <param name="routedEvent">The routed event.</param>
     /// <returns>Should return the unedited cell value.</returns>
-    protected internal virtual object? PrepareCellForEdit(TableViewCell cell, RoutedEventArgs routedEvent)
+    protected internal virtual object? PrepareCellForEdit(TableViewCell cell, object? dataItem, RoutedEventArgs routedEvent)
     {
         return default;
     }
@@ -121,7 +122,7 @@ public abstract partial class TableViewColumn : DependencyObject
         if (TableView?.MemberValueProvider is { } provider &&
            provider.TryGetClipboardContentBindingValue(ClipboardContentBindingPropertyPath, dataItem, out var value))
         {
-            return BindingHelper.ApplyConverter(ClipboardContentBinding, value);
+            return BindingHelper.ConvertValue(ClipboardContentBinding, value);
         }
 
         if (dataItem is null)

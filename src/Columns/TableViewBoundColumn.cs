@@ -22,7 +22,7 @@ public abstract class TableViewBoundColumn : TableViewColumn
         if (TableView?.MemberValueProvider is { } provider &&
            provider.TryGetBindingValue(PropertyPath, dataItem, out var value))
         {
-            return BindingHelper.ApplyConverter(Binding, value);
+            return BindingHelper.ConvertValue(Binding, value);
         }
 
         if (dataItem is null)
@@ -44,6 +44,21 @@ public abstract class TableViewBoundColumn : TableViewColumn
         }
 
         return dataItem;
+    }
+
+    /// <summary>
+    /// Sets the value of the cell for the specified data item based on the column's binding.
+    /// </summary>
+    /// <param name="dataItem">The data item for which the value is being set.</param>
+    /// <param name="value">The value to set.</param>
+    public virtual void TrySetBindingValue(object? dataItem, object? value)
+    {
+        var convertedValue = BindingHelper.ConvertBackValue(Binding, value);
+
+        if (TableView?.MemberValueProvider is { } provider)
+        {
+            provider.TrySetBindingValue(PropertyPath, dataItem, convertedValue);
+        }
     }
 
     /// <summary>
@@ -69,6 +84,8 @@ public abstract class TableViewBoundColumn : TableViewColumn
                     {
                         value.UpdateSourceTrigger = UpdateSourceTrigger.Explicit;
                     }
+
+                    IsReadOnly = value.Mode == BindingMode.OneWay;
                 }
 
                 _binding = value!;

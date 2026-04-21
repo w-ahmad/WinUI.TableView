@@ -34,10 +34,9 @@ public partial class TableViewToggleSwitchColumn : TableViewBoundColumn
             OnContent = OnContent,
             OffContent = OffContent,
             UseSystemFocusVisuals = false,
-            Margin = new Thickness(12, 0, 12, 0)
+            Margin = new Thickness(12, 0, 12, 0),
+            IsOn = GetCellContent(dataItem) as bool? ?? false
         };
-
-        toggleSwitch.SetBinding(ToggleSwitch.IsOnProperty, Binding);
         UpdateToggleButtonState(toggleSwitch);
 
         return toggleSwitch;
@@ -59,14 +58,14 @@ public partial class TableViewToggleSwitchColumn : TableViewBoundColumn
     }
 
     /// <inheritdoc/>
-    protected internal override object? PrepareCellForEdit(TableViewCell cell, RoutedEventArgs routedEvent)
+    protected internal override object? PrepareCellForEdit(TableViewCell cell, object? dataItem, RoutedEventArgs routedEvent)
     {
         if (cell.Content is ToggleSwitch toggleSwitch)
         {
             return toggleSwitch.IsOn;
         }
 
-        return base.PrepareCellForEdit(cell, routedEvent);
+        return base.PrepareCellForEdit(cell, dataItem, routedEvent);
     }
 
     /// <inheritdoc/>
@@ -76,8 +75,7 @@ public partial class TableViewToggleSwitchColumn : TableViewBoundColumn
         {
             if (editAction == TableViewEditAction.Commit)
             {
-                var bindingExpression = toggleSwitch.GetBindingExpression(ToggleSwitch.IsOnProperty);
-                bindingExpression?.UpdateSource();
+                TrySetBindingValue(dataItem, toggleSwitch.IsOn);
             }
         }
     }

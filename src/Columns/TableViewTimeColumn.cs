@@ -41,11 +41,7 @@ public partial class TableViewTimeColumn : TableViewBoundColumn
         };
 
         DateTimeFormatHelper.SetValue(textBlock, GetCellContent(dataItem));
-        textBlock.SetBinding(DateTimeFormatHelper.FormatProperty, new Binding
-        {
-            Path = new PropertyPath(nameof(ClockIdentifier)),
-            Source = this
-        });
+        DateTimeFormatHelper.SetFormat(textBlock, ClockIdentifier);
 
         return textBlock;
     }
@@ -58,17 +54,24 @@ public partial class TableViewTimeColumn : TableViewBoundColumn
     /// <returns>A TableViewTimePicker element.</returns>
     public override FrameworkElement GenerateEditingElement(TableViewCell cell, object? dataItem)
     {
+        var time = GetCellContent(dataItem) switch
+        {
+            TimeOnly timeOnly => timeOnly.ToTimeSpan(),
+            TimeSpan timeSpan => timeSpan,
+            DateTime dateTime => dateTime.TimeOfDay,
+            DateTimeOffset dateTimeOffset => dateTimeOffset.TimeOfDay,
+            _ => default
+        };
+
         var timePicker = new TableViewTimePicker
         {
             ClockIdentifier = ClockIdentifier,
             MinuteIncrement = MinuteIncrement,
             PlaceholderText = PlaceholderText ?? TableViewLocalizedStrings.TimePickerPlaceholder,
-            SourceType = GetSourcePropertyType(dataItem),
             VerticalAlignment = VerticalAlignment.Stretch,
             HorizontalAlignment = HorizontalAlignment.Stretch,
+            SelectedTime = time
         };
-
-        timePicker.SetBinding(TableViewTimePicker.SelectedTimeProperty, Binding);
 
         return timePicker;
     }
@@ -83,14 +86,14 @@ public partial class TableViewTimeColumn : TableViewBoundColumn
     }
 
     /// <inheritdoc/>
-    protected internal override object? PrepareCellForEdit(TableViewCell cell, RoutedEventArgs routedEvent)
+    protected internal override object? PrepareCellForEdit(TableViewCell cell, object? dataItem, RoutedEventArgs routedEvent)
     {
         if (cell.Content is TableViewTimePicker timePicker)
         {
             return timePicker.SelectedTime;
         }
 
-        return base.PrepareCellForEdit(cell, routedEvent);
+        return base.PrepareCellForEdit(cell, dataItem, routedEvent);
     }
 
     /// <inheritdoc/>
@@ -100,8 +103,7 @@ public partial class TableViewTimeColumn : TableViewBoundColumn
         {
             if (editAction == TableViewEditAction.Commit)
             {
-                var bindingExpression = timePicker.GetBindingExpression(TimePicker.SelectedTimeProperty);
-                bindingExpression?.UpdateSource();
+                TrySetBindingValue(dataItem, timePicker.Time);
             }
         }
     }

@@ -1,5 +1,7 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System;
+using System.Globalization;
 using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView;
@@ -40,12 +42,14 @@ public partial class TableViewNumberColumn : TableViewBoundColumn
     /// <returns>A NumberBox element.</returns>
     public override FrameworkElement GenerateEditingElement(TableViewCell cell, object? dataItem)
     {
-        var numberBox = new NumberBox();
-        numberBox.SetBinding(NumberBox.ValueProperty, Binding);
-#if !WINDOWS
-        numberBox.DataContext = dataItem;
-#endif
-        return numberBox;
+        var value = GetCellContent(dataItem) switch
+        {
+            double d => d,
+            IConvertible c => c.ToDouble(CultureInfo.InvariantCulture),
+            _ => 0d
+        };
+
+        return new NumberBox { Value = value };
     }
 
     /// <inheritdoc/>
@@ -58,14 +62,14 @@ public partial class TableViewNumberColumn : TableViewBoundColumn
     }
 
     /// <inheritdoc/>
-    protected internal override object? PrepareCellForEdit(TableViewCell cell, RoutedEventArgs routedEvent)
+    protected internal override object? PrepareCellForEdit(TableViewCell cell, object? dataItem, RoutedEventArgs routedEvent)
     {
         if (cell.Content is NumberBox numberBox)
         {
             return numberBox.Value;
         }
 
-        return base.PrepareCellForEdit(cell, routedEvent);
+        return base.PrepareCellForEdit(cell, dataItem, routedEvent);
     }
 
     /// <inheritdoc/>
@@ -77,8 +81,7 @@ public partial class TableViewNumberColumn : TableViewBoundColumn
             {
                 numberBox.UpdateValue();
 
-                var bindingExpression = numberBox.GetBindingExpression(NumberBox.ValueProperty);
-                bindingExpression?.UpdateSource();
+                TrySetBindingValue(dataItem, numberBox.Value);
             }
         }
     }

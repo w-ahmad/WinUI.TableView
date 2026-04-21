@@ -8,120 +8,8 @@ using System.Text.RegularExpressions;
 namespace WinUI.TableView.SourceGenerators;
 
 [Generator]
-public sealed class TableViewBindingProviderGenerator : IIncrementalGenerator
+public sealed partial class TableViewBindingProviderGenerator : IIncrementalGenerator
 {
-    private static readonly DiagnosticDescriptor TableViewNameRequiredDescriptor =
-        new(
-            id: "TV0001",
-            title: "TableView requires a name for source generation",
-            messageFormat: "TableView in '{0}' must define x:Name or Name to enable generated code",
-            category: "WinUI.TableView.SourceGenerators",
-            defaultSeverity: DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
-
-    private static readonly DiagnosticDescriptor UnableToResolveItemsTypeDescriptor =
-        new(
-            id: "TV0002",
-            title: "Unable to resolve TableView item type",
-            messageFormat: "TableView in '{0}' uses x:Bind ItemsSource '{1}', but the item type could not be resolved to a typed generic collection",
-            category: "WinUI.TableView.SourceGenerators",
-            defaultSeverity: DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
-
-    private static readonly DiagnosticDescriptor WindowRequiresManualConnectDescriptor =
-        new(
-            id: "TV0003",
-            title: "Window containing TableView must call ConnectTableViews",
-            messageFormat: "Class '{0}' contains TableView in a Window. Call ConnectTableViews() in code-behind after InitializeComponent().",
-            category: "WinUI.TableView.SourceGenerators",
-            defaultSeverity: DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
-
-    private static readonly DiagnosticDescriptor UnableToResolveMemberPathDescriptor =
-        new(
-            id: "TV0004",
-            title: "Unable to resolve TableView member path",
-            messageFormat: "TableView in '{0}' could not resolve member path '{1}' for item type '{2}'",
-            category: "WinUI.TableView.SourceGenerators",
-            defaultSeverity: DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
-
-    private static readonly Regex XamlClassRegex =
-        new(
-            @"x:Class\s*=\s*[""'](?<className>[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*)[""']",
-            RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex TableViewTagRegex =
-        new(
-            @"<\s*(?:(?<prefix>[A-Za-z_][A-Za-z0-9_]*)\:)?TableView(?=\s|/|>)",
-            RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex XmlnsPrefixRegex =
-        new(
-            @"xmlns\:(?<prefix>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*[""']using:WinUI\.TableView(?:;[^""']*)?[""']",
-            RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex XmlnsDefaultRegex =
-        new(
-            @"xmlns\s*=\s*[""']using:WinUI\.TableView(?:;[^""']*)?[""']",
-            RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex TableViewNameRegex =
-        new(
-            @"(?:x:Name|Name)\s*=\s*[""'](?<name>[A-Za-z_][A-Za-z0-9_]*)[""']",
-            RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex ItemsSourceBindingRegex =
-        new(
-            @"ItemsSource\s*=\s*[""']\{(?<kind>x:Bind|Binding)\s*(?<body>[^}]*)\}[""']",
-            RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex SortMemberPathRegex =
-        new(
-            @"SortMemberPath\s*=\s*[""'](?<path>[^""']+)[""']",
-            RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex ClipboardBindingRegex =
-        new(
-            @"ClipboardContentBinding\s*=\s*[""']\{Binding\s*(?<body>[^}]*)\}[""']",
-            RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex ContentBindingRegex =
-        new(
-            @"(?<![A-Za-z0-9_])ContentBinding\s*=\s*[""']\{Binding\s*(?<body>[^}]*)\}[""']",
-            RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex DisplayMemberPathRegex =
-        new(
-            @"DisplayMemberPath\s*=\s*[""'](?<path>[^""']+)[""']",
-            RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-
-    private static readonly Regex CellBindingRegex =
-        new(
-            @"\bBinding\s*=\s*[""']\{Binding\s*(?<body>[^}]*)\}[""']",
-            RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex BindingPathTokenRegex =
-        new(
-            @"(?:^|,)\s*Path\s*=\s*(?<path>[^,\s]+)",
-            RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex NonSimpleBindingTokenRegex =
-        new(
-            @"(?:^|,)\s*(?:Source|RelativeSource|ElementName)\s*=",
-            RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex ColumnTagRegex =
-        new(
-            @"<\s*(?:(?<prefix>[A-Za-z_][A-Za-z0-9_]*)\:)?[A-Za-z_][A-Za-z0-9_]*Column\b(?<attrs>[^>]*)>",
-            RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex CSharpMemberPathRegex =
-        new(
-            @"^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*$",
-            RegexOptions.Compiled);
-
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var xamlFiles = context.AdditionalTextsProvider
@@ -172,7 +60,7 @@ public sealed class TableViewBindingProviderGenerator : IIncrementalGenerator
 
                     if (itemType is null) continue;
 
-                    var itemTypeDisplay = itemType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                    var itemTypeDisplay = GetGlobalTypeDisplay(itemType);
 
                     if (!string.IsNullOrWhiteSpace(tableView.ItemsSourceXBindPath)
                         && string.IsNullOrWhiteSpace(itemTypeDisplay))
@@ -290,6 +178,8 @@ public sealed class TableViewBindingProviderGenerator : IIncrementalGenerator
                     }
 
                     var bindingPathCases = ImmutableArray.CreateBuilder<GeneratedValueCase>();
+                    var bindingSetCases = ImmutableArray.CreateBuilder<GeneratedSetValueCase>();
+                    var usedBindingSetterMethodNames = new HashSet<string>(StringComparer.Ordinal);
                     foreach (var memberPath in bindingPathCandidates)
                     {
                         if (TryBuildValueAccessExpression(itemType, memberPath, out var accessExpression, out var memberType))
@@ -298,7 +188,35 @@ public sealed class TableViewBindingProviderGenerator : IIncrementalGenerator
                             bindingPathCases.Add(new GeneratedValueCase(
                                 memberPath,
                                 accessExpression,
-                                sourceInfo));
+                                sourceInfo,
+                                GetGlobalTypeDisplay(memberType)));
+
+                            if (!IsBindingPathSettable(tableView.ColumnDefinitions, memberPath))
+                            {
+                                continue;
+                            }
+
+                            var editorKind = GetBindingEditorKind(tableView.ColumnDefinitions, sourceInfo.ColumnStartLine);
+                            if (TryBuildSetValueCase(itemType, memberPath, sourceInfo, editorKind, out var setCase))
+                            {
+                                var localMethodName = GetUniqueIdentifier(setCase.LocalMethodName, usedBindingSetterMethodNames);
+                                bindingSetCases.Add(new GeneratedSetValueCase(
+                                    setCase.MemberPath,
+                                    localMethodName,
+                                    setCase.SourceInfo,
+                                    setCase.NavigationSegments,
+                                    setCase.LeafMemberName,
+                                    setCase.LeafValueTypeDisplay,
+                                    setCase.CanAssignNull,
+                                    setCase.IsLeafNullableValueType,
+                                    setCase.HasNumericConversion,
+                                    setCase.NumericConversionHelperMethodName,
+                                    setCase.NumericConvertMethodName,
+                                    setCase.HasDateConversion,
+                                    setCase.DateConversionHelperMethodName,
+                                    setCase.HasTimeConversion,
+                                    setCase.TimeConversionHelperMethodName));
+                            }
 
                             continue;
                         }
@@ -379,10 +297,11 @@ public sealed class TableViewBindingProviderGenerator : IIncrementalGenerator
                         tableView.TableViewName!,
                         providerClassName,
                         tableView.TableViewLine,
-                        EnsureGlobalQualified(itemTypeDisplay!),
+                        itemTypeDisplay!,
                         sortCases.ToImmutable(),
                         displayMemberPathCases.ToImmutable(),
                         bindingPathCases.ToImmutable(),
+                        bindingSetCases.ToImmutable(),
                         clipboardCases.ToImmutable(),
                         contentPathCases.ToImmutable()));
                 }
@@ -530,6 +449,8 @@ public sealed class TableViewBindingProviderGenerator : IIncrementalGenerator
             builder.Add(
                 new ColumnDefinitionInfo(
                     column.StartLine,
+                    column.EditorKind,
+                    column.BindingMode,
                     CreatePathDiagnosticLocation(sourceText, filePath, column.SortMemberPathSpan),
                     CreatePathDiagnosticLocation(sourceText, filePath, column.DisplayMemberPathSpan),
                     CreatePathDiagnosticLocation(sourceText, filePath, column.BindingPathSpan),
@@ -815,19 +736,26 @@ public sealed class TableViewBindingProviderGenerator : IIncrementalGenerator
 
             var attrsGroup = columnMatch.Groups["attrs"];
             var attrsText = attrsGroup.Success ? attrsGroup.Value : string.Empty;
+            var columnTypeText = columnMatch.Groups["columnType"].Success
+                ? columnMatch.Groups["columnType"].Value
+                : string.Empty;
             var attrsStart = tableViewSegmentStart + attrsGroup.Index;
             var absoluteColumnStart = tableViewSegmentStart + columnMatch.Index;
             var columnStartLine = GetLineNumber(fullXamlContent, absoluteColumnStart);
+            var editorKind = GetBindingEditorKind(columnTypeText);
 
             var sortMemberPathSpan = TryExtractPathSpan(attrsText, attrsStart, SortMemberPathRegex);
             var displayMemberPathSpan = TryExtractPathSpan(attrsText, attrsStart, DisplayMemberPathRegex);
-            var bindingPathSpan = TryExtractBindingPathSpan(attrsText, attrsStart, CellBindingRegex);
+            var bindingExtraction = TryExtractBindingPathSpanWithMode(attrsText, attrsStart, CellBindingRegex);
+            var bindingPathSpan = bindingExtraction.PathSpan;
             var clipboardBindingPathSpan = TryExtractBindingPathSpan(attrsText, attrsStart, ClipboardBindingRegex);
             var contentBindingPathSpan = TryExtractBindingPathSpan(attrsText, attrsStart, ContentBindingRegex);
 
             builder.Add(new ColumnDefinitionRaw(
                 absoluteColumnStart,
                 columnStartLine,
+                editorKind,
+                bindingExtraction.BindingMode,
                 sortMemberPathSpan,
                 displayMemberPathSpan,
                 bindingPathSpan,
@@ -912,25 +840,32 @@ public sealed class TableViewBindingProviderGenerator : IIncrementalGenerator
 
     private static PathSpanRaw? TryExtractBindingPathSpan(string attrsText, int attrsStart, Regex bindingRegex)
     {
+        return TryExtractBindingPathSpanWithMode(attrsText, attrsStart, bindingRegex).PathSpan;
+    }
+
+    private static (PathSpanRaw? PathSpan, BindingMode BindingMode) TryExtractBindingPathSpanWithMode(string attrsText, int attrsStart, Regex bindingRegex)
+    {
         if (string.IsNullOrWhiteSpace(attrsText))
         {
-            return null;
+            return (null, BindingMode.TwoWay);
         }
 
         var bindingMatch = bindingRegex.Match(attrsText);
         if (!bindingMatch.Success)
         {
-            return null;
+            return (null, BindingMode.TwoWay);
         }
 
         var bodyGroup = bindingMatch.Groups["body"];
-        var path = TryExtractBindingPath(bodyGroup.Value);
+        var bodyText = bodyGroup.Value;
+        var path = TryExtractBindingPath(bodyText);
         if (string.IsNullOrWhiteSpace(path))
         {
-            return null;
+            return (null, BindingMode.TwoWay);
         }
 
-        var body = bodyGroup.Value;
+        var bindingMode = TryExtractBindingMode(bodyText);
+        var body = bodyText;
         var pathOffsetInBody = body.IndexOf(path, StringComparison.Ordinal);
         if (pathOffsetInBody < 0)
         {
@@ -939,7 +874,40 @@ public sealed class TableViewBindingProviderGenerator : IIncrementalGenerator
 
         var resolvedPath = path!;
         var pathStart = attrsStart + bodyGroup.Index + pathOffsetInBody;
-        return new PathSpanRaw(resolvedPath, pathStart, Math.Max(1, resolvedPath.Length));
+        return (new PathSpanRaw(resolvedPath, pathStart, Math.Max(1, resolvedPath.Length)), bindingMode);
+    }
+
+    private static BindingMode TryExtractBindingMode(string bindingBody)
+    {
+        if (string.IsNullOrWhiteSpace(bindingBody))
+        {
+            return BindingMode.TwoWay;
+        }
+
+        var modeMatch = BindingModeTokenRegex.Match(bindingBody.Trim());
+        if (!modeMatch.Success)
+        {
+            return BindingMode.TwoWay;
+        }
+
+        var modeText = modeMatch.Groups["mode"].Value.Trim();
+        modeText = modeText.Trim('\"', '\'');
+        if (modeText.Equals("TwoWay", StringComparison.OrdinalIgnoreCase))
+        {
+            return BindingMode.TwoWay;
+        }
+
+        if (modeText.Equals("OneWay", StringComparison.OrdinalIgnoreCase))
+        {
+            return BindingMode.OneWay;
+        }
+
+        if (modeText.Equals("OneTime", StringComparison.OrdinalIgnoreCase))
+        {
+            return BindingMode.OneTime;
+        }
+
+        return BindingMode.TwoWay;
     }
 
     private static string? TryExtractBindingPath(string bindingBody)
@@ -1198,6 +1166,54 @@ public sealed class TableViewBindingProviderGenerator : IIncrementalGenerator
         return CaseSourceInfo.None;
     }
 
+    private static BindingEditorKind GetBindingEditorKind(string columnTypeName)
+    {
+        if (columnTypeName.Equals("TableViewDateColumn", StringComparison.OrdinalIgnoreCase))
+        {
+            return BindingEditorKind.Date;
+        }
+
+        if (columnTypeName.Equals("TableViewTimeColumn", StringComparison.OrdinalIgnoreCase))
+        {
+            return BindingEditorKind.Time;
+        }
+
+        return BindingEditorKind.Other;
+    }
+
+    private static BindingEditorKind GetBindingEditorKind(ImmutableArray<ColumnDefinitionInfo> columns, int columnStartLine)
+    {
+        if (columnStartLine <= 0)
+        {
+            return BindingEditorKind.Unknown;
+        }
+
+        foreach (var column in columns)
+        {
+            if (column.StartLine == columnStartLine)
+            {
+                return column.EditorKind;
+            }
+        }
+
+        return BindingEditorKind.Unknown;
+    }
+
+    private static bool IsBindingPathSettable(ImmutableArray<ColumnDefinitionInfo> columns, string memberPath)
+    {
+        foreach (var column in columns)
+        {
+            if (column.BindingPathLocation.HasValue
+                && column.BindingPathLocation.Value.Path.Equals(memberPath, StringComparison.Ordinal)
+                && column.BindingMode == BindingMode.TwoWay)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private static Location? GetClassLocation(Compilation compilation, string fullyQualifiedClassName)
     {
         var type = compilation.GetTypeByMetadataName(fullyQualifiedClassName);
@@ -1320,6 +1336,17 @@ public sealed class TableViewBindingProviderGenerator : IIncrementalGenerator
 
     private static bool TryGetInstanceMemberType(ITypeSymbol type, string memberName, out ITypeSymbol memberType)
     {
+        if (TryGetInstanceMember(type, memberName, out _, out memberType))
+        {
+            return true;
+        }
+
+        memberType = null!;
+        return false;
+    }
+
+    private static bool TryGetInstanceMember(ITypeSymbol type, string memberName, out ISymbol memberSymbol, out ITypeSymbol memberType)
+    {
         for (var current = type; current is not null; current = current.BaseType)
         {
             foreach (var member in current.GetMembers(memberName))
@@ -1332,16 +1359,239 @@ public sealed class TableViewBindingProviderGenerator : IIncrementalGenerator
                 switch (member)
                 {
                     case IPropertySymbol property:
+                        memberSymbol = property;
                         memberType = property.Type;
                         return true;
                     case IFieldSymbol field:
+                        memberSymbol = field;
                         memberType = field.Type;
                         return true;
                 }
             }
         }
 
+        memberSymbol = null!;
         memberType = null!;
+        return false;
+    }
+
+    private static bool TryBuildSetValueCase(
+        ITypeSymbol itemType,
+        string memberPath,
+        CaseSourceInfo sourceInfo,
+        BindingEditorKind editorKind,
+        out GeneratedSetValueCase setValueCase)
+    {
+        setValueCase = default;
+        if (string.IsNullOrWhiteSpace(memberPath))
+        {
+            return false;
+        }
+
+        var rawSegments = memberPath.Split('.');
+        if (rawSegments.Length == 0)
+        {
+            return false;
+        }
+
+        var segments = new string[rawSegments.Length];
+        for (var i = 0; i < rawSegments.Length; i++)
+        {
+            var segment = rawSegments[i].Trim();
+            if (string.IsNullOrWhiteSpace(segment))
+            {
+                return false;
+            }
+
+            segments[i] = segment;
+        }
+
+        var currentType = itemType;
+        var navBuilder = ImmutableArray.CreateBuilder<SetNavigationSegment>();
+        for (var i = 0; i < segments.Length; i++)
+        {
+            var segment = segments[i];
+            if (!TryGetInstanceMember(currentType, segment, out var memberSymbol, out var memberType))
+            {
+                return false;
+            }
+
+            var unwrappedType = UnwrapNullable(memberType);
+            var memberTypeDisplay = GetGlobalTypeDisplay(unwrappedType);
+
+            if (i == segments.Length - 1)
+            {
+                if (!IsWritableMember(memberSymbol))
+                {
+                    return false;
+                }
+
+                var leafType = memberType;
+                var leafUnderlyingType = UnwrapNullable(leafType);
+                var hasNumericConversion = TryGetNumericConversionInfo(leafUnderlyingType, out var numericConversionHelperName, out var numericConvertMethodName);
+                var hasDateConversion = TryGetDateConversionInfo(editorKind, leafUnderlyingType, out var dateConversionHelperMethodName);
+                var hasTimeConversion = TryGetTimeConversionInfo(editorKind, leafUnderlyingType, out var timeConversionHelperMethodName);
+                setValueCase = new GeneratedSetValueCase(
+                    memberPath,
+                    localMethodName: "TrySet_" + SanitizeIdentifier(memberPath.Replace('.', '_')),
+                    sourceInfo,
+                    navBuilder.ToImmutable(),
+                    segment,
+                    GetGlobalTypeDisplay(leafUnderlyingType),
+                    CanBeNull(leafType),
+                    IsNullableValueType(leafType),
+                    hasNumericConversion,
+                    numericConversionHelperName,
+                    numericConvertMethodName,
+                    hasDateConversion,
+                    dateConversionHelperMethodName,
+                    hasTimeConversion,
+                    timeConversionHelperMethodName);
+                return true;
+            }
+
+            navBuilder.Add(new SetNavigationSegment(segment, memberTypeDisplay));
+            currentType = unwrappedType;
+        }
+
+        return false;
+    }
+
+    private static bool IsWritableMember(ISymbol memberSymbol)
+    {
+        return memberSymbol switch
+        {
+            IPropertySymbol property => property.SetMethod is not null && !property.SetMethod.IsStatic,
+            IFieldSymbol field => !field.IsReadOnly && !field.IsConst && !field.IsStatic,
+            _ => false
+        };
+    }
+
+    private static bool TryGetNumericConversionInfo(ITypeSymbol type, out string helperMethodName, out string convertMethodName)
+    {
+        helperMethodName = string.Empty;
+        convertMethodName = string.Empty;
+
+        switch (type.SpecialType)
+        {
+            case SpecialType.System_Byte:
+                helperMethodName = "TryGetByteFromDouble";
+                convertMethodName = "ToByte";
+                return true;
+            case SpecialType.System_SByte:
+                helperMethodName = "TryGetSByteFromDouble";
+                convertMethodName = "ToSByte";
+                return true;
+            case SpecialType.System_Int16:
+                helperMethodName = "TryGetInt16FromDouble";
+                convertMethodName = "ToInt16";
+                return true;
+            case SpecialType.System_UInt16:
+                helperMethodName = "TryGetUInt16FromDouble";
+                convertMethodName = "ToUInt16";
+                return true;
+            case SpecialType.System_Int32:
+                helperMethodName = "TryGetInt32FromDouble";
+                convertMethodName = "ToInt32";
+                return true;
+            case SpecialType.System_UInt32:
+                helperMethodName = "TryGetUInt32FromDouble";
+                convertMethodName = "ToUInt32";
+                return true;
+            case SpecialType.System_Int64:
+                helperMethodName = "TryGetInt64FromDouble";
+                convertMethodName = "ToInt64";
+                return true;
+            case SpecialType.System_UInt64:
+                helperMethodName = "TryGetUInt64FromDouble";
+                convertMethodName = "ToUInt64";
+                return true;
+            case SpecialType.System_Single:
+                helperMethodName = "TryGetSingleFromDouble";
+                convertMethodName = "ToSingle";
+                return true;
+            case SpecialType.System_Double:
+                helperMethodName = "TryGetDoubleFromDouble";
+                convertMethodName = "ToDouble";
+                return true;
+            case SpecialType.System_Decimal:
+                helperMethodName = "TryGetDecimalFromDouble";
+                convertMethodName = "ToDecimal";
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private static bool TryGetDateConversionInfo(BindingEditorKind editorKind, ITypeSymbol type, out string helperMethodName)
+    {
+        helperMethodName = string.Empty;
+        if (editorKind != BindingEditorKind.Date)
+        {
+            return false;
+        }
+
+        if (type.SpecialType == SpecialType.System_DateTime)
+        {
+            helperMethodName = "TryGetDateTimeFromDateTimeOffset";
+            return true;
+        }
+
+        if (type is INamedTypeSymbol namedType
+            && namedType.ContainingNamespace?.ToDisplayString() == "System")
+        {
+            if (namedType.Name == "DateOnly")
+            {
+                helperMethodName = "TryGetDateOnlyFromDateTimeOffset";
+                return true;
+            }
+
+            if (namedType.Name == "DateTimeOffset")
+            {
+                helperMethodName = "TryGetDateTimeOffsetFromDateTimeOffset";
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryGetTimeConversionInfo(BindingEditorKind editorKind, ITypeSymbol type, out string helperMethodName)
+    {
+        helperMethodName = string.Empty;
+        if (editorKind != BindingEditorKind.Time)
+        {
+            return false;
+        }
+
+        if (type is INamedTypeSymbol namedType
+            && namedType.ContainingNamespace?.ToDisplayString() == "System")
+        {
+            if (namedType.Name == "TimeSpan")
+            {
+                helperMethodName = "TryGetTimeSpanFromTimeSpan";
+                return true;
+            }
+
+            if (namedType.Name == "TimeOnly")
+            {
+                helperMethodName = "TryGetTimeOnlyFromTimeSpan";
+                return true;
+            }
+
+            if (namedType.Name == "DateTime")
+            {
+                helperMethodName = "TryGetDateTimeFromTimeSpan";
+                return true;
+            }
+
+            if (namedType.Name == "DateTimeOffset")
+            {
+                helperMethodName = "TryGetDateTimeOffsetFromTimeSpan";
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -1415,6 +1665,12 @@ public sealed class TableViewBindingProviderGenerator : IIncrementalGenerator
         }
 
         return type;
+    }
+
+    private static bool IsNullableValueType(ITypeSymbol type)
+    {
+        return type is INamedTypeSymbol namedType
+            && namedType.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
     }
 
     private static bool TryGetCollectionItemType(ITypeSymbol sourceType, out ITypeSymbol itemType)
@@ -1537,6 +1793,7 @@ public sealed class TableViewBindingProviderGenerator : IIncrementalGenerator
 
             BuildMethodSource(builder, provider, provider.SortMemberCases, "TryGetSortMemberValue", ColumnPathKind.SortMemberPath);
             BuildMethodSource(builder, provider, provider.BindingPathCases, "TryGetBindingValue", ColumnPathKind.BindingPath);
+            BuildSetterMethodSource(builder, provider);
             BuildMethodSource(builder, provider, provider.DisplayMemberCases, "TryGetDisplayMemberValue", ColumnPathKind.DisplayMemberPath);
             BuildMethodSource(builder, provider, provider.ClipboardPathCases, "TryGetClipboardContentBindingValue", ColumnPathKind.ClipboardBindingPath);
             BuildMethodSource(builder, provider, provider.ContentPathCases, "TryGetContentBindingValue", ColumnPathKind.ContentBindingPath);
@@ -1626,12 +1883,675 @@ public sealed class TableViewBindingProviderGenerator : IIncrementalGenerator
         builder.AppendLine();
     }
 
+    private static void BuildSetterMethodSource(StringBuilder builder, GeneratedProviderInfo provider)
+    {
+        builder.AppendLine("        bool global::WinUI.TableView.ICellValueProvider.TrySetBindingValue(global::System.String? path, global::System.Object? item, global::System.Object? value)");
+        builder.AppendLine("        {");
+        builder.Append("            if (item is not ")
+               .Append(provider.ItemTypeDisplay)
+               .AppendLine(" typedItem)");
+        builder.AppendLine("            {");
+        builder.AppendLine("                return false;");
+        builder.AppendLine("            }");
+        builder.AppendLine();
+        builder.AppendLine("            switch (path)");
+        builder.AppendLine("            {");
+
+        var generatedPaths = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var setCase in provider.BindingSetCases)
+        {
+            if (!generatedPaths.Add(setCase.MemberPath))
+            {
+                continue;
+            }
+
+            if (setCase.SourceInfo.HasValue)
+            {
+                builder.Append("                // ")
+                       .Append("column line ")
+                       .Append(setCase.SourceInfo.ColumnStartLine)
+                       .Append(", property line ")
+                       .Append(setCase.SourceInfo.PathLine)
+                       .AppendLine();
+            }
+
+            builder.Append("                case \"")
+                   .Append(setCase.MemberPath.Replace("\"", "\\\""))
+                   .AppendLine("\":");
+            builder.Append("                    return ")
+                   .Append(setCase.LocalMethodName)
+                   .AppendLine("(typedItem, value);");
+        }
+
+        builder.AppendLine("                default:");
+        builder.AppendLine("                    return false;");
+        builder.AppendLine("            }");
+        builder.AppendLine();
+
+        foreach (var setCase in provider.BindingSetCases)
+        {
+            var isDateTimeTarget =
+                string.Equals(setCase.LeafValueTypeDisplay, "global::System.DateTime", StringComparison.Ordinal)
+                || string.Equals(setCase.LeafValueTypeDisplay, "global::System.DateTime?", StringComparison.Ordinal);
+
+            var isDateTimeOffsetTarget =
+                string.Equals(setCase.LeafValueTypeDisplay, "global::System.DateTimeOffset", StringComparison.Ordinal)
+                || string.Equals(setCase.LeafValueTypeDisplay, "global::System.DateTimeOffset?", StringComparison.Ordinal);
+
+            builder.Append("            static bool ")
+                   .Append(setCase.LocalMethodName)
+                   .Append("(")
+                   .Append(provider.ItemTypeDisplay)
+                   .AppendLine(" typedItem, global::System.Object? value)");
+            builder.AppendLine("            {");
+
+            var currentVariable = "typedItem";
+            var segmentIndex = 0;
+            foreach (var navigationSegment in setCase.NavigationSegments)
+            {
+                var nextVariable = "target" + segmentIndex;
+                builder.Append("                if (")
+                       .Append(currentVariable)
+                       .Append('.')
+                       .Append(navigationSegment.MemberName)
+                       .Append(" is not ")
+                       .Append(navigationSegment.MemberTypeDisplay)
+                       .Append(' ')
+                       .Append(nextVariable)
+                       .AppendLine(")");
+                builder.AppendLine("                {");
+                builder.AppendLine("                    return false;");
+                builder.AppendLine("                }");
+                builder.AppendLine();
+                currentVariable = nextVariable;
+                segmentIndex++;
+            }
+
+            if (setCase.IsLeafNullableValueType)
+            {
+                builder.AppendLine("                if (value is null)");
+                builder.AppendLine("                {");
+                builder.Append("                    ")
+                       .Append(currentVariable)
+                       .Append('.')
+                       .Append(setCase.LeafMemberName)
+                       .AppendLine(" = null;");
+                builder.AppendLine("                    return true;");
+                builder.AppendLine("                }");
+                builder.AppendLine();
+
+                if (isDateTimeOffsetTarget)
+                {
+                    builder.Append("                var existingValue = ")
+                           .Append(currentVariable)
+                           .Append('.')
+                           .Append(setCase.LeafMemberName)
+                           .AppendLine(";");
+                    builder.AppendLine("                if (value is global::System.DateTimeOffset dateInput)");
+                    builder.AppendLine("                {");
+                    builder.AppendLine("                    var baseValue = existingValue ?? dateInput;");
+                    builder.AppendLine("                    var mergedDateTime = dateInput.Date + baseValue.TimeOfDay;");
+                    builder.AppendLine("                    var mergedValue = new global::System.DateTimeOffset(mergedDateTime, baseValue.Offset);");
+                    builder.Append("                    ")
+                           .Append(currentVariable)
+                           .Append('.')
+                           .Append(setCase.LeafMemberName)
+                           .AppendLine(" = mergedValue;");
+                    builder.AppendLine("                    return true;");
+                    builder.AppendLine("                }");
+                    builder.AppendLine();
+                    builder.AppendLine("                if (value is global::System.TimeSpan timeInput)");
+                    builder.AppendLine("                {");
+                    builder.AppendLine("                    if (timeInput < global::System.TimeSpan.Zero || timeInput >= global::System.TimeSpan.FromDays(1))");
+                    builder.AppendLine("                    {");
+                    builder.AppendLine("                        return false;");
+                    builder.AppendLine("                    }");
+                    builder.AppendLine();
+                    builder.AppendLine("                    var baseValue = existingValue ?? global::System.DateTimeOffset.Now;");
+                    builder.AppendLine("                    var mergedDateTime = baseValue.Date + timeInput;");
+                    builder.AppendLine("                    var mergedValue = new global::System.DateTimeOffset(mergedDateTime, baseValue.Offset);");
+                    builder.Append("                    ")
+                           .Append(currentVariable)
+                           .Append('.')
+                           .Append(setCase.LeafMemberName)
+                           .AppendLine(" = mergedValue;");
+                    builder.AppendLine("                    return true;");
+                    builder.AppendLine("                }");
+                    builder.AppendLine();
+                }
+                else if (isDateTimeTarget)
+                {
+                    builder.Append("                var existingValue = ")
+                           .Append(currentVariable)
+                           .Append('.')
+                           .Append(setCase.LeafMemberName)
+                           .AppendLine(";");
+                    builder.AppendLine("                if (value is global::System.DateTimeOffset dateInput)");
+                    builder.AppendLine("                {");
+                    builder.AppendLine("                    var baseValue = existingValue ?? dateInput.DateTime;");
+                    builder.AppendLine("                    var dateTicks = new global::System.DateTime(dateInput.Year, dateInput.Month, dateInput.Day).Ticks;");
+                    builder.AppendLine("                    var mergedTicks = dateTicks + baseValue.TimeOfDay.Ticks;");
+                    builder.AppendLine("                    if (mergedTicks < global::System.DateTime.MinValue.Ticks || mergedTicks > global::System.DateTime.MaxValue.Ticks)");
+                    builder.AppendLine("                    {");
+                    builder.AppendLine("                        return false;");
+                    builder.AppendLine("                    }");
+                    builder.AppendLine();
+                    builder.AppendLine("                    var mergedValue = new global::System.DateTime(mergedTicks, baseValue.Kind);");
+                    builder.Append("                    ")
+                           .Append(currentVariable)
+                           .Append('.')
+                           .Append(setCase.LeafMemberName)
+                           .AppendLine(" = mergedValue;");
+                    builder.AppendLine("                    return true;");
+                    builder.AppendLine("                }");
+                    builder.AppendLine();
+                    builder.AppendLine("                if (value is global::System.TimeSpan timeInput)");
+                    builder.AppendLine("                {");
+                    builder.AppendLine("                    if (timeInput < global::System.TimeSpan.Zero || timeInput >= global::System.TimeSpan.FromDays(1))");
+                    builder.AppendLine("                    {");
+                    builder.AppendLine("                        return false;");
+                    builder.AppendLine("                    }");
+                    builder.AppendLine();
+                    builder.AppendLine("                    var baseValue = existingValue ?? global::System.DateTime.Now;");
+                    builder.AppendLine("                    var mergedTicks = baseValue.Date.Ticks + timeInput.Ticks;");
+                    builder.AppendLine("                    if (mergedTicks < global::System.DateTime.MinValue.Ticks || mergedTicks > global::System.DateTime.MaxValue.Ticks)");
+                    builder.AppendLine("                    {");
+                    builder.AppendLine("                        return false;");
+                    builder.AppendLine("                    }");
+                    builder.AppendLine();
+                    builder.AppendLine("                    var mergedValue = new global::System.DateTime(mergedTicks, baseValue.Kind);");
+                    builder.Append("                    ")
+                           .Append(currentVariable)
+                           .Append('.')
+                           .Append(setCase.LeafMemberName)
+                           .AppendLine(" = mergedValue;");
+                    builder.AppendLine("                    return true;");
+                    builder.AppendLine("                }");
+                    builder.AppendLine();
+                }
+                else if (setCase.HasNumericConversion)
+                {
+                    builder.Append("                if (")
+                           .Append(setCase.NumericConversionHelperMethodName)
+                           .AppendLine("(value, out var convertedValue))");
+                    builder.AppendLine("                {");
+                    builder.Append("                    ")
+                           .Append(currentVariable)
+                           .Append('.')
+                           .Append(setCase.LeafMemberName)
+                           .AppendLine(" = convertedValue;");
+                    builder.AppendLine("                    return true;");
+                    builder.AppendLine("                }");
+                    builder.AppendLine();
+                }
+                else if (setCase.HasDateConversion)
+                {
+                    builder.Append("                if (")
+                           .Append(setCase.DateConversionHelperMethodName)
+                           .AppendLine("(value, out var convertedValue))");
+                    builder.AppendLine("                {");
+                    builder.Append("                    ")
+                           .Append(currentVariable)
+                           .Append('.')
+                           .Append(setCase.LeafMemberName)
+                           .AppendLine(" = convertedValue;");
+                    builder.AppendLine("                    return true;");
+                    builder.AppendLine("                }");
+                    builder.AppendLine();
+                }
+                else if (setCase.HasTimeConversion)
+                {
+                    builder.Append("                if (")
+                           .Append(setCase.TimeConversionHelperMethodName)
+                           .AppendLine("(value, out var convertedValue))");
+                    builder.AppendLine("                {");
+                    builder.Append("                    ")
+                           .Append(currentVariable)
+                           .Append('.')
+                           .Append(setCase.LeafMemberName)
+                           .AppendLine(" = convertedValue;");
+                    builder.AppendLine("                    return true;");
+                    builder.AppendLine("                }");
+                    builder.AppendLine();
+                }
+                else
+                {
+                    builder.Append("                if (value is ")
+                           .Append(setCase.LeafValueTypeDisplay)
+                           .AppendLine(" typedValue)");
+                    builder.AppendLine("                {");
+                    builder.Append("                    ")
+                           .Append(currentVariable)
+                           .Append('.')
+                           .Append(setCase.LeafMemberName)
+                           .AppendLine(" = typedValue;");
+                    builder.AppendLine("                    return true;");
+                    builder.AppendLine("                }");
+                    builder.AppendLine();
+                }
+
+                builder.AppendLine("                return false;");
+            }
+            else
+            {
+                if (isDateTimeOffsetTarget)
+                {
+                    builder.Append("                if (value is global::System.DateTimeOffset dateInput)");
+                    builder.AppendLine();
+                    builder.AppendLine("                {");
+                    builder.Append("                    var baseValue = ")
+                           .Append(currentVariable)
+                           .Append('.')
+                           .Append(setCase.LeafMemberName)
+                           .AppendLine(";");
+                    builder.AppendLine("                    var mergedDateTime = dateInput.Date + baseValue.TimeOfDay;");
+                    builder.AppendLine("                    var mergedValue = new global::System.DateTimeOffset(mergedDateTime, baseValue.Offset);");
+                    builder.Append("                    ")
+                           .Append(currentVariable)
+                           .Append('.')
+                           .Append(setCase.LeafMemberName)
+                           .AppendLine(" = mergedValue;");
+                    builder.AppendLine("                    return true;");
+                    builder.AppendLine("                }");
+                    builder.AppendLine();
+                    builder.Append("                if (value is global::System.TimeSpan timeInput)");
+                    builder.AppendLine();
+                    builder.AppendLine("                {");
+                    builder.AppendLine("                    if (timeInput < global::System.TimeSpan.Zero || timeInput >= global::System.TimeSpan.FromDays(1))");
+                    builder.AppendLine("                    {");
+                    builder.AppendLine("                        return false;");
+                    builder.AppendLine("                    }");
+                    builder.AppendLine();
+                    builder.Append("                    var baseValue = ")
+                           .Append(currentVariable)
+                           .Append('.')
+                           .Append(setCase.LeafMemberName)
+                           .AppendLine(";");
+                    builder.AppendLine("                    var mergedDateTime = baseValue.Date + timeInput;");
+                    builder.AppendLine("                    var mergedValue = new global::System.DateTimeOffset(mergedDateTime, baseValue.Offset);");
+                    builder.Append("                    ")
+                           .Append(currentVariable)
+                           .Append('.')
+                           .Append(setCase.LeafMemberName)
+                           .AppendLine(" = mergedValue;");
+                    builder.AppendLine("                    return true;");
+                    builder.AppendLine("                }");
+                    builder.AppendLine();
+                }
+                else if (isDateTimeTarget)
+                {
+                    builder.AppendLine("                if (value is global::System.DateTimeOffset dateInput)");
+                    builder.AppendLine("                {");
+                    builder.Append("                    var baseValue = ")
+                           .Append(currentVariable)
+                           .Append('.')
+                           .Append(setCase.LeafMemberName)
+                           .AppendLine(";");
+                    builder.AppendLine("                    var dateTicks = new global::System.DateTime(dateInput.Year, dateInput.Month, dateInput.Day).Ticks;");
+                    builder.AppendLine("                    var mergedTicks = dateTicks + baseValue.TimeOfDay.Ticks;");
+                    builder.AppendLine("                    if (mergedTicks < global::System.DateTime.MinValue.Ticks || mergedTicks > global::System.DateTime.MaxValue.Ticks)");
+                    builder.AppendLine("                    {");
+                    builder.AppendLine("                        return false;");
+                    builder.AppendLine("                    }");
+                    builder.AppendLine();
+                    builder.AppendLine("                    var mergedValue = new global::System.DateTime(mergedTicks, baseValue.Kind);");
+                    builder.Append("                    ")
+                           .Append(currentVariable)
+                           .Append('.')
+                           .Append(setCase.LeafMemberName)
+                           .AppendLine(" = mergedValue;");
+                    builder.AppendLine("                    return true;");
+                    builder.AppendLine("                }");
+                    builder.AppendLine();
+                    builder.AppendLine("                if (value is global::System.TimeSpan timeInput)");
+                    builder.AppendLine("                {");
+                    builder.AppendLine("                    if (timeInput < global::System.TimeSpan.Zero || timeInput >= global::System.TimeSpan.FromDays(1))");
+                    builder.AppendLine("                    {");
+                    builder.AppendLine("                        return false;");
+                    builder.AppendLine("                    }");
+                    builder.AppendLine();
+                    builder.Append("                    var baseValue = ")
+                           .Append(currentVariable)
+                           .Append('.')
+                           .Append(setCase.LeafMemberName)
+                           .AppendLine(";");
+                    builder.AppendLine("                    var mergedTicks = baseValue.Date.Ticks + timeInput.Ticks;");
+                    builder.AppendLine("                    if (mergedTicks < global::System.DateTime.MinValue.Ticks || mergedTicks > global::System.DateTime.MaxValue.Ticks)");
+                    builder.AppendLine("                    {");
+                    builder.AppendLine("                        return false;");
+                    builder.AppendLine("                    }");
+                    builder.AppendLine();
+                    builder.AppendLine("                    var mergedValue = new global::System.DateTime(mergedTicks, baseValue.Kind);");
+                    builder.Append("                    ")
+                           .Append(currentVariable)
+                           .Append('.')
+                           .Append(setCase.LeafMemberName)
+                           .AppendLine(" = mergedValue;");
+                    builder.AppendLine("                    return true;");
+                    builder.AppendLine("                }");
+                    builder.AppendLine();
+                }
+                else if (setCase.HasNumericConversion)
+                {
+                    builder.Append("                if (")
+                           .Append(setCase.NumericConversionHelperMethodName)
+                           .AppendLine("(value, out var convertedValue))");
+                    builder.AppendLine("                {");
+                    builder.Append("                    ")
+                           .Append(currentVariable)
+                           .Append('.')
+                           .Append(setCase.LeafMemberName)
+                           .AppendLine(" = convertedValue;");
+                    builder.AppendLine("                    return true;");
+                    builder.AppendLine("                }");
+                    builder.AppendLine();
+                }
+                else if (setCase.HasDateConversion)
+                {
+                    builder.Append("                if (")
+                           .Append(setCase.DateConversionHelperMethodName)
+                           .AppendLine("(value, out var convertedValue))");
+                    builder.AppendLine("                {");
+                    builder.Append("                    ")
+                           .Append(currentVariable)
+                           .Append('.')
+                           .Append(setCase.LeafMemberName)
+                           .AppendLine(" = convertedValue;");
+                    builder.AppendLine("                    return true;");
+                    builder.AppendLine("                }");
+                    builder.AppendLine();
+                }
+                else if (setCase.HasTimeConversion)
+                {
+                    builder.Append("                if (")
+                           .Append(setCase.TimeConversionHelperMethodName)
+                           .AppendLine("(value, out var convertedValue))");
+                    builder.AppendLine("                {");
+                    builder.Append("                    ")
+                           .Append(currentVariable)
+                           .Append('.')
+                           .Append(setCase.LeafMemberName)
+                           .AppendLine(" = convertedValue;");
+                    builder.AppendLine("                    return true;");
+                    builder.AppendLine("                }");
+                    builder.AppendLine();
+                }
+                else
+                {
+                    builder.Append("                if (value is ")
+                           .Append(setCase.LeafValueTypeDisplay)
+                           .AppendLine(" typedValue)");
+                    builder.AppendLine("                {");
+                    builder.Append("                    ")
+                           .Append(currentVariable)
+                           .Append('.')
+                           .Append(setCase.LeafMemberName)
+                           .AppendLine(" = typedValue;");
+                    builder.AppendLine("                    return true;");
+                    builder.AppendLine("                }");
+                    builder.AppendLine();
+                }
+
+                if (setCase.CanAssignNull)
+                {
+                    builder.AppendLine("                if (value is null)");
+                    builder.AppendLine("                {");
+                    builder.Append("                    ")
+                           .Append(currentVariable)
+                           .Append('.')
+                           .Append(setCase.LeafMemberName)
+                           .AppendLine(" = null;");
+                    builder.AppendLine("                    return true;");
+                    builder.AppendLine("                }");
+                    builder.AppendLine();
+                }
+
+                builder.AppendLine("                return false;");
+            }
+
+            builder.AppendLine("            }");
+            builder.AppendLine();
+        }
+
+        var conversionHelpers = new Dictionary<string, GeneratedSetValueCase>(StringComparer.Ordinal);
+        foreach (var setCase in provider.BindingSetCases)
+        {
+            var isDateTimeTarget =
+                string.Equals(setCase.LeafValueTypeDisplay, "global::System.DateTime", StringComparison.Ordinal)
+                || string.Equals(setCase.LeafValueTypeDisplay, "global::System.DateTime?", StringComparison.Ordinal);
+
+            var isDateTimeOffsetTarget =
+                string.Equals(setCase.LeafValueTypeDisplay, "global::System.DateTimeOffset", StringComparison.Ordinal)
+                || string.Equals(setCase.LeafValueTypeDisplay, "global::System.DateTimeOffset?", StringComparison.Ordinal);
+
+            if (setCase.HasNumericConversion
+                && !conversionHelpers.ContainsKey(setCase.NumericConversionHelperMethodName))
+            {
+                conversionHelpers.Add(setCase.NumericConversionHelperMethodName, setCase);
+            }
+
+            if (!isDateTimeTarget
+                && !isDateTimeOffsetTarget
+                && setCase.HasDateConversion
+                && !conversionHelpers.ContainsKey(setCase.DateConversionHelperMethodName))
+            {
+                conversionHelpers.Add(setCase.DateConversionHelperMethodName, setCase);
+            }
+
+            if (!isDateTimeTarget
+                && !isDateTimeOffsetTarget
+                && setCase.HasTimeConversion
+                && !conversionHelpers.ContainsKey(setCase.TimeConversionHelperMethodName))
+            {
+                conversionHelpers.Add(setCase.TimeConversionHelperMethodName, setCase);
+            }
+        }
+
+        foreach (var helper in conversionHelpers.Values)
+        {
+            if (helper.HasNumericConversion)
+            {
+                builder.Append("            static bool ")
+                       .Append(helper.NumericConversionHelperMethodName)
+                       .Append("(global::System.Object? input, out ")
+                       .Append(helper.LeafValueTypeDisplay)
+                       .AppendLine(" converted)");
+                builder.AppendLine("            {");
+                builder.AppendLine("                if (input is global::System.Double number)");
+                builder.AppendLine("                {");
+                if (helper.NumericConvertMethodName == "ToDouble")
+                {
+                    builder.AppendLine("                    converted = number;");
+                    builder.AppendLine("                    return true;");
+                }
+                else
+                {
+                    builder.AppendLine("                    try");
+                    builder.AppendLine("                    {");
+                    builder.Append("                        converted = global::System.Convert.")
+                           .Append(helper.NumericConvertMethodName)
+                           .AppendLine("(number);");
+                    builder.AppendLine("                        return true;");
+                    builder.AppendLine("                    }");
+                    builder.AppendLine("                    catch (global::System.Exception)");
+                    builder.AppendLine("                    {");
+                    builder.AppendLine("                    }");
+                }
+                builder.AppendLine("                }");
+                builder.AppendLine();
+                builder.AppendLine("                converted = default;");
+                builder.AppendLine("                return false;");
+                builder.AppendLine("            }");
+                builder.AppendLine();
+            }
+            else if (helper.HasDateConversion)
+            {
+                if (helper.DateConversionHelperMethodName == "TryGetDateOnlyFromDateTimeOffset")
+                {
+                    builder.AppendLine("            static bool TryGetDateOnlyFromDateTimeOffset(global::System.Object? input, out global::System.DateOnly converted)");
+                    builder.AppendLine("            {");
+                    builder.AppendLine("                if (input is global::System.DateTimeOffset dateTimeOffset)");
+                    builder.AppendLine("                {");
+                    builder.AppendLine("                    converted = global::System.DateOnly.FromDateTime(dateTimeOffset.DateTime);");
+                    builder.AppendLine("                    return true;");
+                    builder.AppendLine("                }");
+                    builder.AppendLine();
+                    builder.AppendLine("                converted = default;");
+                    builder.AppendLine("                return false;");
+                    builder.AppendLine("            }");
+                    builder.AppendLine();
+                }
+                else if (helper.DateConversionHelperMethodName == "TryGetDateTimeFromDateTimeOffset")
+                {
+                    builder.AppendLine("            static bool TryGetDateTimeFromDateTimeOffset(global::System.Object? input, out global::System.DateTime converted)");
+                    builder.AppendLine("            {");
+                    builder.AppendLine("                if (input is global::System.DateTimeOffset dateTimeOffset)");
+                    builder.AppendLine("                {");
+                    builder.AppendLine("                    converted = dateTimeOffset.DateTime;");
+                    builder.AppendLine("                    return true;");
+                    builder.AppendLine("                }");
+                    builder.AppendLine();
+                    builder.AppendLine("                converted = default;");
+                    builder.AppendLine("                return false;");
+                    builder.AppendLine("            }");
+                    builder.AppendLine();
+                }
+                else if (helper.DateConversionHelperMethodName == "TryGetDateTimeOffsetFromDateTimeOffset")
+                {
+                    builder.AppendLine("            static bool TryGetDateTimeOffsetFromDateTimeOffset(global::System.Object? input, out global::System.DateTimeOffset converted)");
+                    builder.AppendLine("            {");
+                    builder.AppendLine("                if (input is global::System.DateTimeOffset dateTimeOffset)");
+                    builder.AppendLine("                {");
+                    builder.AppendLine("                    converted = dateTimeOffset;");
+                    builder.AppendLine("                    return true;");
+                    builder.AppendLine("                }");
+                    builder.AppendLine();
+                    builder.AppendLine("                converted = default;");
+                    builder.AppendLine("                return false;");
+                    builder.AppendLine("            }");
+                    builder.AppendLine();
+                }
+            }
+            else if (helper.HasTimeConversion)
+            {
+                if (helper.TimeConversionHelperMethodName == "TryGetTimeOnlyFromTimeSpan")
+                {
+                    builder.AppendLine("            static bool TryGetTimeOnlyFromTimeSpan(global::System.Object? input, out global::System.TimeOnly converted)");
+                    builder.AppendLine("            {");
+                    builder.AppendLine("                if (input is global::System.TimeSpan timeSpan)");
+                    builder.AppendLine("                {");
+                    builder.AppendLine("                    converted = global::System.TimeOnly.FromTimeSpan(timeSpan);");
+                    builder.AppendLine("                    return true;");
+                    builder.AppendLine("                }");
+                    builder.AppendLine();
+                    builder.AppendLine("                converted = default;");
+                    builder.AppendLine("                return false;");
+                    builder.AppendLine("            }");
+                    builder.AppendLine();
+                }
+                else if (helper.TimeConversionHelperMethodName == "TryGetTimeSpanFromTimeSpan")
+                {
+                    builder.AppendLine("            static bool TryGetTimeSpanFromTimeSpan(global::System.Object? input, out global::System.TimeSpan converted)");
+                    builder.AppendLine("            {");
+                    builder.AppendLine("                if (input is global::System.TimeSpan timeSpan)");
+                    builder.AppendLine("                {");
+                    builder.AppendLine("                    converted = timeSpan;");
+                    builder.AppendLine("                    return true;");
+                    builder.AppendLine("                }");
+                    builder.AppendLine();
+                    builder.AppendLine("                converted = default;");
+                    builder.AppendLine("                return false;");
+                    builder.AppendLine("            }");
+                    builder.AppendLine();
+                }
+                else if (helper.TimeConversionHelperMethodName == "TryGetDateTimeFromTimeSpan")
+                {
+                    builder.AppendLine("            static bool TryGetDateTimeFromTimeSpan(global::System.Object? input, out global::System.DateTime converted)");
+                    builder.AppendLine("            {");
+                    builder.AppendLine("                if (input is global::System.TimeSpan timeSpan)");
+                    builder.AppendLine("                {");
+                    builder.AppendLine("                    converted = global::System.DateTime.MinValue.Add(timeSpan);");
+                    builder.AppendLine("                    return true;");
+                    builder.AppendLine("                }");
+                    builder.AppendLine();
+                    builder.AppendLine("                converted = default;");
+                    builder.AppendLine("                return false;");
+                    builder.AppendLine("            }");
+                    builder.AppendLine();
+                }
+                else if (helper.TimeConversionHelperMethodName == "TryGetDateTimeOffsetFromTimeSpan")
+                {
+                    builder.AppendLine("            static bool TryGetDateTimeOffsetFromTimeSpan(global::System.Object? input, out global::System.DateTimeOffset converted)");
+                    builder.AppendLine("            {");
+                    builder.AppendLine("                if (input is global::System.TimeSpan timeSpan)");
+                    builder.AppendLine("                {");
+                    builder.AppendLine("                    converted = new global::System.DateTimeOffset(global::System.DateTime.MinValue.Add(timeSpan), global::System.TimeSpan.Zero);");
+                    builder.AppendLine("                    return true;");
+                    builder.AppendLine("                }");
+                    builder.AppendLine();
+                    builder.AppendLine("                converted = default;");
+                    builder.AppendLine("                return false;");
+                    builder.AppendLine("            }");
+                    builder.AppendLine();
+                }
+            }
+        }
+
+        builder.AppendLine("        }");
+        builder.AppendLine();
+    }
+
     private static string EnsureGlobalQualified(string typeDisplay)
     {
-        var trimmed = typeDisplay.Trim();
+        var trimmed = NormalizeSpecialTypeAlias(typeDisplay.Trim());
         return trimmed.StartsWith("global::", StringComparison.Ordinal)
             ? trimmed
             : "global::" + trimmed;
+    }
+
+    private static string GetGlobalTypeDisplay(ITypeSymbol type)
+    {
+        return EnsureGlobalQualified(type.ToDisplayString(FullyQualifiedNonAliasedTypeFormat));
+    }
+
+    private static string NormalizeSpecialTypeAlias(string typeDisplay)
+    {
+        return typeDisplay switch
+        {
+            "bool" => "System.Boolean",
+            "byte" => "System.Byte",
+            "sbyte" => "System.SByte",
+            "short" => "System.Int16",
+            "ushort" => "System.UInt16",
+            "int" => "System.Int32",
+            "uint" => "System.UInt32",
+            "long" => "System.Int64",
+            "ulong" => "System.UInt64",
+            "char" => "System.Char",
+            "float" => "System.Single",
+            "double" => "System.Double",
+            "decimal" => "System.Decimal",
+            "string" => "System.String",
+            "object" => "System.Object",
+            "nint" => "System.IntPtr",
+            "nuint" => "System.UIntPtr",
+            "bool?" => "System.Boolean?",
+            "byte?" => "System.Byte?",
+            "sbyte?" => "System.SByte?",
+            "short?" => "System.Int16?",
+            "ushort?" => "System.UInt16?",
+            "int?" => "System.Int32?",
+            "uint?" => "System.UInt32?",
+            "long?" => "System.Int64?",
+            "ulong?" => "System.UInt64?",
+            "char?" => "System.Char?",
+            "float?" => "System.Single?",
+            "double?" => "System.Double?",
+            "decimal?" => "System.Decimal?",
+            "nint?" => "System.IntPtr?",
+            "nuint?" => "System.UIntPtr?",
+            _ => typeDisplay
+        };
     }
 
     private static string SanitizeIdentifier(string value)
@@ -1670,546 +2590,6 @@ public sealed class TableViewBindingProviderGenerator : IIncrementalGenerator
         return candidate;
     }
 
-    private readonly struct ParsedXamlInfo
-    {
-        public ParsedXamlInfo(
-            string? namespaceName,
-            string className,
-            string fullyQualifiedClassName,
-            string hintName,
-            bool isWindowRoot,
-            ImmutableArray<TableViewXamlInfo> tableViews)
-        {
-            NamespaceName = namespaceName;
-            ClassName = className;
-            FullyQualifiedClassName = fullyQualifiedClassName;
-            HintName = hintName;
-            IsWindowRoot = isWindowRoot;
-            TableViews = tableViews;
-        }
 
-        public string? NamespaceName { get; }
-
-        public string ClassName { get; }
-
-        public string FullyQualifiedClassName { get; }
-
-        public string HintName { get; }
-
-        public bool IsWindowRoot { get; }
-
-        public ImmutableArray<TableViewXamlInfo> TableViews { get; }
-    }
-
-    /// <summary>
-    /// Raw TableView data parsed from XAML text before Roslyn line mapping.
-    /// </summary>
-    private readonly struct TableViewInfoRaw
-    {
-        public TableViewInfoRaw(
-            string? tableViewName,
-            string tableViewLine,
-            string? itemsSourceXBindPath,
-            ImmutableArray<string> sortMemberPaths,
-            ImmutableArray<string> displayMemberPaths,
-            ImmutableArray<string> bindingPaths,
-            ImmutableArray<string> clipboardPaths,
-            ImmutableArray<string> contentPaths,
-            ImmutableArray<ColumnDefinitionRaw> columnDefinitions,
-            ImmutableArray<PathSpanRaw> sortMemberPathSpans,
-            ImmutableArray<PathSpanRaw> displayMemberPathSpans,
-            ImmutableArray<PathSpanRaw> bindingPathSpans,
-            ImmutableArray<PathSpanRaw> clipboardPathSpans,
-            ImmutableArray<PathSpanRaw> contentPathSpans,
-            int itemsSourceSpanStart,
-            int itemsSourceSpanLength)
-        {
-            TableViewName = tableViewName;
-            TableViewLine = tableViewLine;
-            ItemsSourceXBindPath = itemsSourceXBindPath;
-            SortMemberPaths = sortMemberPaths;
-            DisplayMemberPaths = displayMemberPaths;
-            BindingPaths = bindingPaths;
-            ClipboardPaths = clipboardPaths;
-            ContentPaths = contentPaths;
-            ColumnDefinitions = columnDefinitions;
-            SortMemberPathSpans = sortMemberPathSpans;
-            DisplayMemberPathSpans = displayMemberPathSpans;
-            BindingPathSpans = bindingPathSpans;
-            ClipboardPathSpans = clipboardPathSpans;
-            ContentPathSpans = contentPathSpans;
-            ItemsSourceSpanStart = itemsSourceSpanStart;
-            ItemsSourceSpanLength = itemsSourceSpanLength;
-        }
-
-        public string? TableViewName { get; }
-
-        public string TableViewLine { get; }
-
-        public string? ItemsSourceXBindPath { get; }
-
-        /// <summary>
-        /// Sort member paths extracted from column definitions.
-        /// </summary>
-        public ImmutableArray<string> SortMemberPaths { get; }
-
-        /// <summary>
-        /// Display member paths extracted from <c>DisplayMemberPath</c>.
-        /// </summary>
-        public ImmutableArray<string> DisplayMemberPaths { get; }
-
-        /// <summary>
-        /// Cell value paths extracted from <c>CellValuePath</c>.
-        /// </summary>
-        public ImmutableArray<string> BindingPaths { get; }
-
-        /// <summary>
-        /// Clipboard member paths extracted from <c>ClipboardPath</c>.
-        /// </summary>
-        public ImmutableArray<string> ClipboardPaths { get; }
-
-        /// <summary>
-        /// Clipboard member paths extracted from <c>ContentPath</c>.
-        /// </summary>
-        public ImmutableArray<string> ContentPaths { get; }
-
-        /// <summary>
-        /// Parsed column definitions keyed by source line based <c>ColumnId</c>.
-        /// </summary>
-        public ImmutableArray<ColumnDefinitionRaw> ColumnDefinitions { get; }
-
-        /// <summary>
-        /// Absolute source spans for <see cref="SortMemberPaths"/>.
-        /// </summary>
-        public ImmutableArray<PathSpanRaw> SortMemberPathSpans { get; }
-
-        /// <summary>
-        /// Absolute source spans for <see cref="DisplayMemberPaths"/>.
-        /// </summary>
-        public ImmutableArray<PathSpanRaw> DisplayMemberPathSpans { get; }
-
-        /// <summary>
-        /// Absolute source spans for <see cref="BindingPaths"/>.
-        /// </summary>
-        public ImmutableArray<PathSpanRaw> BindingPathSpans { get; }
-
-        /// <summary>
-        /// Absolute source spans for <see cref="ClipboardPaths"/>.
-        /// </summary>
-        public ImmutableArray<PathSpanRaw> ClipboardPathSpans { get; }
-
-        /// <summary>
-        /// Absolute source spans for <see cref="ContentPaths"/>.
-        /// </summary>
-        public ImmutableArray<PathSpanRaw> ContentPathSpans { get; }
-
-        public int ItemsSourceSpanStart { get; }
-
-        public int ItemsSourceSpanLength { get; }
-    }
-
-    /// <summary>
-    /// Parsed TableView data enriched with file and line/column diagnostics metadata.
-    /// </summary>
-    private readonly struct TableViewXamlInfo
-    {
-        public TableViewXamlInfo(
-            string? tableViewName,
-            string tableViewLine,
-            string? itemsSourceXBindPath,
-            ImmutableArray<string> sortMemberPaths,
-            ImmutableArray<string> displayMemberPaths,
-            ImmutableArray<string> cellValuePaths,
-            ImmutableArray<string> clipboardMemberPaths,
-            ImmutableArray<string> contentPaths,
-            ImmutableArray<ColumnDefinitionInfo> columnDefinitions,
-            ImmutableArray<PathDiagnosticLocation> sortMemberPathLocations,
-            ImmutableArray<PathDiagnosticLocation> displayMemberPathLocations,
-            ImmutableArray<PathDiagnosticLocation> cellValuePathLocations,
-            ImmutableArray<PathDiagnosticLocation> clipboardPathLocations,
-            ImmutableArray<PathDiagnosticLocation> contentPathLocations,
-            bool hasItemsSourceLocation,
-            string filePath,
-            int itemsSourceSpanStart,
-            int itemsSourceSpanLength,
-            int itemsSourceStartLine,
-            int itemsSourceStartColumn,
-            int itemsSourceEndLine,
-            int itemsSourceEndColumn)
-        {
-            TableViewName = tableViewName;
-            TableViewLine = tableViewLine;
-            ItemsSourceXBindPath = itemsSourceXBindPath;
-            SortMemberPaths = sortMemberPaths;
-            DisplayMemberPaths = displayMemberPaths;
-            BindingPaths = cellValuePaths;
-            ClipboardPaths = clipboardMemberPaths;
-            ContentPaths = contentPaths;
-            ColumnDefinitions = columnDefinitions;
-            SortMemberPathLocations = sortMemberPathLocations;
-            DisplayMemberPathLocations = displayMemberPathLocations;
-            BindingPathLocations = cellValuePathLocations;
-            ClipboardPathLocations = clipboardPathLocations;
-            ContentPathLocations = contentPathLocations;
-            HasItemsSourceLocation = hasItemsSourceLocation;
-            FilePath = filePath;
-            ItemsSourceSpanStart = itemsSourceSpanStart;
-            ItemsSourceSpanLength = itemsSourceSpanLength;
-            ItemsSourceStartLine = itemsSourceStartLine;
-            ItemsSourceStartColumn = itemsSourceStartColumn;
-            ItemsSourceEndLine = itemsSourceEndLine;
-            ItemsSourceEndColumn = itemsSourceEndColumn;
-        }
-
-        public string? TableViewName { get; }
-
-        public string TableViewLine { get; }
-
-        public string? ItemsSourceXBindPath { get; }
-
-        /// <summary>
-        /// Sort member paths extracted from column definitions.
-        /// </summary>
-        public ImmutableArray<string> SortMemberPaths { get; }
-
-        /// <summary>
-        /// Display member paths extracted from <c>DisplayMemberPath</c>.
-        /// </summary>
-        public ImmutableArray<string> DisplayMemberPaths { get; }
-
-        /// <summary>
-        /// Cell value paths extracted from <c>CellValuePath</c>.
-        /// </summary>
-        public ImmutableArray<string> BindingPaths { get; }
-
-        /// <summary>
-        /// Clipboard member paths extracted from <c>ClipboardPath</c>.
-        /// </summary>
-        public ImmutableArray<string> ClipboardPaths { get; }
-
-        /// <summary>
-        /// Content member paths extracted from <c>ContentPath</c>.
-        /// </summary>
-        public ImmutableArray<string> ContentPaths { get; }
-
-        /// <summary>
-        /// Parsed column definitions keyed by source line based <c>ColumnId</c>.
-        /// </summary>
-        public ImmutableArray<ColumnDefinitionInfo> ColumnDefinitions { get; }
-
-        /// <summary>
-        /// Diagnostic locations for <see cref="SortMemberPaths"/>.
-        /// </summary>
-        public ImmutableArray<PathDiagnosticLocation> SortMemberPathLocations { get; }
-
-        /// <summary>
-        /// Diagnostic locations for <see cref="DisplayMemberPaths"/>.
-        /// </summary>
-        public ImmutableArray<PathDiagnosticLocation> DisplayMemberPathLocations { get; }
-
-        /// <summary>
-        /// Diagnostic locations for <see cref="BindingPaths"/>.
-        /// </summary>
-        public ImmutableArray<PathDiagnosticLocation> BindingPathLocations { get; }
-
-        /// <summary>
-        /// Diagnostic locations for <see cref="ClipboardPaths"/>.
-        /// </summary>
-        public ImmutableArray<PathDiagnosticLocation> ClipboardPathLocations { get; }
-
-        /// <summary>
-        /// Diagnostic locations for <see cref="ContentPaths"/>.
-        /// </summary>
-        public ImmutableArray<PathDiagnosticLocation> ContentPathLocations { get; }
-
-        public bool HasItemsSourceLocation { get; }
-
-        public string FilePath { get; }
-
-        public int ItemsSourceSpanStart { get; }
-
-        public int ItemsSourceSpanLength { get; }
-
-        public int ItemsSourceStartLine { get; }
-
-        public int ItemsSourceStartColumn { get; }
-
-        public int ItemsSourceEndLine { get; }
-
-        public int ItemsSourceEndColumn { get; }
-    }
-
-    /// <summary>
-    /// Parsed raw column definition with a stable <c>ColumnId</c> derived from start line.
-    /// </summary>
-    private readonly struct ColumnDefinitionRaw
-    {
-        public ColumnDefinitionRaw(
-            int startOffset,
-            int startLine,
-            PathSpanRaw? sortMemberPathSpan,
-            PathSpanRaw? displayMemberPathSpan,
-            PathSpanRaw? bindingPathSpan,
-            PathSpanRaw? clipboardBindingPathSpan,
-            PathSpanRaw? contentBindingPathSpan)
-        {
-            StartOffset = startOffset;
-            StartLine = startLine;
-            SortMemberPathSpan = sortMemberPathSpan;
-            DisplayMemberPathSpan = displayMemberPathSpan;
-            BindingPathSpan = bindingPathSpan;
-            ClipboardPathSpan = clipboardBindingPathSpan;
-            ContentPathSpan = contentBindingPathSpan;
-        }
-
-        public int StartOffset { get; }
-
-        public int StartLine { get; }
-
-        public PathSpanRaw? SortMemberPathSpan { get; }
-
-        public PathSpanRaw? DisplayMemberPathSpan { get; }
-
-        public PathSpanRaw? BindingPathSpan { get; }
-
-        public PathSpanRaw? ClipboardPathSpan { get; }
-
-        public PathSpanRaw? ContentPathSpan { get; }
-    }
-
-    /// <summary>
-    /// Column definition enriched with file and line/column diagnostics metadata.
-    /// </summary>
-    private readonly struct ColumnDefinitionInfo
-    {
-        public ColumnDefinitionInfo(
-            int startLine,
-            PathDiagnosticLocation? sortMemberPathLocation,
-            PathDiagnosticLocation? displayMemberPathLocation,
-            PathDiagnosticLocation? cellBindingPathLocation,
-            PathDiagnosticLocation? clipboardBindingPathLocation,
-            PathDiagnosticLocation? contentBindingPathLocation)
-        {
-            StartLine = startLine;
-            SortMemberPathLocation = sortMemberPathLocation;
-            DisplayMemberPathLocation = displayMemberPathLocation;
-            BindingPathLocation = cellBindingPathLocation;
-            ClipboardBindingPathLocation = clipboardBindingPathLocation;
-            ContentBindingPathLocation = contentBindingPathLocation;
-        }
-
-        public int StartLine { get; }
-
-        public PathDiagnosticLocation? SortMemberPathLocation { get; }
-
-        public PathDiagnosticLocation? DisplayMemberPathLocation { get; }
-
-        public PathDiagnosticLocation? BindingPathLocation { get; }
-
-        public PathDiagnosticLocation? ClipboardBindingPathLocation { get; }
-
-        public PathDiagnosticLocation? ContentBindingPathLocation { get; }
-    }
-
-    /// <summary>
-    /// Represents an extracted member path and its absolute span in the source file.
-    /// </summary>
-    private readonly struct PathSpanRaw
-    {
-        public PathSpanRaw(string path, int spanStart, int spanLength)
-        {
-            Path = path;
-            SpanStart = spanStart;
-            SpanLength = spanLength;
-        }
-
-        /// <summary>
-        /// The extracted member path text.
-        /// </summary>
-        public string Path { get; }
-
-        /// <summary>
-        /// The absolute zero-based start index in the source file.
-        /// </summary>
-        public int SpanStart { get; }
-
-        /// <summary>
-        /// The length of the path span.
-        /// </summary>
-        public int SpanLength { get; }
-    }
-
-    /// <summary>
-    /// Stores a member path and the exact source mapping used for diagnostics.
-    /// </summary>
-    private readonly struct PathDiagnosticLocation
-    {
-        public PathDiagnosticLocation(
-            string path,
-            string filePath,
-            int spanStart,
-            int spanLength,
-            int startLine,
-            int startColumn,
-            int endLine,
-            int endColumn)
-        {
-            Path = path;
-            FilePath = filePath;
-            SpanStart = spanStart;
-            SpanLength = spanLength;
-            StartLine = startLine;
-            StartColumn = startColumn;
-            EndLine = endLine;
-            EndColumn = endColumn;
-        }
-
-        /// <summary>
-        /// The extracted member path text.
-        /// </summary>
-        public string Path { get; }
-
-        /// <summary>
-        /// The source file path containing the path token.
-        /// </summary>
-        public string FilePath { get; }
-
-        /// <summary>
-        /// The absolute zero-based start index in the source file.
-        /// </summary>
-        public int SpanStart { get; }
-
-        /// <summary>
-        /// The length of the path span.
-        /// </summary>
-        public int SpanLength { get; }
-
-        /// <summary>
-        /// Zero-based starting line for the path token.
-        /// </summary>
-        public int StartLine { get; }
-
-        /// <summary>
-        /// Zero-based starting column for the path token.
-        /// </summary>
-        public int StartColumn { get; }
-
-        /// <summary>
-        /// Zero-based ending line for the path token.
-        /// </summary>
-        public int EndLine { get; }
-
-        /// <summary>
-        /// Zero-based ending column for the path token.
-        /// </summary>
-        public int EndColumn { get; }
-    }
-
-    /// <summary>
-    /// Code-generation model for one generated provider associated with a TableView.
-    /// </summary>
-    private readonly struct GeneratedProviderInfo
-    {
-        public GeneratedProviderInfo(
-            string tableViewName,
-            string providerClassName,
-            string tableViewLine,
-            string itemTypeDisplay,
-            ImmutableArray<GeneratedValueCase> sortMemberCases,
-            ImmutableArray<GeneratedValueCase> displayMemberCases,
-            ImmutableArray<GeneratedValueCase> bindingPathCases,
-            ImmutableArray<GeneratedValueCase> clipboardPathCases,
-            ImmutableArray<GeneratedValueCase> contentPathCases)
-        {
-            TableViewName = tableViewName;
-            ProviderClassName = providerClassName;
-            TableViewLine = tableViewLine;
-            ItemTypeDisplay = itemTypeDisplay;
-            SortMemberCases = sortMemberCases;
-            DisplayMemberCases = displayMemberCases;
-            BindingPathCases = bindingPathCases;
-            ClipboardPathCases = clipboardPathCases;
-            ContentPathCases = contentPathCases;
-        }
-
-        public string TableViewName { get; }
-
-        public string ProviderClassName { get; }
-
-        public string TableViewLine { get; }
-
-        public string ItemTypeDisplay { get; }
-
-        /// <summary>
-        /// Generated access cases for sort member paths.
-        /// </summary>
-        public ImmutableArray<GeneratedValueCase> SortMemberCases { get; }
-
-        /// <summary>
-        /// Generated access cases for display member paths.
-        /// </summary>
-        public ImmutableArray<GeneratedValueCase> DisplayMemberCases { get; }
-
-        /// <summary>
-        /// Generated access cases for cell value paths.
-        /// </summary>
-        public ImmutableArray<GeneratedValueCase> BindingPathCases { get; }
-
-        /// <summary>
-        /// Generated access cases for clipboard member paths.
-        /// </summary>
-        public ImmutableArray<GeneratedValueCase> ClipboardPathCases { get; }
-
-        /// <summary>
-        /// Generated access cases for clipboard member paths.
-        /// </summary>
-        public ImmutableArray<GeneratedValueCase> ContentPathCases { get; }
-    }
-
-    private readonly struct GeneratedValueCase
-    {
-        public GeneratedValueCase(string memberPath, string accessExpression, CaseSourceInfo sourceInfo, string? memberTypeDisplay = null)
-        {
-            MemberPath = memberPath;
-            AccessExpression = accessExpression;
-            SourceInfo = sourceInfo;
-            MemberTypeDisplay = memberTypeDisplay;
-        }
-
-        public string MemberPath { get; }
-
-        public string AccessExpression { get; }
-
-        public CaseSourceInfo SourceInfo { get; }
-
-        public string? MemberTypeDisplay { get; }
-    }
-
-    private readonly struct CaseSourceInfo
-    {
-        public static CaseSourceInfo None => new(0, 0);
-
-        public CaseSourceInfo(int columnStartLine, int pathLine)
-        {
-            ColumnStartLine = columnStartLine;
-            PathLine = pathLine;
-        }
-
-        public int ColumnStartLine { get; }
-
-        public int PathLine { get; }
-
-        public bool HasValue => ColumnStartLine > 0 && PathLine > 0;
-    }
-
-    private enum ColumnPathKind
-    {
-        SortMemberPath,
-        DisplayMemberPath,
-        BindingPath,
-        ClipboardBindingPath,
-        ContentBindingPath
-    }
 }
-
 

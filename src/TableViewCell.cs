@@ -179,6 +179,7 @@ public partial class TableViewCell : ContentControl
             }
             #endregion
         }
+
         return base.MeasureOverride(availableSize);
     }
 
@@ -413,7 +414,7 @@ public partial class TableViewCell : ContentControl
             _editingArgs ??= new RoutedEventArgs();
 
             var args = new TableViewPreparingCellForEditEventArgs(this, Row?.Content, Column!, editingElement, _editingArgs);
-            _uneditedValue = Column?.PrepareCellForEdit(this, _editingArgs);
+            _uneditedValue = Column?.PrepareCellForEdit(this, Row?.Content, _editingArgs);
             TableView?.OnPreparingCellForEdit(args);
         }
     }

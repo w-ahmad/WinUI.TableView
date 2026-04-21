@@ -15,6 +15,15 @@ public interface ICellValueProvider
     bool TryGetBindingValue(string? path, object? item, out object? value);
 
     /// <summary>
+    /// Tries to set a cell value for the specified <see cref="TableViewBoundColumn.Binding"/>.
+    /// </summary>
+    /// <param name="path">The member path to resolve.</param>
+    /// <param name="item">The row item instance.</param>
+    /// <param name="value">The value to set.</param>
+    /// <returns><see langword="true"/> when a value was set; otherwise <see langword="false"/>.</returns>
+    bool TrySetBindingValue(string? path, object? item, object? value);
+
+    /// <summary>
     /// Tries to resolve a sort value for the specified <see cref="TableViewColumn.SortMemberPath"/>.
     /// </summary>
     /// <param name="path">The member path to resolve.</param>
