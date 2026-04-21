@@ -13,11 +13,7 @@ public partial class MainViewModel : ObservableObject
         foreach (var item in ItemsList)
         {
             Items.Add(item);
-            Genders.Add(item.User?.Gender);
-            Departments.Add(item.Department);
         }
-
-        Designations = [.. DataFaker.JobTitles];
     }
 
     public static void InitializeItems()
@@ -34,7 +30,7 @@ public partial class MainViewModel : ObservableObject
             var email = DataFaker.Email(firstName, lastName);
             var gender = DataFaker.Gender();
             var dob = DataFaker.PastDate(50, startDate);
-            ItemsList.Add(new ExampleModel
+            var item = new ExampleModel
             {
                 Id = startId++,
                 IsActive = DataFaker.Boolean(),
@@ -50,8 +46,17 @@ public partial class MainViewModel : ObservableObject
                     Email = email,
                     Gender = gender,
                     Dob = dob
+                },
+                DateTimeModel = new DateTimeModel
+                {
+                    TimeSpan1 = DataFaker.TimeOfDay().ToTimeSpan(),
+                    TimeOnly1 = DataFaker.TimeOfDay(),
+                    DateTime1 = new DateTime(DataFaker.PastDate(50, dob), DataFaker.TimeOfDay()),
+                    DateTimeOffset1 = new DateTimeOffset(DataFaker.PastDate(50, dob), DataFaker.TimeOfDay(), TimeSpan.Zero),
+                    DateOnly1 = DataFaker.PastDate(50, dob)
                 }
-            });
+            };
+            ItemsList.Add(item);
         }
     }
 
@@ -60,12 +65,11 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     public partial ObservableCollection<ExampleModel> Items { get; set; } = [];
 
-    public IList<string?> Genders { get; set; } = [];
+    public List<string> Genders => [.. DataFaker.Genders];
 
-    public IList<string?> Departments { get; set; } = [];
+    public List<string> Departments => [.. DataFaker.Departments];
 
-    public IList<Designation> Designations { get; set; } = [];
-
+    public List<string> Designations => [.. DataFaker.JobTitles];
     [ObservableProperty]
     public partial ExampleModel? SelectedItem { get; set; }
 }

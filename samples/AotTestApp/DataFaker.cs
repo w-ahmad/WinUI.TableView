@@ -35,47 +35,47 @@ public static class DataFaker
     ];
 
     // Job titles
-    public static readonly Designation[] JobTitles =
+    internal static readonly string[] JobTitles =
     [
-        new(1,"Software Developer"),
-        new(2,"Manager"),
-        new(3,"Sales Representative") ,
-        new(4,"Accountant") ,
-        new(5,"Analyst"),
-        new(6,"Engineer"),
-        new(7,"Designer"),
-        new(8,"Teacher"),
-        new(9,"Consultant"),
-        new(10,"Executive"),
-        new(11,"Administrator"),
-        new(12,"Coordinator"),
-        new(13,"Director"),
-        new(14,"Supervisor"),
-        new(15,"Specialist"),
-        new(16,"Technician"),
-        new(17,"Operator"),
-        new(18,"Clerk"),
-        new(19,"Assistant"),
-        new(20,"Officer"),
-        new(21,"Agent"),
-        new(22,"Associate"),
-        new(23,"Architect"),
-        new(24,"Planner"),
-        new(25,"Scientist"),
-        new(26,"Researcher"),
-        new(27,"Programmer"),
-        new(28,"Nurse"),
-        new(29,"Doctor"),
-        new(30,"Lawyer"),
-        new(31,"Marketing Manager"),
-        new(32,"Product Manager"),
-        new(33,"Business Analyst"),
-        new(34,"Data Scientist"),
-        new(35,"DevOps Engineer")
+        "Software Developer",
+        "Manager",
+        "Sales Representative",
+        "Accountant",
+        "Analyst",
+        "Engineer",
+        "Designer",
+        "Teacher",
+        "Consultant",
+        "Executive",
+        "Administrator",
+        "Coordinator",
+        "Director",
+        "Supervisor",
+        "Specialist",
+        "Technician",
+        "Operator",
+        "Clerk",
+        "Assistant",
+        "Officer",
+        "Agent",
+        "Associate",
+        "Architect",
+        "Planner",
+        "Scientist",
+        "Researcher",
+        "Programmer",
+        "Nurse",
+        "Doctor",
+        "Lawyer",
+        "Marketing Manager",
+        "Product Manager",
+        "Business Analyst",
+        "Data Scientist",
+        "DevOps Engineer"
     ];
 
     // Department names
-    private static readonly string[] Departments =
+    internal static readonly string[] Departments =
     [
         "Sales", "Marketing", "Engineering", "Finance", "Human Resources",
         "Operations", "IT", "Legal", "Research", "Development",
@@ -114,7 +114,7 @@ public static class DataFaker
     ];
 
     // Genders
-    private static readonly string[] Genders = ["Male", "Female", "Non-binary", "Genderfluid", "Agender", "Bigender", "Genderqueer", "Two-Spirit", "Prefer not to say"];
+    internal static readonly string[] Genders = ["Male", "Female", "Non-binary", "Genderfluid", "Agender", "Bigender", "Genderqueer", "Two-Spirit", "Prefer not to say"];
 
     // Avatar images (using placeholder service URLs)
     private static readonly string[] AvatarSeeds =
@@ -189,7 +189,7 @@ public static class DataFaker
         return Departments[_random.Next(Departments.Length)];
     }
 
-    public static Designation JobTitle()
+    public static string JobTitle()
     {
         return JobTitles[_random.Next(JobTitles.Length)];
     }

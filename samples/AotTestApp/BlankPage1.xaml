@@ -9,23 +9,15 @@
 
     <Grid>
         <tv:TableView x:Name="TableView1"
+                      Margin="20,20,20,20"
                       AutoGenerateColumns="False"
                       ShowExportOptions="True"
                       ItemsSource="{x:Bind ViewModel.Items}">
-            <tv:TableView.RowDetailsTemplate>
-                <DataTemplate x:DataType="local:ExampleModel">
-                    <PersonPicture ProfilePicture="{x:Bind Avatar}"
-                                   Width="100"
-                                   Height="100"
-                                   Initials="{x:Bind Id}"
-                                   HorizontalAlignment="Left" />
-                </DataTemplate>
-            </tv:TableView.RowDetailsTemplate>
             <tv:TableView.Columns>
-               <tv:TableViewNumberColumn Header="ID"
+                <tv:TableViewNumberColumn Header="ID"
                                           Width="80"
                                           Binding="{Binding Id}" />
-                 <tv:TableViewTextColumn Header="First Name"
+                <tv:TableViewTextColumn Header="First Name"
                                         Binding="{Binding User.FirstName}" />
                 <tv:TableViewTextColumn Header="Last Name"
                                         Binding="{Binding User.LastName}" />
@@ -36,18 +28,16 @@
                                         Binding="{Binding User.Email}" />
                 <tv:TableViewComboBoxColumn Header="Designation"
                                             Binding="{Binding Designation}"
-                                            DisplayMemberPath="Title"
-                                            SortMemberPath="Designation.Title"
                                             ItemsSource="{x:Bind ViewModel.Designations}" />
                 <tv:TableViewDateColumn Header="Date of Birth"
                                         Binding="{Binding Path=User.Dob}" />
-               <tv:TableViewTimeColumn Header="Active At"
+                <tv:TableViewTimeColumn Header="Active At"
                                         Binding="{Binding ActiveAt}" />
                 <tv:TableViewCheckBoxColumn Header="Is Active"
                                             Binding="{Binding IsActive}" />
                 <tv:TableViewHyperlinkColumn Header="Avatar Url"
                                              Binding="{Binding Avatar}"
-                                             ContentBinding="{Binding User.FirstName}"/>
+                                             ContentBinding="{Binding User.FirstName}" />
             </tv:TableView.Columns>
         </tv:TableView>
     </Grid>

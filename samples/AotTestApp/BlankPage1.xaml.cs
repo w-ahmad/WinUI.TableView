@@ -1,3 +1,4 @@
+using ABI.System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -32,5 +33,4 @@ public sealed partial class BlankPage1 : Page
     }
 
     public MainViewModel ViewModel { get; }
-
 }

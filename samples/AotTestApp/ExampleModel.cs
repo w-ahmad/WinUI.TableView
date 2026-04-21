@@ -14,7 +14,6 @@ public partial class Designation : ObservableObject
     [ObservableProperty]
     public partial int Id { get; set; }
 
-
     [ObservableProperty]
     public partial string? Title { get; set; }
 }
@@ -39,6 +38,25 @@ public partial class User : ObservableObject
     public partial DateOnly Dob { get; set; }
 }
 
+public partial class DateTimeModel : ObservableObject
+{
+
+    [ObservableProperty]
+    public partial TimeSpan TimeSpan1 { get; set; }
+
+    [ObservableProperty]
+    public partial TimeOnly TimeOnly1 { get; set; }
+
+    [ObservableProperty]
+    public partial DateOnly DateOnly1 { get; set; }
+
+    [ObservableProperty]
+    public partial DateTime DateTime1 { get; set; }
+
+    [ObservableProperty]
+    public partial DateTimeOffset DateTimeOffset1 { get; set; }
+}
+
 public partial class ExampleModel : ObservableObject
 {
     [ObservableProperty]
@@ -56,7 +74,7 @@ public partial class ExampleModel : ObservableObject
     public partial string? Department { get; set; }
 
     [ObservableProperty]
-    public partial Designation? Designation { get; set; }
+    public partial string? Designation { get; set; }
 
     [ObservableProperty]
     public partial string? Address { get; set; }
@@ -70,4 +88,7 @@ public partial class ExampleModel : ObservableObject
     [ObservableProperty]
     [Display(AutoGenerateField = false)]
     public partial User? User { get; set; }
+
+    [ObservableProperty]
+    public partial DateTimeModel? DateTimeModel { get; set; }
 }
