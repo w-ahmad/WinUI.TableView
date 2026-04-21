@@ -61,22 +61,20 @@ public partial class TableViewComboBoxColumn : TableViewBoundColumn
             SelectedValuePath = SelectedValuePath,
             DisplayMemberPath = DisplayMemberPath,
             Text = GetDisplayValue(dataItem),
+            SelectedItem = GetCellContent(dataItem),
+            ItemsSource = ItemsSource,
+            IsEditable = IsEditable,
         };
-        comboBox.SetBinding(ItemsControl.ItemsSourceProperty, new Binding { Source = this, Path = new PropertyPath(nameof(ItemsSource)) });
-        comboBox.SetBinding(Selector.SelectedValuePathProperty, new Binding { Source = this, Path = new PropertyPath(nameof(SelectedValuePath)) });
-        comboBox.SetBinding(ItemsControl.DisplayMemberPathProperty, new Binding { Source = this, Path = new PropertyPath(nameof(DisplayMemberPath)) });
-        comboBox.SetBinding(Selector.SelectedItemProperty, Binding);
-        comboBox.SetBinding(ComboBox.IsEditableProperty, new Binding { Source = this, Path = new PropertyPath(nameof(IsEditable)) });
 
-        if (TextBinding is not null)
-        {
-            comboBox.SetBinding(ComboBox.TextProperty, TextBinding);
-        }
+        //if (TextBinding is not null)
+        //{
+        //    comboBox.SetBinding(ComboBox.TextProperty, TextBinding);
+        //}
 
-        if (SelectedValueBinding is not null)
-        {
-            comboBox.SetBinding(Selector.SelectedValueProperty, SelectedValueBinding);
-        }
+        //if (SelectedValueBinding is not null)
+        //{
+        //    comboBox.SetBinding(Selector.SelectedValueProperty, SelectedValueBinding);
+        //}
 
         return comboBox;
     }
