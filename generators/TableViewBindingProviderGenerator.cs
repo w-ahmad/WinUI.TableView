@@ -290,7 +290,7 @@ public sealed partial class TableViewBindingProviderGenerator : IIncrementalGene
                         continue;
                     }
 
-                    var baseProviderClassName = $"TableView_{SanitizeIdentifier(tableView.TableViewName!)}_MemberValueProvider";
+                    var baseProviderClassName = $"TableView_{SanitizeIdentifier(tableView.TableViewName!)}_CellValueProvider";
                     var providerClassName = GetUniqueIdentifier(baseProviderClassName, usedProviderClassNames);
 
                     providers.Add(new GeneratedProviderInfo(
@@ -1760,7 +1760,7 @@ public sealed partial class TableViewBindingProviderGenerator : IIncrementalGene
                    .Append(provider.TableViewName)
                    .AppendLine("))");
             builder.AppendLine("        {");
-            builder.Append("            @param_tableView.MemberValueProvider = new ")
+            builder.Append("            @param_tableView.CellValueProvider = new ")
                    .Append(provider.ProviderClassName)
                    .AppendLine("();");
             builder.AppendLine("        }");
@@ -1775,7 +1775,7 @@ public sealed partial class TableViewBindingProviderGenerator : IIncrementalGene
         {
             builder.Append("        this.")
                    .Append(provider.TableViewName)
-                   .Append(".MemberValueProvider = new ")
+                   .Append(".CellValueProvider = new ")
                    .Append(provider.ProviderClassName)
                    .AppendLine("();");
         }

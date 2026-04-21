@@ -119,7 +119,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// <returns>The clipboard content of the cell.</returns>
     public virtual object? GetClipboardContent(object? dataItem)
     {
-        if (TableView?.MemberValueProvider is { } provider &&
+        if (TableView?.CellValueProvider is { } provider &&
            provider.TryGetClipboardContentBindingValue(ClipboardContentBindingPropertyPath, dataItem, out var value))
         {
             return BindingHelper.ConvertValue(ClipboardContentBinding, value);

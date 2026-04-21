@@ -64,7 +64,7 @@ public partial class TableViewHyperlinkColumn : TableViewTextColumn
     /// <returns>The content for the HyperlinkButton.</returns>
     protected virtual object? GetContent(object? dataItem)
     {
-        if (TableView?.MemberValueProvider is { } provider &&
+        if (TableView?.CellValueProvider is { } provider &&
              provider.TryGetContentBindingValue(ContentBinding?.Path?.Path, dataItem, out var value))
         {
             return value;

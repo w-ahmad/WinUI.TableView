@@ -374,7 +374,7 @@ public partial class TableView
     /// <summary>
     /// Gets or sets the provider used to resolve values.
     /// </summary>
-    public ICellValueProvider? MemberValueProvider { get; set; }
+    public ICellValueProvider? CellValueProvider { get; set; }
 
     /// <summary>
     /// Gets a value indicating whether the TableView items are filtered.

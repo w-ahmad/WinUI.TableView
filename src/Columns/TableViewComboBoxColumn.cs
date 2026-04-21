@@ -38,7 +38,7 @@ public partial class TableViewComboBoxColumn : TableViewBoundColumn
     /// <inheritdoc/>
     protected virtual string? GetDisplayValue(object? dataItem)
     {
-        if (TableView?.MemberValueProvider is { } provider &&
+        if (TableView?.CellValueProvider is { } provider &&
             provider.TryGetDisplayMemberValue(DisplayMemberPath, dataItem, out var value))
         {
             return value?.ToString();

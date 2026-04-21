@@ -19,6 +19,9 @@ namespace WinUI.TableView;
 #endif
 public partial class TableViewDateColumn : TableViewBoundColumn
 {
+    /// <summary>
+    /// Default date format used for displaying the date in the cell when DateFormat is not set.
+    /// </summary>
     public const string DefaultDateFormat = "shortdate";
 
     /// <summary>

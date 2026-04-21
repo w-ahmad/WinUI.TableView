@@ -29,7 +29,7 @@ internal class ColumnSortDescription : SortDescription
         // Use reflection-based property access when SortMemberPath is explicitly provided; otherwise, fall back to column cell content.
         if (!string.IsNullOrEmpty(Column.SortMemberPath))
         {
-            if (Column.TableView?.MemberValueProvider is { } provider
+            if (Column.TableView?.CellValueProvider is { } provider
                 && provider.TryGetSortMemberValue(Column.SortMemberPath, item, out var value))
             {
                 return value;

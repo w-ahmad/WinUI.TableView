@@ -19,7 +19,7 @@ public abstract class TableViewBoundColumn : TableViewColumn
     /// <inheritdoc/>
     public override object? GetCellContent(object? dataItem)
     {
-        if (TableView?.MemberValueProvider is { } provider &&
+        if (TableView?.CellValueProvider is { } provider &&
            provider.TryGetBindingValue(PropertyPath, dataItem, out var value))
         {
             return BindingHelper.ConvertValue(Binding, value);
@@ -55,7 +55,7 @@ public abstract class TableViewBoundColumn : TableViewColumn
     {
         var convertedValue = BindingHelper.ConvertBackValue(Binding, value);
 
-        if (TableView?.MemberValueProvider is { } provider)
+        if (TableView?.CellValueProvider is { } provider)
         {
             provider.TrySetBindingValue(PropertyPath, dataItem, convertedValue);
         }

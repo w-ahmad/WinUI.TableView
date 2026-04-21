@@ -59,3 +59,4 @@ public interface ICellValueProvider
     /// <returns><see langword="true"/> when a value was resolved; otherwise <see langword="false"/>.</returns>
     bool TryGetDisplayMemberValue(string? path, object? item, out object? value);
 }
+

@@ -302,7 +302,7 @@ public partial class TableView : ListView
 
         SetHeadersVisibility();
 
-        if (MemberValueProvider is null)
+        if (CellValueProvider is null)
         {
             // Connect this TableView instance to avoid re-connecting unrelated TableViews.
             this.FindAscendant<ITableViewConnector>()?.ConnectTableView(this); 
