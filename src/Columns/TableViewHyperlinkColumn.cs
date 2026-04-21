@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
+using System;
 
 namespace WinUI.TableView;
 
@@ -26,17 +27,62 @@ public partial class TableViewHyperlinkColumn : TableViewTextColumn
         {
             Margin = new Thickness(2, 0, 2, 0),
             HorizontalAlignment = HorizontalAlignment.Stretch,
-            HorizontalContentAlignment = HorizontalAlignment.Left
+            HorizontalContentAlignment = HorizontalAlignment.Left,
+            Content = GetContent(dataItem),
+            NavigateUri = GetNavigateUri(dataItem)
         };
 
-        // Bind NavigateUri to the main Binding property
-        hyperlinkButton.SetBinding(HyperlinkButton.NavigateUriProperty, Binding);
-
-        // Bind Content to ContentBinding if set, otherwise use the NavigateUri
-        var contentBinding = ContentBinding ?? Binding;
-        hyperlinkButton.SetBinding(ContentControl.ContentProperty, contentBinding);
-
         return hyperlinkButton;
+    }
+
+    /// <summary>
+    /// Gets the NavigateUri for the HyperlinkButton based on the cell content or binding.
+    /// </summary>
+    /// <param name="dataItem">The data item associated with the cell.</param>
+    /// <returns>The NavigateUri for the HyperlinkButton.</returns>
+    protected virtual Uri? GetNavigateUri(object? dataItem)
+    {
+        var cellContent = GetCellContent(dataItem);
+
+        if (cellContent is Uri uri)
+        {
+            return uri;
+        }
+
+        if (cellContent is string str)
+        {
+            return new Uri(str, UriKind.RelativeOrAbsolute);
+        }
+
+        return default;
+    }
+
+    /// <summary>
+    /// Gets the content for the HyperlinkButton based on the ContentBinding or falls back to the cell content.
+    /// </summary>
+    /// <param name="dataItem">The data item associated with the cell.</param>
+    /// <returns>The content for the HyperlinkButton.</returns>
+    protected virtual object? GetContent(object? dataItem)
+    {
+        if (TableView?.CellValueProvider is { } provider &&
+             provider.TryGetContentBindingValue(ContentBinding?.Path?.Path, dataItem, out var value))
+        {
+            return value;
+        }
+
+        return GetCellContent(dataItem);
+    }
+
+    /// <inheritdoc/>
+    public override void RefreshElement(TableViewCell cell, object? dataItem)
+    {
+        if (cell.Content is not HyperlinkButton hyperlinkButton)
+            base.RefreshElement(cell, dataItem);
+        else
+        {
+            hyperlinkButton.Content = GetContent(dataItem);
+            hyperlinkButton.NavigateUri = GetNavigateUri(dataItem);
+        }
     }
 
     /// <summary>

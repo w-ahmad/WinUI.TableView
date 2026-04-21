@@ -19,13 +19,25 @@ internal class ColumnSortDescription : SortDescription
         Column = column;
     }
 
+    /// <summary>
+    /// Gets the sort value for the specified item, preferring the TableView member value provider when available.
+    /// </summary>
+    /// <param name="item">The item to extract a sort value from.</param>
+    /// <returns>The resolved sort value, or <see langword="null"/> when no value is available.</returns>
     public override object? GetPropertyValue(object? item)
     {
         // Use reflection-based property access when SortMemberPath is explicitly provided; otherwise, fall back to column cell content.
         if (!string.IsNullOrEmpty(Column.SortMemberPath))
         {
+            if (Column.TableView?.CellValueProvider is { } provider
+                && provider.TryGetSortMemberValue(Column.SortMemberPath, item, out var value))
+            {
+                return value;
+            }
+
             return base.GetPropertyValue(item);
         }
+
         return Column.GetCellContent(item);
     }
 

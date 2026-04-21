@@ -29,19 +29,22 @@ public partial class TableViewComboBoxColumn : TableViewBoundColumn
         var textBlock = new TextBlock
         {
             Margin = new Thickness(12, 0, 12, 0),
+            Text = GetDisplayValue(dataItem)
         };
 
-        if (!string.IsNullOrEmpty(DisplayMemberPath))
+        return textBlock;
+    }
+
+    /// <inheritdoc/>
+    protected virtual string? GetDisplayValue(object? dataItem)
+    {
+        if (TableView?.CellValueProvider is { } provider &&
+            provider.TryGetDisplayMemberValue(DisplayMemberPath, dataItem, out var value))
         {
-            textBlock.SetBinding(FrameworkElement.DataContextProperty, Binding);
-            textBlock.SetBinding(TextBlock.TextProperty, new Binding { Path = new PropertyPath(DisplayMemberPath) });
-        }
-        else
-        {
-            textBlock.SetBinding(TextBlock.TextProperty, Binding);
+            return value?.ToString();
         }
 
-        return textBlock;
+        return GetCellContent(dataItem)?.ToString();
     }
 
     /// <summary>
@@ -52,35 +55,49 @@ public partial class TableViewComboBoxColumn : TableViewBoundColumn
     /// <returns>A ComboBox element.</returns>
     public override FrameworkElement GenerateEditingElement(TableViewCell cell, object? dataItem)
     {
-        var comboBox = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch };
-        comboBox.SetBinding(ItemsControl.ItemsSourceProperty, new Binding { Source = this, Path = new PropertyPath(nameof(ItemsSource)) });
-        comboBox.SetBinding(Selector.SelectedValuePathProperty, new Binding { Source = this, Path = new PropertyPath(nameof(SelectedValuePath)) });
-        comboBox.SetBinding(ItemsControl.DisplayMemberPathProperty, new Binding { Source = this, Path = new PropertyPath(nameof(DisplayMemberPath)) });
-        comboBox.SetBinding(Selector.SelectedItemProperty, Binding);
-        comboBox.SetBinding(ComboBox.IsEditableProperty, new Binding { Source = this, Path = new PropertyPath(nameof(IsEditable)) });
-
-        if (TextBinding is not null)
+        var comboBox = new ComboBox
         {
-            comboBox.SetBinding(ComboBox.TextProperty, TextBinding);
-        }
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            SelectedValuePath = SelectedValuePath,
+            DisplayMemberPath = DisplayMemberPath,
+            Text = GetDisplayValue(dataItem),
+            SelectedItem = GetCellContent(dataItem),
+            ItemsSource = ItemsSource,
+            IsEditable = IsEditable,
+        };
 
-        if (SelectedValueBinding is not null)
-        {
-            comboBox.SetBinding(Selector.SelectedValueProperty, SelectedValueBinding);
-        }
+        //if (TextBinding is not null)
+        //{
+        //    comboBox.SetBinding(ComboBox.TextProperty, TextBinding);
+        //}
+
+        //if (SelectedValueBinding is not null)
+        //{
+        //    comboBox.SetBinding(Selector.SelectedValueProperty, SelectedValueBinding);
+        //}
 
         return comboBox;
     }
 
     /// <inheritdoc/>
-    protected internal override object? PrepareCellForEdit(TableViewCell cell, RoutedEventArgs routedEvent)
+    public override void RefreshElement(TableViewCell cell, object? dataItem)
+    {
+        if (cell.Content is not TextBlock textBlock)
+            base.RefreshElement(cell, dataItem);
+        else
+            textBlock.Text = GetDisplayValue(dataItem);
+    }
+
+    /// <inheritdoc/>
+    protected internal override object? PrepareCellForEdit(TableViewCell cell, object? dataItem, RoutedEventArgs routedEvent)
     {
         if (cell.Content is ComboBox comboBox)
         {
+
             return comboBox.SelectedItem;
         }
 
-        return base.PrepareCellForEdit(cell, routedEvent);
+        return base.PrepareCellForEdit(cell, dataItem, routedEvent);
     }
 
     /// <inheritdoc/>
@@ -90,8 +107,7 @@ public partial class TableViewComboBoxColumn : TableViewBoundColumn
         {
             if (editAction == TableViewEditAction.Commit)
             {
-                var bindingExpression = comboBox.GetBindingExpression(Selector.SelectedItemProperty);
-                bindingExpression?.UpdateSource();
+                TrySetBindingValue(dataItem, comboBox.SelectedItem);
             }
         }
     }

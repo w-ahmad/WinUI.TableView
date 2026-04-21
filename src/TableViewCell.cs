@@ -414,7 +414,7 @@ public partial class TableViewCell : ContentControl
             _editingArgs ??= new RoutedEventArgs();
 
             var args = new TableViewPreparingCellForEditEventArgs(this, Row?.Content, Column!, editingElement, _editingArgs);
-            _uneditedValue = Column?.PrepareCellForEdit(this, _editingArgs);
+            _uneditedValue = Column?.PrepareCellForEdit(this, Row?.Content, _editingArgs);
             TableView?.OnPreparingCellForEdit(args);
         }
     }
@@ -473,9 +473,9 @@ public partial class TableViewCell : ContentControl
     /// <summary>
     /// Refreshes the element for the cell.
     /// </summary>
-    internal void RefreshElement()
+    internal void RefreshElement(object? dataItem)
     {
-        Column?.RefreshElement(this, Row?.Content);
+        Column?.RefreshElement(this, dataItem);
     }
 
     /// <summary>

@@ -1,5 +1,7 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System;
+using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
 
@@ -24,8 +26,9 @@ public partial class TableViewTextColumn : TableViewBoundColumn
         var textBlock = new TextBlock
         {
             Margin = new Thickness(12, 0, 12, 0),
+            Text = GetCellContent(dataItem)?.ToString()
         };
-        textBlock.SetBinding(TextBlock.TextProperty, Binding);
+
         return textBlock;
     }
 
@@ -37,16 +40,20 @@ public partial class TableViewTextColumn : TableViewBoundColumn
     /// <returns>A TextBox element.</returns>
     public override FrameworkElement GenerateEditingElement(TableViewCell cell, object? dataItem)
     {
-        var textBox = new TextBox();
-        textBox.SetBinding(TextBox.TextProperty, Binding);
-#if !WINDOWS
-        textBox.DataContext = dataItem;
-#endif
-        return textBox;
+        return new TextBox { Text = GetCellContent(dataItem)?.ToString() };
     }
 
     /// <inheritdoc/>
-    protected internal override object? PrepareCellForEdit(TableViewCell cell, RoutedEventArgs routedEvent)
+    public override void RefreshElement(TableViewCell cell, object? dataItem)
+    {
+        if (cell.Content is not TextBlock textBlock)
+            base.RefreshElement(cell, dataItem);
+        else
+            textBlock.Text = GetCellContent(dataItem)?.ToString();
+    }
+
+    /// <inheritdoc/>
+    protected internal override object? PrepareCellForEdit(TableViewCell cell, object? dataItem, RoutedEventArgs routedEvent)
     {
         if (cell.Content is TextBox textBox)
         {
@@ -54,19 +61,15 @@ public partial class TableViewTextColumn : TableViewBoundColumn
             return textBox.Text;
         }
 
-        return base.PrepareCellForEdit(cell, routedEvent);
+        return base.PrepareCellForEdit(cell, dataItem, routedEvent);
     }
 
     /// <inheritdoc/>
     protected internal override void EndCellEditing(TableViewCell cell, object? dataItem, TableViewEditAction editAction, object? uneditedValue)
     {
-        if (cell.Content is TextBox textBox)
+        if (cell.Content is TextBox textBox && editAction == TableViewEditAction.Commit)
         {
-            if (editAction == TableViewEditAction.Commit)
-            {
-                var bindingExpression = textBox.GetBindingExpression(TextBox.TextProperty);
-                bindingExpression?.UpdateSource();
-            }
+            TrySetBindingValue(dataItem, textBox.Text);
         }
     }
 }

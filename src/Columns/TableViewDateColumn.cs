@@ -13,12 +13,17 @@ namespace WinUI.TableView;
 /// Represents a column in a TableView that displays a date.
 /// </summary>
 [StyleTypedProperty(Property = nameof(ElementStyle), StyleTargetType = typeof(TextBlock))]
-[StyleTypedProperty(Property = nameof(EditingElementStyle), StyleTargetType = typeof(TableViewDatePicker))]
+[StyleTypedProperty(Property = nameof(EditingElementStyle), StyleTargetType = typeof(CalendarDatePicker))]
 #if WINDOWS
 [WinRT.GeneratedBindableCustomProperty]
 #endif
 public partial class TableViewDateColumn : TableViewBoundColumn
 {
+    /// <summary>
+    /// Default date format used for displaying the date in the cell when DateFormat is not set.
+    /// </summary>
+    public const string DefaultDateFormat = "shortdate";
+
     /// <summary>
     /// Generates a TextBlock element for the cell.
     /// </summary>
@@ -31,13 +36,8 @@ public partial class TableViewDateColumn : TableViewBoundColumn
         {
             Margin = new Thickness(12, 0, 12, 0),
         };
-
-        textBlock.SetBinding(DateTimeFormatHelper.ValueProperty, Binding);
-        textBlock.SetBinding(DateTimeFormatHelper.FormatProperty, new Binding
-        {
-            Path = new PropertyPath(nameof(DateFormat)),
-            Source = this
-        });
+        DateTimeFormatHelper.SetValue(textBlock, GetCellContent(dataItem));
+        DateTimeFormatHelper.SetFormat(textBlock, DateFormat ?? DefaultDateFormat);
 
         return textBlock;
     }
@@ -50,7 +50,15 @@ public partial class TableViewDateColumn : TableViewBoundColumn
     /// <returns>A TableViewDatePicker element.</returns>
     public override FrameworkElement GenerateEditingElement(TableViewCell cell, object? dataItem)
     {
-        var timePicker = new TableViewDatePicker
+        var date = GetCellContent(dataItem) switch
+        {
+            DateOnly dateOnly => dateOnly.ToDateTimeOffset(),
+            DateTime dateTime => dateTime.ToDateTimeOffset(),
+            DateTimeOffset dateTimeOffset => dateTimeOffset,
+            _ => default
+        };
+
+        var datePicker = new CalendarDatePicker
         {
             MinDate = MinDate,
             MaxDate = MaxDate,
@@ -61,66 +69,44 @@ public partial class TableViewDateColumn : TableViewBoundColumn
             PlaceholderText = PlaceHolderText ?? TableViewLocalizedStrings.DatePickerPlaceholder,
             DayOfWeekFormat = DayOfWeekFormat,
             FirstDayOfWeek = FirstDayOfWeek,
-            SourceType = GetSourcePropertyType(dataItem),
             VerticalAlignment = VerticalAlignment.Stretch,
             HorizontalAlignment = HorizontalAlignment.Stretch,
+            Date = date,
         };
-        timePicker.SetBinding(TableViewDatePicker.SelectedDateProperty, Binding);
 
-        return timePicker;
+        return datePicker;
     }
 
     /// <inheritdoc/>
-    protected internal override object? PrepareCellForEdit(TableViewCell cell, RoutedEventArgs routedEvent)
+    public override void RefreshElement(TableViewCell cell, object? dataItem)
     {
-        if (cell.Content is TableViewDatePicker datePicker)
+        if (cell.Content is not TextBlock textBlock)
+            base.RefreshElement(cell, dataItem);
+        else
+            DateTimeFormatHelper.SetValue(textBlock, GetCellContent(dataItem));
+    }
+
+    /// <inheritdoc/>
+    protected internal override object? PrepareCellForEdit(TableViewCell cell, object? dataItem, RoutedEventArgs routedEvent)
+    {
+        if (cell.Content is CalendarDatePicker datePicker)
         {
-            return datePicker.SelectedDate;
+            return datePicker.Date;
         }
 
-        return base.PrepareCellForEdit(cell, routedEvent);
+        return base.PrepareCellForEdit(cell, dataItem, routedEvent);
     }
 
     /// <inheritdoc/>
     protected internal override void EndCellEditing(TableViewCell cell, object? dataItem, TableViewEditAction editAction, object? uneditedValue)
     {
-        if (cell.Content is TableViewDatePicker datePicker)
+        if (cell.Content is CalendarDatePicker datePicker)
         {
             if (editAction == TableViewEditAction.Commit)
             {
-                var bindingExpression = datePicker.GetBindingExpression(TableViewDatePicker.SelectedDateProperty);
-                bindingExpression?.UpdateSource();
+                TrySetBindingValue(dataItem, datePicker.Date);
             }
         }
-    }
-
-    /// <summary>
-    /// Gets the type of the source property.
-    /// </summary>
-    /// <param name="dataItem">The data item associated with the cell.</param>
-    /// <returns>The type of the source property.</returns>
-    private Type? GetSourcePropertyType(object? dataItem)
-    {
-        if (Binding is not null && dataItem is not null)
-        {
-            var type = dataItem.GetType();
-
-            if (!string.IsNullOrEmpty(PropertyPath))
-            {
-                var propertyInfo = type.GetProperty(PropertyPath);
-                if (propertyInfo is not null)
-                {
-                    type = propertyInfo.PropertyType;
-                }
-            }
-
-            if (type.IsDateOnly() || type.IsDateTime() || type.IsDateTimeOffset())
-            {
-                return type;
-            }
-        }
-
-        return typeof(DateTimeOffset);
     }
 
     /// <summary>
@@ -247,5 +233,5 @@ public partial class TableViewDateColumn : TableViewBoundColumn
     /// <summary>
     /// Identifies the DateFormat dependency property.
     /// </summary>
-    public static readonly DependencyProperty DateFormatProperty = DependencyProperty.Register(nameof(DateFormat), typeof(string), typeof(TableViewDateColumn), new PropertyMetadata("shortdate"));
+    public static readonly DependencyProperty DateFormatProperty = DependencyProperty.Register(nameof(DateFormat), typeof(string), typeof(TableViewDateColumn), new PropertyMetadata(DefaultDateFormat));
 }

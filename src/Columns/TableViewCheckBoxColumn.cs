@@ -37,9 +37,9 @@ public partial class TableViewCheckBoxColumn : TableViewBoundColumn
             Margin = new Thickness(12, 0, 12, 0),
             HorizontalAlignment = HorizontalAlignment.Center,
             UseSystemFocusVisuals = false,
+            IsChecked = GetCellContent(dataItem) as bool?
         };
 
-        checkBox.SetBinding(ToggleButton.IsCheckedProperty, Binding);
         UpdateCheckBoxState(checkBox);
 
         return checkBox;
@@ -52,6 +52,15 @@ public partial class TableViewCheckBoxColumn : TableViewBoundColumn
     }
 
     /// <inheritdoc/>
+    public override void RefreshElement(TableViewCell cell, object? dataItem)
+    {
+        if (cell.Content is not CheckBox checkBox)
+            base.RefreshElement(cell, dataItem);
+        else
+            checkBox.IsChecked = GetCellContent(dataItem) as bool?;
+    }
+
+    /// <inheritdoc/>
     public override void UpdateElementState(TableViewCell cell, object? dataItem)
     {
         if (cell?.Content is CheckBox checkBox)
@@ -61,14 +70,14 @@ public partial class TableViewCheckBoxColumn : TableViewBoundColumn
     }
 
     /// <inheritdoc/>
-    protected internal override object? PrepareCellForEdit(TableViewCell cell, RoutedEventArgs routedEvent)
+    protected internal override object? PrepareCellForEdit(TableViewCell cell, object? dataItem, RoutedEventArgs routedEvent)
     {
         if (cell.Content is CheckBox checkBox)
         {
             return checkBox.IsChecked;
         }
 
-        return base.PrepareCellForEdit(cell, routedEvent);
+        return base.PrepareCellForEdit(cell, dataItem, routedEvent);
     }
 
     /// <inheritdoc/>
@@ -78,8 +87,7 @@ public partial class TableViewCheckBoxColumn : TableViewBoundColumn
         {
             if (editAction == TableViewEditAction.Commit)
             {
-                var bindingExpression = checkBox.GetBindingExpression(CheckBox.IsCheckedProperty);
-                bindingExpression?.UpdateSource();
+                TrySetBindingValue(dataItem, checkBox.IsChecked);
             }
         }
     }

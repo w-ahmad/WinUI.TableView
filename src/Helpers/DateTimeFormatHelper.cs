@@ -13,7 +13,7 @@ namespace WinUI.TableView.Helpers;
 /// <summary>
 /// Provides helper methods for formatting Date and Time values.
 /// </summary>
-internal static class DateTimeFormatHelper
+public static class DateTimeFormatHelper
 {
     private const string _12HourClock = "12HourClock";
     private const string _24HourClock = "24HourClock";
@@ -44,7 +44,7 @@ internal static class DateTimeFormatHelper
 
                 textBlock.Text = formatter.Format(dateTimeOffset);
             }
-            else if (value is not null)
+            else if (value is not null && !string.IsNullOrEmpty(format))
             {
                 var formatter = GetDateTimeFormatter(format);
 
@@ -118,7 +118,7 @@ internal static class DateTimeFormatHelper
     /// <summary>
     /// Gets the value of the Value attached property.
     /// </summary>
-    public static object GetValue(DependencyObject obj)
+    public static object? GetValue(DependencyObject obj)
     {
         return obj.GetValue(ValueProperty);
     }
@@ -126,7 +126,7 @@ internal static class DateTimeFormatHelper
     /// <summary>
     /// Sets the value of the Value attached property.
     /// </summary>
-    public static void SetValue(DependencyObject obj, object value)
+    public static void SetValue(DependencyObject obj, object? value)
     {
         obj.SetValue(ValueProperty, value);
     }
