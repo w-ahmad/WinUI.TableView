@@ -13,10 +13,10 @@ public partial class MainViewModel : ObservableObject
         foreach (var item in ItemsList)
         {
             Items.Add(item);
-            Genders.Add(item.User?.Gender);
-            Departments.Add(item.Department);
         }
 
+        Genders = [.. DataFaker.Genders];
+        Departments = [.. DataFaker.Departments];
         Designations = [.. DataFaker.JobTitles];
     }
 
@@ -60,11 +60,11 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     public partial ObservableCollection<ExampleModel> Items { get; set; } = [];
 
-    public IList<string?> Genders { get; set; } = [];
+    public List<string?> Genders { get; set; } = [];
 
-    public IList<string?> Departments { get; set; } = [];
+    public List<string?> Departments { get; set; } = [];
 
-    public IList<Designation> Designations { get; set; } = [];
+    public List<Designation> Designations { get; set; } = [];
 
     [ObservableProperty]
     public partial ExampleModel? SelectedItem { get; set; }

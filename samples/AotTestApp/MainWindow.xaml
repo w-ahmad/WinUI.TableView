@@ -14,6 +14,37 @@
     </Window.SystemBackdrop>
 
     <Grid>
-        <local:BlankPage1 />
+        <tv:TableView AutoGenerateColumns="False"
+                      ShowExportOptions="True"
+                      ItemsSource="{x:Bind ViewModel.Items}">
+            <tv:TableView.Columns>
+                <tv:TableViewNumberColumn Header="ID"
+                                          Width="80"
+                                          Binding="{Binding Id}" />
+                <tv:TableViewTextColumn Header="First Name"
+                                        Binding="{Binding User.FirstName}" />
+                <tv:TableViewTextColumn Header="Last Name"
+                                        Binding="{Binding User.LastName}" />
+                <tv:TableViewComboBoxColumn Header="Gender"
+                                            Binding="{Binding User.Gender}"
+                                            ItemsSource="{x:Bind ViewModel.Genders}" />
+                <tv:TableViewTextColumn Header="Email"
+                                        Binding="{Binding User.Email}" />
+                <tv:TableViewComboBoxColumn Header="Designation"
+                                            Binding="{Binding Designation}"
+                                            DisplayMemberPath="Title"
+                                            SortMemberPath="Designation.Title"
+                                            ItemsSource="{x:Bind ViewModel.Designations}" />
+                <tv:TableViewDateColumn Header="Date of Birth"
+                                        Binding="{Binding Path=User.Dob}" />
+                <tv:TableViewTimeColumn Header="Active At"
+                                        Binding="{Binding ActiveAt}" />
+                <tv:TableViewCheckBoxColumn Header="Is Active"
+                                            Binding="{Binding IsActive}" />
+                <tv:TableViewHyperlinkColumn Header="Avatar Url"
+                                             Binding="{Binding Avatar}"
+                                             ContentBinding="{Binding User.FirstName}" />
+            </tv:TableView.Columns>
+        </tv:TableView>
     </Grid>
 </Window>

@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AotTestApp;
 
+[WinRT.GeneratedBindableCustomProperty]
 public partial class Designation : ObservableObject
 {
     public Designation(int id, string? title)
@@ -19,6 +20,7 @@ public partial class Designation : ObservableObject
     public partial string? Title { get; set; }
 }
 
+[WinRT.GeneratedBindableCustomProperty]
 public partial class User : ObservableObject
 {
     [ObservableProperty]
@@ -39,6 +41,7 @@ public partial class User : ObservableObject
     public partial DateOnly Dob { get; set; }
 }
 
+[WinRT.GeneratedBindableCustomProperty]
 public partial class ExampleModel : ObservableObject
 {
     [ObservableProperty]

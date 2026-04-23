@@ -75,7 +75,7 @@ public static class DataFaker
     ];
 
     // Department names
-    private static readonly string[] Departments =
+    internal static readonly string[] Departments =
     [
         "Sales", "Marketing", "Engineering", "Finance", "Human Resources",
         "Operations", "IT", "Legal", "Research", "Development",
@@ -114,7 +114,7 @@ public static class DataFaker
     ];
 
     // Genders
-    private static readonly string[] Genders = ["Male", "Female", "Non-binary", "Genderfluid", "Agender", "Bigender", "Genderqueer", "Two-Spirit", "Prefer not to say"];
+    internal static readonly string[] Genders = ["Male", "Female", "Non-binary", "Genderfluid", "Agender", "Bigender", "Genderqueer", "Two-Spirit", "Prefer not to say"];
 
     // Avatar images (using placeholder service URLs)
     private static readonly string[] AvatarSeeds =
