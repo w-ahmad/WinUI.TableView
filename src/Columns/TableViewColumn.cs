@@ -120,8 +120,13 @@ public abstract partial class TableViewColumn : DependencyObject
         if (dataItem is null)
             return null;
 
-        if (_funcCompiledPropertyPath is null && !string.IsNullOrWhiteSpace(ClipboardContentBindingPropertyPath))
-            _funcCompiledPropertyPath = dataItem.GetFuncCompiledPropertyPath(ClipboardContentBindingPropertyPath!);
+        if (_funcCompiledPropertyPath is null)
+        {
+            if (!string.IsNullOrWhiteSpace(ClipboardContentBindingPropertyPath))
+                _funcCompiledPropertyPath = dataItem.GetFuncCompiledPropertyPath(ClipboardContentBindingPropertyPath!);
+            else
+                return null;
+        }
 
         if (_funcCompiledPropertyPath is not null)
             dataItem = _funcCompiledPropertyPath(dataItem);

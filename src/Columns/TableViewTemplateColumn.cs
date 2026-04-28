@@ -64,6 +64,12 @@ public partial class TableViewTemplateColumn : TableViewColumn
         cell.Content = GenerateElement(cell, dataItem);
     }
 
+    /// <inheritdoc/>
+    public override object? GetCellContent(object? dataItem)
+    {
+        return GetClipboardContent(dataItem);
+    }
+
     /// <summary>
     /// Gets or sets the DataTemplate for the cell content.
     /// </summary>
