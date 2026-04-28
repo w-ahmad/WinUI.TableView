@@ -133,7 +133,7 @@ public partial class TableView : ListView
     }
 
     /// <inheritdoc/>
-    protected override async void OnKeyDown(KeyRoutedEventArgs e)
+    protected override void OnKeyDown(KeyRoutedEventArgs e)
     {
         var shiftKey = KeyboardHelper.IsShiftKeyDown();
         var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
@@ -144,19 +144,19 @@ public partial class TableView : ListView
             return;
         }
 
-        await HandleNavigations(e, shiftKey, ctrlKey);
+        HandleNavigations(e, shiftKey, ctrlKey);
     }
 
     /// <summary>
     /// Handles navigation keys.
     /// </summary>
-    private async Task HandleNavigations(KeyRoutedEventArgs e, bool shiftKey, bool ctrlKey)
+    private void HandleNavigations(KeyRoutedEventArgs e, bool shiftKey, bool ctrlKey)
     {
         var currentCell = CurrentCellSlot.HasValue ? GetCellFromSlot(CurrentCellSlot.Value) : default;
 
         if (e.Key is VirtualKey.F2 && currentCell is { IsReadOnly: false } && !IsEditing)
         {
-            e.Handled = await currentCell.BeginCellEditing(e);
+            e.Handled = currentCell.BeginCellEditing(e);
         }
         else if (e.Key is VirtualKey.Escape && currentCell is not null && IsEditing)
         {
@@ -192,7 +192,7 @@ public partial class TableView : ListView
             {
                 if (!EndCellEditing(TableViewEditAction.Commit, currentCell)) return;
 
-                if (CurrentCellSlot == newSlot || GetCellFromSlot(newSlot) is not { } nextCell || !await nextCell.BeginCellEditing(e))
+                if (CurrentCellSlot == newSlot || GetCellFromSlot(newSlot) is not { } nextCell || !nextCell.BeginCellEditing(e))
                 {
                     SetIsEditing(false);
                 }
@@ -283,7 +283,7 @@ public partial class TableView : ListView
         _scrollViewer = GetTemplateChild("ScrollViewer") as ScrollViewer;
         _headerRowDefinition = GetTemplateChild("HeaderRowDefinition") as RowDefinition;
         if (_scrollViewer is not null) _scrollViewer.Loaded += OnScrollViewerLoaded;
-        
+
         if (IsLoaded)
         {
             while (ItemsPanelRoot is null) await Task.Yield();
@@ -320,12 +320,12 @@ public partial class TableView : ListView
             Source = this
         });
     }
-    
+
     /// <summary>
     /// Handles the Loaded event of the TableView control.
     /// </summary>
     private void OnLoaded(object sender, RoutedEventArgs e)
-    {        
+    {
         EnsureAutoColumns();
     }
 
