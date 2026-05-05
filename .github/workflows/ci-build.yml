@@ -48,6 +48,8 @@ jobs:
                 /p:OutputPath=build
                 
     - name: Run Tests
+      env:
+        VSTEST_CONNECTION_TIMEOUT: 300
       run: |
         vstest.console.exe tests\build\WinUI.TableView.Tests.build.appxrecipe --logger:"console;verbosity=normal" /InIsolation
  
