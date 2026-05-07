@@ -1,8 +1,5 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Data;
-using System;
-using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView;
 
@@ -14,8 +11,6 @@ namespace WinUI.TableView;
 #endif
 public partial class TableViewTemplateColumn : TableViewColumn
 {
-    private Func<object, object?>? _funcCompiledPropertyPath;
-
     /// <summary>
     /// Initializes a new instance of the TableViewTemplateColumn class.
     /// </summary>
@@ -69,35 +64,6 @@ public partial class TableViewTemplateColumn : TableViewColumn
         cell.Content = GenerateElement(cell, dataItem);
     }
 
-    /// <inheritdoc/>
-    public override object? GetCellContent(object? dataItem)
-    {
-        if (dataItem is null)
-            return null;
-
-        if (_funcCompiledPropertyPath is null)
-        {
-            if (!string.IsNullOrWhiteSpace(OperationContentBindingPropertyPath))
-                _funcCompiledPropertyPath = dataItem.GetFuncCompiledPropertyPath(OperationContentBindingPropertyPath!);
-            else
-                return null;
-        }
-
-        if (_funcCompiledPropertyPath is not null)
-            dataItem = _funcCompiledPropertyPath(dataItem);
-
-        if (OperationContentBinding?.Converter is not null)
-        {
-            dataItem = OperationContentBinding.Converter.Convert(
-                dataItem,
-                typeof(object),
-                OperationContentBinding.ConverterParameter,
-                OperationContentBinding.ConverterLanguage);
-        }
-
-        return dataItem;
-    }
-
     /// <summary>
     /// Gets or sets the DataTemplate for the cell content.
     /// </summary>
@@ -132,27 +98,6 @@ public partial class TableViewTemplateColumn : TableViewColumn
     {
         get => (DataTemplateSelector?)GetValue(EditingTemplateSelectorProperty);
         set => SetValue(EditingTemplateSelectorProperty, value);
-    }
-
-    /// <summary>
-    /// Gets or sets the optional data binding used to perform operations on cell content, for example sorting, filtering and exporting.
-    /// Is not used in the CellTemplate or EditingTemplate.
-    /// </summary>
-    public Binding? OperationContentBinding { get; set; }
-
-    /// <summary>
-    /// Gets the property path for the <see cref="OperationContentBinding"/>.
-    /// </summary>
-    internal string? OperationContentBindingPropertyPath => OperationContentBinding?.Path?.Path;
-
-    /// <summary>
-    /// Gets or sets the data binding used to retrieve cell content when copying to the clipboard.
-    /// If no explicit clipboard binding is set, the column's <see cref="OperationContentBinding"/> is returned as a fallback.
-    /// </summary>
-    public override Binding? ClipboardContentBinding
-    {
-        get => base.ClipboardContentBinding ?? OperationContentBinding;
-        set => base.ClipboardContentBinding = value;
     }
 
     /// <summary>
