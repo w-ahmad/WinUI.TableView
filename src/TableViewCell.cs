@@ -214,7 +214,7 @@ public partial class TableViewCell : ContentControl
     {
         base.OnTapped(e);
 
-        if (TryEndCurrentCellEdit())
+        if (!TryEndCurrentCellEdit())
         {
             e.Handled = true;
             return;
@@ -232,7 +232,7 @@ public partial class TableViewCell : ContentControl
     {
         base.OnPointerPressed(e);
 
-        if (TryEndCurrentCellEdit())
+        if (!TryEndCurrentCellEdit())
         {
             e.Handled = true;
             return;
@@ -280,6 +280,11 @@ public partial class TableViewCell : ContentControl
         }
     }
 
+    /// <summary>
+    /// Tries to end the current edit operation, if any.
+    /// </summary>
+    /// <returns>True if an edit operation was successfully ended, or there is no edit operation.
+    /// False if the current edit operation can not be ended.</returns>
     private bool TryEndCurrentCellEdit()
     {
         if ((TableView?.IsEditing ?? false) &&
@@ -287,12 +292,12 @@ public partial class TableViewCell : ContentControl
              TableView.CurrentCellSlot.HasValue &&
              TableView.GetCellFromSlot(TableView.CurrentCellSlot.Value) is { } currentCell)
         {
-            if (!TableView.EndCellEditing(TableViewEditAction.Commit, currentCell)) return true;
+            if (!TableView.EndCellEditing(TableViewEditAction.Commit, currentCell)) return false;
 
             TableView.SetIsEditing(false);
         }
 
-        return false;
+        return true;
     }
 
     /// <summary>
