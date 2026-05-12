@@ -9,6 +9,7 @@ namespace WinUI.TableView;
 #if WINDOWS
 [WinRT.GeneratedBindableCustomProperty]
 #endif
+[ContentProperty(Name = nameof(CellTemplate))]
 public partial class TableViewTemplateColumn : TableViewColumn
 {
     /// <summary>
