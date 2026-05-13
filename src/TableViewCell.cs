@@ -113,8 +113,6 @@ public partial class TableViewCell : ContentControl
     {
         if (TableView is not null && Column is not null && Row is not null && _contentPresenter is not null && Content is FrameworkElement element)
         {
-            var autoSizeMode = Column.ColumnAutoWidthMode ?? TableView.ColumnAutoWidthMode;
-
             if (Column is TableViewTemplateColumn)
             {
 #if WINDOWS
@@ -134,6 +132,7 @@ public partial class TableViewCell : ContentControl
 
             element.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
 
+            var autoSizeMode = Column.ColumnAutoWidthMode ?? TableView.ColumnAutoWidthMode;
             if (autoSizeMode is ColumnAutoWidthMode.Cells or ColumnAutoWidthMode.Both)
             {
                 var desiredWidth = element.DesiredSize.Width;
