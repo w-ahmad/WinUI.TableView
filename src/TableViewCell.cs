@@ -111,73 +111,77 @@ public partial class TableViewCell : ContentControl
     /// <inheritdoc/>
     protected override Size MeasureOverride(Size availableSize)
     {
-        if (Column is not null && Row is not null && _contentPresenter is not null && Content is FrameworkElement element)
+        if (TableView is not null && Column is not null && Row is not null && _contentPresenter is not null && Content is FrameworkElement element)
         {
-            if (Column is TableViewTemplateColumn)
+            var autoSizeMode = Column.ColumnAutoWidthMode ?? TableView.ColumnAutoWidthMode;
+            if (autoSizeMode is ColumnAutoWidthMode.Cells or ColumnAutoWidthMode.Both)
             {
+                if (Column is TableViewTemplateColumn)
+                {
 #if WINDOWS
-                if (element is ContentControl { ContentTemplateRoot: FrameworkElement root })
+                    if (element is ContentControl { ContentTemplateRoot: FrameworkElement root })
 #else
                 if (element.FindDescendant<ContentPresenter>() is { ContentTemplateRoot: FrameworkElement root })
 #endif
-                    element = root;
+                        element = root;
+                    else
+                        return base.MeasureOverride(availableSize);
+                }
+
+                #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860           
+                element.MaxWidth = double.PositiveInfinity;
+                element.MaxHeight = double.PositiveInfinity;
+                #endregion
+
+                element.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+
+                var desiredWidth = element.DesiredSize.Width;
+                desiredWidth += Padding.Left;
+                desiredWidth += Padding.Right;
+                desiredWidth += BorderThickness.Left;
+                desiredWidth += BorderThickness.Right;
+                desiredWidth += _selectionBorder?.BorderThickness.Right ?? 0;
+                desiredWidth += _selectionBorder?.BorderThickness.Left ?? 0;
+                desiredWidth += _v_gridLine?.ActualWidth ?? 0d;
+
+                Column.DesiredWidth = Math.Max(Column.DesiredWidth, desiredWidth);
+
+                #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860
+                var contentWidth = Column.ActualWidth;
+                contentWidth -= element.Margin.Left;
+                contentWidth -= element.Margin.Right;
+                contentWidth -= Padding.Left;
+                contentWidth -= Padding.Right;
+                contentWidth -= BorderThickness.Left;
+                contentWidth -= BorderThickness.Right;
+                contentWidth -= _selectionBorder?.BorderThickness.Left ?? 0;
+                contentWidth -= _selectionBorder?.BorderThickness.Right ?? 0;
+                contentWidth -= _v_gridLine?.ActualWidth ?? 0d;
+
+                var height = Height is double.NaN ? double.PositiveInfinity : Height;
+                var contentHeight = Math.Min(height, MaxHeight);
+                contentHeight -= element.Margin.Top;
+                contentHeight -= element.Margin.Bottom;
+                contentHeight -= Padding.Top;
+                contentHeight -= Padding.Bottom;
+                contentHeight -= BorderThickness.Top;
+                contentHeight -= BorderThickness.Bottom;
+                contentHeight -= _selectionBorder?.BorderThickness.Top ?? 0;
+                contentHeight -= _selectionBorder?.BorderThickness.Bottom ?? 0;
+                contentHeight -= GetHorizontalGridlineHeight();
+
+                if (contentWidth < 0 || contentHeight < 0)
+                {
+                    _contentPresenter.Visibility = Visibility.Collapsed;
+                }
                 else
-                    return base.MeasureOverride(availableSize);
+                {
+                    element.MaxWidth = contentWidth;
+                    element.MaxHeight = contentHeight;
+                    _contentPresenter.Visibility = Visibility.Visible;
+                }
+                #endregion
             }
-
-            #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860           
-            element.MaxWidth = double.PositiveInfinity;
-            element.MaxHeight = double.PositiveInfinity;
-            #endregion
-
-            element.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-
-            var desiredWidth = element.DesiredSize.Width;
-            desiredWidth += Padding.Left;
-            desiredWidth += Padding.Right;
-            desiredWidth += BorderThickness.Left;
-            desiredWidth += BorderThickness.Right;
-            desiredWidth += _selectionBorder?.BorderThickness.Right ?? 0;
-            desiredWidth += _selectionBorder?.BorderThickness.Left ?? 0;
-            desiredWidth += _v_gridLine?.ActualWidth ?? 0d;
-
-            Column.DesiredWidth = Math.Max(Column.DesiredWidth, desiredWidth);
-
-            #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860
-            var contentWidth = Column.ActualWidth;
-            contentWidth -= element.Margin.Left;
-            contentWidth -= element.Margin.Right;
-            contentWidth -= Padding.Left;
-            contentWidth -= Padding.Right;
-            contentWidth -= BorderThickness.Left;
-            contentWidth -= BorderThickness.Right;
-            contentWidth -= _selectionBorder?.BorderThickness.Left ?? 0;
-            contentWidth -= _selectionBorder?.BorderThickness.Right ?? 0;
-            contentWidth -= _v_gridLine?.ActualWidth ?? 0d;
-
-            var height = Height is double.NaN ? double.PositiveInfinity : Height;
-            var contentHeight = Math.Min(height, MaxHeight);
-            contentHeight -= element.Margin.Top;
-            contentHeight -= element.Margin.Bottom;
-            contentHeight -= Padding.Top;
-            contentHeight -= Padding.Bottom;
-            contentHeight -= BorderThickness.Top;
-            contentHeight -= BorderThickness.Bottom;
-            contentHeight -= _selectionBorder?.BorderThickness.Top ?? 0;
-            contentHeight -= _selectionBorder?.BorderThickness.Bottom ?? 0;
-            contentHeight -= GetHorizontalGridlineHeight();
-
-            if (contentWidth < 0 || contentHeight < 0)
-            {
-                _contentPresenter.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                element.MaxWidth = contentWidth;
-                element.MaxHeight = contentHeight;
-                _contentPresenter.Visibility = Visibility.Visible;
-            }
-            #endregion
         }
 
         return base.MeasureOverride(availableSize);

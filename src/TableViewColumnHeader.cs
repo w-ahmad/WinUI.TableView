@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.Foundation;
 using Windows.System;
 using Windows.UI.Core;
 using WinUI.TableView.Collections;
@@ -595,6 +596,23 @@ public partial class TableViewColumnHeader : ContentControl
         _resizeStarted = false;
         _resizePreviousStarted = false;
         _reorderStarted = false;
+    }
+
+    /// <inheritdoc/>
+    protected override Size MeasureOverride(Size availableSize)
+    {
+        var desiredHeaderSize = base.MeasureOverride(availableSize);
+
+        if (Column is not null && _tableView is not null)
+        {
+            var autoWidthMode = Column.ColumnAutoWidthMode ?? _tableView.ColumnAutoWidthMode;
+            if (autoWidthMode is ColumnAutoWidthMode.Header or ColumnAutoWidthMode.Both)
+            {
+                Column.DesiredWidth = Math.Max(Column.DesiredWidth, desiredHeaderSize.Width);
+            }
+        }
+
+        return desiredHeaderSize;
     }
 
     /// <summary>
