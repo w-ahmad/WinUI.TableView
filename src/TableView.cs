@@ -230,6 +230,42 @@ public partial class TableView : ListView
             MakeSelection(newSlot, shiftKey);
             e.Handled = true;
         }
+        else if (e.Key is VirtualKey.Home or VirtualKey.End)
+        {
+            var row = ctrlKey ? (e.Key == VirtualKey.Home ? 0 : _collectionView.Count - 1) : CurrentCellSlot?.Row;
+            var column = e.Key == VirtualKey.Home ? 0 : Columns.VisibleColumns.Count - 1;
+
+            var newSlot = new TableViewCellSlot(row ?? -1, column);
+            MakeSelection(newSlot, shiftKey);
+            e.Handled = true;
+        }
+        else if (e.Key is VirtualKey.PageDown or VirtualKey.PageUp)
+        {
+            var pageSize = CalculateAvailablePageSize();
+
+            var row = (LastSelectionUnit is TableViewSelectionUnit.Row ? CurrentRowIndex : CurrentCellSlot?.Row) ?? -1;
+            var column = CurrentCellSlot?.Column ?? -1;
+
+            var numRows = CollectionView.Count;
+            var nextRow = e.Key == VirtualKey.PageDown
+                ? Math.Min(numRows - 1, row + pageSize)
+                : Math.Max(0, row - pageSize);
+
+            var newSlot = new TableViewCellSlot(nextRow, column);
+            MakeSelection(newSlot, shiftKey);
+            e.Handled = true;
+        }
+    }
+
+    /// <summary>
+    /// Calculates how many rows should be able to fit within the actual height of the table without scrolling.
+    /// </summary>
+    private int CalculateAvailablePageSize()
+    {
+        var rowHeight = RowHeight is not double.NaN ? RowHeight : RowMinHeight;
+        var headerHeight = HeaderRowHeight is not double.NaN ? HeaderRowHeight : HeaderRowMinHeight;
+        var availableHeight = ActualHeight - headerHeight;
+        return (int)Math.Floor(availableHeight / rowHeight);
     }
 
     internal bool EndCellEditing(TableViewEditAction editAction, TableViewCell cell)
