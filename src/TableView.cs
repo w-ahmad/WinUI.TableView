@@ -283,7 +283,7 @@ public partial class TableView : ListView
         _scrollViewer = GetTemplateChild("ScrollViewer") as ScrollViewer;
         _headerRowDefinition = GetTemplateChild("HeaderRowDefinition") as RowDefinition;
         if (_scrollViewer is not null) _scrollViewer.Loaded += OnScrollViewerLoaded;
-        
+
         if (IsLoaded)
         {
             while (ItemsPanelRoot is null) await Task.Yield();
@@ -320,12 +320,12 @@ public partial class TableView : ListView
             Source = this
         });
     }
-    
+
     /// <summary>
     /// Handles the Loaded event of the TableView control.
     /// </summary>
     private void OnLoaded(object sender, RoutedEventArgs e)
-    {        
+    {
         EnsureAutoColumns();
     }
 
@@ -536,7 +536,7 @@ public partial class TableView : ListView
 
             for (var col = minColumn; col <= maxColumn; col++)
             {
-                if (Columns.VisibleColumns[col] is not TableViewBoundColumn column ||
+                if (Columns.VisibleColumns[col] is not TableViewColumn column ||
                    !slots.Contains(new TableViewCellSlot(row, col)))
                 {
                     stringBuilder.Append(separator);

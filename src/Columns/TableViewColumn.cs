@@ -20,6 +20,8 @@ public abstract partial class TableViewColumn : DependencyObject
     private bool _isFiltered;
     private bool _isFrozen;
     private Func<object, object?>? _funcCompiledPropertyPath;
+    private Func<object, object?>? _funcCompiledClipboardPropertyPath;
+    private Binding? _clipboardContentBinding;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TableViewColumn"/> class with default conditional cell styles.
@@ -107,7 +109,25 @@ public abstract partial class TableViewColumn : DependencyObject
     /// <returns>The content of the cell.</returns>
     public virtual object? GetCellContent(object? dataItem)
     {
-        return default;
+        if (dataItem is null)
+            return null;
+
+        if (_funcCompiledPropertyPath is null && !string.IsNullOrWhiteSpace(OperationContentBindingPropertyPath))
+            _funcCompiledPropertyPath = dataItem.GetFuncCompiledPropertyPath(OperationContentBindingPropertyPath!);
+
+        if (_funcCompiledPropertyPath is not null)
+            dataItem = _funcCompiledPropertyPath(dataItem);
+
+        if (OperationContentBinding?.Converter is not null)
+        {
+            dataItem = OperationContentBinding.Converter.Convert(
+                dataItem,
+                typeof(object),
+                OperationContentBinding.ConverterParameter,
+                OperationContentBinding.ConverterLanguage);
+        }
+
+        return dataItem;
     }
 
     /// <summary>
@@ -120,11 +140,11 @@ public abstract partial class TableViewColumn : DependencyObject
         if (dataItem is null)
             return null;
 
-        if (_funcCompiledPropertyPath is null && !string.IsNullOrWhiteSpace(ClipboardContentBindingPropertyPath))
-            _funcCompiledPropertyPath = dataItem.GetFuncCompiledPropertyPath(ClipboardContentBindingPropertyPath!);
+        if (_funcCompiledClipboardPropertyPath is null && !string.IsNullOrWhiteSpace(ClipboardContentBindingPropertyPath))
+            _funcCompiledClipboardPropertyPath = dataItem.GetFuncCompiledPropertyPath(ClipboardContentBindingPropertyPath!);
 
-        if (_funcCompiledPropertyPath is not null)
-            dataItem = _funcCompiledPropertyPath(dataItem);
+        if (_funcCompiledClipboardPropertyPath is not null)
+            dataItem = _funcCompiledClipboardPropertyPath(dataItem);
 
         if (ClipboardContentBinding?.Converter is not null)
         {
@@ -366,9 +386,24 @@ public abstract partial class TableViewColumn : DependencyObject
     }
 
     /// <summary>
-    /// Gets or sets the data binding used to retrieve cell content when copying to the clipboard.
+    /// Gets or sets the optional data binding used to perform operations on cell content, for example sorting, filtering and exporting.
     /// </summary>
-    public virtual Binding? ClipboardContentBinding { get; set; }
+    public virtual Binding? OperationContentBinding { get; set; }
+
+    /// <summary>
+    /// Gets the property path for the <see cref="OperationContentBinding"/>.
+    /// </summary>
+    internal string? OperationContentBindingPropertyPath => OperationContentBinding?.Path?.Path;
+
+    /// <summary>
+    /// Gets or sets the data binding used to retrieve cell content when copying to the clipboard.
+    /// If no explicit clipboard binding is set, the column's <see cref="OperationContentBinding"/> is returned as a fallback.
+    /// </summary>
+    public Binding? ClipboardContentBinding
+    {
+        get => _clipboardContentBinding ?? OperationContentBinding;
+        set => _clipboardContentBinding = value;
+    }
 
     /// <summary>
     /// Gets the property path for the <see cref="ClipboardContentBinding"/>.
