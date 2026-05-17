@@ -42,6 +42,7 @@ public partial class TableViewHeaderRow : Control
     private bool _calculatingHeaderWidths;
     private DispatcherTimer? _timer;
     private int _dropColumnIndex;
+    private bool _isValidDropTarget;
     private readonly Dictionary<DependencyProperty, long> _callbackTokens = [];
 
     /// <summary>
@@ -524,6 +525,7 @@ public partial class TableViewHeaderRow : Control
     {
         if (_columnDropIndicator is not null && FindHeader(new(position, ActualHeight / 2)) is { Column: { } dropColumn } dropHeader)
         {
+            _isValidDropTarget = true;
             _dropColumnIndex = TableView?.Columns.VisibleColumns.IndexOf(dropColumn) ?? 0;
             var transform = dropHeader.TransformToVisual(this);
             var dropHeaderX = transform.TransformPoint(new Point(0, 0)).X;
@@ -544,6 +546,15 @@ public partial class TableViewHeaderRow : Control
                 _dragHeaderImage.Source = headerVisuals;
             }
         }
+        else
+        {
+            _isValidDropTarget = false;
+
+            if (_columnDropIndicator is not null)
+            {
+                _columnDropIndicator.Visibility = Visibility.Collapsed;
+            }
+        }
     }
 
     internal void ColumnDropCompleted(TableViewColumn column)
@@ -551,6 +562,13 @@ public partial class TableViewHeaderRow : Control
         if (TableView is not null && _columnDropIndicator is not null)
         {
             _columnDropIndicator.Visibility = Visibility.Collapsed;
+            var isValidDropTarget = _isValidDropTarget;
+            _isValidDropTarget = false;
+
+            if (!isValidDropTarget)
+            {
+                return;
+            }
 
             var sourceIndex = TableView.Columns.VisibleColumns.IndexOf(column);
             var dropIndex = sourceIndex > _dropColumnIndex ? _dropColumnIndex + 1 : _dropColumnIndex;
