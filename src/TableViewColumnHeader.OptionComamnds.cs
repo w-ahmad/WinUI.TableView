@@ -7,6 +7,7 @@ namespace WinUI.TableView;
 
 partial class TableViewColumnHeader
 {
+    private bool _commandsInitialized;
     private readonly StandardUICommand _sortAscendingCommand = new() { Label = TableViewLocalizedStrings.SortAscending };
     private readonly StandardUICommand _sortDescendingCommand = new() { Label = TableViewLocalizedStrings.SortDescending };
     private readonly StandardUICommand _clearSortingCommand = new() { Label = TableViewLocalizedStrings.ClearSorting };
@@ -45,6 +46,11 @@ partial class TableViewColumnHeader
     /// </summary>
     private void InitializeCommands()
     {
+        if (_commandsInitialized)
+        {
+            return;
+        }
+
         _sortAscendingCommand.ExecuteRequested += delegate { DoSort(SD.Ascending); };
         _sortAscendingCommand.CanExecuteRequested += (_, e) => e.CanExecute = CanSort && Column?.SortDirection != SD.Ascending;
 
@@ -60,6 +66,7 @@ partial class TableViewColumnHeader
         _okCommand.ExecuteRequested += delegate { ExecuteOkCommand(); };
 
         _cancelCommand.ExecuteRequested += delegate { HideFlyout(); };
+        _commandsInitialized = true;
     }
 
     internal void ExecuteOkCommand()
