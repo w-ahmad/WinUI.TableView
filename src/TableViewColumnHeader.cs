@@ -255,6 +255,9 @@ public partial class TableViewColumnHeader : ContentControl
                 _filterItemsControl.TableView = _tableView;
                 _filterItemsControl.ColumnHeader = this;
             }
+            
+            // Handle Space key to prevent MenuFlyoutItem performing click action.
+            filterItemsMenuItem.PreviewKeyUp += static (_, e) => e.Handled = e.Key is VirtualKey.Space;
         }
 
         SetOptionCommands();
