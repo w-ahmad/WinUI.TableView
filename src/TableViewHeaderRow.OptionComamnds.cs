@@ -6,6 +6,7 @@ namespace WinUI.TableView;
 
 partial class TableViewHeaderRow
 {
+    private bool _commandsInitialized;
     private MenuFlyoutItem? _exportAllMenuItem;
     private MenuFlyoutItem? _exportSelectedMenuItem;
     private readonly StandardUICommand _selectAllCommand = new(StandardUICommandKind.SelectAll) { Label = TableViewLocalizedStrings.SelectAll };
@@ -71,6 +72,11 @@ partial class TableViewHeaderRow
     /// </summary>
     private void InitializeCommands()
     {
+        if (_commandsInitialized)
+        {
+            return;
+        }
+
         _selectAllCommand.Description = TableViewLocalizedStrings.SelectAllCommandDescription;
         _selectAllCommand.ExecuteRequested += delegate { TableView?.SelectAll(); };
         _selectAllCommand.CanExecuteRequested += CanExecuteSelectAllCommand;
@@ -97,6 +103,7 @@ partial class TableViewHeaderRow
 
         _exportSelectedToCSVCommand.ExecuteRequested += delegate { TableView?.ExportSelectedToCSV(); };
         _exportSelectedToCSVCommand.CanExecuteRequested += CanExecuteExportSelectedToCSVCommand;
+        _commandsInitialized = true;
     }
 
     private void CanExecuteSelectAllCommand(XamlUICommand sender, CanExecuteRequestedEventArgs e)
