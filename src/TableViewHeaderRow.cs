@@ -289,7 +289,8 @@ public partial class TableViewHeaderRow : Control
             var starUnitWeight = starColumns.Select(x => x.Width.Value).Sum();
             var fixedWidth = autoColumns.Select(x =>
             {
-                if (x.HeaderControl is { } header)
+                var autoWidthMode = x.ColumnAutoWidthMode ?? TableView.ColumnAutoWidthMode;
+                if (x.HeaderControl is { } header && autoWidthMode is not ColumnAutoWidthMode.Cells)
                 {
                     header.Measure(new Size(double.PositiveInfinity, height));
                     return Math.Max(x.DesiredWidth, header.DesiredSize.Width);
