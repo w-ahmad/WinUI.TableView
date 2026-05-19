@@ -169,6 +169,21 @@ public class Item : INotifyPropertyChanged
 
 Build and run your application. You should see the `TableView` populated with the rows and cells from your `ViewModel`.
 
+## Native AOT Compatibility
+
+TableView relies heavily on runtime bindings and dynamic value resolution, which are not fully compatible with IL trimming and Native AOT by default.
+
+To use TableView in Native AOT applications, bound types should be decorated with the `WinRT.GeneratedBindableCustomProperty` attribute to preserve the required binding metadata.
+```cs
+[WinRT.GeneratedBindableCustomProperty]
+public partial class Person
+{
+    public string Name { get; set; }
+
+    public int Age { get; set; }
+}
+```
+
 ## Customization
 
 You can customize the appearance and behavior of the `TableView` by modifying its properties, templates, and styles. For example:
