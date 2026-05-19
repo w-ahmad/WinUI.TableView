@@ -153,7 +153,7 @@ public partial class TableViewFilterItemsControl : UserControl
     /// <summary>
     /// Gets a value indicating whether to apply the filter based on the control state.
     /// </summary>
-    internal bool ShouldApplyFilter => selectAllCheckBox.IsChecked is false || !string.IsNullOrEmpty(searchBox.Text);
+    internal bool ShouldApplyFilter => selectAllCheckBox.IsChecked is not true || !string.IsNullOrEmpty(searchBox.Text);
 
     /// <summary>
     /// Gets or sets the filter items for the control.
