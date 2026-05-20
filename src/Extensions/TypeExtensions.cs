@@ -124,7 +124,7 @@ internal static class TypeExtensions
     /// </summary>
     public static bool IsInheritedFromIComparable(this Type type)
     {
-        return type.GetInterfaces().Any(i => i == typeof(IComparable));
+        return typeof(IComparable).IsAssignableFrom(type);
     }
 
     private static Type? FindGenericType(Type definition, Type type)

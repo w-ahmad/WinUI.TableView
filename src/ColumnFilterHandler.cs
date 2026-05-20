@@ -69,13 +69,13 @@ public class ColumnFilterHandler : IColumnFilterHandler
             else filterValues.Add(value, 1);
         }
 
-        IEnumerable<TableViewFilterItem> nullFilterItem = nullCount > 0 ? [new TableViewFilterItem(isNullItemSelected, null, nullCount)] : [];
+        IEnumerable<TableViewFilterItem> nullFilterItem = nullCount > 0 ? [new TableViewFilterItem(isNullItemSelected, null, nullCount, true)] : [];
 
         return [.. nullFilterItem,.. filterValues.Select(x =>
         {
             var isSelected = !column.IsFiltered || !string.IsNullOrEmpty(searchText) ||
                              (column.IsFiltered && SelectedValues[column].Contains(x.Key));
-            return new TableViewFilterItem(isSelected, x.Key, x.Value);
+            return new TableViewFilterItem(isSelected, x.Key, x.Value, true);
         }) .OrderByDescending(x=>x.Count)];
     }
 

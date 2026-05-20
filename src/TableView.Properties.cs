@@ -60,7 +60,7 @@ public partial class TableView
     /// <summary>
     /// Identifies the ShowExportOptions dependency property.
     /// </summary>
-    public static readonly DependencyProperty ShowExportOptionsProperty = DependencyProperty.Register(nameof(ShowExportOptions), typeof(bool), typeof(TableView), new PropertyMetadata(false));
+    public static readonly DependencyProperty ShowExportOptionsProperty = DependencyProperty.Register(nameof(ShowExportOptions), typeof(bool), typeof(TableView), new PropertyMetadata(false, OnShowExportOptionsChanged));
 
     /// <summary>
     /// Identifies the AutoGenerateColumns dependency property.
@@ -824,6 +824,17 @@ public partial class TableView
 
             tableView.UpdateBaseSelectionMode();
             tableView.UpdateCornerButtonState();
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the ShowExportOptions property.
+    /// </summary>
+    private static void OnShowExportOptionsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            tableView._headerRow?.SetExportOptionsVisibility();
         }
     }
 
