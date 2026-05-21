@@ -133,7 +133,7 @@ public partial class TableView : ListView
     }
 
     /// <inheritdoc/>
-    protected override async void OnKeyDown(KeyRoutedEventArgs e)
+    protected override void OnKeyDown(KeyRoutedEventArgs e)
     {
         var shiftKey = KeyboardHelper.IsShiftKeyDown();
         var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
@@ -144,19 +144,19 @@ public partial class TableView : ListView
             return;
         }
 
-        await HandleNavigations(e, shiftKey, ctrlKey);
+        HandleNavigations(e, shiftKey, ctrlKey);
     }
 
     /// <summary>
     /// Handles navigation keys.
     /// </summary>
-    private async Task HandleNavigations(KeyRoutedEventArgs e, bool shiftKey, bool ctrlKey)
+    private void HandleNavigations(KeyRoutedEventArgs e, bool shiftKey, bool ctrlKey)
     {
         var currentCell = CurrentCellSlot.HasValue ? GetCellFromSlot(CurrentCellSlot.Value) : default;
 
         if (e.Key is VirtualKey.F2 && currentCell is { IsReadOnly: false } && !IsEditing)
         {
-            e.Handled = await currentCell.BeginCellEditing(e);
+            e.Handled = currentCell.BeginCellEditing(e);
         }
         else if (e.Key is VirtualKey.Escape && currentCell is not null && IsEditing)
         {
@@ -192,7 +192,7 @@ public partial class TableView : ListView
             {
                 if (!EndCellEditing(TableViewEditAction.Commit, currentCell)) return;
 
-                if (CurrentCellSlot == newSlot || GetCellFromSlot(newSlot) is not { } nextCell || !await nextCell.BeginCellEditing(e))
+                if (CurrentCellSlot == newSlot || GetCellFromSlot(newSlot) is not { } nextCell || !nextCell.BeginCellEditing(e))
                 {
                     SetIsEditing(false);
                 }
@@ -230,6 +230,42 @@ public partial class TableView : ListView
             MakeSelection(newSlot, shiftKey);
             e.Handled = true;
         }
+        else if (e.Key is VirtualKey.Home or VirtualKey.End)
+        {
+            var row = ctrlKey ? (e.Key == VirtualKey.Home ? 0 : _collectionView.Count - 1) : CurrentCellSlot?.Row;
+            var column = e.Key == VirtualKey.Home ? 0 : Columns.VisibleColumns.Count - 1;
+
+            var newSlot = new TableViewCellSlot(row ?? -1, column);
+            MakeSelection(newSlot, shiftKey);
+            e.Handled = true;
+        }
+        else if (e.Key is VirtualKey.PageDown or VirtualKey.PageUp)
+        {
+            var pageSize = CalculateAvailablePageSize();
+
+            var row = (LastSelectionUnit is TableViewSelectionUnit.Row ? CurrentRowIndex : CurrentCellSlot?.Row) ?? -1;
+            var column = CurrentCellSlot?.Column ?? -1;
+
+            var numRows = CollectionView.Count;
+            var nextRow = e.Key == VirtualKey.PageDown
+                ? Math.Min(numRows - 1, row + pageSize)
+                : Math.Max(0, row - pageSize);
+
+            var newSlot = new TableViewCellSlot(nextRow, column);
+            MakeSelection(newSlot, shiftKey);
+            e.Handled = true;
+        }
+    }
+
+    /// <summary>
+    /// Calculates how many rows should be able to fit within the actual height of the table without scrolling.
+    /// </summary>
+    private int CalculateAvailablePageSize()
+    {
+        var rowHeight = RowHeight is not double.NaN ? RowHeight : RowMinHeight;
+        var headerHeight = HeaderRowHeight is not double.NaN ? HeaderRowHeight : HeaderRowMinHeight;
+        var availableHeight = ActualHeight - headerHeight;
+        return (int)Math.Floor(availableHeight / rowHeight);
     }
 
     internal bool EndCellEditing(TableViewEditAction editAction, TableViewCell cell)
@@ -283,7 +319,7 @@ public partial class TableView : ListView
         _scrollViewer = GetTemplateChild("ScrollViewer") as ScrollViewer;
         _headerRowDefinition = GetTemplateChild("HeaderRowDefinition") as RowDefinition;
         if (_scrollViewer is not null) _scrollViewer.Loaded += OnScrollViewerLoaded;
-        
+
         if (IsLoaded)
         {
             while (ItemsPanelRoot is null) await Task.Yield();
@@ -320,12 +356,12 @@ public partial class TableView : ListView
             Source = this
         });
     }
-    
+
     /// <summary>
     /// Handles the Loaded event of the TableView control.
     /// </summary>
     private void OnLoaded(object sender, RoutedEventArgs e)
-    {        
+    {
         EnsureAutoColumns();
     }
 
@@ -536,7 +572,7 @@ public partial class TableView : ListView
 
             for (var col = minColumn; col <= maxColumn; col++)
             {
-                if (Columns.VisibleColumns[col] is not TableViewBoundColumn column ||
+                if (Columns.VisibleColumns[col] is not TableViewColumn column ||
                    !slots.Contains(new TableViewCellSlot(row, col)))
                 {
                     stringBuilder.Append(separator);

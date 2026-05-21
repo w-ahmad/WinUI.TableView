@@ -1,18 +1,12 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                     xmlns:local="using:WinUI.TableView"
-                    xmlns:win="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:not_win="http://uno.ui/not_win"
-                    xmlns:converters="using:WinUI.TableView.Converters"
-                    mc:Ignorable="not_win">
+                    xmlns:controls="using:WinUI.TableView.Controls">
 
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/Resources.xaml" />
     </ResourceDictionary.MergedDictionaries>
-
-    <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
-
+    
     <Style x:Key="DefaultTableViewColumnHeaderStyle"
            TargetType="local:TableViewColumnHeader">
         <Setter Property="FontWeight"
@@ -138,91 +132,28 @@
                                     <Button.Flyout>
                                         <MenuFlyout x:Name="OptionsFlyout"
                                                     Placement="Bottom">
-                                            <MenuFlyoutItem Command="{Binding SortAscendingCommand}">
+                                            <MenuFlyoutItem x:Name="SortAscendingMenuItem">
                                                 <MenuFlyoutItem.Icon>
                                                     <FontIcon Glyph="&#xf0ad;" />
                                                 </MenuFlyoutItem.Icon>
                                             </MenuFlyoutItem>
-                                            <MenuFlyoutItem Command="{Binding SortDescendingCommand}">
+                                            <MenuFlyoutItem x:Name="SortDescendingMenuItem">
                                                 <MenuFlyoutItem.Icon>
                                                     <FontIcon Glyph="&#xf0ae;" />
                                                 </MenuFlyoutItem.Icon>
                                             </MenuFlyoutItem>
-                                            <MenuFlyoutItem Command="{Binding ClearSortingCommand}" />
+                                            <MenuFlyoutItem x:Name="ClearSortingMenuItem" />
                                             <MenuFlyoutSeparator />
-                                            <MenuFlyoutItem Command="{Binding ClearFilterCommand}" />
-                                            <MenuFlyoutItem x:Name="ItemsCheckFlyoutItem">
+                                            <MenuFlyoutItem x:Name="ClearFilterMenuItem" />                                            
+                                            <MenuFlyoutItem x:Name="FilterItemsMenuItem">
                                                 <MenuFlyoutItem.Template>
                                                     <ControlTemplate TargetType="MenuFlyoutItem">
-                                                        <Grid Margin="8,4"
-                                                              Width="250"
-                                                              Height="300">
-                                                            <Grid.RowDefinitions>
-                                                                <RowDefinition Height="Auto" />
-                                                                <RowDefinition Height="Auto" />
-                                                                <RowDefinition Height="*" />
-                                                            </Grid.RowDefinitions>
-                                                            <TextBox x:Name="SearchBox" />
-                                                            <Border Grid.Row="1"
-                                                                    BorderThickness="0,0,0,1"
-                                                                    BorderBrush="{ThemeResource MenuFlyoutSeparatorBackground}">
-                                                                <CheckBox x:Name="SelectAllCheckBox"
-                                                                          Margin="12,8,12,1" />
-                                                            </Border>
-                                                            <ListView x:Name="FilterItemsList"
-                                                                      Grid.Row="2"
-                                                                      SelectionMode="None"
-                                                                      not_win:Margin="12,0,0,0"
-                                                                      ItemsSource="{Binding FilterItems}">
-                                                                <ListView.ItemContainerStyle>
-                                                                    <Style TargetType="ListViewItem"
-                                                                           BasedOn="{StaticResource DefaultListViewItemStyle}">
-                                                                        <Setter Property="Padding"
-                                                                                Value="12,0" />
-                                                                        <Setter Property="Margin"
-                                                                                Value="0" />
-                                                                        <Setter Property="MinHeight"
-                                                                                Value="36" />
-                                                                        <Setter Property="Height"
-                                                                                Value="36" />
-                                                                        <Setter Property="HorizontalAlignment"
-                                                                                Value="Stretch" />
-                                                                        <Setter Property="HorizontalContentAlignment"
-                                                                                Value="Stretch" />
-                                                                    </Style>
-                                                                </ListView.ItemContainerStyle>
-                                                                <ListView.ItemTemplate>
-                                                                    <DataTemplate>
-                                                                        <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                                                                  HorizontalAlignment="Stretch"
-                                                                                  HorizontalContentAlignment="Stretch">
-                                                                            <Grid>
-                                                                                <Grid.ColumnDefinitions>
-                                                                                    <ColumnDefinition Width="*" />
-                                                                                    <ColumnDefinition Width="Auto" />
-                                                                                </Grid.ColumnDefinitions>
-
-                                                                                <TextBlock Text="{Binding}"
-                                                                                           TextWrapping="NoWrap" />
-
-                                                                                <StackPanel Grid.Column="1"
-                                                                                            Orientation="Horizontal"
-                                                                                            Visibility="{Binding DataContext.TableView.ShowFilterItemsCount, ElementName=FilterItemsList, Converter={StaticResource BoolToVisibility}}">
-                                                                                    <TextBlock Text="(" />
-                                                                                    <TextBlock Text="{Binding Count}" />
-                                                                                    <TextBlock Text=")" />
-                                                                                </StackPanel>
-                                                                            </Grid>
-                                                                        </CheckBox>
-                                                                    </DataTemplate>
-                                                                </ListView.ItemTemplate>
-                                                            </ListView>
-                                                        </Grid>
+                                                        <controls:TableViewFilterItemsControl />
                                                     </ControlTemplate>
                                                 </MenuFlyoutItem.Template>
                                             </MenuFlyoutItem>
                                             <MenuFlyoutSeparator />
-                                            <MenuFlyoutItem>
+                                            <MenuFlyoutItem x:Name="ActionButtonsMenuItem">
                                                 <MenuFlyoutItem.Template>
                                                     <ControlTemplate TargetType="MenuFlyoutItem">
                                                         <Grid Margin="12,4"
@@ -231,10 +162,10 @@
                                                                 <ColumnDefinition Width="*" />
                                                                 <ColumnDefinition Width="*" />
                                                             </Grid.ColumnDefinitions>
-                                                            <Button Command="{Binding OkCommand}"
+                                                            <Button x:Name="OkButton"
                                                                     HorizontalAlignment="Stretch"
                                                                     Style="{StaticResource AccentButtonStyle}" />
-                                                            <Button Command="{Binding CancelCommand}"
+                                                            <Button x:Name="CancelButton"
                                                                     Grid.Column="1"
                                                                     HorizontalAlignment="Stretch" />
                                                         </Grid>
