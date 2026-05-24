@@ -8,6 +8,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -447,6 +448,14 @@ public partial class TableView : ListView
     /// </summary>
     internal void CopyToClipboardInternal(bool includeHeaders)
     {
+        // Skip TableView copy logic when a cell editor already handles Ctrl+C.
+        // TextBox, PasswordBox, and RichEditBox all implement their own copy behavior.
+        var focused = FocusManager.GetFocusedElement() as FrameworkElement;
+        if (focused is TextBox || focused is PasswordBox || focused is RichEditBox)
+        {
+            return;
+        }
+
         var args = new TableViewCopyToClipboardEventArgs(includeHeaders);
         OnCopyToClipboard(args);
 
@@ -454,10 +463,29 @@ public partial class TableView : ListView
         {
             return;
         }
+        
+        var content = GetSelectedClipboardContent(includeHeaders);
 
-        var package = new DataPackage();
-        package.SetText(GetSelectedClipboardContent(includeHeaders));
-        Clipboard.SetContent(package);
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return;
+        }
+
+        // Try/catch to prevent CLIPBRD_E_CANT_OPEN crashes.
+        try
+        {
+            var package = new DataPackage();
+            package.SetText(content);
+            
+            Clipboard.SetContent(package);
+        }
+        catch (Exception ex)
+        {
+            // Clipboard failures are normal on Windows (e.g., CLIPBRD_E_CANT_OPEN).
+            // Swallow to avoid crashing the application.
+            Debug.WriteLine(
+                $"TableView: Clipboard.SetContent failed: {ex}");
+        }
     }
 
     /// <summary>
