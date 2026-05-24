@@ -418,13 +418,20 @@ public partial class TableView : ListView
         {
             return;
         }
+        
+        var content = GetSelectedClipboardContent(includeHeaders);
 
-        var package = new DataPackage();
-        package.SetText(GetSelectedClipboardContent(includeHeaders));
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return;
+        }
 
         // Try/catch to prevent CLIPBRD_E_CANT_OPEN crashes.
         try
         {
+            var package = new DataPackage();
+            package.SetText(content);
+            
             Clipboard.SetContent(package);
         }
         catch (Exception ex)
