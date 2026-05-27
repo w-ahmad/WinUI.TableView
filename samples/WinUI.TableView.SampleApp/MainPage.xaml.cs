@@ -115,6 +115,7 @@ public sealed partial class MainPage : Page
                 "Data Export" => typeof(ExportPage),
                 "Large Dataset" => typeof(LargeDataPage),
                 "Conditional Cell Styling" => typeof(ConditionalStylingPage),
+                "Column Sizing" => typeof(ColumnSizingPage),
                 _ => typeof(BlankPage)
             };
 
