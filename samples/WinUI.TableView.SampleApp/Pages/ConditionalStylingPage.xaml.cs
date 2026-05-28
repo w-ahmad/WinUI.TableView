@@ -26,6 +26,12 @@ public sealed partial class ConditionalStylingPage : Page
         liveUpdates.IsOn = true;
     }
 
+    private void OnPageUnloaded(object sender, RoutedEventArgs e)
+    {
+        StopLiveUpdates();
+        ViewModel.SalesData = null;
+    }
+
     private void OnLiveUpdatesToggled(object sender, RoutedEventArgs e)
     {
         if (liveUpdates.IsOn)
@@ -34,32 +40,52 @@ public sealed partial class ConditionalStylingPage : Page
         }
         else
         {
-            _liveUpdatesCST?.Cancel();
-            _liveUpdatesCST = null;
+            StopLiveUpdates();
         }
     }
 
     private async Task StartLiveUpdatesAsync()
     {
+        StopLiveUpdates();
         _liveUpdatesCST = new CancellationTokenSource();
+        var token = _liveUpdatesCST.Token;
 
-        while (ViewModel.SalesData is not null && !_liveUpdatesCST.IsCancellationRequested)
+        try
         {
-            await Task.Delay((int)updateInterval.Value, _liveUpdatesCST.Token);
+            while (ViewModel.SalesData is not null && !token.IsCancellationRequested)
+            {
+                await Task.Delay((int)updateInterval.Value, token);
 
-            var region = DataFaker.Region();
-            var target = DataFaker.Integer(5_000, 30_000);
-            var sales = DataFaker.Integer((int)(target * 0.5), (int)(target * 1.2));
-            var growth = DataFaker.Integer(-10, 10);
-            var status = sales >= target ? (growth >= 0 ? "Ahead" : "On Track") : (growth < 0 ? "Behind" : "On Track");
-            var item = ViewModel.SalesData[Random.Shared.Next(ViewModel.SalesData.Count)];
+                var region = DataFaker.Region();
+                var target = DataFaker.Integer(5_000, 30_000);
+                var sales = DataFaker.Integer((int)(target * 0.5), (int)(target * 1.2));
+                var growth = DataFaker.Integer(-10, 10);
+                var status = sales >= target ? (growth >= 0 ? "Ahead" : "On Track") : (growth < 0 ? "Behind" : "On Track");
+                var item = ViewModel.SalesData[Random.Shared.Next(ViewModel.SalesData.Count)];
 
-            item.Region = region;
-            item.Target = target;
-            item.Sales = sales;
-            item.Growth = growth;
-            item.Status = status;
+                item.Region = region;
+                item.Target = target;
+                item.Sales = sales;
+                item.Growth = growth;
+                item.Status = status;
+            }
         }
+        catch (OperationCanceledException)
+        {
+        }
+        finally
+        {
+            if (_liveUpdatesCST?.Token == token)
+            {
+                _liveUpdatesCST.Dispose();
+                _liveUpdatesCST = null;
+            }
+        }
+    }
+
+    private void StopLiveUpdates()
+    {
+        _liveUpdatesCST?.Cancel();
     }
 
     private Predicate<TableViewConditionalCellStyleContext> SalesMetTargetPredicate =>

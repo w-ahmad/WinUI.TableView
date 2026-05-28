@@ -187,7 +187,8 @@
             <NavigationView.Content>
                 <Grid>
                     <Frame x:Name="rootFrame"
-                           IsNavigationStackEnabled="False"
+                           CacheSize="0"
+                           IsNavigationStackEnabled="True"
                            Navigated="OnRootFrameNavigated"
                            IsEnabled="{Binding Visibility, ElementName=loadingIndicator, Converter={StaticResource VisibilityToBool}}" />
                     <StackPanel x:Name="loadingIndicator"

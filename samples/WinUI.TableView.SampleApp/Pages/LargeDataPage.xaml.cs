@@ -23,8 +23,18 @@ public sealed partial class LargeDataPage : Page
     {
         if (DataContext is TransactionsViewModel viewModel)
         {
-            viewModel.TransacationsData = [.. TransactionsViewModel.TransacationsList];
+            viewModel.TransacationsData = TransactionsViewModel.TransacationsList;
             ((Button)sender).IsEnabled = false;
         }
+    }
+
+    private void OnPageUnloaded(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is TransactionsViewModel viewModel)
+        {
+            viewModel.TransacationsData = null;
+        }
+
+        TransactionsViewModel.ReleaseItems();
     }
 }
