@@ -33,6 +33,7 @@ public partial class TableViewRowPresenter : Control
     private ContentPresenter? _detailsPresenter;
     private ToggleButton? _detailsToggleButton;
     private ListViewItemPresenter? _itemPresenter;
+    private long? _detailsPanelVisibilityCallbackToken;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TableViewRowPresenter"/> class.
@@ -46,6 +47,22 @@ public partial class TableViewRowPresenter : Control
     protected override void OnApplyTemplate()
     {
         base.OnApplyTemplate();
+
+        if (_detailsToggleButton is not null)
+        {
+            _detailsToggleButton.Tapped -= OnDetailsToggleButtonTapped;
+        }
+
+        if (_detailsPanel is not null)
+        {
+            _detailsPanel.SizeChanged -= OnDetailsPanelSizeChanged;
+
+            if (_detailsPanelVisibilityCallbackToken is long token)
+            {
+                _detailsPanel.UnregisterPropertyChangedCallback(VisibilityProperty, token);
+                _detailsPanelVisibilityCallbackToken = null;
+            }
+        }
 
         _rowHeader = GetTemplateChild("RowHeader") as TableViewRowHeader;
         _rootPanel = GetTemplateChild("RootPanel") as Panel;
@@ -74,9 +91,9 @@ public partial class TableViewRowPresenter : Control
 
         if (_detailsPanel is not null)
         {
-            _detailsPanel.SizeChanged += (_, _) => TableViewRow?.EnsureLayout();
-            _detailsPanel.RegisterPropertyChangedCallback(VisibilityProperty, (_, _)
-                => TableViewRow?.EnsureLayout());
+            _detailsPanel.SizeChanged += OnDetailsPanelSizeChanged;
+            _detailsPanelVisibilityCallbackToken =
+                _detailsPanel.RegisterPropertyChangedCallback(VisibilityProperty, OnDetailsPanelVisibilityChanged);
         }
 
         TableViewRow?.EnsureCells();
@@ -87,6 +104,22 @@ public partial class TableViewRowPresenter : Control
         SetRowHeaderWidth();
         SetRowDetailsVisibility();
         SetRowDetailsTemplate();
+    }
+
+    /// <summary>
+    /// Handles size changes in the row details panel.
+    /// </summary>
+    private void OnDetailsPanelSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        TableViewRow?.EnsureLayout();
+    }
+
+    /// <summary>
+    /// Handles visibility changes in the row details panel.
+    /// </summary>
+    private void OnDetailsPanelVisibilityChanged(DependencyObject sender, DependencyProperty dp)
+    {
+        TableViewRow?.EnsureLayout();
     }
 
     /// <inheritdoc/>

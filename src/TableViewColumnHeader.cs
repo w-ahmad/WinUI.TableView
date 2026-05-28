@@ -38,6 +38,7 @@ public partial class TableViewColumnHeader : ContentControl
     private TableViewHeaderRow? _headerRow;
     private Button? _optionsButton;
     private MenuFlyout? _optionsFlyout;
+    private MenuFlyoutItem? _filterItemsMenuItem;
     private ContentPresenter? _contentPresenter;
     private Rectangle? _v_gridLine;
     private bool _resizeStarted;
@@ -229,10 +230,35 @@ public partial class TableViewColumnHeader : ContentControl
     {
         base.OnApplyTemplate();
 
+        if (_optionsFlyout is not null)
+        {
+            _optionsFlyout.Opening -= OnOptionsFlyoutOpening;
+            _optionsFlyout.Closed -= OnOptionsFlyoutClosed;
+        }
+
+        if (_optionsButton is not null)
+        {
+            _optionsButton.Tapped -= OnOptionsButtonTaped;
+        }
+
+        if (_filterItemsMenuItem is not null)
+        {
+            _filterItemsMenuItem.PreviewKeyUp -= OnFilterItemsMenuItemPreviewKeyUp;
+        }
+
+        if (_filterItemsControl is not null)
+        {
+            _filterItemsControl.FilterItems = null;
+            _filterItemsControl.TableView = null;
+            _filterItemsControl.ColumnHeader = null;
+            _filterItemsControl = null;
+        }
+
         _tableView = this.FindAscendant<TableView>();
         _headerRow = this.FindAscendant<TableViewHeaderRow>();
         _optionsButton = GetTemplateChild("OptionsButton") as Button;
         _optionsFlyout = GetTemplateChild("OptionsFlyout") as MenuFlyout;
+        _filterItemsMenuItem = GetTemplateChild("FilterItemsMenuItem") as MenuFlyoutItem;
         _contentPresenter = GetTemplateChild("ContentPresenter") as ContentPresenter;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
 
@@ -245,19 +271,18 @@ public partial class TableViewColumnHeader : ContentControl
         _optionsFlyout.Closed += OnOptionsFlyoutClosed;
         _optionsButton.Tapped += OnOptionsButtonTaped;
 
-        if (GetTemplateChild("FilterItemsMenuItem") is MenuFlyoutItem filterItemsMenuItem)
+        if (_filterItemsMenuItem is not null)
         {
-            filterItemsMenuItem.ApplyTemplate();
-            _filterItemsControl = filterItemsMenuItem.FindDescendant<TableViewFilterItemsControl>();
+            _filterItemsMenuItem.ApplyTemplate();
+            _filterItemsControl = _filterItemsMenuItem.FindDescendant<TableViewFilterItemsControl>();
 
             if (_filterItemsControl is not null)
             {
                 _filterItemsControl.TableView = _tableView;
                 _filterItemsControl.ColumnHeader = this;
             }
-            
-            // Handle Space key to prevent MenuFlyoutItem performing click action.
-            filterItemsMenuItem.PreviewKeyUp += static (_, e) => e.Handled = e.Key is VirtualKey.Space;
+
+            _filterItemsMenuItem.PreviewKeyUp += OnFilterItemsMenuItemPreviewKeyUp;
         }
 
         SetOptionCommands();
@@ -287,6 +312,14 @@ public partial class TableViewColumnHeader : ContentControl
     private void OnOptionsButtonTaped(object sender, TappedRoutedEventArgs e)
     {
         e.Handled = true;
+    }
+
+    /// <summary>
+    /// Handles the PreviewKeyUp event for the filter items menu item.
+    /// </summary>
+    private void OnFilterItemsMenuItemPreviewKeyUp(object sender, KeyRoutedEventArgs e)
+    {
+        e.Handled = e.Key is VirtualKey.Space;
     }
 
     /// <summary>

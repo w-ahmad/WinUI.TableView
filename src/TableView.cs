@@ -35,6 +35,7 @@ public partial class TableView : ListView
     private RowDefinition? _headerRowDefinition;
     private bool _shouldThrowSelectionModeChangedException;
     private bool _ensureColumns = true;
+    private bool _isItemsSourceSuspended;
     private readonly List<TableViewRow> _rows = [];
     private readonly CollectionView _collectionView = [];
 
@@ -107,6 +108,7 @@ public partial class TableView : ListView
         {
             if (element is TableViewRow row)
             {
+                row.TableView = this;
                 row.EnsureCellsStyle(default, item);
                 row.ApplyCellsSelectionState();
                 row.RowPresenter?.ApplyDetailsPaneState(item);
@@ -117,6 +119,18 @@ public partial class TableView : ListView
                 }
             }
         });
+    }
+
+    /// <inheritdoc/>
+    protected override void ClearContainerForItemOverride(DependencyObject element, object item)
+    {
+        if (element is TableViewRow row)
+        {
+            _rows.Remove(row);
+            row.TableView = null;
+        }
+
+        base.ClearContainerForItemOverride(element, item);
     }
 
     /// <inheritdoc/>
@@ -362,6 +376,7 @@ public partial class TableView : ListView
     /// </summary>
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
+        ResumeItemsSource();
         EnsureAutoColumns();
     }
 
@@ -374,6 +389,43 @@ public partial class TableView : ListView
         {
             currentCell.EndEditing(TableViewEditAction.Commit);
         }
+
+        SuspendItemsSource();
+    }
+
+    /// <summary>
+    /// Suspends subscriptions to the current items source while the control is unloaded.
+    /// </summary>
+    private void SuspendItemsSource()
+    {
+        if (_isItemsSourceSuspended)
+        {
+            return;
+        }
+
+        _collectionView.ItemPropertyChanged -= OnItemPropertyChanged;
+        _collectionView.Source = null!;
+        _isItemsSourceSuspended = true;
+    }
+
+    /// <summary>
+    /// Restores subscriptions to the current items source when the control is loaded.
+    /// </summary>
+    private void ResumeItemsSource()
+    {
+        if (!_isItemsSourceSuspended)
+        {
+            return;
+        }
+
+        _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
+
+        if (ItemsSource is IEnumerable source)
+        {
+            _collectionView.Source = source;
+        }
+
+        _isItemsSourceSuspended = false;
     }
 
     /// <summary>
@@ -721,7 +773,10 @@ public partial class TableView : ListView
         {
             EnsureAutoColumns();
 
-            _collectionView.Source = source;
+            if (!_isItemsSourceSuspended)
+            {
+                _collectionView.Source = source;
+            }
         }
     }
 
