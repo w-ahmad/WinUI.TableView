@@ -1,8 +1,8 @@
 ﻿using Microsoft.UI.Xaml.Data;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using Windows.Foundation.Collections;
+using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView;
 
@@ -11,24 +11,22 @@ partial class CollectionView
     /// <summary>
     /// Gets or sets the source collection.
     /// </summary>
-    public IList Source
+    public IEnumerable Source
     {
         get => _source;
         set
         {
             if (_source == value) return;
 
-            if (_source is not null) DetachPropertyChangedHandlers(_source);
+            DetachCollectionChangedHandlers(_source);
+            DetachPropertyChangedHandlers(_source);
 
             _source = value;
+
+            AttachCollectionChangedHandlers(_source);
             AttachPropertyChangedHandlers(_source);
 
-            _collectionChangedListener?.Detach();
-
-            if (_source is INotifyCollectionChanged sourceNcc)
-            {
-                _collectionChangedListener = new(this, sourceNcc, OnSourceCollectionChanged);
-            }
+            CreateItemsCopy(_source);
 
             HandleSourceChanged();
             OnPropertyChanged();
@@ -103,7 +101,7 @@ partial class CollectionView
     /// <summary>
     /// Gets a value indicating whether the collection is read-only.
     /// </summary>
-    public bool IsReadOnly => _source == null || _source.IsReadOnly;
+    public bool IsReadOnly => _source == null || _source.IsReadOnly();
 
     /// <summary>
     /// Gets or sets a value indicating whether live shaping is enabled.

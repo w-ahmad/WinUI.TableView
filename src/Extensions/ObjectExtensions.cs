@@ -400,6 +400,7 @@ internal static partial class ObjectExtensions
         var listType = list.GetType();
         Type? itemType = null;
         var isICustomTypeProvider = false;
+        var isWinRTObject = false;
 
         // If it's a generic enumerable, get the generic type.
 
@@ -410,11 +411,14 @@ internal static partial class ObjectExtensions
         if (itemType != null)
         {
             isICustomTypeProvider = typeof(ICustomTypeProvider).IsAssignableFrom(itemType);
+#if WINDOWS
+            isWinRTObject = typeof(WinRT.IInspectable).IsAssignableFrom(itemType);
+#endif
         }
 
         // Bare IEnumerables mean that result type will be object.  In that case, try to get something more interesting.
         // Or, if the itemType implements ICustomTypeProvider, try to retrieve the custom type from one of the object instances.
-        if (itemType == null || itemType == typeof(object) || isICustomTypeProvider)
+        if (itemType == null || itemType == typeof(object) || isICustomTypeProvider || isWinRTObject)
         {
             // No type was located yet. Does the list have anything in it?
             Type? firstItemType = null;

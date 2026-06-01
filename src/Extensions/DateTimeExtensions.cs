@@ -8,13 +8,18 @@ namespace WinUI.TableView.Extensions;
 internal static class DateTimeExtensions
 {
     /// <summary>
-    /// Converts a DateTime to a DateTimeOffset using the local time zone.
+    /// Converts a DateTime to a DateTimeOffset, respecting the DateTime's Kind.
+    /// Uses UTC offset for UTC DateTimes and local offset otherwise.
     /// </summary>
     /// <param name="dateTime">The DateTime to convert.</param>
     /// <returns>A DateTimeOffset representing the same point in time as the DateTime.</returns>
     public static DateTimeOffset ToDateTimeOffset(this DateTime dateTime)
     {
-        return new DateTimeOffset(dateTime, TimeZoneInfo.Local.GetUtcOffset(dateTime));
+        var offset = dateTime.Kind == DateTimeKind.Utc
+            ? TimeSpan.Zero
+            : TimeZoneInfo.Local.GetUtcOffset(dateTime);
+
+        return new DateTimeOffset(dateTime, offset);
     }
 
     /// <summary>

@@ -1,0 +1,10 @@
+<linker>
+  <assembly fullname="WinUI.TableView.SampleApp" />
+
+  <!--
+  Uncomment this section when using JSON.NET
+  <assembly fullname="System.Core">
+    <type fullname="System.Linq.Expressions*" />
+  </assembly>
+   -->
+</linker>

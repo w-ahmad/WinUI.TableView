@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView;
 
@@ -9,6 +10,8 @@ namespace WinUI.TableView;
 /// </summary>
 public class SortDescription
 {
+    private Func<object, object?>? _funcCompiled;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="SortDescription"/> class that describes
     /// a sort on the object itself
@@ -35,21 +38,15 @@ public class SortDescription
     /// <returns>The value of the property.</returns>
     public virtual object? GetPropertyValue(object? item)
     {
-        if (ValueDelegate is not null)
-        {
-            return ValueDelegate(item);
-        }
-        else if (PropertyName is not null)
-        {
-            return item?.GetType()
-                        .GetProperty(PropertyName)?
-                        .GetValue(item);
-        }
-        else
-        {
-            return default!;
-        }
-    }
+        if (item == null) return null;
+        
+        if (ValueDelegate is not null) return ValueDelegate(item);
+        
+        if (_funcCompiled is null && !string.IsNullOrWhiteSpace(PropertyName))
+            _funcCompiled = item.GetFuncCompiledPropertyPath(PropertyName!);
+            
+        return _funcCompiled?.Invoke(item);
+}
 
     /// <summary>
     /// Compares two objects based on the sort description.

@@ -17,6 +17,15 @@ public class DateTimeExtensionsTests
     }
 
     [TestMethod]
+    public void ToDateTimeOffset_FromUtcDateTime_UsesZeroOffset()
+    {
+        var dt = new DateTime(2024, 1, 2, 3, 4, 5, DateTimeKind.Utc);
+        var dto = dt.ToDateTimeOffset();
+        var expected = new DateTimeOffset(dt, TimeSpan.Zero);
+        Assert.AreEqual(expected, dto);
+    }
+
+    [TestMethod]
     public void ToDateTimeOffset_FromTimeSpan_UsesTodayDate()
     {
         var ts = new TimeSpan(12, 34, 56);

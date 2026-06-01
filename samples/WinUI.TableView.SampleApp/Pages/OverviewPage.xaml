@@ -1,0 +1,25 @@
+<Page x:Class="WinUI.TableView.SampleApp.Pages.OverviewPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:tv="using:WinUI.TableView"
+      xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
+      d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
+      mc:Ignorable="d">
+
+    <Grid>
+        <controls:SamplePresenter Header="Overview"
+                                  Description="Here's a preview of how the default implementation of the WinUI TableView will look, showcasing its standard layout, structure, and features.">
+            <controls:SamplePresenter.Example>
+                <tv:TableView ItemsSource="{Binding Items}" />
+            </controls:SamplePresenter.Example>
+            <controls:SamplePresenter.Xaml>
+                <x:String xml:space="preserve">
+&lt;tv:TableView ItemsSource="{Binding Items}" /&gt;
+                </x:String>
+            </controls:SamplePresenter.Xaml>
+        </controls:SamplePresenter>
+    </Grid>
+</Page>

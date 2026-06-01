@@ -1,0 +1,40 @@
+<Page x:Class="WinUI.TableView.SampleApp.Pages.EditingPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:tv="using:WinUI.TableView"
+      xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
+      d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
+      mc:Ignorable="d">
+
+    <Grid>
+        <controls:SamplePresenter Header="Editing"
+                                  Description="Showcasing cell value editing functionality.">
+            <controls:SamplePresenter.Example>
+                <tv:TableView ItemsSource="{Binding Items}"
+                              IsReadOnly="{Binding IsOn, ElementName=isReadOnly, Mode=TwoWay}" />
+            </controls:SamplePresenter.Example>
+            <controls:SamplePresenter.Options>
+                <StackPanel VerticalAlignment="Top">
+                    <ToggleSwitch x:Name="isReadOnly"
+                                  IsOn="True"
+                                  Header="Is readonly"
+                                  OnContent="True"
+                                  OffContent="False" />
+                </StackPanel>
+            </controls:SamplePresenter.Options>
+            <controls:SamplePresenter.Xaml>
+                <x:String xml:space="preserve">
+&lt;tv:TableView ItemsSource="{Binding Items}"
+    IsReadOnly="$(IsReadOnly)">
+                </x:String>
+            </controls:SamplePresenter.Xaml>
+            <controls:SamplePresenter.Substitutions>
+                <controls:CodeSubstitution Key="IsReadOnly"
+                                           Value="{x:Bind isReadOnly.IsOn, Mode=OneWay}" />
+            </controls:SamplePresenter.Substitutions>
+        </controls:SamplePresenter>
+    </Grid>
+</Page>

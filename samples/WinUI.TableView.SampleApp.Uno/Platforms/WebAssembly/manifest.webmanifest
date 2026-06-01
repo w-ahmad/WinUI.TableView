@@ -1,0 +1,10 @@
+{
+  "background_color": "#ffffff",
+  "description": "WinUI.TableView.SampleApp",
+  "display": "standalone",
+  "name": "WinUI.TableView.SampleApp",
+  "short_name": "WinUI.TableView.SampleApp",
+  "start_url": "/index.html",
+  "theme_color": "#ffffff",
+  "scope": "/"
+}

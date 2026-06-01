@@ -1,0 +1,143 @@
+<Page x:Class="WinUI.TableView.SampleApp.Pages.PaginationPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:tv="using:WinUI.TableView"
+      xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
+      d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
+      mc:Ignorable="d not_win"
+      xmlns:win="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:not_win="http://uno.ui/not_win">
+
+    <Grid>
+        <controls:SamplePresenter Header="Column Custom Filter"
+                                  Description="A simple pagination implementiaon example. This is not built right into the TableView.">
+            <controls:SamplePresenter.Example>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <tv:TableView x:Name="tableView"
+                                  ItemsSource="{Binding Items}"
+                                  AutoGenerateColumns="False"
+                                  SizeChanged="OnTableViewSizeChanged"
+                                  DataContextChanged="OnDataContextChanged">
+                        <tv:TableView.Columns>
+                            <tv:TableViewNumberColumn Header="Id"
+                                                      Width="100"
+                                                      Binding="{Binding Id}" />
+                            <tv:TableViewTextColumn Header="First Name"
+                                                    Width="200"
+                                                    Binding="{Binding FirstName}" />
+                            <tv:TableViewTextColumn Header="Last Name"
+                                                    Width="200"
+                                                    Binding="{Binding LastName}" />
+                            <tv:TableViewTextColumn Header="Email"
+                                                    Width="200"
+                                                    Binding="{Binding Email}" />
+                            <tv:TableViewDateColumn Header="Dob"
+                                                    Width="150"
+                                                    Binding="{Binding Dob}" />
+                            <tv:TableViewTimeColumn Header="Active At"
+                                                    Width="150"
+                                                    Binding="{Binding ActiveAt}" />
+                        </tv:TableView.Columns>
+                    </tv:TableView>
+
+                    <Grid Grid.Row="1"
+                          Margin="0,10,0,0"
+                          HorizontalAlignment="Right"
+                          CornerRadius="{ThemeResource ControlCornerRadius}">
+                        <win:ListBox x:Name="pageList"
+                                     SelectionChanged="OnPageSelectionChanged">
+                            <win:ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </win:ListBox.ItemsPanel>
+                        </win:ListBox>
+                        <not_win:ListView x:Name="pageList"
+                                          SelectionChanged="OnPageSelectionChanged">
+                            <ListView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ListView.ItemsPanel>
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="MinWidth"
+                                            Value="0" />
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                        </not_win:ListView>
+                    </Grid>
+                </Grid>
+            </controls:SamplePresenter.Example>
+            <controls:SamplePresenter.Xaml>
+                <x:String xml:space="preserve">
+&lt;tv:TableView x:Name="tableView"
+    ItemsSource="{Binding PagedItems}"
+    AutoGenerateColumns="False"
+    SizeChanged="OnTableViewSizeChanged"
+    DataContextChanged="OnDataContextChanged">
+    &lt;tv:TableView.Columns>
+    ............
+    &lt;/tv:TableView.Columns>
+&lt;/tv:TableView>
+                    
+&lt;ListBox x:Name="pageList"
+    Grid.Row="1"
+    Margin="0,10,0,0"
+    HorizontalAlignment="Right"
+    SelectionChanged="OnPageSelectionChanged">
+   &lt;ListBox.ItemsPanel>
+        &lt;ItemsPanelTemplate>
+            &lt;StackPanel Orientation="Horizontal" />
+        &lt;/ItemsPanelTemplate>
+    &lt;/ListBox.ItemsPanel>
+&lt;/ListBox>
+                </x:String>
+            </controls:SamplePresenter.Xaml>
+            <controls:SamplePresenter.CSharp>
+                <x:String xml:space="preserve">
+private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
+{
+    UpdatePages();
+}
+
+private void OnTableViewSizeChanged(object sender, SizeChangedEventArgs e)
+{
+    UpdatePages();
+}
+
+private void UpdatePages()
+{
+    if (DataContext is not ExampleViewModel viewModel) return;
+
+    var rowHeight = tableView.RowHeight;
+    var availableHeight = tableView.ActualHeight - tableView.HeaderRowHeight;
+    PageSize = (int)Math.Floor(availableHeight / rowHeight);
+
+    pageList.ItemsSource = Enumerable.Range(1, (int)Math.Ceiling(ExampleViewModel.ItemsList.Count / (double)PageSize));
+    pageList.SelectedItem = 1;
+
+    viewModel.Items = new(ExampleViewModel.ItemsList.Take(PageSize));
+}
+
+private void OnPageSelectionChanged(object sender, SelectionChangedEventArgs e)
+{
+    if (DataContext is not ExampleViewModel viewModel) return;
+    var currentPage = (pageList.SelectedItem as int?) ?? 1;
+
+    viewModel.Items = new(ExampleViewModel.ItemsList.Skip((currentPage - 1) * PageSize).Take(PageSize));
+}
+
+public int PageSize { get; set; } = 10;
+                </x:String>
+            </controls:SamplePresenter.CSharp>
+        </controls:SamplePresenter>
+    </Grid>
+</Page>

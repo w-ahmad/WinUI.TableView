@@ -1,0 +1,207 @@
+<Page x:Class="WinUI.TableView.SampleApp.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:not_win="http://uno.ui/not_win"
+      xmlns:converters="using:WinUI.TableView.SampleApp.Converters"
+      mc:Ignorable="d not_win"
+      Loaded="OnPageLoaded"
+      not_win:Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Page.Resources>
+        <Thickness x:Key="NavigationViewContentMargin">0,48,0,0</Thickness>
+        <Thickness x:Key="NavigationViewMinimalContentMargin">0,48,0,0</Thickness>
+        <Thickness x:Key="NavigationViewContentGridBorderThickness">1,1,0,0</Thickness>
+        <CornerRadius x:Key="NavigationViewContentGridCornerRadius">8,0,0,0</CornerRadius>
+        <converters:VisibilityToBoolConverter VisibleValue="False" x:Key="VisibilityToBool"/>
+    </Page.Resources>
+
+    <Grid>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="TitleBarStates">
+                <VisualState x:Name="Default" />
+                <VisualState x:Name="Compact">
+                    <VisualState.Setters>
+                        <Setter Target="AppTitleBar.Margin"
+                                Value="96,0,0,0" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="Top">
+                    <VisualState.Setters>
+                        <Setter Target="AppTitleBar.Margin"
+                                Value="16,0,0,0" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+            <VisualStateGroup x:Name="WindowActivationStates">
+                <VisualState x:Name="Activated" />
+                <VisualState x:Name="Deactivated">
+                    <VisualState.Setters>
+                        <Setter Target="AppTitle.Foreground"
+                                Value="{ThemeResource TextFillColorTertiaryBrush}" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
+        <Border x:Name="AppTitleBar"
+                Margin="48,0,0,0"
+                Canvas.ZIndex="1"
+                VerticalAlignment="Top"
+                IsHitTestVisible="True"
+                Height="{Binding ElementName=navigationView, Path=CompactPaneLength}">
+            <StackPanel VerticalAlignment="Stretch"
+                        Orientation="Horizontal">
+                <Image Width="18"
+                       VerticalAlignment="Center"
+                       Source="ms-appx:///Assets/TitlebarLogo.png" />
+                <TextBlock x:Name="AppTitle"
+                           Margin="12,0,0,0"
+                           VerticalAlignment="Center"
+                           Style="{StaticResource CaptionTextBlockStyle}"
+                           Text="WinUI.TableView Sample App" />
+            </StackPanel>
+        </Border>
+        <NavigationView x:Name="navigationView"
+                        PaneDisplayMode="Auto"
+                        DisplayModeChanged="OnPaneDisplayModeChanged"
+                        SelectionChanged="OnNavigationSelectionChanged"
+                        IsBackEnabled="{Binding CanGoBack, ElementName=rootFrame}"
+                        BackRequested="OnBackRequested"
+                        IsEnabled="{Binding Visibility, ElementName=loadingIndicator, Converter={StaticResource VisibilityToBool}}">
+            <NavigationView.MenuItems>
+                <NavigationViewItem Content="Overview"
+                                    x:Name="overViewNavItem">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE80F;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItemSeparator />
+
+                <NavigationViewItem Content="Grid Lines">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE80A;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Selection">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE73A;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Corner Button">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8B0;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Alternate Row Color">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8C0;"
+                                  RenderTransformOrigin="0.5,0.5">
+                            <FontIcon.RenderTransform>
+                                <RotateTransform Angle="-90" />
+                            </FontIcon.RenderTransform>
+                        </FontIcon>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Context Flyouts">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8A4;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Row Reorder">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xEC8F;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Pagination">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE89A;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Editing">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE70F;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Sorting">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE84F;"
+                                  RenderTransformOrigin="0.5,0.5">
+                            <FontIcon.RenderTransform>
+                                <RotateTransform Angle="-90" />
+                            </FontIcon.RenderTransform>
+                        </FontIcon>
+                    </NavigationViewItem.Icon>
+                    <NavigationViewItem.MenuItems>
+                        <NavigationViewItem Content="Custom Sorting" />
+                    </NavigationViewItem.MenuItems>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Filtering">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE71C;" />
+                    </NavigationViewItem.Icon>
+                    <NavigationViewItem.MenuItems>
+                        <NavigationViewItem Content="Customize Filter Flyout" />
+                        <NavigationViewItem Content="External Filtering" />
+                    </NavigationViewItem.MenuItems>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Clipboard Actions">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8C8;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Data Export">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xEDE1;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Large Dataset">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE92D;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Conditional Cell Styling">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE794;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Column Sizing">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xED5E;"
+                                  RenderTransformOrigin="0.5,0.5">
+                            <FontIcon.RenderTransform>
+                                <RotateTransform Angle="90" />
+                            </FontIcon.RenderTransform>
+                        </FontIcon>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Customization">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE771;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.MenuItems>
+            <NavigationView.Content>
+                <Grid>
+                    <Frame x:Name="rootFrame"
+                           IsNavigationStackEnabled="False"
+                           Navigated="OnRootFrameNavigated"
+                           IsEnabled="{Binding Visibility, ElementName=loadingIndicator, Converter={StaticResource VisibilityToBool}}" />
+                    <StackPanel x:Name="loadingIndicator"
+                                Spacing="16"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center">
+                        <ProgressRing IsActive="True"
+                                      Width="50"
+                                      Height="50" />
+                        <TextBlock Text="Preparing demo data..."
+                                   Style="{StaticResource SubtitleTextBlockStyle}" />
+                    </StackPanel>
+                </Grid>
+            </NavigationView.Content>
+        </NavigationView>
+    </Grid>
+</Page>

@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Markup;
 
 namespace WinUI.TableView;
 
@@ -9,6 +10,7 @@ namespace WinUI.TableView;
 #if WINDOWS
 [WinRT.GeneratedBindableCustomProperty]
 #endif
+[ContentProperty(Name = nameof(CellTemplate))]
 public partial class TableViewTemplateColumn : TableViewColumn
 {
     /// <summary>

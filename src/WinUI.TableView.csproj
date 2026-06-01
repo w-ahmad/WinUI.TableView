@@ -1,9 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>
-      net8.0-windows10.0.19041.0;
-      net9.0-windows10.0.19041.0;
-      net10.0-windows10.0.19041.0;
       net8.0;
       net9.0;
       net10.0;
@@ -11,6 +8,12 @@
     <LangVersion>12</LangVersion>
     <Nullable>enable</Nullable> 
     <IsAOTCompatible>true</IsAOTCompatible>
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">
+      net8.0-windows10.0.19041.0;
+      net9.0-windows10.0.19041.0;
+      net10.0-windows10.0.19041.0;
+      $(TargetFrameworks);
+    </TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$([MSBuild]::GetTargetPlatformIdentifier($(TargetFramework)))' == 'windows'">
@@ -62,6 +65,7 @@
     <RepositoryUrl>https://github.com/w-ahmad/WinUI.TableView</RepositoryUrl>
     <PackageProjectUrl>https://w-ahmad.github.io/WinUI.TableView/</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageOutputPath>$(MSBuildThisFileDirectory)..\artifacts\NuGet\$(Configuration)\</PackageOutputPath>
     <Authors>w-ahmad - https://github.com/w-ahmad</Authors>

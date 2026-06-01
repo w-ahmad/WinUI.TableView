@@ -1,0 +1,123 @@
+<Page x:Class="WinUI.TableView.SampleApp.Pages.CustomizeSortingPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:tv="using:WinUI.TableView"
+      xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
+      d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
+      mc:Ignorable="d">
+
+    <Grid>
+        <controls:SamplePresenter Header="Column Custom Sorting"
+                                  Description="This sample demonstrates how to implement custom sorting.">
+            <controls:SamplePresenter.Example>
+                <tv:TableView x:Name="tableView"
+                              ItemsSource="{Binding Items}"
+                              AutoGenerateColumns="False"
+                              Sorting="OnTableViewSorting"
+                              ClearSorting="OnTableViewClearSorting"
+                              DataContextChanged="OnDataContextChanged">
+                    <tv:TableView.Columns>
+                        <tv:TableViewNumberColumn Header="Id"
+                                                  Width="100"
+                                                  Binding="{Binding Id}" />
+                        <tv:TableViewTextColumn Header="First Name"
+                                                Width="200"
+                                                Binding="{Binding FirstName}" />
+                        <tv:TableViewTextColumn Header="Last Name"
+                                                Width="200"
+                                                Binding="{Binding LastName}" />
+                        <tv:TableViewTextColumn Header="Email"
+                                                Width="200"
+                                                Binding="{Binding Email}" />
+                        <tv:TableViewTextColumn Header="Gender"
+                                                Width="100"
+                                                Binding="{Binding Gender}" />
+                        <tv:TableViewDateColumn Header="Dob"
+                                                Width="150"
+                                                Binding="{Binding Dob}" />
+                    </tv:TableView.Columns>
+                </tv:TableView>
+            </controls:SamplePresenter.Example>
+            <controls:SamplePresenter.Xaml>
+                <x:String xml:space="preserve">
+&lt;tv:TableView x:Name="tableView"
+    ItemsSource="{Binding Items}"
+    AutoGenerateColumns="False"
+    Sorting="OnTableViewSorting"
+    ClearSorting="OnTableViewClearSorting"
+    DataContextChanged="OnDataContextChanged">
+    &lt;tv:TableView.Columns>
+    ............
+    &lt;/tv:TableView.Columns>
+&lt;/tv:TableView>
+                </x:String>
+            </controls:SamplePresenter.Xaml>
+            <controls:SamplePresenter.CSharp>
+                <x:String xml:space="preserve">
+private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
+{
+    if (DataContext is not ExampleViewModel viewModel) return;
+
+    viewModel.Items = new(ExampleViewModel.ItemsList.Take(20));
+}
+
+private void OnTableViewSorting(object sender, TableViewSortingEventArgs e)
+{
+    if (e.Column is not null &amp;&amp; DataContext is ExampleViewModel viewModel)
+    {
+        var sd = e.Column.SortDirection;
+        tableView.ClearAllSorting();
+        e.Column.SortDirection = GetNextSortDirection(sd);
+
+        var header = (string)e.Column.Header;
+
+        viewModel.Items = e.Column.SortDirection switch
+        {
+            SortDirection.Ascending => new(ExampleViewModel.ItemsList.OrderBy(x => GetValue(x, header)).Take(20)),
+            SortDirection.Descending => new(ExampleViewModel.ItemsList.OrderByDescending(x => GetValue(x, header)).Take(20)),
+            _ => new(ExampleViewModel.ItemsList.Take(20)),
+        };
+    }
+
+    e.Handled = true;
+
+    static object? GetValue(ExampleModel item, string header) => header switch
+    {
+        "First Name" => item.FirstName,
+        "Last Name" => item.LastName,
+        "Email" => item.Email,
+        "Gender" => item.Gender,
+        "Dob" => item.Dob,
+        "Id" or _ => (object)item.Id,
+    };
+}
+
+private SortDirection? GetNextSortDirection(SortDirection? sortDirection)
+{
+    return sortDirection switch
+    {
+        SortDirection.Ascending => SortDirection.Descending,
+        SortDirection.Descending => null,
+        _ => SortDirection.Ascending,
+    };
+}
+
+private void OnTableViewClearSorting(object sender, TableViewClearSortingEventArgs e)
+{
+    if (e.Column is not null)
+    {
+        e.Column.SortDirection = null;
+    }
+    else
+    {
+        tableView.ClearAllSorting();
+    }
+}
+                </x:String>
+            </controls:SamplePresenter.CSharp>
+        </controls:SamplePresenter>
+    </Grid>
+</Page>
