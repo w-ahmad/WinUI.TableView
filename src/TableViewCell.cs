@@ -490,6 +490,8 @@ public partial class TableViewCell : ContentControl
             Focus(FocusState.Pointer);
         });
 #endif
+
+        DispatcherQueue.TryEnqueue(InvalidateMeasure);
     }
 
     /// <summary>
