@@ -73,6 +73,7 @@
             <StaticResource x:Key="TableViewRowSelectionIndicatorDisabledBrush" ResourceKey="AccentFillColorDisabledBrush" />
             <StaticResource x:Key="TableViewHorizontalGridLineStroke" ResourceKey="CardStrokeColorDefaultBrush" />
             <StaticResource x:Key="TableViewVerticalGridLineStroke" ResourceKey="CardStrokeColorDefaultBrush" />
+            <StaticResource x:Key="TableViewRowEditingHighlightBackground" ResourceKey="SubtleFillColorSecondaryBrush" />
             <SolidColorBrush x:Key="TableViewRowDetailsBackgroundBrush" Color="{StaticResource CardBackgroundFillColorSecondary}" />
         </ResourceDictionary>
         
@@ -142,6 +143,7 @@
             <StaticResource x:Key="TableViewRowSelectionIndicatorDisabledBrush" ResourceKey="AccentFillColorDisabledBrush" />
             <StaticResource x:Key="TableViewHorizontalGridLineStroke" ResourceKey="ControlStrokeColorDefaultBrush" />
             <StaticResource x:Key="TableViewVerticalGridLineStroke" ResourceKey="ControlStrokeColorDefaultBrush" />
+            <StaticResource x:Key="TableViewRowEditingHighlightBackground" ResourceKey="SubtleFillColorSecondaryBrush" />
             <SolidColorBrush x:Key="TableViewRowDetailsBackgroundBrush" Color="{StaticResource CardBackgroundFillColorSecondary}" />
         </ResourceDictionary>
 
@@ -211,6 +213,7 @@
             <SolidColorBrush x:Key="TableViewRowSelectionIndicatorDisabledBrush" Color="{ThemeResource SystemColorGrayTextColor}" />
             <StaticResource x:Key="TableViewHorizontalGridLineStroke" ResourceKey="SystemColorButtonTextColorBrush" />
             <StaticResource x:Key="TableViewVerticalGridLineStroke" ResourceKey="SystemColorButtonTextColorBrush" />
+            <SolidColorBrush x:Key="TableViewRowEditingHighlightBackground" Color="{ThemeResource SystemColorHighlightColor}" Opacity="0.3" />
             <SolidColorBrush x:Key="TableViewRowDetailsBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>

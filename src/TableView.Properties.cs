@@ -73,6 +73,11 @@ public partial class TableView
     public static readonly DependencyProperty IsReadOnlyProperty = DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(TableView), new PropertyMetadata(false, OnIsReadOnlyChanged));
 
     /// <summary>
+    /// Identifies the TapToEdit dependency property.
+    /// </summary>
+    public static readonly DependencyProperty TapToEditProperty = DependencyProperty.Register(nameof(TapToEdit), typeof(bool), typeof(TableView), new PropertyMetadata(false));
+
+    /// <summary>
     /// Identifies the CornerButtonMode dependency property.
     /// </summary>
     public static readonly DependencyProperty CornerButtonModeProperty = DependencyProperty.Register(nameof(CornerButtonMode), typeof(TableViewCornerButtonMode), typeof(TableView), new PropertyMetadata(TableViewCornerButtonMode.Options, OnCornerButtonModeChanged));
@@ -483,6 +488,15 @@ public partial class TableView
     {
         get => (bool)GetValue(IsReadOnlyProperty);
         set => SetValue(IsReadOnlyProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether tapping an already-selected cell initiates editing.
+    /// </summary>
+    public bool TapToEdit
+    {
+        get => (bool)GetValue(TapToEditProperty);
+        set => SetValue(TapToEditProperty, value);
     }
 
     /// <summary>

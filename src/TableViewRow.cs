@@ -604,6 +604,14 @@ public partial class TableViewRow : ListViewItem
     }
 
     /// <summary>
+    /// Highlights or unhighlights the row to indicate that a cell is being edited.
+    /// </summary>
+    internal void ApplyEditingHighlight(bool isEditing)
+    {
+        RowPresenter?.ApplyEditingHighlight(isEditing);
+    }
+
+    /// <summary>
     /// Gets the height of the horizontal gridlines.
     /// </summary>
     private double GetHorizontalGridlineHeight()

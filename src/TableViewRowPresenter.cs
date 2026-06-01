@@ -33,6 +33,7 @@ public partial class TableViewRowPresenter : Control
     private ContentPresenter? _detailsPresenter;
     private ToggleButton? _detailsToggleButton;
     private ListViewItemPresenter? _itemPresenter;
+    private Border? _editingHighlightOverlay;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TableViewRowPresenter"/> class.
@@ -56,6 +57,7 @@ public partial class TableViewRowPresenter : Control
         _detailsPanel = GetTemplateChild("DetailsPanel") as Panel;
         _detailsPresenter = GetTemplateChild("DetailsPresenter") as ContentPresenter;
         _detailsToggleButton = GetTemplateChild("DetailsToggleButton") as ToggleButton;
+        _editingHighlightOverlay = GetTemplateChild("EditingHighlightOverlay") as Border;
 
         _itemPresenter = this.FindAscendant<ListViewItemPresenter>();
         TableViewRow = this.FindAscendant<TableViewRow>();
@@ -236,6 +238,17 @@ public partial class TableViewRowPresenter : Control
             var isChecked = TableView.DetailsPaneStates.TryGetValue(item, out var value) ? value.Value : false;
             _detailsToggleButton!.IsChecked = isChecked;
             ToggleDetailsPane(item, isChecked);
+        }
+    }
+
+    /// <summary>
+    /// Toggles the editing highlight overlay visibility.
+    /// </summary>
+    internal void ApplyEditingHighlight(bool isEditing)
+    {
+        if (_editingHighlightOverlay is not null)
+        {
+            _editingHighlightOverlay.Visibility = isEditing ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 

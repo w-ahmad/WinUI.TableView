@@ -190,7 +190,8 @@ public partial class TableViewCell : ContentControl
 
         if ((TableView?.SelectionMode is not ListViewSelectionMode.None
            && TableView?.SelectionUnit is not TableViewSelectionUnit.Row)
-           || !TableView.IsReadOnly)
+           || !TableView.IsReadOnly
+           || (TableView?.SelectionUnit is TableViewSelectionUnit.Row or TableViewSelectionUnit.CellOrRow && !IsReadOnly))
         {
             VisualStates.GoToState(this, false, VisualStates.StatePointerOver);
         }
@@ -203,7 +204,8 @@ public partial class TableViewCell : ContentControl
 
         if ((TableView?.SelectionMode is not ListViewSelectionMode.None
             && TableView?.SelectionUnit is not TableViewSelectionUnit.Row)
-            || !TableView.IsReadOnly)
+            || !TableView.IsReadOnly
+            || (TableView?.SelectionUnit is TableViewSelectionUnit.Row or TableViewSelectionUnit.CellOrRow && !IsReadOnly))
         {
             VisualStates.GoToState(this, false, VisualStates.StateNormal);
         }
@@ -217,6 +219,21 @@ public partial class TableViewCell : ContentControl
         if (!TryEndCurrentCellEdit())
         {
             e.Handled = true;
+            return;
+        }
+
+        if (TableView?.TapToEdit is true
+            && TableView.CurrentCellSlot == Slot
+            && !IsReadOnly
+            && !TableView.IsEditing
+            && Column?.UseSingleElement is not true)
+        {
+            if (TableView.SelectionUnit is TableViewSelectionUnit.Row)
+            {
+                MakeSelection();
+            }
+
+            e.Handled = await BeginCellEditing(e);
             return;
         }
 
@@ -420,6 +437,11 @@ public partial class TableViewCell : ContentControl
             TableView.UpdateCornerButtonState();
         }
 
+        if (TableView?.SelectionUnit is TableViewSelectionUnit.Row or TableViewSelectionUnit.CellOrRow)
+        {
+            Row?.ApplyEditingHighlight(true);
+        }
+
         if (editingElement is { IsHitTestVisible: true })
         {
             _editingArgs = editingArgs;
@@ -466,6 +488,12 @@ public partial class TableViewCell : ContentControl
     internal void EndEditing(TableViewEditAction editAction)
     {
         Column?.EndCellEditing(this, Row?.Content, editAction, _uneditedValue);
+
+        if (TableView?.SelectionUnit is TableViewSelectionUnit.Row or TableViewSelectionUnit.CellOrRow)
+        {
+            Row?.ApplyEditingHighlight(false);
+        }
+
         SetElement();
     }
 
