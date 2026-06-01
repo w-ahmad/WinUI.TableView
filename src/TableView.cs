@@ -108,6 +108,11 @@ public partial class TableView : ListView
         {
             if (element is TableViewRow row)
             {
+                if (!_rows.Contains(row))
+                {
+                    _rows.Add(row);
+                }
+
                 row.TableView = this;
                 row.EnsureCellsStyle(default, item);
                 row.ApplyCellsSelectionState();
@@ -404,7 +409,7 @@ public partial class TableView : ListView
         }
 
         _collectionView.ItemPropertyChanged -= OnItemPropertyChanged;
-        _collectionView.Source = null!;
+        _collectionView.Source = Enumerable.Empty<object>();
         _isItemsSourceSuspended = true;
     }
 
