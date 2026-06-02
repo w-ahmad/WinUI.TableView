@@ -239,7 +239,7 @@ public partial class TableViewColumnHeader : ContentControl
         _filterItemsControl?.FilterItems = null;
         _filterItemsControl?.TableView = null;
         _filterItemsControl?.ColumnHeader = null;
-
+        _filterItemsControl = null;
         _tableView = this.FindAscendant<TableView>();
         _headerRow = this.FindAscendant<TableViewHeaderRow>();
         _optionsButton = GetTemplateChild("OptionsButton") as Button;
