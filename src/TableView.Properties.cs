@@ -367,11 +367,6 @@ public partial class TableView
     internal ConditionalWeakTable<object, TValue<bool>> DetailsPaneStates { get; } = [];
 
     /// <summary>
-    /// Gets or sets the header row of the TableView.
-    /// </summary>
-    internal TableViewHeaderRow? HeaderRow { get; set; }
-
-    /// <summary>
     /// Gets or sets the filter handler for the TableView.
     /// </summary>
     public IColumnFilterHandler FilterHandler { get; set; }
@@ -839,7 +834,7 @@ public partial class TableView
     {
         if (d is TableView tableView)
         {
-            tableView.HeaderRow?.SetExportOptionsVisibility();
+            tableView._headerRow?.SetExportOptionsVisibility();
         }
     }
 
@@ -895,9 +890,9 @@ public partial class TableView
     /// </summary>
     private static void OnCanFilterColumnsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableView tableView && tableView.HeaderRow is not null)
+        if (d is TableView tableView && tableView._headerRow is not null)
         {
-            foreach (var header in tableView.HeaderRow.Headers)
+            foreach (var header in tableView._headerRow.Headers)
             {
                 header.SetFilterButtonVisibility();
             }
@@ -909,9 +904,9 @@ public partial class TableView
     /// </summary>
     private static void OnMinColumnWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableView table && table.HeaderRow is not null)
+        if (d is TableView table && table._headerRow is not null)
         {
-            table.HeaderRow.CalculateHeaderWidths();
+            table._headerRow.CalculateHeaderWidths();
         }
     }
 
@@ -920,9 +915,9 @@ public partial class TableView
     /// </summary>
     private static void OnMaxColumnWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableView table && table.HeaderRow is not null)
+        if (d is TableView table && table._headerRow is not null)
         {
-            table.HeaderRow.CalculateHeaderWidths();
+            table._headerRow.CalculateHeaderWidths();
         }
     }
 
@@ -1005,9 +1000,9 @@ public partial class TableView
     /// </summary>
     private static void OnHorizontalOffsetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableView { HeaderRow: { } } tableView)
+        if (d is TableView { _headerRow: { } } tableView)
         {
-            tableView.HeaderRow.InvalidateArrange();
+            tableView._headerRow.InvalidateArrange();
 
             foreach (var row in tableView._rows)
             {

@@ -31,6 +31,7 @@ namespace WinUI.TableView;
 [StyleTypedProperty(Property = nameof(CellStyle), StyleTargetType = typeof(TableViewCell))]
 public partial class TableView : ListView
 {
+    private TableViewHeaderRow? _headerRow;
     private ScrollViewer? _scrollViewer;
     private RowDefinition? _headerRowDefinition;
     private bool _shouldThrowSelectionModeChangedException;
@@ -334,7 +335,7 @@ public partial class TableView : ListView
     {
         base.OnApplyTemplate();
 
-        HeaderRow = GetTemplateChild("HeaderRow") as TableViewHeaderRow;
+        _headerRow = GetTemplateChild("HeaderRow") as TableViewHeaderRow;
         _scrollViewer = GetTemplateChild("ScrollViewer") as ScrollViewer;
         _headerRowDefinition = GetTemplateChild("HeaderRowDefinition") as RowDefinition;
         _scrollViewer?.Loaded += OnScrollViewerLoaded;
@@ -1462,7 +1463,7 @@ public partial class TableView : ListView
         base.SelectionMode = SelectionUnit is TableViewSelectionUnit.Cell ? ListViewSelectionMode.None : SelectionMode;
 
         UpdateHorizontalScrollBarMargin();
-        HeaderRow?.SetHeadersVisibility();
+        _headerRow?.SetHeadersVisibility();
 
         foreach (var row in _rows)
         {
@@ -1479,7 +1480,7 @@ public partial class TableView : ListView
     /// </summary>
     private void EnsureGridLines()
     {
-        HeaderRow?.EnsureGridLines();
+        _headerRow?.EnsureGridLines();
 
         foreach (var row in _rows)
         {
@@ -1597,7 +1598,7 @@ public partial class TableView : ListView
     /// </summary>
     internal void UpdateCornerButtonState()
     {
-        HeaderRow?.SetCornerButtonState();
+        _headerRow?.SetCornerButtonState();
 
         DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
         {
@@ -1633,7 +1634,7 @@ public partial class TableView : ListView
             _headerRowDefinition.Height = areColumnHeadersVisible ? GridLength.Auto : new(0);
         }
 
-        HeaderRow?.SetHeadersVisibility();
+        _headerRow?.SetHeadersVisibility();
 
         foreach (var row in _rows)
         {
