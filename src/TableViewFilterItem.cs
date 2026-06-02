@@ -10,8 +10,6 @@ public partial class TableViewFilterItem : INotifyPropertyChanged
     /// <inheritdoc/>
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private bool _isSelected;
-
     /// <summary>
     /// Initializes a new instance of the FilterItem class.
     /// </summary>
@@ -32,10 +30,10 @@ public partial class TableViewFilterItem : INotifyPropertyChanged
     /// </summary>
     public bool IsSelected
     {
-        get => _isSelected;
+        get;
         set
         {
-            _isSelected = value;
+            field = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelected)));
         }
     }

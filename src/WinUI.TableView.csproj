@@ -5,7 +5,7 @@
       net9.0;
       net10.0;
     </TargetFrameworks>
-    <LangVersion>12</LangVersion>
+    <LangVersion>14</LangVersion>
     <Nullable>enable</Nullable> 
     <IsAOTCompatible>true</IsAOTCompatible>
     <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">

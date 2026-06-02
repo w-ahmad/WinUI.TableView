@@ -28,7 +28,6 @@ namespace WinUI.TableView;
 #endif
 public partial class TableViewCell : ContentControl
 {
-    private TableViewColumn? _column;
     private ScrollViewer? _scrollViewer;
     private ContentPresenter? _contentPresenter;
     private Border? _selectionBorder;
@@ -614,12 +613,12 @@ public partial class TableViewCell : ContentControl
     /// </summary>
     public TableViewColumn? Column
     {
-        get => _column;
+        get;
         internal set
         {
-            if (_column != value)
+            if (field != value)
             {
-                _column = value;
+                field = value;
                 OnColumnChanged();
             }
         }

@@ -31,7 +31,6 @@ namespace WinUI.TableView;
 [StyleTypedProperty(Property = nameof(CellStyle), StyleTargetType = typeof(TableViewCell))]
 public partial class TableView : ListView
 {
-    private TableViewHeaderRow? _headerRow;
     private ScrollViewer? _scrollViewer;
     private RowDefinition? _headerRowDefinition;
     private bool _shouldThrowSelectionModeChangedException;
@@ -335,10 +334,10 @@ public partial class TableView : ListView
     {
         base.OnApplyTemplate();
 
-        _headerRow = GetTemplateChild("HeaderRow") as TableViewHeaderRow;
+        HeaderRow = GetTemplateChild("HeaderRow") as TableViewHeaderRow;
         _scrollViewer = GetTemplateChild("ScrollViewer") as ScrollViewer;
         _headerRowDefinition = GetTemplateChild("HeaderRowDefinition") as RowDefinition;
-        if (_scrollViewer is not null) _scrollViewer.Loaded += OnScrollViewerLoaded;
+        _scrollViewer?.Loaded += OnScrollViewerLoaded;
 
         if (IsLoaded)
         {
@@ -359,15 +358,9 @@ public partial class TableView : ListView
         var xScrollBar = _scrollViewer?.FindDescendant<ScrollBar>(sb => sb.Name is "HorizontalScrollBar2");
         var yScrollBar = _scrollViewer?.FindDescendant<ScrollBar>(sb => sb.Name is "VerticalScrollBar");
 
-        if (scrollPresenter is not null)
-        {
-            scrollPresenter.PointerWheelChanged += OnScrollContentPresenterPointerWheelChanged;
-        }
+        scrollPresenter?.PointerWheelChanged += OnScrollContentPresenterPointerWheelChanged;
 
-        if (yScrollBar is not null)
-        {
-            yScrollBar.ValueChanged += (_, _) => SetValue(VerticalOffsetProperty, yScrollBar.Value);
-        }
+        yScrollBar?.ValueChanged += (_, _) => SetValue(VerticalOffsetProperty, yScrollBar.Value);
 
         xScrollBar?.SetBinding(RangeBase.ValueProperty, new Binding
         {
@@ -507,8 +500,8 @@ public partial class TableView : ListView
     {
         // Skip TableView copy logic when a cell editor already handles Ctrl+C.
         // TextBox, PasswordBox, and RichEditBox all implement their own copy behavior.
-        var focused = FocusManager.GetFocusedElement() as FrameworkElement;
-        if (focused is TextBox || focused is PasswordBox || focused is RichEditBox)
+        var focused = FocusManager.GetFocusedElement(XamlRoot!) as FrameworkElement;
+        if (focused is TextBox or PasswordBox or RichEditBox)
         {
             return;
         }
@@ -520,7 +513,7 @@ public partial class TableView : ListView
         {
             return;
         }
-        
+
         var content = GetSelectedClipboardContent(includeHeaders);
 
         if (string.IsNullOrWhiteSpace(content))
@@ -533,7 +526,7 @@ public partial class TableView : ListView
         {
             var package = new DataPackage();
             package.SetText(content);
-            
+
             Clipboard.SetContent(package);
         }
         catch (Exception ex)
@@ -898,7 +891,11 @@ public partial class TableView : ListView
     /// <summary>
     /// Gets a storage file for saving the CSV.
     /// </summary>
-    private async Task<StorageFile> GetStorageFile()
+    private
+#if !WINDOWS
+    static
+#endif
+    async Task<StorageFile> GetStorageFile()
     {
         var savePicker = new FileSavePicker();
         savePicker.FileTypeChoices.Add("CSV (Comma delimited)", [".csv"]);
@@ -938,10 +935,7 @@ public partial class TableView : ListView
 
         foreach (var column in Columns.Where(c => c.SortDirection is not null))
         {
-            if (column is not null)
-            {
-                column.SortDirection = null;
-            }
+            column?.SortDirection = null;
         }
     }
 
@@ -1468,7 +1462,7 @@ public partial class TableView : ListView
         base.SelectionMode = SelectionUnit is TableViewSelectionUnit.Cell ? ListViewSelectionMode.None : SelectionMode;
 
         UpdateHorizontalScrollBarMargin();
-        _headerRow?.SetHeadersVisibility();
+        HeaderRow?.SetHeadersVisibility();
 
         foreach (var row in _rows)
         {
@@ -1485,7 +1479,7 @@ public partial class TableView : ListView
     /// </summary>
     private void EnsureGridLines()
     {
-        _headerRow?.EnsureGridLines();
+        HeaderRow?.EnsureGridLines();
 
         foreach (var row in _rows)
         {
@@ -1603,7 +1597,7 @@ public partial class TableView : ListView
     /// </summary>
     internal void UpdateCornerButtonState()
     {
-        _headerRow?.SetCornerButtonState();
+        HeaderRow?.SetCornerButtonState();
 
         DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
         {
@@ -1639,7 +1633,7 @@ public partial class TableView : ListView
             _headerRowDefinition.Height = areColumnHeadersVisible ? GridLength.Auto : new(0);
         }
 
-        _headerRow?.SetHeadersVisibility();
+        HeaderRow?.SetHeadersVisibility();
 
         foreach (var row in _rows)
         {

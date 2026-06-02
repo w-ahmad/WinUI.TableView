@@ -8,7 +8,7 @@ namespace WinUI.TableView;
 /// </summary>
 public abstract class TableViewBoundColumn : TableViewColumn
 {
-    private Binding _binding = new();
+   // private Binding _binding;//= new();
 
     /// <summary>
     /// Gets the property path for the binding.
@@ -20,10 +20,10 @@ public abstract class TableViewBoundColumn : TableViewColumn
     /// </summary>
     public virtual Binding Binding
     {
-        get => _binding;
+        get;
         set
         {
-            if (_binding != value)
+            if (field != value)
             {
                 if (value is not null)
                 {
@@ -35,10 +35,10 @@ public abstract class TableViewBoundColumn : TableViewColumn
                     }
                 }
 
-                _binding = value!;
+                field = value!;
             }
         }
-    }
+    } = new();
 
     /// <summary>
     /// Gets or sets the optional data binding used to perform operations on cell content, for example sorting, filtering and exporting.

@@ -367,6 +367,11 @@ public partial class TableView
     internal ConditionalWeakTable<object, TValue<bool>> DetailsPaneStates { get; } = [];
 
     /// <summary>
+    /// Gets or sets the header row of the TableView.
+    /// </summary>
+    internal TableViewHeaderRow? HeaderRow { get; set; }
+
+    /// <summary>
     /// Gets or sets the filter handler for the TableView.
     /// </summary>
     public IColumnFilterHandler FilterHandler { get; set; }
@@ -719,9 +724,9 @@ public partial class TableView
     /// <summary>
     /// Gets or sets the data template selector for the row header.
     /// </summary>
-    public DataTemplateSelector RowHeaderTemplateSelector
+    public DataTemplateSelector? RowHeaderTemplateSelector
     {
-        get => (DataTemplateSelector)GetValue(RowHeaderTemplateSelectorProperty);
+        get => (DataTemplateSelector?)GetValue(RowHeaderTemplateSelectorProperty);
         set => SetValue(RowHeaderTemplateSelectorProperty, value);
     }
 
@@ -755,9 +760,9 @@ public partial class TableView
     /// <summary>
     /// Gets or sets the data template selector for the row details.
     /// </summary>
-    public DataTemplateSelector RowDetailsTemplateSelector
+    public DataTemplateSelector? RowDetailsTemplateSelector
     {
-        get => (DataTemplateSelector)GetValue(RowDetailsTemplateSelectorProperty);
+        get => (DataTemplateSelector?)GetValue(RowDetailsTemplateSelectorProperty);
         set => SetValue(RowDetailsTemplateSelectorProperty, value);
     }
 
@@ -834,7 +839,7 @@ public partial class TableView
     {
         if (d is TableView tableView)
         {
-            tableView._headerRow?.SetExportOptionsVisibility();
+            tableView.HeaderRow?.SetExportOptionsVisibility();
         }
     }
 
@@ -890,9 +895,9 @@ public partial class TableView
     /// </summary>
     private static void OnCanFilterColumnsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableView tableView && tableView._headerRow is not null)
+        if (d is TableView tableView && tableView.HeaderRow is not null)
         {
-            foreach (var header in tableView._headerRow.Headers)
+            foreach (var header in tableView.HeaderRow.Headers)
             {
                 header.SetFilterButtonVisibility();
             }
@@ -904,9 +909,9 @@ public partial class TableView
     /// </summary>
     private static void OnMinColumnWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableView table && table._headerRow is not null)
+        if (d is TableView table && table.HeaderRow is not null)
         {
-            table._headerRow.CalculateHeaderWidths();
+            table.HeaderRow.CalculateHeaderWidths();
         }
     }
 
@@ -915,9 +920,9 @@ public partial class TableView
     /// </summary>
     private static void OnMaxColumnWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableView table && table._headerRow is not null)
+        if (d is TableView table && table.HeaderRow is not null)
         {
-            table._headerRow.CalculateHeaderWidths();
+            table.HeaderRow.CalculateHeaderWidths();
         }
     }
 
@@ -1000,9 +1005,9 @@ public partial class TableView
     /// </summary>
     private static void OnHorizontalOffsetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableView { _headerRow: { } } tableView)
+        if (d is TableView { HeaderRow: { } } tableView)
         {
-            tableView._headerRow.InvalidateArrange();
+            tableView.HeaderRow.InvalidateArrange();
 
             foreach (var row in tableView._rows)
             {

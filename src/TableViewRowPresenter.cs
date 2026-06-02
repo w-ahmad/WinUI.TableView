@@ -48,20 +48,14 @@ public partial class TableViewRowPresenter : Control
     {
         base.OnApplyTemplate();
 
-        if (_detailsToggleButton is not null)
-        {
-            _detailsToggleButton.Tapped -= OnDetailsToggleButtonTapped;
-        }
+        _detailsToggleButton?.Tapped -= OnDetailsToggleButtonTapped;
 
-        if (_detailsPanel is not null)
-        {
-            _detailsPanel.SizeChanged -= OnDetailsPanelSizeChanged;
+        _detailsPanel?.SizeChanged -= OnDetailsPanelSizeChanged;
 
-            if (_detailsPanelVisibilityCallbackToken is long token)
-            {
-                _detailsPanel.UnregisterPropertyChangedCallback(VisibilityProperty, token);
-                _detailsPanelVisibilityCallbackToken = null;
-            }
+        if (_detailsPanelVisibilityCallbackToken is long token)
+        {
+            _detailsPanel?.UnregisterPropertyChangedCallback(VisibilityProperty, token);
+            _detailsPanelVisibilityCallbackToken = null;
         }
 
         _rowHeader = GetTemplateChild("RowHeader") as TableViewRowHeader;
@@ -77,17 +71,10 @@ public partial class TableViewRowPresenter : Control
         _itemPresenter = this.FindAscendant<ListViewItemPresenter>();
         TableViewRow = this.FindAscendant<TableViewRow>();
         TableView = TableViewRow?.TableView;
+        _rowHeader?.TableView = TableView;
+        _rowHeader?.TableViewRow = TableViewRow;
 
-        if (_rowHeader is not null)
-        {
-            _rowHeader.TableView = TableView;
-            _rowHeader.TableViewRow = TableViewRow;
-        }
-
-        if (_detailsToggleButton is not null)
-        {
-            _detailsToggleButton.Tapped += OnDetailsToggleButtonTapped;
-        }
+        _detailsToggleButton?.Tapped += OnDetailsToggleButtonTapped;
 
         if (_detailsPanel is not null)
         {
@@ -266,7 +253,7 @@ public partial class TableViewRowPresenter : Control
         if (TableView?.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded &&
             _detailsToggleButton is not null && TableView is not null && item is not null)
         {
-            var isChecked = TableView.DetailsPaneStates.TryGetValue(item, out var value) ? value.Value : false;
+            var isChecked = TableView.DetailsPaneStates.TryGetValue(item, out var value) && value.Value;
             _detailsToggleButton!.IsChecked = isChecked;
             ToggleDetailsPane(item, isChecked);
         }

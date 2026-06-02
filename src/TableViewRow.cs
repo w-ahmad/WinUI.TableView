@@ -32,8 +32,6 @@ public partial class TableViewRow : ListViewItem
     private Thickness _focusVisualMargin = new(1);
     private readonly Thickness _selectionBackgroundMargin = new(4, 2, 4, 2);
     private readonly Thickness _selectionIndicatorMargin = new(4, 0, 0, 0);
-
-    private TableView? _tableView;
     private ListViewItemPresenter? _itemPresenter;
     private Border? _selectionBackground;
     private bool _ensureCells = true;
@@ -147,7 +145,7 @@ public partial class TableViewRow : ListViewItem
         }
 
         RowPresenter?.InvalidateMeasure(); // The cells presenter does not measure every time.
-        _tableView?.EnsureAlternateRowColors();
+        TableView?.EnsureAlternateRowColors();
     }
 
     /// <inheritdoc/>
@@ -627,13 +625,13 @@ public partial class TableViewRow : ListViewItem
     /// </summary>
     public TableView? TableView
     {
-        get => _tableView;
+        get;
         internal set
         {
-            if (_tableView != value)
+            if (field != value)
             {
                 OnTableViewChanging();
-                _tableView = value;
+                field = value;
                 OnTableViewChanged();
             }
         }

@@ -65,10 +65,7 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     private void OnWidthChanged(DependencyObject sender, DependencyProperty dp)
     {
-        if (Column is not null)
-        {
-            Column.ActualWidth = Width;
-        }
+        Column?.ActualWidth = Width;
     }
 
     /// <summary>
@@ -181,6 +178,8 @@ public partial class TableViewColumnHeader : ContentControl
         var firstItem = selectedValues.FirstOrDefault(x => x is not null);
         var firstItemType = firstItem?.GetType();
 
+#pragma warning disable IDE0306 // Simplify collection initialization
+#pragma warning disable IDE0028 // Simplify collection initialization
         return firstItemType switch
         {
             Type t when t == typeof(int) => new ObjectBackedTypedSet<int?>(selectedValues),
@@ -191,6 +190,8 @@ public partial class TableViewColumnHeader : ContentControl
 
             _ => [.. selectedValues],
         };
+#pragma warning restore IDE0028 // Simplify collection initialization
+#pragma warning restore IDE0306 // Simplify collection initialization
     }
 
     /// <summary>
@@ -230,29 +231,14 @@ public partial class TableViewColumnHeader : ContentControl
     {
         base.OnApplyTemplate();
 
-        if (_optionsFlyout is not null)
-        {
-            _optionsFlyout.Opening -= OnOptionsFlyoutOpening;
-            _optionsFlyout.Closed -= OnOptionsFlyoutClosed;
-        }
+        _optionsFlyout?.Opening -= OnOptionsFlyoutOpening;
+        _optionsFlyout?.Closed -= OnOptionsFlyoutClosed;
+        _optionsButton?.Tapped -= OnOptionsButtonTaped;
+        _filterItemsMenuItem?.PreviewKeyUp -= OnFilterItemsMenuItemPreviewKeyUp;
 
-        if (_optionsButton is not null)
-        {
-            _optionsButton.Tapped -= OnOptionsButtonTaped;
-        }
-
-        if (_filterItemsMenuItem is not null)
-        {
-            _filterItemsMenuItem.PreviewKeyUp -= OnFilterItemsMenuItemPreviewKeyUp;
-        }
-
-        if (_filterItemsControl is not null)
-        {
-            _filterItemsControl.FilterItems = null;
-            _filterItemsControl.TableView = null;
-            _filterItemsControl.ColumnHeader = null;
-            _filterItemsControl = null;
-        }
+        _filterItemsControl?.FilterItems = null;
+        _filterItemsControl?.TableView = null;
+        _filterItemsControl?.ColumnHeader = null;
 
         _tableView = this.FindAscendant<TableView>();
         _headerRow = this.FindAscendant<TableViewHeaderRow>();
@@ -271,19 +257,13 @@ public partial class TableViewColumnHeader : ContentControl
         _optionsFlyout.Closed += OnOptionsFlyoutClosed;
         _optionsButton.Tapped += OnOptionsButtonTaped;
 
-        if (_filterItemsMenuItem is not null)
-        {
-            _filterItemsMenuItem.ApplyTemplate();
-            _filterItemsControl = _filterItemsMenuItem.FindDescendant<TableViewFilterItemsControl>();
+        _filterItemsMenuItem?.ApplyTemplate();
+        _filterItemsControl = _filterItemsMenuItem?.FindDescendant<TableViewFilterItemsControl>();
 
-            if (_filterItemsControl is not null)
-            {
-                _filterItemsControl.TableView = _tableView;
-                _filterItemsControl.ColumnHeader = this;
-            }
+        _filterItemsControl?.TableView = _tableView;
+        _filterItemsControl?.ColumnHeader = this;
 
-            _filterItemsMenuItem.PreviewKeyUp += OnFilterItemsMenuItemPreviewKeyUp;
-        }
+        _filterItemsMenuItem?.PreviewKeyUp += OnFilterItemsMenuItemPreviewKeyUp;
 
         SetOptionCommands();
         SetFilterButtonVisibility();
@@ -361,19 +341,13 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     internal void SetFilterButtonVisibility()
     {
-        if (_optionsButton is not null)
-        {
-            _optionsButton.Visibility = CanFilter ? Visibility.Visible : Visibility.Collapsed;
-        }
+        _optionsButton?.Visibility = CanFilter ? Visibility.Visible : Visibility.Collapsed;
 
-        if (_contentPresenter is not null)
-        {
-            _contentPresenter.Margin = CanFilter ? new Thickness(
+        _contentPresenter?.Margin = CanFilter ? new Thickness(
                 Padding.Left,
                 Padding.Top,
                 Padding.Right + 8,
                 0) : Padding;
-        }
     }
 
     /// <summary>
