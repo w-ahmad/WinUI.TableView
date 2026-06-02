@@ -65,6 +65,13 @@ public partial class TableViewCell : ContentControl
     {
         if (!e.TryGetPosition(sender, out var position)) return;
 #endif
+
+        // Select the row before showing the Context Menu
+        if (TableView is not null && !IsSelected)
+        {
+            TableView.MakeSelection(Slot, false);
+        }
+
         e.Handled = TableView?.ShowCellContext(this, position) is true;
     }
 
