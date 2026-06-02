@@ -8,8 +8,6 @@ namespace WinUI.TableView;
 /// </summary>
 public abstract class TableViewBoundColumn : TableViewColumn
 {
-   // private Binding _binding;//= new();
-
     /// <summary>
     /// Gets the property path for the binding.
     /// </summary>
