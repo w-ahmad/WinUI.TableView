@@ -10,12 +10,11 @@ public partial class TransactionsViewModel : ObservableObject
         {
             var startId = 7_475_327;
             var startDate = new DateTime(2010, 1, 1);
-
-            TransacationsList.Clear();
+            var items = new List<TransactionModel>(1_000_000);
 
             for (var i = 0; i < 1_000_000; i++)
             {
-                TransacationsList.Add(new TransactionModel
+                items.Add(new TransactionModel
                 {
                     Id = startId++,
                     Date = startDate.AddMinutes(i),
@@ -30,11 +29,18 @@ public partial class TransactionsViewModel : ObservableObject
                     Mcc = DataFaker.Integer(1700, 9500)
                 });
             }
+
+            TransacationsList = items;
         });
+    }
+
+    public static void ReleaseItems()
+    {
+        TransacationsList = [];
     }
 
     [ObservableProperty]
     public partial IList<TransactionModel>? TransacationsData { get; set; }
 
-    public static IList<TransactionModel> TransacationsList { get; set; } = [];
+    public static IList<TransactionModel> TransacationsList { get; private set; } = [];
 }
