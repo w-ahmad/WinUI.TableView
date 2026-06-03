@@ -25,6 +25,7 @@
                               ItemsSource="{Binding Items}"
                               CellContextFlyoutOpening="OnCellContextFlyoutOpening"
                               RowContextFlyoutOpening="OnRowContextFlyoutOpening"
+                              ForceRowOrCellSelectionOnContextRequested="True"
                               AutoGeneratingColumn="{x:Bind local:ExampleModelColumnsHelper.OnAutoGeneratingColumns}">
                     <tv:TableView.RowContextFlyout>
                         <MenuFlyout>

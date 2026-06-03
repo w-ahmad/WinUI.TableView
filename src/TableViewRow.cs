@@ -74,7 +74,7 @@ public partial class TableViewRow : ListViewItem
 #endif
 
         // Select the row before showing the Context Menu
-        if (TableView is not null && !IsSelected)
+        if (TableView is not null && TableView.ForceRowOrCellSelectionOnContextRequested && !IsSelected)
         {
             TableView.MakeSelection(new TableViewCellSlot(Index, 0), false);
         }
