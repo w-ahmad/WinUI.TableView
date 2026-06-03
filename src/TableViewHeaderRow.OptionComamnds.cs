@@ -25,15 +25,8 @@ partial class TableViewHeaderRow
     {
         var visibility = TableView?.ShowExportOptions is true ? Visibility.Visible : Visibility.Collapsed;
 
-        if (_exportAllMenuItem is not null)
-        {
-            _exportAllMenuItem.Visibility = visibility;
-        }
-
-        if (_exportSelectedMenuItem is not null)
-        {
-            _exportSelectedMenuItem.Visibility = visibility;
-        }
+        _exportAllMenuItem?.Visibility = visibility;
+        _exportSelectedMenuItem?.Visibility = visibility;
     }
 
     /// <summary>

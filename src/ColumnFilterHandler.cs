@@ -144,10 +144,7 @@ public class ColumnFilterHandler : IColumnFilterHandler
 
             foreach (var col in _tableView.Columns)
             {
-                if (col is not null)
-                {
-                    col.IsFiltered = false;
-                }
+                col?.IsFiltered = false;
             }
         }
     }

@@ -42,7 +42,6 @@ public partial class TableViewHeaderRow : Control
     private TranslateTransform? _columnDropIndicatorTransform;
     private Image? _dragHeaderImage;
     private bool _calculatingHeaderWidths;
-    private DispatcherTimer? _timer;
     private int _dropColumnIndex;
     private bool _isValidDropTarget;
     private readonly Dictionary<DependencyProperty, long> _callbackTokens = [];
@@ -60,16 +59,9 @@ public partial class TableViewHeaderRow : Control
     {
         base.OnApplyTemplate();
 
-        if (_selectAllButton is not null)
-        {
-            _selectAllButton.Tapped -= OnSelectAllButtonClicked;
-        }
-
-        if (_selectAllCheckBox is not null)
-        {
-            _selectAllCheckBox.Checked -= OnSelectAllCheckBoxChecked;
-            _selectAllCheckBox.Unchecked -= OnSelectAllCheckBoxUnchecked;
-        }
+        _selectAllButton?.Tapped -= OnSelectAllButtonClicked;
+        _selectAllCheckBox?.Checked -= OnSelectAllCheckBoxChecked;
+        _selectAllCheckBox?.Unchecked -= OnSelectAllCheckBoxUnchecked;
 
         _cornerButtonPanel = GetTemplateChild("CornerButtonPanel") as Panel;
         _optionsButton = GetTemplateChild("optionsButton") as Button;
@@ -88,16 +80,9 @@ public partial class TableViewHeaderRow : Control
             return;
         }
 
-        if (_selectAllButton is not null)
-        {
-            _selectAllButton.Tapped += OnSelectAllButtonClicked;
-        }
-
-        if (_selectAllCheckBox is not null)
-        {
-            _selectAllCheckBox.Checked += OnSelectAllCheckBoxChecked;
-            _selectAllCheckBox.Unchecked += OnSelectAllCheckBoxUnchecked;
-        }
+        _selectAllButton?.Tapped += OnSelectAllButtonClicked;
+        _selectAllCheckBox?.Checked += OnSelectAllCheckBoxChecked;
+        _selectAllCheckBox?.Unchecked += OnSelectAllCheckBoxUnchecked;
 
         if (TableView.Columns is not null)
         {
@@ -215,35 +200,6 @@ public partial class TableViewHeaderRow : Control
             {
                 CalculateHeaderWidths();
             }
-        }
-        else if (e.PropertyName is nameof(TableViewColumn.DesiredWidth))
-        {
-            if (_timer is null)
-            {
-                _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
-                _timer.Tick += OnTimerTick;
-            }
-
-            _timer.Stop();
-            _timer.Start();
-        }
-    }
-
-    /// <summary>
-    /// Handles the timer tick event.
-    /// </summary>
-    private void OnTimerTick(object? sender, object e)
-    {
-        if (!_calculatingHeaderWidths)
-        {
-            CalculateHeaderWidths();
-        }
-
-        if (_timer is not null)
-        {
-            _timer.Stop();
-            _timer.Tick -= OnTimerTick;
-            _timer = null;
         }
     }
 
@@ -595,25 +551,13 @@ public partial class TableViewHeaderRow : Control
             x -= _columnDropIndicator.ActualWidth / 2;
             _dropColumnIndex += midPoint > position ? -1 : 0;
             _columnDropIndicator.Visibility = Visibility.Visible;
-
-            if (_columnDropIndicatorTransform is not null)
-            {
-                _columnDropIndicatorTransform.X = x;
-            }
-
-            if (_dragHeaderImage is not null)
-            {
-                _dragHeaderImage.Source = headerVisuals;
-            }
+            _columnDropIndicatorTransform?.X = x;
+            _dragHeaderImage?.Source = headerVisuals;
         }
         else
         {
             _isValidDropTarget = false;
-
-            if (_columnDropIndicator is not null)
-            {
-                _columnDropIndicator.Visibility = Visibility.Collapsed;
-            }
+            _columnDropIndicator?.Visibility = Visibility.Collapsed;
         }
     }
 

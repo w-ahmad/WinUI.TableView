@@ -16,7 +16,6 @@ namespace WinUI.TableView.Controls;
 public partial class TableViewFilterItemsControl : UserControl
 {
     private bool _canSetState = true;
-    private ICollection<TableViewFilterItem>? _filterItems;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TableViewFilterItemsControl"/> class.
@@ -93,8 +92,8 @@ public partial class TableViewFilterItemsControl : UserControl
         }
 
 
-        selectAllCheckBox.IsChecked = _filterItems?.All(x => x.IsSelected) ?? false ? true
-                                      : _filterItems?.All(x => !x.IsSelected) ?? false ? false
+        selectAllCheckBox.IsChecked = FilterItems?.All(x => x.IsSelected) ?? false ? true
+                                      : FilterItems?.All(x => !x.IsSelected) ?? false ? false
                                       : null;
     }
 
@@ -119,9 +118,9 @@ public partial class TableViewFilterItemsControl : UserControl
     /// </summary>
     private void AttachPropertyChangedHandlers()
     {
-        if (_filterItems?.Count > 0)
+        if (FilterItems?.Count > 0)
         {
-            foreach (var item in _filterItems)
+            foreach (var item in FilterItems)
             {
                 item.PropertyChanged += OnFilterItemPropertyChanged;
             }
@@ -133,9 +132,9 @@ public partial class TableViewFilterItemsControl : UserControl
     /// </summary>
     private void DetachPropertyChangedHandlers()
     {
-        if (_filterItems?.Count > 0)
+        if (FilterItems?.Count > 0)
         {
-            foreach (var item in _filterItems)
+            foreach (var item in FilterItems)
             {
                 item.PropertyChanged -= OnFilterItemPropertyChanged;
             }
@@ -160,14 +159,14 @@ public partial class TableViewFilterItemsControl : UserControl
     /// </summary>
     internal ICollection<TableViewFilterItem>? FilterItems
     {
-        get => _filterItems;
+        get;
         set
         {
-            if (_filterItems == value) return;
+            if (field == value) return;
 
             DetachPropertyChangedHandlers();
-            _filterItems = value;
-            filterItemsList.ItemsSource = _filterItems;
+            field = value;
+            filterItemsList.ItemsSource = field;
             AttachPropertyChangedHandlers();
             SetSelectAllCheckBoxState();
         }

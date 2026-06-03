@@ -719,9 +719,9 @@ public partial class TableView
     /// <summary>
     /// Gets or sets the data template selector for the row header.
     /// </summary>
-    public DataTemplateSelector RowHeaderTemplateSelector
+    public DataTemplateSelector? RowHeaderTemplateSelector
     {
-        get => (DataTemplateSelector)GetValue(RowHeaderTemplateSelectorProperty);
+        get => (DataTemplateSelector?)GetValue(RowHeaderTemplateSelectorProperty);
         set => SetValue(RowHeaderTemplateSelectorProperty, value);
     }
 
@@ -755,9 +755,9 @@ public partial class TableView
     /// <summary>
     /// Gets or sets the data template selector for the row details.
     /// </summary>
-    public DataTemplateSelector RowDetailsTemplateSelector
+    public DataTemplateSelector? RowDetailsTemplateSelector
     {
-        get => (DataTemplateSelector)GetValue(RowDetailsTemplateSelectorProperty);
+        get => (DataTemplateSelector?)GetValue(RowDetailsTemplateSelectorProperty);
         set => SetValue(RowDetailsTemplateSelectorProperty, value);
     }
 
