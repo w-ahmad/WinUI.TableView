@@ -80,7 +80,7 @@
                 <StackPanel MaxWidth="250" Spacing="16">
                     <ToggleSwitch
                      x:Name="ForceRowOrCellSelectionToggleSwitch"
-                     Header="Force Row or Cell to be selected on CellContextFlyoutOpening"
+                     Header="Force Row or Cell to be selected on ContextFlyoutOpening"
                      IsOn="True"
                      OffContent="False"
                      OnContent="True" />
