@@ -24,6 +24,8 @@ internal partial class TableViewLocalizedStrings
         ClearSorting = GetValue(nameof(ClearSorting));
         Copy = GetValue(nameof(Copy));
         CopyCommandDescription = GetValue(nameof(CopyCommandDescription));
+        Paste = GetValue(nameof(Paste));
+        PasteCommandDescription = GetValue(nameof(PasteCommandDescription));
         CopyWithHeaders = GetValue(nameof(CopyWithHeaders));
         CopyWithHeadersCommandDescription = GetValue(nameof(CopyWithHeadersCommandDescription));
         DatePickerPlaceholder = GetValue(nameof(DatePickerPlaceholder));
@@ -70,6 +72,8 @@ internal partial class TableViewLocalizedStrings
     public static string ClearSorting { get; set; }
     public static string Copy { get; set; }
     public static string CopyCommandDescription { get; set; }
+    public static string Paste { get; set; }
+    public static string PasteCommandDescription { get; set; }
     public static string CopyWithHeaders { get; set; }
     public static string CopyWithHeadersCommandDescription { get; set; }
     public static string DatePickerPlaceholder { get; set; }

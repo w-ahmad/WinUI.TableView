@@ -2,6 +2,7 @@
 using Microsoft.UI.Xaml.Data;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using WinUI.TableView.Extensions;
 using SD = WinUI.TableView.SortDirection;
 
@@ -16,6 +17,7 @@ public abstract partial class TableViewColumn : DependencyObject
 {
     private Func<object, object?>? _funcCompiledPropertyPath;
     private Func<object, object?>? _funcCompiledClipboardPropertyPath;
+    private Action<object, object?>? _compliedValueSetter;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TableViewColumn"/> class with default conditional cell styles.
@@ -150,6 +152,41 @@ public abstract partial class TableViewColumn : DependencyObject
         }
 
         return dataItem;
+    }
+
+    /// <summary>
+    /// Sets the content from the clipboard to the specified data item.
+    /// </summary>
+    /// <param name="dataItem">The data item.</param>
+    /// <param name="value">The value to set.</param>
+    /// <returns><see langword="true"/> if the value was set; otherwise, <see langword="false"/>.</returns>
+    public virtual bool SetClipboardContent(object? dataItem, object? value)
+    {
+        if (dataItem is null)
+            return false;
+
+        try
+        {
+            if (_compliedValueSetter is null && !string.IsNullOrWhiteSpace(ClipboardContentBindingPropertyPath))
+                _compliedValueSetter = dataItem.GetCompiledValueSetter(ClipboardContentBindingPropertyPath!);
+
+            if (ClipboardContentBinding?.Converter is not null)
+            {
+                value = ClipboardContentBinding.Converter.ConvertBack(
+                    value,
+                    typeof(object),
+                    ClipboardContentBinding.ConverterParameter,
+                    ClipboardContentBinding.ConverterLanguage);
+            }
+
+            _compliedValueSetter?.Invoke(dataItem, value);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"TableViewColumn: SetClipboardContent failed: {ex}");
+            return false;
+        }
     }
 
     /// <summary>

@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -39,6 +41,471 @@ internal static partial class ObjectExtensions
         {
             return null;
         }
+    }
+
+    internal static Action<object, object?>? GetCompiledValueSetter(this object dataItem, string bindingPath)
+    {
+        try
+        {
+            var parameterObj = Expression.Parameter(typeof(object), "obj");
+            var parameterValue = Expression.Parameter(typeof(object), "value");
+
+            var expressionTree = BuildPropertyPathSetterExpressionTree(
+                parameterObj,
+                parameterValue,
+                bindingPath,
+                dataItem);
+
+            var lambda = Expression.Lambda<Action<object, object?>>(
+                expressionTree,
+                parameterObj,
+                parameterValue);
+
+            return lambda.Compile();
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static Expression BuildPropertyPathSetterExpressionTree(ParameterExpression parameterObj, ParameterExpression parameterValue, string bindingPath, object dataItem)
+    {
+        var matches = PropertyPathRegex().Matches(bindingPath);
+
+        if (matches.Count == 0)
+            throw new ArgumentException("Binding path is empty.", nameof(bindingPath));
+
+        Expression current = parameterObj;
+
+        var actualType = dataItem.GetType();
+
+        if (current.Type != actualType && !actualType.IsValueType)
+            current = Expression.Convert(current, actualType);
+
+        // Navigate to the parent object of the final path segment.
+        for (int i = 0; i < matches.Count - 1; i++)
+        {
+            var part = matches[i].Value;
+
+            current = part.StartsWith('[') && part.EndsWith(']')
+                ? BuildIndexerGetterExpression(current, part)
+                : BuildPropertyGetterExpression(current, part);
+
+            var lambdaTemp = Expression.Lambda<Func<object, object?>>(
+                EnsureObjectCompatibleResult(current),
+                parameterObj);
+
+            var currentValue = lambdaTemp.Compile()(dataItem);
+
+            if (currentValue is null)
+                throw new ArgumentException($"Cannot build setter. Path segment '{part}' evaluates to null.");
+
+            var runtimeType = currentValue.GetType();
+
+            if (current.Type != runtimeType)
+                current = Expression.Convert(current, runtimeType);
+        }
+
+        var finalPart = matches[^1].Value;
+
+        return finalPart.StartsWith('[') && finalPart.EndsWith(']')
+            ? BuildIndexerSetterExpression(current, finalPart, parameterValue)
+            : BuildPropertySetterExpression(current, finalPart, parameterValue);
+    }
+
+    private static Expression BuildPropertyGetterExpression(Expression current, string propertyName)
+    {
+        var propertyInfo = current.Type.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+            ?? throw new ArgumentException($"Property '{propertyName}' not found on type '{current.Type.Name}'.");
+
+        return Expression.Property(current, propertyInfo);
+    }
+
+    private static Expression BuildIndexerGetterExpression(Expression current, string indexerPart)
+    {
+        var indices = GetIndices(indexerPart[1..^1]);
+
+        if (current.Type.IsArray)
+        {
+            if (!indices.All(index => index is int))
+                throw new ArgumentException($"Arrays only support integer indexing: {indexerPart}");
+
+            return AddArrayAccessWithBoundsCheck(current, [.. indices.Select(index => (int)index)]);
+        }
+
+        return AddIndexerAccessWithSafetyChecks(current, indices);
+    }
+
+    private static Expression BuildPropertySetterExpression(Expression current, string propertyName, Expression value)
+    {
+        var propertyInfo = current.Type.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+        ?? throw new ArgumentException($"Property '{propertyName}' not found on type '{current.Type.Name}'.");
+
+        if (!propertyInfo.CanWrite)
+            throw new ArgumentException($"Property '{propertyName}' is read-only.");
+
+        var target = Expression.Property(current, propertyInfo);
+
+        return BuildConvertedAssignExpression(target, value, propertyInfo.PropertyType);
+    }
+
+    private static Expression BuildIndexerSetterExpression(Expression current, string indexerPart, Expression value)
+    {
+        var indices = GetIndices(indexerPart[1..^1]);
+
+        if (current.Type.IsArray)
+            return BuildArraySetterExpression(current, indices, value);
+
+        return BuildObjectIndexerSetterExpression(current, indices, value);
+    }
+
+    private static Expression BuildArraySetterExpression(Expression current, object[] indices, Expression value)
+    {
+        if (!indices.All(index => index is int))
+            throw new ArgumentException("Arrays only support integer indexers.");
+
+        var arrayType = current.Type;
+        var elementType = arrayType.GetElementType()!;
+        var rank = arrayType.GetArrayRank();
+
+        if (indices.Length != rank)
+            throw new ArgumentException($"Array rank mismatch. Expected {rank} index(es).");
+
+        var arrayVar = Expression.Parameter(arrayType, "array");
+        var assignArray = Expression.Assign(arrayVar, current);
+
+        var indexExpressions = indices
+            .Cast<int>()
+            .Select(index => Expression.Constant(index))
+            .ToArray();
+
+        Expression? boundsCheck = null;
+
+        var getLengthMethod = typeof(Array).GetMethod(nameof(Array.GetLength))!;
+
+        for (var i = 0; i < indexExpressions.Length; i++)
+        {
+            var index = (int)indices[i];
+
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(indices));
+
+            var length = Expression.Call(arrayVar, getLengthMethod, Expression.Constant(i));
+            var check = Expression.LessThan(indexExpressions[i], length);
+
+            boundsCheck = boundsCheck is null
+                ? check
+                : Expression.AndAlso(boundsCheck, check);
+        }
+
+        var assignValue = BuildConvertedAssignExpression(
+            Expression.ArrayAccess(arrayVar, indexExpressions),
+            value,
+            elementType);
+
+        return Expression.Block(
+            [arrayVar],
+            assignArray,
+            Expression.IfThen(boundsCheck!, assignValue));
+    }
+
+    private static Expression BuildObjectIndexerSetterExpression(Expression current, object[] indices, Expression value)
+    {
+        if (indices.Length == 1)
+        {
+            var dictionaryInterface = current.Type.GetInterfaces()
+                .FirstOrDefault(i => i.IsGenericType &&
+                                     i.GetGenericTypeDefinition() == typeof(IDictionary<,>));
+
+            if (dictionaryInterface is not null)
+            {
+                var args = dictionaryInterface.GetGenericArguments();
+                var keyType = args[0];
+                var valueType = args[1];
+
+                if (!keyType.IsAssignableFrom(indices[0].GetType()))
+                    return Expression.Empty();
+
+                var indexer = dictionaryInterface.GetProperty("Item")!;
+
+                var target = Expression.Property(Expression.Convert(current, dictionaryInterface),
+                    indexer,
+                    Expression.Constant(indices[0], keyType));
+
+                return BuildConvertedAssignExpression(target, value, valueType);
+            }
+        }
+
+        var indexerTypes = indices.Select(index => index.GetType()).ToArray();
+
+        var indexerProperty = current.Type.GetProperty("Item", indexerTypes)
+            ?? throw new ArgumentException($"Indexer not found on type '{current.Type.Name}'.");
+
+        if (!indexerProperty.CanWrite)
+            throw new ArgumentException($"Indexer on type '{current.Type.Name}' is read-only.");
+
+        var indexExpressions = indices
+            .Select(index => Expression.Constant(index, index.GetType()))
+            .ToArray();
+
+        // Add bounds checking for IList/ICollection types with integer indexers
+        if (indices.Length == 1 && indices[0] is int intIndex)
+        {
+            var listInterface = current.Type.GetInterfaces()
+                .FirstOrDefault(i => i.IsGenericType &&
+                                (i.GetGenericTypeDefinition() == typeof(IList<>) ||
+                                 i.GetGenericTypeDefinition() == typeof(ICollection<>)));
+
+            if (listInterface != null ||
+                typeof(IList).IsAssignableFrom(current.Type) ||
+                typeof(ICollection).IsAssignableFrom(current.Type))
+            {
+                var countProperty = current.Type.GetProperty("Count");
+
+                if (countProperty != null)
+                {
+                    var collectionVar = Expression.Parameter(current.Type, "collection");
+                    var assignCollection = Expression.Assign(collectionVar, current);
+
+                    var countExpr = Expression.Property(collectionVar, countProperty);
+                    var indexExpr = Expression.Constant(intIndex);
+
+                    // Check if index >= 0 && index < Count
+                    var boundsCheck = Expression.AndAlso(
+                        Expression.GreaterThanOrEqual(indexExpr, Expression.Constant(0)),
+                        Expression.LessThan(indexExpr, countExpr));
+
+                    var assignValue = BuildConvertedAssignExpression(
+                        Expression.Property(collectionVar, indexerProperty, indexExpressions),
+                        value,
+                        indexerProperty.PropertyType);
+
+                    return Expression.Block(
+                        [collectionVar],
+                        assignCollection,
+                        Expression.IfThen(boundsCheck, assignValue));
+                }
+            }
+        }
+
+        return BuildConvertedAssignExpression(
+            Expression.Property(current, indexerProperty, indexExpressions),
+            value,
+            indexerProperty.PropertyType);
+    }
+
+    private static Expression BuildConvertedAssignExpression(Expression target, Expression value, Type targetType)
+    {
+        var convertedValue = Expression.Variable(typeof(object), "convertedValue");
+        var error = Expression.Variable(typeof(string), "error");
+
+        var tryConvertMethod = typeof(ObjectExtensions)
+            .GetMethod(
+                nameof(TryConvertValue),
+                BindingFlags.Static | BindingFlags.NonPublic)!;
+
+        var tryConvertCall = Expression.Call(
+            tryConvertMethod,
+            value,
+            Expression.Constant(targetType),
+            convertedValue,
+            error);
+
+        return Expression.Block(
+            [convertedValue, error],
+            Expression.IfThen(
+                tryConvertCall,
+                Expression.Assign(
+                    target,
+                    Expression.Convert(convertedValue, targetType))));
+    }
+
+    private static bool TryConvertValue(object? value, Type targetType, out object? convertedValue, out string? error)
+    {
+        if (targetType == typeof(object))
+        {
+            error = null;
+            convertedValue = value;
+            return true;
+        }
+
+        if (value is string || value is null)
+            return TryConvertToTargetType(value as string, targetType, out convertedValue, out error);
+
+        return TryConvertObject(value, targetType, out convertedValue, out error);
+    }
+
+    private static bool TryConvertToTargetType(string? stringValue, Type targetType, out object? convertedValue, out string? error)
+    {
+        error = null;
+        convertedValue = null;
+
+        var underlyingType = Nullable.GetUnderlyingType(targetType);
+        var actualTargetType = underlyingType ?? targetType;
+
+        if (actualTargetType == typeof(string))
+        {
+            convertedValue = stringValue ?? string.Empty;
+            return true;
+        }
+
+        if (stringValue is null)
+        {
+            if (underlyingType is not null || !targetType.IsValueType)
+            {
+                return true;
+            }
+
+            error = $"The target type '{targetType.Name}' does not accept null values.";
+            return false;
+        }
+
+        if (stringValue.Length == 0)
+        {
+            if (underlyingType is not null || !targetType.IsValueType)
+            {
+                return true;
+            }
+
+            error = $"The target type '{targetType.Name}' does not accept empty values.";
+            return false;
+        }
+
+        try
+        {
+            if (actualTargetType == typeof(bool))
+            {
+                if (bool.TryParse(stringValue, out var boolValue))
+                {
+                    convertedValue = boolValue;
+                    return true;
+                }
+
+                if (stringValue == "1" || stringValue.Equals("yes", StringComparison.OrdinalIgnoreCase))
+                {
+                    convertedValue = true;
+                    return true;
+                }
+
+                if (stringValue == "0" || stringValue.Equals("no", StringComparison.OrdinalIgnoreCase))
+                {
+                    convertedValue = false;
+                    return true;
+                }
+            }
+            else if (actualTargetType == typeof(DateOnly))
+            {
+                convertedValue = DateOnly.Parse(stringValue, CultureInfo.CurrentCulture);
+                return true;
+            }
+            else if (actualTargetType == typeof(TimeOnly))
+            {
+                convertedValue = TimeOnly.Parse(stringValue, CultureInfo.CurrentCulture);
+                return true;
+            }
+            else if (actualTargetType == typeof(DateTime))
+            {
+                convertedValue = DateTime.Parse(stringValue, CultureInfo.CurrentCulture);
+                return true;
+            }
+            else if (actualTargetType == typeof(DateTimeOffset))
+            {
+                convertedValue = DateTimeOffset.Parse(stringValue, CultureInfo.CurrentCulture);
+                return true;
+            }
+            else if (actualTargetType == typeof(TimeSpan))
+            {
+                convertedValue = TimeSpan.Parse(stringValue, CultureInfo.CurrentCulture);
+                return true;
+            }
+            else if (actualTargetType == typeof(Guid))
+            {
+                convertedValue = Guid.Parse(stringValue);
+                return true;
+            }
+            else if (actualTargetType == typeof(Uri))
+            {
+                convertedValue = new Uri(stringValue, UriKind.RelativeOrAbsolute);
+                return true;
+            }
+            else if (actualTargetType.IsEnum)
+            {
+                convertedValue = Enum.Parse(actualTargetType, stringValue, ignoreCase: true);
+                return true;
+            }
+
+            var converter = TypeDescriptor.GetConverter(actualTargetType);
+            if (converter.CanConvertFrom(typeof(string)))
+            {
+                convertedValue = converter.ConvertFrom(null, CultureInfo.CurrentCulture, stringValue);
+                return true;
+            }
+
+            convertedValue = Convert.ChangeType(stringValue, actualTargetType, CultureInfo.CurrentCulture);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            error = $"Unable to convert '{stringValue}' to '{actualTargetType.Name}': {ex.Message}";
+            return false;
+        }
+    }
+
+    private static bool TryConvertObject(object? value, Type targetType, out object? convertedValue, out string? error)
+    {
+        error = null;
+        convertedValue = null;
+
+        if (value is null)
+        {
+            if (!targetType.IsValueType || Nullable.GetUnderlyingType(targetType) is not null)
+            {
+                return true;
+            }
+
+            error = $"The target type '{targetType.Name}' does not accept null values.";
+            return false;
+        }
+
+        var actualTargetType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+        if (actualTargetType.IsInstanceOfType(value))
+        {
+            convertedValue = value;
+            return true;
+        }
+
+        try
+        {
+            convertedValue = Convert.ChangeType(value, actualTargetType, CultureInfo.CurrentCulture);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            error = $"Unable to convert '{value}' to '{actualTargetType.Name}': {ex.Message}";
+            return false;
+        }
+    }
+
+    private static Expression ConvertValueExpression(Expression value, Type targetType)
+    {
+        if (targetType == typeof(object))
+            return value;
+
+        var nullableType = Nullable.GetUnderlyingType(targetType);
+
+        if (nullableType is not null)
+        {
+            return Expression.Condition(
+                Expression.Equal(value, Expression.Constant(null)),
+                Expression.Constant(null, targetType),
+                Expression.Convert(value, targetType));
+        }
+
+        if (!targetType.IsValueType)
+            return Expression.Convert(value, targetType);
+
+        return Expression.Convert(value, targetType);
     }
 
     /// <summary>

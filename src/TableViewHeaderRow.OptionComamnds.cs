@@ -12,6 +12,7 @@ partial class TableViewHeaderRow
     private readonly StandardUICommand _selectAllCommand = new(StandardUICommandKind.SelectAll) { Label = TableViewLocalizedStrings.SelectAll };
     private readonly StandardUICommand _deselectAllCommand = new() { Label = TableViewLocalizedStrings.DeselectAll };
     private readonly StandardUICommand _copyCommand = new(StandardUICommandKind.Copy) { Label = TableViewLocalizedStrings.Copy };
+    private readonly StandardUICommand _pasteCommand = new(StandardUICommandKind.Paste) { Label = TableViewLocalizedStrings.Paste };
     private readonly StandardUICommand _copyWithHeadersCommand = new() { Label = TableViewLocalizedStrings.CopyWithHeaders };
     private readonly StandardUICommand _clearSortingCommand = new() { Label = TableViewLocalizedStrings.ClearSorting };
     private readonly StandardUICommand _clearFilterCommand = new() { Label = TableViewLocalizedStrings.ClearFilter };
@@ -42,6 +43,8 @@ partial class TableViewHeaderRow
             clearSelectionMenuItem.Command = _deselectAllCommand;
         if (GetTemplateChild("CopyMenuItem") is MenuFlyoutItem copyMenuItem) 
             copyMenuItem.Command = _copyCommand;
+        if (GetTemplateChild("PasteMenuItem") is MenuFlyoutItem pasteMenuItem)
+            pasteMenuItem.Command = _pasteCommand;
         if (GetTemplateChild("CopyWithHeadersMenuItem") is MenuFlyoutItem copyWithHeadersMenuItem) 
             copyWithHeadersMenuItem.Command = _copyWithHeadersCommand;
         if (GetTemplateChild("ClearSortingMenuItem") is MenuFlyoutItem clearSortingMenuItem) 
@@ -81,6 +84,10 @@ partial class TableViewHeaderRow
         _copyCommand.Description = TableViewLocalizedStrings.CopyCommandDescription;
         _copyCommand.ExecuteRequested += ExecuteCopyCommand;
         _copyCommand.CanExecuteRequested += CanExecuteCopyCommand;
+
+        _pasteCommand.Description = TableViewLocalizedStrings.PasteCommandDescription;
+        _pasteCommand.ExecuteRequested += delegate { TableView?.TryStartPasteFromClipboard(); };
+        _pasteCommand.CanExecuteRequested += CanExecutePasteCommand;
 
         _copyWithHeadersCommand.Description = TableViewLocalizedStrings.CopyWithHeadersCommandDescription;
         _copyWithHeadersCommand.ExecuteRequested += delegate { TableView?.CopyToClipboardInternal(true); };
@@ -128,6 +135,13 @@ partial class TableViewHeaderRow
     private void CanExecuteCopyWithHeadersCommand(XamlUICommand sender, CanExecuteRequestedEventArgs e)
     {
         e.CanExecute = TableView?.SelectedItems.Count > 0 || TableView?.SelectedCells.Count > 0 || TableView?.CurrentCellSlot.HasValue is true;
+    }
+
+    private void CanExecutePasteCommand(XamlUICommand sender, CanExecuteRequestedEventArgs e)
+    {
+        e.CanExecute = TableView?.IsEditing is false
+            && TableView?.IsReadOnly is false
+            && (TableView?.SelectedItems.Count > 0 || TableView?.SelectedCells.Count > 0 || TableView?.CurrentCellSlot.HasValue is true);
     }
 
     private void CanExecuteClearSortingCommand(XamlUICommand sender, CanExecuteRequestedEventArgs e)
