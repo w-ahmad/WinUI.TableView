@@ -15,9 +15,9 @@ namespace WinUI.TableView;
 [StyleTypedProperty(Property = nameof(CellStyle), StyleTargetType = typeof(TableViewCell))]
 public abstract partial class TableViewColumn : DependencyObject
 {
-    private Func<object, object?>? _funcCompiledPropertyPath;
-    private Func<object, object?>? _funcCompiledClipboardPropertyPath;
-    private Action<object, object?>? _compliedValueSetter;
+    private Func<object, object?>? _compliedValueGetter;
+    private Func<object, object?>? _compliedClipboardValueGetter;
+    private Action<object, object?>? _compliedClipboardValueSetter;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TableViewColumn"/> class with default conditional cell styles.
@@ -108,11 +108,11 @@ public abstract partial class TableViewColumn : DependencyObject
         if (dataItem is null)
             return null;
 
-        if (_funcCompiledPropertyPath is null && !string.IsNullOrWhiteSpace(OperationContentBindingPropertyPath))
-            _funcCompiledPropertyPath = dataItem.GetFuncCompiledPropertyPath(OperationContentBindingPropertyPath!);
+        if (_compliedValueGetter is null && !string.IsNullOrWhiteSpace(OperationContentBindingPropertyPath))
+            _compliedValueGetter = dataItem.GetCompiledValueGetter(OperationContentBindingPropertyPath!);
 
-        if (_funcCompiledPropertyPath is not null)
-            dataItem = _funcCompiledPropertyPath(dataItem);
+        if (_compliedValueGetter is not null)
+            dataItem = _compliedValueGetter(dataItem);
 
         if (OperationContentBinding?.Converter is not null)
         {
@@ -136,11 +136,11 @@ public abstract partial class TableViewColumn : DependencyObject
         if (dataItem is null)
             return null;
 
-        if (_funcCompiledClipboardPropertyPath is null && !string.IsNullOrWhiteSpace(ClipboardContentBindingPropertyPath))
-            _funcCompiledClipboardPropertyPath = dataItem.GetFuncCompiledPropertyPath(ClipboardContentBindingPropertyPath!);
+        if (_compliedClipboardValueGetter is null && !string.IsNullOrWhiteSpace(ClipboardContentBindingPropertyPath))
+            _compliedClipboardValueGetter = dataItem.GetCompiledValueGetter(ClipboardContentBindingPropertyPath!);
 
-        if (_funcCompiledClipboardPropertyPath is not null)
-            dataItem = _funcCompiledClipboardPropertyPath(dataItem);
+        if (_compliedClipboardValueGetter is not null)
+            dataItem = _compliedClipboardValueGetter(dataItem);
 
         if (ClipboardContentBinding?.Converter is not null)
         {
@@ -167,8 +167,8 @@ public abstract partial class TableViewColumn : DependencyObject
 
         try
         {
-            if (_compliedValueSetter is null && !string.IsNullOrWhiteSpace(ClipboardContentBindingPropertyPath))
-                _compliedValueSetter = dataItem.GetCompiledValueSetter(ClipboardContentBindingPropertyPath!);
+            if (_compliedClipboardValueSetter is null && !string.IsNullOrWhiteSpace(ClipboardContentBindingPropertyPath))
+                _compliedClipboardValueSetter = dataItem.GetCompiledValueSetter(ClipboardContentBindingPropertyPath!);
 
             if (ClipboardContentBinding?.Converter is not null)
             {
@@ -179,7 +179,7 @@ public abstract partial class TableViewColumn : DependencyObject
                     ClipboardContentBinding.ConverterLanguage);
             }
 
-            _compliedValueSetter?.Invoke(dataItem, value);
+            _compliedClipboardValueSetter?.Invoke(dataItem, value);
             return true;
         }
         catch (Exception ex)

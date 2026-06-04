@@ -11,21 +11,21 @@ namespace WinUI.TableView.Tests;
 public class ObjectExtensionsTests
 {
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldAccessSimpleProperty()
+    public void GetCompiledValueGetter_ShouldAccessSimpleProperty()
     {
         var testItem = new TestItem { Number = 7 };
-        var func = testItem.GetFuncCompiledPropertyPath("Number");
+        var func = testItem.GetCompiledValueGetter("Number");
         Assert.IsNotNull(func);
         var result = func(testItem);
         Assert.AreEqual(7, result);
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldAccessSimpleNullableProperty()
+    public void GetCompiledValueGetter_ShouldAccessSimpleNullableProperty()
     {
         var today = DateTimeOffset.Now;
         var testItem = new TestItem { CompletedDate = today };
-        var func = testItem.GetFuncCompiledPropertyPath("CompletedDate");
+        var func = testItem.GetCompiledValueGetter("CompletedDate");
         Assert.IsNotNull(func);
 
         var result = func(testItem);
@@ -37,103 +37,103 @@ public class ObjectExtensionsTests
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldAccessNestedProperty()
+    public void GetCompiledValueGetter_ShouldAccessNestedProperty()
     {
         var testItem = new TestItem { SubItems = [new() { SubSubItems = [new() { Name = "NestedValue" }] }] };
-        var func = testItem.GetFuncCompiledPropertyPath("SubItems[0].SubSubItems[0].Name");
+        var func = testItem.GetCompiledValueGetter("SubItems[0].SubSubItems[0].Name");
         Assert.IsNotNull(func);
         var result = func(testItem);
         Assert.AreEqual("NestedValue", result);
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldAccessArrayElement()
+    public void GetCompiledValueGetter_ShouldAccessArrayElement()
     {
         var testItem = new TestItem { IntArray = [10, 20, 30] };
-        var func = testItem.GetFuncCompiledPropertyPath("IntArray[1]");
+        var func = testItem.GetCompiledValueGetter("IntArray[1]");
         Assert.IsNotNull(func);
         var result = func(testItem);
         Assert.AreEqual(20, result);
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldAccess2DArrayElement()
+    public void GetCompiledValueGetter_ShouldAccess2DArrayElement()
     {
         var testItem = new TestItem { Int2DArray = new int[,] {{1, 2, 3}, {10, 20, 30}} };
-        var func = testItem.GetFuncCompiledPropertyPath("Int2DArray[1,1]");
+        var func = testItem.GetCompiledValueGetter("Int2DArray[1,1]");
         Assert.IsNotNull(func);
         var result = func(testItem);
         Assert.AreEqual(20, result);
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldAccessMultiDimensionalIndexer()
+    public void GetCompiledValueGetter_ShouldAccessMultiDimensionalIndexer()
     {
         var testItem = new TestItem();
         testItem[2, "foo"] = "bar";
-        var func = testItem.GetFuncCompiledPropertyPath("[2,foo]");
+        var func = testItem.GetCompiledValueGetter("[2,foo]");
         Assert.IsNotNull(func);
         var result = func(testItem);
         Assert.AreEqual("bar", result);
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldAccessDictionaryByStringKey()
+    public void GetCompiledValueGetter_ShouldAccessDictionaryByStringKey()
     {
         var testItem = new TestItem { Dictionary1 = new() { { "key1", "value1" } } };
-        var func = testItem.GetFuncCompiledPropertyPath("Dictionary1[key1]");
+        var func = testItem.GetCompiledValueGetter("Dictionary1[key1]");
         Assert.IsNotNull(func);
         var result = func(testItem);
         Assert.AreEqual("value1", result);
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldAccessDictionaryByIntKey()
+    public void GetCompiledValueGetter_ShouldAccessDictionaryByIntKey()
     {
         var testItem = new TestItem { Dictionary2 = new() { { 1, "value1" } } };
-        var func = testItem.GetFuncCompiledPropertyPath("Dictionary2[1]");
+        var func = testItem.GetCompiledValueGetter("Dictionary2[1]");
         Assert.IsNotNull(func);
         var result = func(testItem);
         Assert.AreEqual("value1", result);
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForInvalidProperty()
+    public void GetCompiledValueGetter_ShouldReturnNull_ForInvalidProperty()
     {
         var testItem = new TestItem();
-        var func = testItem.GetFuncCompiledPropertyPath("NonExistent.Property.Path");
+        var func = testItem.GetCompiledValueGetter("NonExistent.Property.Path");
         Assert.IsNull(func);
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForInvalidProperty2()
+    public void GetCompiledValueGetter_ShouldReturnNull_ForInvalidProperty2()
     {
         var testItem = new TestItem();
-        var func = testItem.GetFuncCompiledPropertyPath("SubItems[0].SubSubItems[0].Invalid");
+        var func = testItem.GetCompiledValueGetter("SubItems[0].SubSubItems[0].Invalid");
         Assert.IsNull(func);
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForInvalidProperty3()
+    public void GetCompiledValueGetter_ShouldReturnNull_ForInvalidProperty3()
     {
         var testItem = new TestItem { SubItems = [new() { SubSubItems = [new() { Name = "NestedValue" }] }] };
-        var func = testItem.GetFuncCompiledPropertyPath("SubItems[0].SubSubItems[0].Invalid");
+        var func = testItem.GetCompiledValueGetter("SubItems[0].SubSubItems[0].Invalid");
         Assert.IsNull(func);
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForInvalidProperty4()
+    public void GetCompiledValueGetter_ShouldReturnNull_ForInvalidProperty4()
     {
         var testItem = new TestItem();
-        var func = testItem.GetFuncCompiledPropertyPath("Dictionary[123]");
+        var func = testItem.GetCompiledValueGetter("Dictionary[123]");
         Assert.IsNull(func);
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForInvalidDictionaryIndexer()
+    public void GetCompiledValueGetter_ShouldReturnNull_ForInvalidDictionaryIndexer()
     {
         var testItem = new TestItem { Dictionary2 = new() { { 1, "value1" } } };
-        var func = testItem.GetFuncCompiledPropertyPath("Dictionary2[1]");
+        var func = testItem.GetCompiledValueGetter("Dictionary2[1]");
         Assert.IsNotNull(func);
 
         var result = func(testItem);
@@ -145,10 +145,10 @@ public class ObjectExtensionsTests
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForInvalidArrayIndex()
+    public void GetCompiledValueGetter_ShouldReturnNull_ForInvalidArrayIndex()
     {
         var testItem = new TestItem { SubItems = [new() { SubSubItems = [new() { Name = "NestedValue" }] }] };
-        var func = testItem.GetFuncCompiledPropertyPath("SubItems[0].SubSubItems[0].Name");
+        var func = testItem.GetCompiledValueGetter("SubItems[0].SubSubItems[0].Name");
         Assert.IsNotNull(func);
 
         var result = func(testItem);
@@ -160,10 +160,10 @@ public class ObjectExtensionsTests
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForOutOfBoundsArrayIndex()
+    public void GetCompiledValueGetter_ShouldReturnNull_ForOutOfBoundsArrayIndex()
     {
         var testItem = new TestItem { IntArray = [10, 20, 30] };
-        var func = testItem.GetFuncCompiledPropertyPath("IntArray[2]");
+        var func = testItem.GetCompiledValueGetter("IntArray[2]");
         Assert.IsNotNull(func);
         var testItem2 = new TestItem { IntArray = [1] };
         var result = func(testItem2);
@@ -171,10 +171,10 @@ public class ObjectExtensionsTests
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForOutOfBoundsMultiDimArrayIndex()
+    public void GetCompiledValueGetter_ShouldReturnNull_ForOutOfBoundsMultiDimArrayIndex()
     {
         var testItem3x3 = new TestItem { Int2DArray = new int[,] { { 1, 2, 3 }, { 10, 20, 30 } } };
-        var func = testItem3x3.GetFuncCompiledPropertyPath("Int2DArray[2,2]");
+        var func = testItem3x3.GetCompiledValueGetter("Int2DArray[2,2]");
         Assert.IsNotNull(func);
         var result = func(testItem3x3);
 
@@ -184,30 +184,30 @@ public class ObjectExtensionsTests
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldAccessListByIndex()
+    public void GetCompiledValueGetter_ShouldAccessListByIndex()
     {
         var testItem = new TestItem { StringList = ["item0", "item1", "item2"] };
-        var func = testItem.GetFuncCompiledPropertyPath("StringList[1]");
+        var func = testItem.GetCompiledValueGetter("StringList[1]");
         Assert.IsNotNull(func);
         var result = func(testItem);
         Assert.AreEqual("item1", result);
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldAccessPropertyOnString()
+    public void GetCompiledValueGetter_ShouldAccessPropertyOnString()
     {
         var testItem = new TestItem { StringList = ["item0", "item1 long text", "item2"] };
-        var func = testItem.GetFuncCompiledPropertyPath("StringList[1].Length");
+        var func = testItem.GetCompiledValueGetter("StringList[1].Length");
         Assert.IsNotNull(func);
         var result = func(testItem);
         Assert.AreEqual(15, result);
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForOutOfBoundsListIndex()
+    public void GetCompiledValueGetter_ShouldReturnNull_ForOutOfBoundsListIndex()
     {
         var testItem = new TestItem { StringList = ["item0", "item1", "item2"] };
-        var func = testItem.GetFuncCompiledPropertyPath("StringList[2]");
+        var func = testItem.GetCompiledValueGetter("StringList[2]");
         Assert.IsNotNull(func);
         var result = func(testItem);
         Assert.AreEqual("item2", result);
@@ -219,86 +219,86 @@ public class ObjectExtensionsTests
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForDictionaryKeyTypeMismatch()
+    public void GetCompiledValueGetter_ShouldReturnNull_ForDictionaryKeyTypeMismatch()
     {
         // Dictionary<string, string> accessed with int key
         var testItem = new TestItem { Dictionary1 = new() { { "key1", "value1" } } };
-        var func = testItem.GetFuncCompiledPropertyPath("Dictionary1[123]"); // int key for string-keyed dictionary
+        var func = testItem.GetCompiledValueGetter("Dictionary1[123]"); // int key for string-keyed dictionary
         Assert.IsNotNull(func);
         var result = func(testItem);
         Assert.IsNull(result);
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldAccessValueTypeProperty()
+    public void GetCompiledValueGetter_ShouldAccessValueTypeProperty()
     {
         var testItem = new TestItem { ValueTypeStruct = new TestStruct { Value = 42 } };
-        var func = testItem.GetFuncCompiledPropertyPath("ValueTypeStruct.Value");
+        var func = testItem.GetCompiledValueGetter("ValueTypeStruct.Value");
         Assert.IsNotNull(func);
         var result = func(testItem);
         Assert.AreEqual(42, result);
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForNegativeArrayIndex()
+    public void GetCompiledValueGetter_ShouldReturnNull_ForNegativeArrayIndex()
     {
         var testItem = new TestItem { IntArray = [10, 20, 30] };
-        var func = testItem.GetFuncCompiledPropertyPath("IntArray[-1]");
+        var func = testItem.GetCompiledValueGetter("IntArray[-1]");
         Assert.IsNull(func); // Should fail during expression building
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForNegativeListIndex()
+    public void GetCompiledValueGetter_ShouldReturnNull_ForNegativeListIndex()
     {
         var testItem = new TestItem { StringList = ["item0", "item1"] };
-        var func = testItem.GetFuncCompiledPropertyPath("StringList[-1]");
+        var func = testItem.GetCompiledValueGetter("StringList[-1]");
         Assert.IsNull(func); // Should fail during expression building
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForWrongArrayDimensions()
+    public void GetCompiledValueGetter_ShouldReturnNull_ForWrongArrayDimensions()
     {
         var testItem = new TestItem { Int2DArray = new int[,] { { 1, 2 }, { 3, 4 } } };
-        var func = testItem.GetFuncCompiledPropertyPath("Int2DArray[1]"); // 2D array with 1D index
+        var func = testItem.GetCompiledValueGetter("Int2DArray[1]"); // 2D array with 1D index
         Assert.IsNull(func); // Should fail during expression building
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForThrowingIndexer()
+    public void GetCompiledValueGetter_ShouldReturnNull_ForThrowingIndexer()
     {
         var testItem = new TestItem();
         // This should trigger the generic indexer path with try-catch
-        var func = testItem.GetFuncCompiledPropertyPath("[999,nonexistent]");
+        var func = testItem.GetCompiledValueGetter("[999,nonexistent]");
         Assert.IsNotNull(func);
         var result = func(testItem);
         Assert.IsNull(result); // Custom indexer returns empty string, but expression should handle gracefully
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldAccessNonGenericList()
+    public void GetCompiledValueGetter_ShouldAccessNonGenericList()
     {
         var testItem = new TestItem { NonGenericList = new System.Collections.ArrayList { "item0", "item1", "item2" } };
-        var func = testItem.GetFuncCompiledPropertyPath("NonGenericList[1]");
+        var func = testItem.GetCompiledValueGetter("NonGenericList[1]");
         Assert.IsNotNull(func);
         var result = func(testItem);
         Assert.AreEqual("item1", result);
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForOutOfBoundsNonGenericList()
+    public void GetCompiledValueGetter_ShouldReturnNull_ForOutOfBoundsNonGenericList()
     {
         var testItem = new TestItem { NonGenericList = new System.Collections.ArrayList { "item0" } };
-        var func = testItem.GetFuncCompiledPropertyPath("NonGenericList[5]");
+        var func = testItem.GetCompiledValueGetter("NonGenericList[5]");
         Assert.IsNotNull(func);
         var result = func(testItem);
         Assert.IsNull(result);
     }
 
     [TestMethod]
-    public void GetFuncCompiledPropertyPath_ShouldReturnNull_ForEmptyList()
+    public void GetCompiledValueGetter_ShouldReturnNull_ForEmptyList()
     {
         var testItem = new TestItem { StringList = [] };
-        var func = testItem.GetFuncCompiledPropertyPath("StringList[0]");
+        var func = testItem.GetCompiledValueGetter("StringList[0]");
         Assert.IsNotNull(func);
         var result = func(testItem);
         Assert.IsNull(result);

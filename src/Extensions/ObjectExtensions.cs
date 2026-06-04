@@ -25,7 +25,7 @@ internal static partial class ObjectExtensions
     /// <param name="dataItem">The data item instance to use for runtime type evaluation.</param>
     /// <param name="bindingPath">The binding path to access, e.g. "[0].SubPropertyArray[0].SubSubProperty".</param>
     /// <returns>A compiled function that takes an instance and returns the property value, or null if the property path is invalid.</returns>
-    internal static Func<object, object?>? GetFuncCompiledPropertyPath(this object dataItem, string bindingPath)
+    internal static Func<object, object?>? GetCompiledValueGetter(this object dataItem, string bindingPath)
     {
         try
         {
