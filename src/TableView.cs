@@ -514,7 +514,7 @@ public partial class TableView : ListView
         var args = new TableViewCopyToClipboardEventArgs(includeHeaders);
         OnCopyToClipboard(args);
 
-        if (args.Handled)
+        if (!CanCopy || args.Handled)
         {
             return;
         }

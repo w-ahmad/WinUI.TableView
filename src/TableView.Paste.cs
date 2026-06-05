@@ -21,19 +21,22 @@ public partial class TableView
     /// <returns>True if the paste operation was initiated successfully; otherwise, false.</returns>
     internal bool TryStartPasteFromClipboard()
     {
-        if (!CanHandlePasteRequest())
+        var args = new TableViewPasteFromClipboardEventArgs();
+        OnPasteFromClipboard(args);
+
+        if (args.Handled || !CanHandlePasteRequest())
         {
             return false;
         }
 
-        PasteFromClipboard();
+        PasteFromClipboardAsync();
         return true;
     }
 
     /// <summary>
     /// Handles the actual paste operation from the clipboard.
     /// </summary>
-    private async void PasteFromClipboard()
+    private async void PasteFromClipboardAsync()
     {
         try
         {
@@ -143,15 +146,15 @@ public partial class TableView
     /// Determines whether the TableView can handle a paste request based on its current state.
     /// </summary>
     /// <returns>True if the TableView can handle the paste request; otherwise, false.</returns>
-    private bool CanHandlePasteRequest()
+    internal bool CanHandlePasteRequest()
     {
-        if (IsReadOnly || IsEditing || Columns.VisibleColumns.Count == 0 || Items.Count == 0)
+        var focused = FocusManager.GetFocusedElement(XamlRoot!) as FrameworkElement;
+        if (focused is TextBox or PasswordBox or RichEditBox)
         {
             return false;
         }
 
-        var focused = FocusManager.GetFocusedElement(XamlRoot!) as FrameworkElement;
-        return focused is not TextBox and not PasswordBox and not RichEditBox;
+        return CanPaste && !IsReadOnly && !IsEditing && Columns.VisibleColumns.Count != 0 && Items.Count != 0;
     }
 
     /// <summary>

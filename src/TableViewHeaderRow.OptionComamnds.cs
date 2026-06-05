@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Windows.ApplicationModel.DataTransfer;
 
 namespace WinUI.TableView;
 
@@ -39,17 +40,17 @@ partial class TableViewHeaderRow
 
         if (GetTemplateChild("SelectAllMenuItem") is MenuFlyoutItem selectAllMenuItem)
             selectAllMenuItem.Command = _selectAllCommand;
-        if (GetTemplateChild("ClearSelectionMenuItem") is MenuFlyoutItem clearSelectionMenuItem) 
+        if (GetTemplateChild("ClearSelectionMenuItem") is MenuFlyoutItem clearSelectionMenuItem)
             clearSelectionMenuItem.Command = _deselectAllCommand;
-        if (GetTemplateChild("CopyMenuItem") is MenuFlyoutItem copyMenuItem) 
+        if (GetTemplateChild("CopyMenuItem") is MenuFlyoutItem copyMenuItem)
             copyMenuItem.Command = _copyCommand;
         if (GetTemplateChild("PasteMenuItem") is MenuFlyoutItem pasteMenuItem)
             pasteMenuItem.Command = _pasteCommand;
-        if (GetTemplateChild("CopyWithHeadersMenuItem") is MenuFlyoutItem copyWithHeadersMenuItem) 
+        if (GetTemplateChild("CopyWithHeadersMenuItem") is MenuFlyoutItem copyWithHeadersMenuItem)
             copyWithHeadersMenuItem.Command = _copyWithHeadersCommand;
-        if (GetTemplateChild("ClearSortingMenuItem") is MenuFlyoutItem clearSortingMenuItem) 
+        if (GetTemplateChild("ClearSortingMenuItem") is MenuFlyoutItem clearSortingMenuItem)
             clearSortingMenuItem.Command = _clearSortingCommand;
-        if (GetTemplateChild("ClearFilterMenuItem") is MenuFlyoutItem clearFilterMenuItem) 
+        if (GetTemplateChild("ClearFilterMenuItem") is MenuFlyoutItem clearFilterMenuItem)
             clearFilterMenuItem.Command = _clearFilterCommand;
         if (GetTemplateChild("ExportAllMenuItem") is MenuFlyoutItem exportAllMenuItem)
         {
@@ -91,7 +92,7 @@ partial class TableViewHeaderRow
 
         _copyWithHeadersCommand.Description = TableViewLocalizedStrings.CopyWithHeadersCommandDescription;
         _copyWithHeadersCommand.ExecuteRequested += delegate { TableView?.CopyToClipboardInternal(true); };
-        _copyWithHeadersCommand.CanExecuteRequested += CanExecuteCopyWithHeadersCommand;
+        _copyWithHeadersCommand.CanExecuteRequested += CanExecuteCopyCommand;
 
         _clearSortingCommand.ExecuteRequested += delegate { TableView?.ClearAllSortingWithEvent(); };
         _clearSortingCommand.CanExecuteRequested += CanExecuteClearSortingCommand;
@@ -129,19 +130,20 @@ partial class TableViewHeaderRow
 
     private void CanExecuteCopyCommand(XamlUICommand sender, CanExecuteRequestedEventArgs e)
     {
-        e.CanExecute = TableView?.SelectedItems.Count > 0 || TableView?.SelectedCells.Count > 0 || TableView?.CurrentCellSlot.HasValue is true;
-    }
-
-    private void CanExecuteCopyWithHeadersCommand(XamlUICommand sender, CanExecuteRequestedEventArgs e)
-    {
-        e.CanExecute = TableView?.SelectedItems.Count > 0 || TableView?.SelectedCells.Count > 0 || TableView?.CurrentCellSlot.HasValue is true;
+        e.CanExecute = TableView?.CanCopy is true
+            && (TableView?.SelectedItems.Count > 0 || TableView?.SelectedCells.Count > 0 || TableView?.CurrentCellSlot.HasValue is true);
     }
 
     private void CanExecutePasteCommand(XamlUICommand sender, CanExecuteRequestedEventArgs e)
     {
-        e.CanExecute = TableView?.IsEditing is false
-            && TableView?.IsReadOnly is false
-            && (TableView?.SelectedItems.Count > 0 || TableView?.SelectedCells.Count > 0 || TableView?.CurrentCellSlot.HasValue is true);
+        e.CanExecute = false;
+        var canExecute = TableView?.CanPaste is true && TableView?.IsEditing is false && TableView?.IsReadOnly is false;
+
+        if (canExecute)
+        {
+            var content = Clipboard.GetContent();
+            e.CanExecute = canExecute && content.Contains(StandardDataFormats.Text);
+        }
     }
 
     private void CanExecuteClearSortingCommand(XamlUICommand sender, CanExecuteRequestedEventArgs e)
