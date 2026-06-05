@@ -130,8 +130,62 @@
                                     </Grid>
 
                                     <Button.Flyout>
-                                        <MenuFlyout x:Name="OptionsFlyout"
+                                        <local:TableViewFilterMenuFlyout x:Name="OptionsFlyout"
                                                     Placement="Bottom">
+                                            <local:TableViewFilterMenuFlyout.MenuFlyoutPresenterStyle>
+                                                <Style TargetType="MenuFlyoutPresenter"
+                                                       BasedOn="{StaticResource DefaultMenuFlyoutPresenterStyle}">
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="MenuFlyoutPresenter">
+                                                                <Border Background="{TemplateBinding Background}"
+                                                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                                                        CornerRadius="{TemplateBinding CornerRadius}"
+                                                                        BackgroundSizing="InnerBorderEdge">
+                                                                    <Grid>
+                                                                        <Grid.RowDefinitions>
+                                                                            <RowDefinition Height="Auto" />
+                                                                            <RowDefinition Height="*" />
+                                                                            <RowDefinition Height="Auto" />
+                                                                        </Grid.RowDefinitions>
+                                                                        <ScrollViewer x:Name="MenuFlyoutPresenterScrollViewer"
+                                                                                      Margin="{TemplateBinding Padding}"
+                                                                                      MinWidth="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=TemplateSettings.FlyoutContentMinWidth}"
+                                                                                      HorizontalScrollMode="{TemplateBinding ScrollViewer.HorizontalScrollMode}"
+                                                                                      HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                                                                                      VerticalScrollMode="{TemplateBinding ScrollViewer.VerticalScrollMode}"
+                                                                                      VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}"
+                                                                                      IsHorizontalRailEnabled="{TemplateBinding ScrollViewer.IsHorizontalRailEnabled}"
+                                                                                      IsVerticalRailEnabled="{TemplateBinding ScrollViewer.IsVerticalRailEnabled}"
+                                                                                      ZoomMode="{TemplateBinding ScrollViewer.ZoomMode}"
+                                                                                      AutomationProperties.AccessibilityView="Raw">
+                                                                            <ItemsPresenter />
+                                                                        </ScrollViewer>
+
+                                                                        <controls:TableViewFilterItemsControl Grid.Row="1" />
+                                                                        
+                                                                        <Grid Grid.Row="2"
+                                                                              Margin="12,4"
+                                                                              ColumnSpacing="16">
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition Width="*" />
+                                                                                <ColumnDefinition Width="*" />
+                                                                            </Grid.ColumnDefinitions>
+                                                                            <Button x:Name="OkButton"
+                                                                                    HorizontalAlignment="Stretch"
+                                                                                    Style="{StaticResource AccentButtonStyle}" />
+                                                                            <Button x:Name="CancelButton"
+                                                                                    Grid.Column="1"
+                                                                                    HorizontalAlignment="Stretch" />
+                                                                        </Grid>
+                                                                    </Grid>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </local:TableViewFilterMenuFlyout.MenuFlyoutPresenterStyle>
                                             <MenuFlyoutItem x:Name="SortAscendingMenuItem">
                                                 <MenuFlyoutItem.Icon>
                                                     <FontIcon Glyph="&#xf0ad;" />
@@ -143,36 +197,9 @@
                                                 </MenuFlyoutItem.Icon>
                                             </MenuFlyoutItem>
                                             <MenuFlyoutItem x:Name="ClearSortingMenuItem" />
-                                            <MenuFlyoutSeparator />
+                                            <MenuFlyoutSeparator x:Name="MenuFlyoutSeparator" />
                                             <MenuFlyoutItem x:Name="ClearFilterMenuItem" />                                            
-                                            <MenuFlyoutItem x:Name="FilterItemsMenuItem">
-                                                <MenuFlyoutItem.Template>
-                                                    <ControlTemplate TargetType="MenuFlyoutItem">
-                                                        <controls:TableViewFilterItemsControl />
-                                                    </ControlTemplate>
-                                                </MenuFlyoutItem.Template>
-                                            </MenuFlyoutItem>
-                                            <MenuFlyoutSeparator />
-                                            <MenuFlyoutItem x:Name="ActionButtonsMenuItem">
-                                                <MenuFlyoutItem.Template>
-                                                    <ControlTemplate TargetType="MenuFlyoutItem">
-                                                        <Grid Margin="12,4"
-                                                              ColumnSpacing="16">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="*" />
-                                                                <ColumnDefinition Width="*" />
-                                                            </Grid.ColumnDefinitions>
-                                                            <Button x:Name="OkButton"
-                                                                    HorizontalAlignment="Stretch"
-                                                                    Style="{StaticResource AccentButtonStyle}" />
-                                                            <Button x:Name="CancelButton"
-                                                                    Grid.Column="1"
-                                                                    HorizontalAlignment="Stretch" />
-                                                        </Grid>
-                                                    </ControlTemplate>
-                                                </MenuFlyoutItem.Template>
-                                            </MenuFlyoutItem>
-                                        </MenuFlyout>
+                                        </local:TableViewFilterMenuFlyout>
                                     </Button.Flyout>
                                 </Button>
                             </Grid>

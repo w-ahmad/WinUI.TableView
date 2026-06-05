@@ -37,7 +37,7 @@ public partial class TableViewColumnHeader : ContentControl
     private TableView? _tableView;
     private TableViewHeaderRow? _headerRow;
     private Button? _optionsButton;
-    private MenuFlyout? _optionsFlyout;
+    private TableViewFilterMenuFlyout? _optionsFlyout;
     private MenuFlyoutItem? _filterItemsMenuItem;
     private ContentPresenter? _contentPresenter;
     private Rectangle? _v_gridLine;
@@ -46,8 +46,7 @@ public partial class TableViewColumnHeader : ContentControl
     private bool _resizePreviousStarted;
     private double _reorderStartingPosition;
     private bool _reorderStarted;
-    private RenderTargetBitmap? _dragVisuals;
-    private TableViewFilterItemsControl? _filterItemsControl;
+    private RenderTargetBitmap? _dragVisuals;    
 
     /// <summary>
     /// Initializes a new instance of the TableViewColumnHeader class.
@@ -156,9 +155,9 @@ public partial class TableViewColumnHeader : ContentControl
     /// <summary>
     /// Applies the filter for the column.
     /// </summary>
-    private void ApplyFilter()
+    internal void ApplyFilter()
     {
-        var shouldApplyFilter = _filterItemsControl?.ShouldApplyFilter ?? false;
+        var shouldApplyFilter = FilterItemsControl?.ShouldApplyFilter ?? false;
 
         if (!shouldApplyFilter && (Column?.IsFiltered ?? false))
         {
@@ -173,7 +172,7 @@ public partial class TableViewColumnHeader : ContentControl
 
     private ICollection<object?> GetSelectedValues()
     {
-        var filterItems = _filterItemsControl?.FilterItems ?? [];
+        var filterItems = FilterItemsControl?.FilterItems ?? [];
         var selectedValues = filterItems.Where(x => x.IsSelected).Select(x => x.Value);
         var firstItem = selectedValues.FirstOrDefault(x => x is not null);
         var firstItemType = firstItem?.GetType();
@@ -197,7 +196,7 @@ public partial class TableViewColumnHeader : ContentControl
     /// <summary>
     /// Hides the options flyout.
     /// </summary>
-    private void HideFlyout()
+    internal void HideFlyout()
     {
         _optionsFlyout?.Hide();
     }
@@ -231,19 +230,16 @@ public partial class TableViewColumnHeader : ContentControl
     {
         base.OnApplyTemplate();
 
-        _optionsFlyout?.Opening -= OnOptionsFlyoutOpening;
-        _optionsFlyout?.Closed -= OnOptionsFlyoutClosed;
         _optionsButton?.Tapped -= OnOptionsButtonTaped;
-        _filterItemsMenuItem?.PreviewKeyUp -= OnFilterItemsMenuItemPreviewKeyUp;
 
-        _filterItemsControl?.FilterItems = null;
-        _filterItemsControl?.TableView = null;
-        _filterItemsControl?.ColumnHeader = null;
-        _filterItemsControl = null;
+        FilterItemsControl?.FilterItems = null;
+        FilterItemsControl?.TableView = null;
+        FilterItemsControl?.ColumnHeader = null;
+        FilterItemsControl = null;
         _tableView = this.FindAscendant<TableView>();
         _headerRow = this.FindAscendant<TableViewHeaderRow>();
         _optionsButton = GetTemplateChild("OptionsButton") as Button;
-        _optionsFlyout = GetTemplateChild("OptionsFlyout") as MenuFlyout;
+        _optionsFlyout = GetTemplateChild("OptionsFlyout") as TableViewFilterMenuFlyout;
         _filterItemsMenuItem = GetTemplateChild("FilterItemsMenuItem") as MenuFlyoutItem;
         _contentPresenter = GetTemplateChild("ContentPresenter") as ContentPresenter;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
@@ -253,37 +249,14 @@ public partial class TableViewColumnHeader : ContentControl
             return;
         }
 
-        _optionsFlyout.Opening += OnOptionsFlyoutOpening;
-        _optionsFlyout.Closed += OnOptionsFlyoutClosed;
+        _optionsFlyout.TableView = _tableView;
+        _optionsFlyout.ColumnHeader = this;
+
         _optionsButton.Tapped += OnOptionsButtonTaped;
-
-        _filterItemsMenuItem?.ApplyTemplate();
-        _filterItemsControl = _filterItemsMenuItem?.FindDescendant<TableViewFilterItemsControl>();
-
-        _filterItemsControl?.TableView = _tableView;
-        _filterItemsControl?.ColumnHeader = this;
-
-        _filterItemsMenuItem?.PreviewKeyUp += OnFilterItemsMenuItemPreviewKeyUp;
 
         SetOptionCommands();
         SetFilterButtonVisibility();
         EnsureGridLines();
-    }
-
-    /// <summary>
-    /// Handles the Opening event for the options flyout.
-    /// </summary>
-    private async void OnOptionsFlyoutOpening(object? sender, object e)
-    {
-        _filterItemsControl?.Initialize();
-    }
-
-    /// <summary>
-    /// Handles the Closed event for the options flyout.
-    /// </summary>
-    private void OnOptionsFlyoutClosed(object? sender, object e)
-    {
-        _filterItemsControl?.ClearSearchBox();
     }
 
     /// <summary>
@@ -292,14 +265,6 @@ public partial class TableViewColumnHeader : ContentControl
     private void OnOptionsButtonTaped(object sender, TappedRoutedEventArgs e)
     {
         e.Handled = true;
-    }
-
-    /// <summary>
-    /// Handles the PreviewKeyUp event for the filter items menu item.
-    /// </summary>
-    private void OnFilterItemsMenuItemPreviewKeyUp(object sender, KeyRoutedEventArgs e)
-    {
-        e.Handled = e.Key is VirtualKey.Space;
     }
 
     /// <summary>
@@ -565,4 +530,9 @@ public partial class TableViewColumnHeader : ContentControl
     /// Gets a value indicating whether the cursor is in the sizing area.
     /// </summary>
     private bool IsSizingCursor => ProtectedCursor is InputSystemCursor { CursorShape: InputSystemCursorShape.SizeWestEast };
+
+    /// <summary>
+    /// Gets or sets the filter items control associated with the column header.
+    /// </summary>
+    internal TableViewFilterItemsControl? FilterItemsControl { get; set; }
 }
