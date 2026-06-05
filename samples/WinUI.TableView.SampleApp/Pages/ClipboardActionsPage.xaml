@@ -17,15 +17,35 @@ Paste tab-delimited data from Excel with Ctrl+V or the same menu.</x:String>
             </controls:SamplePresenter.Description>
             <controls:SamplePresenter.Example>
                 <tv:TableView x:Name="tableView"
+                              CanCopy="{x:Bind canCopyToggle.IsOn, Mode=TwoWay}"
+                              CanPaste="{x:Bind canPasteToggle.IsOn, Mode=TwoWay}"
                               ItemsSource="{Binding Items}"
                               AutoGeneratingColumn="{x:Bind local:ExampleModelColumnsHelper.OnAutoGeneratingColumns}" />
             </controls:SamplePresenter.Example>
+            <controls:SamplePresenter.Options>
+                <StackPanel Spacing="8">
+                    <ToggleSwitch x:Name="canCopyToggle"
+                                  Header="Can Copy"
+                                  IsOn="True" />
+                    <ToggleSwitch x:Name="canPasteToggle"
+                                  Header="Can Paste"
+                                  IsOn="True" />
+                </StackPanel>
+            </controls:SamplePresenter.Options>
             <controls:SamplePresenter.Xaml>
                 <x:String xml:space="preserve">
 &lt;tv:TableView x:Name="tableView"
+    CanCopy="$(CanCopy)"
+    CanPaste="$(CanPaste)"
     ItemsSource="{Binding Items}" />
                 </x:String>
             </controls:SamplePresenter.Xaml>
+            <controls:SamplePresenter.Substitutions>
+                <controls:CodeSubstitution Key="CanCopy"
+                                           Value="{x:Bind tableView.CanCopy, Mode=OneWay}" />
+                <controls:CodeSubstitution Key="CanPaste"
+                                           Value="{x:Bind tableView.CanPaste, Mode=OneWay}" />
+            </controls:SamplePresenter.Substitutions>
         </controls:SamplePresenter>
     </Grid>
 </Page>
