@@ -184,6 +184,6 @@
     <value>Paste</value>
   </data>
   <data name="PasteCommandDescription" xml:space="preserve">
-    <value>Paste clipboard content into the selected cells.</value>
+    <value>Paste clipboard content into the cells.</value>
   </data>
 </root>
