@@ -1,7 +1,8 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
+using System.Collections.Generic;
+using System.Linq;
 using WinUI.TableView.Controls;
 using WinUI.TableView.Extensions;
 
@@ -10,7 +11,7 @@ namespace WinUI.TableView;
 /// <summary>
 /// Represents the filter menu flyout for a TableViewColumnHeader.
 /// </summary>
-public partial class TableViewFilterMenuFlyout : MenuFlyout
+public partial class TableViewFilterMenuFlyout : Flyout
 {
     private TableViewFilterItemsControl? _filterItemsControl;
     private readonly StandardUICommand _okCommand = new() { Label = TableViewLocalizedStrings.Ok };
@@ -21,8 +22,9 @@ public partial class TableViewFilterMenuFlyout : MenuFlyout
     /// </summary>
     public TableViewFilterMenuFlyout()
     {
+        Items = [];
         Opening += OnOpening;
-        Closing += OnClosing;
+        Closed += OnClosed;
     }
 
     /// <summary>
@@ -31,13 +33,14 @@ public partial class TableViewFilterMenuFlyout : MenuFlyout
     ~TableViewFilterMenuFlyout()
     {
         Opening -= OnOpening;
-        Closing -= OnClosing;
+        Closed -= OnClosed;
     }
 
     /// <inheritdoc/>
     protected override Control CreatePresenter()
     {
         var presenter = base.CreatePresenter();
+        presenter.Style = FlyoutPresenterStyle;
         presenter.Loaded += OnPresenterLoaded;
 
         return presenter;
@@ -52,9 +55,9 @@ public partial class TableViewFilterMenuFlyout : MenuFlyout
     }
 
     /// <summary>
-    /// Handles the Closing event of the flyout, clearing the search box in the filter items control.
+    /// Handles the Closed event of the flyout, clearing the search box in the filter items control.
     /// </summary>
-    private void OnClosing(FlyoutBase sender, FlyoutBaseClosingEventArgs args)
+    private void OnClosed(object? sender, object e)
     {
         _filterItemsControl?.ClearSearchBox();
     }
@@ -64,9 +67,11 @@ public partial class TableViewFilterMenuFlyout : MenuFlyout
     /// </summary>
     private void OnPresenterLoaded(object sender, RoutedEventArgs e)
     {
-        var presenter = (MenuFlyoutPresenter)sender;
+        var presenter = (FlyoutPresenter)sender;
         var okButton = presenter.FindDescendant<Button>(b => b.Name is "OkButton");
         var cancelButton = presenter.FindDescendant<Button>(b => b.Name is "CancelButton");
+        var menuPresenter = presenter.FindDescendant<MenuFlyoutPresenter>();
+        menuPresenter?.ItemsSource = Items;
 
         _filterItemsControl = presenter.FindDescendant<TableViewFilterItemsControl>();
         _filterItemsControl?.TableView = TableView;
@@ -79,6 +84,19 @@ public partial class TableViewFilterMenuFlyout : MenuFlyout
 
         presenter.Loaded -= OnPresenterLoaded;
         _filterItemsControl?.Initialize();
+
+        foreach (var item in Items.OfType<MenuFlyoutItem>())
+        {
+            item.Tapped += OnMenuItemTapped;
+        }
+    }
+
+    /// <summary>
+    /// Handles the Tapped event of menu items.
+    /// </summary>
+    private void OnMenuItemTapped(object sender, TappedRoutedEventArgs e)
+    {
+        Hide();
     }
 
     /// <summary>
@@ -99,4 +117,9 @@ public partial class TableViewFilterMenuFlyout : MenuFlyout
     /// Gets or sets the TableViewColumnHeader associated with this filter menu flyout.
     /// </summary>
     public TableViewColumnHeader? ColumnHeader { get; set; }
+
+    /// <summary>
+    /// Gets or sets the collection of menu items to be displayed in the filter flyout.
+    /// </summary>
+    public IList<MenuFlyoutItemBase> Items { get; set; }
 }
