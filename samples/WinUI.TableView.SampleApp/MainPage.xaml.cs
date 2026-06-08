@@ -17,7 +17,6 @@ public sealed partial class MainPage : Page
     public MainPage()
     {
         InitializeComponent();
-
         App.Current.MainWindow.Activated += OnMainWindowActivated;
         App.Current.MainWindow.SetTitleBar(AppTitleBar);
 
@@ -139,10 +138,15 @@ public sealed partial class MainPage : Page
             navigationView.SelectedItem = navItem;
         }
 
-        if (e.Content is Page { DataContext: null } page)
+        if (e.Content is Page page)
         {
-            await Task.Delay(10);
-            page.DataContext = new ExampleViewModel();
+            page.NavigationCacheMode = NavigationCacheMode.Disabled;
+
+            if (page.DataContext is null)
+            {
+                await Task.Delay(10);
+                page.DataContext = new ExampleViewModel();
+            }
         }
 
         _canNavigate = true;

@@ -10,7 +10,8 @@
       xmlns:ui="using:CommunityToolkit.WinUI"
       xmlns:converters="using:WinUI.TableView.SampleApp.Converters"
       mc:Ignorable="d"
-      Loaded="OnPageLoaded">
+      Loaded="OnPageLoaded"
+      Unloaded="OnPageUnloaded">
 
     <Page.DataContext>
         <local:TransactionsViewModel />

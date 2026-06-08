@@ -36,6 +36,7 @@ public partial class TableView : ListView
     private RowDefinition? _headerRowDefinition;
     private bool _shouldThrowSelectionModeChangedException;
     private bool _ensureColumns = true;
+    private bool _isItemsSourceSuspended;
     private readonly List<TableViewRow> _rows = [];
     private readonly CollectionView _collectionView = [];
 
@@ -108,6 +109,12 @@ public partial class TableView : ListView
         {
             if (element is TableViewRow row)
             {
+                if (!_rows.Contains(row))
+                {
+                    _rows.Add(row);
+                }
+
+                row.TableView = this;
                 row.EnsureCellsStyle(default, item);
                 row.ApplyCellsSelectionState();
                 row.RowPresenter?.ApplyDetailsPaneState(item);
@@ -118,6 +125,18 @@ public partial class TableView : ListView
                 }
             }
         });
+    }
+
+    /// <inheritdoc/>
+    protected override void ClearContainerForItemOverride(DependencyObject element, object item)
+    {
+        if (element is TableViewRow row)
+        {
+            _rows.Remove(row);
+            row.TableView = null;
+        }
+
+        base.ClearContainerForItemOverride(element, item);
     }
 
     /// <inheritdoc/>
@@ -319,7 +338,7 @@ public partial class TableView : ListView
         _headerRow = GetTemplateChild("HeaderRow") as TableViewHeaderRow;
         _scrollViewer = GetTemplateChild("ScrollViewer") as ScrollViewer;
         _headerRowDefinition = GetTemplateChild("HeaderRowDefinition") as RowDefinition;
-        if (_scrollViewer is not null) _scrollViewer.Loaded += OnScrollViewerLoaded;
+        _scrollViewer?.Loaded += OnScrollViewerLoaded;
 
         if (IsLoaded)
         {
@@ -340,15 +359,9 @@ public partial class TableView : ListView
         var xScrollBar = _scrollViewer?.FindDescendant<ScrollBar>(sb => sb.Name is "HorizontalScrollBar2");
         var yScrollBar = _scrollViewer?.FindDescendant<ScrollBar>(sb => sb.Name is "VerticalScrollBar");
 
-        if (scrollPresenter is not null)
-        {
-            scrollPresenter.PointerWheelChanged += OnScrollContentPresenterPointerWheelChanged;
-        }
+        scrollPresenter?.PointerWheelChanged += OnScrollContentPresenterPointerWheelChanged;
 
-        if (yScrollBar is not null)
-        {
-            yScrollBar.ValueChanged += (_, _) => SetValue(VerticalOffsetProperty, yScrollBar.Value);
-        }
+        yScrollBar?.ValueChanged += (_, _) => SetValue(VerticalOffsetProperty, yScrollBar.Value);
 
         xScrollBar?.SetBinding(RangeBase.ValueProperty, new Binding
         {
@@ -363,6 +376,7 @@ public partial class TableView : ListView
     /// </summary>
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
+        ResumeItemsSource();
         EnsureAutoColumns();
     }
 
@@ -375,6 +389,43 @@ public partial class TableView : ListView
         {
             currentCell.EndEditing(TableViewEditAction.Commit);
         }
+
+        SuspendItemsSource();
+    }
+
+    /// <summary>
+    /// Suspends subscriptions to the current items source while the control is unloaded.
+    /// </summary>
+    private void SuspendItemsSource()
+    {
+        if (_isItemsSourceSuspended)
+        {
+            return;
+        }
+
+        _collectionView.ItemPropertyChanged -= OnItemPropertyChanged;
+        _collectionView.Source = Enumerable.Empty<object>();
+        _isItemsSourceSuspended = true;
+    }
+
+    /// <summary>
+    /// Restores subscriptions to the current items source when the control is loaded.
+    /// </summary>
+    private void ResumeItemsSource()
+    {
+        if (!_isItemsSourceSuspended)
+        {
+            return;
+        }
+
+        _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
+
+        if (ItemsSource is IEnumerable source)
+        {
+            _collectionView.Source = source;
+        }
+
+        _isItemsSourceSuspended = false;
     }
 
     /// <summary>
@@ -450,8 +501,8 @@ public partial class TableView : ListView
     {
         // Skip TableView copy logic when a cell editor already handles Ctrl+C.
         // TextBox, PasswordBox, and RichEditBox all implement their own copy behavior.
-        var focused = FocusManager.GetFocusedElement() as FrameworkElement;
-        if (focused is TextBox || focused is PasswordBox || focused is RichEditBox)
+        var focused = FocusManager.GetFocusedElement(XamlRoot!) as FrameworkElement;
+        if (focused is TextBox or PasswordBox or RichEditBox)
         {
             return;
         }
@@ -463,7 +514,7 @@ public partial class TableView : ListView
         {
             return;
         }
-        
+
         var content = GetSelectedClipboardContent(includeHeaders);
 
         if (string.IsNullOrWhiteSpace(content))
@@ -476,7 +527,7 @@ public partial class TableView : ListView
         {
             var package = new DataPackage();
             package.SetText(content);
-            
+
             Clipboard.SetContent(package);
         }
         catch (Exception ex)
@@ -749,7 +800,10 @@ public partial class TableView : ListView
         {
             EnsureAutoColumns();
 
-            _collectionView.Source = source;
+            if (!_isItemsSourceSuspended)
+            {
+                _collectionView.Source = source;
+            }
         }
     }
 
@@ -838,7 +892,11 @@ public partial class TableView : ListView
     /// <summary>
     /// Gets a storage file for saving the CSV.
     /// </summary>
-    private async Task<StorageFile> GetStorageFile()
+    private
+#if !WINDOWS
+    static
+#endif
+    async Task<StorageFile> GetStorageFile()
     {
         var savePicker = new FileSavePicker();
         savePicker.FileTypeChoices.Add("CSV (Comma delimited)", [".csv"]);
@@ -878,10 +936,7 @@ public partial class TableView : ListView
 
         foreach (var column in Columns.Where(c => c.SortDirection is not null))
         {
-            if (column is not null)
-            {
-                column.SortDirection = null;
-            }
+            column?.SortDirection = null;
         }
     }
 

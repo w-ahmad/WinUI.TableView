@@ -266,6 +266,12 @@ public partial class TableView
     /// </summary>
     public static readonly DependencyProperty ShowFilterItemsCountProperty = DependencyProperty.Register(nameof(ShowFilterItemsCount), typeof(bool), typeof(TableView), new PropertyMetadata(false));
 
+
+    /// <summary>
+    /// Identifies the <see cref="ForceRowOrCellSelectionOnContextRequested"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ForceRowOrCellSelectionOnContextRequestedProperty = DependencyProperty.Register(nameof(ForceRowOrCellSelectionOnContextRequested), typeof(bool), typeof(TableView), new PropertyMetadata(false));
+
     /// <summary>
     /// Gets or sets a value indicating whether opening the column filter over header right-click is enabled.
     /// </summary>
@@ -329,6 +335,15 @@ public partial class TableView
     {
         get => (bool)GetValue(ShowFilterItemsCountProperty);
         set => SetValue(ShowFilterItemsCountProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value that indicates whether the TableView should force select the Row or Cell depending on the SelectionUnit
+    /// </summary>
+    public bool ForceRowOrCellSelectionOnContextRequested
+    {
+        get => (bool)GetValue(ForceRowOrCellSelectionOnContextRequestedProperty);
+        set => SetValue(ForceRowOrCellSelectionOnContextRequestedProperty, value);
     }
 
     /// <summary>
@@ -719,9 +734,9 @@ public partial class TableView
     /// <summary>
     /// Gets or sets the data template selector for the row header.
     /// </summary>
-    public DataTemplateSelector RowHeaderTemplateSelector
+    public DataTemplateSelector? RowHeaderTemplateSelector
     {
-        get => (DataTemplateSelector)GetValue(RowHeaderTemplateSelectorProperty);
+        get => (DataTemplateSelector?)GetValue(RowHeaderTemplateSelectorProperty);
         set => SetValue(RowHeaderTemplateSelectorProperty, value);
     }
 
@@ -755,9 +770,9 @@ public partial class TableView
     /// <summary>
     /// Gets or sets the data template selector for the row details.
     /// </summary>
-    public DataTemplateSelector RowDetailsTemplateSelector
+    public DataTemplateSelector? RowDetailsTemplateSelector
     {
-        get => (DataTemplateSelector)GetValue(RowDetailsTemplateSelectorProperty);
+        get => (DataTemplateSelector?)GetValue(RowDetailsTemplateSelectorProperty);
         set => SetValue(RowDetailsTemplateSelectorProperty, value);
     }
 

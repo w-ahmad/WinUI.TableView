@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using Windows.Foundation;
+using Windows.Foundation.Collections;
 using WinUI.TableView.Converters;
 using WinUI.TableView.Extensions;
 
@@ -31,6 +32,7 @@ public partial class TableViewHeaderRow : Control
 {
     private Panel? _cornerButtonPanel;
     private Button? _optionsButton;
+    private Button? _selectAllButton;
     private CheckBox? _selectAllCheckBox;
     private Rectangle? _v_gridLine;
     private Rectangle? _h_gridLine;
@@ -40,7 +42,6 @@ public partial class TableViewHeaderRow : Control
     private TranslateTransform? _columnDropIndicatorTransform;
     private Image? _dragHeaderImage;
     private bool _calculatingHeaderWidths;
-    private DispatcherTimer? _timer;
     private int _dropColumnIndex;
     private bool _isValidDropTarget;
     private readonly Dictionary<DependencyProperty, long> _callbackTokens = [];
@@ -58,8 +59,13 @@ public partial class TableViewHeaderRow : Control
     {
         base.OnApplyTemplate();
 
+        _selectAllButton?.Tapped -= OnSelectAllButtonClicked;
+        _selectAllCheckBox?.Checked -= OnSelectAllCheckBoxChecked;
+        _selectAllCheckBox?.Unchecked -= OnSelectAllCheckBoxUnchecked;
+
         _cornerButtonPanel = GetTemplateChild("CornerButtonPanel") as Panel;
         _optionsButton = GetTemplateChild("optionsButton") as Button;
+        _selectAllButton = GetTemplateChild("selectAllButton") as Button;
         _selectAllCheckBox = GetTemplateChild("selectAllCheckBox") as CheckBox;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
         _h_gridLine = GetTemplateChild("HorizontalGridLine") as Rectangle;
@@ -74,16 +80,9 @@ public partial class TableViewHeaderRow : Control
             return;
         }
 
-        if (GetTemplateChild("selectAllButton") is Button selectAllButton)
-        {
-            selectAllButton.Tapped += OnSelectAllButtonClicked;
-        }
-
-        if (_selectAllCheckBox is not null)
-        {
-            _selectAllCheckBox.Checked += OnSelectAllCheckBoxChecked;
-            _selectAllCheckBox.Unchecked += OnSelectAllCheckBoxUnchecked;
-        }
+        _selectAllButton?.Tapped += OnSelectAllButtonClicked;
+        _selectAllCheckBox?.Checked += OnSelectAllCheckBoxChecked;
+        _selectAllCheckBox?.Unchecked += OnSelectAllCheckBoxUnchecked;
 
         if (TableView.Columns is not null)
         {
@@ -202,35 +201,6 @@ public partial class TableViewHeaderRow : Control
                 CalculateHeaderWidths();
             }
         }
-        else if (e.PropertyName is nameof(TableViewColumn.DesiredWidth))
-        {
-            if (_timer is null)
-            {
-                _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
-                _timer.Tick += OnTimerTick;
-            }
-
-            _timer.Stop();
-            _timer.Start();
-        }
-    }
-
-    /// <summary>
-    /// Handles the timer tick event.
-    /// </summary>
-    private void OnTimerTick(object? sender, object e)
-    {
-        if (!_calculatingHeaderWidths)
-        {
-            CalculateHeaderWidths();
-        }
-
-        if (_timer is not null)
-        {
-            _timer.Stop();
-            _timer.Tick -= OnTimerTick;
-            _timer = null;
-        }
     }
 
     /// <summary>
@@ -244,6 +214,11 @@ public partial class TableViewHeaderRow : Control
             if (header is not null)
             {
                 RemoveHeader(header);
+            }
+
+            if (column.HeaderControl == header)
+            {
+                column.HeaderControl = null;
             }
         }
     }
@@ -395,6 +370,47 @@ public partial class TableViewHeaderRow : Control
     }
 
     /// <summary>
+    /// Handles the selection changed event of the associated TableView.
+    /// </summary>
+    private void OnTableViewSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        OnTableViewSelectionChanged();
+    }
+
+    /// <summary>
+    /// Handles vector changes in the associated TableView item collection.
+    /// </summary>
+    private void OnTableViewItemsVectorChanged(IObservableVector<object> sender, IVectorChangedEventArgs e)
+    {
+        OnTableViewSelectionChanged();
+    }
+
+    /// <summary>
+    /// Handles changes to the SelectionMode property of the associated TableView.
+    /// </summary>
+    private void OnTableViewSelectionModePropertyChanged(DependencyObject sender, DependencyProperty dp)
+    {
+        SetHeadersVisibility();
+        OnTableViewSelectionChanged();
+    }
+
+    /// <summary>
+    /// Handles changes to the CornerButtonMode property of the associated TableView.
+    /// </summary>
+    private void OnTableViewCornerButtonModePropertyChanged(DependencyObject sender, DependencyProperty dp)
+    {
+        SetCornerButtonState();
+    }
+
+    /// <summary>
+    /// Handles changes to the ItemsSource property of the associated TableView.
+    /// </summary>
+    private void OnTableViewItemsSourcePropertyChanged(DependencyObject sender, DependencyProperty dp)
+    {
+        OnTableViewSelectionChanged();
+    }
+
+    /// <summary>
     /// Sets the state of the select all button.
     /// </summary>
     internal void SetCornerButtonState()
@@ -535,25 +551,13 @@ public partial class TableViewHeaderRow : Control
             x -= _columnDropIndicator.ActualWidth / 2;
             _dropColumnIndex += midPoint > position ? -1 : 0;
             _columnDropIndicator.Visibility = Visibility.Visible;
-
-            if (_columnDropIndicatorTransform is not null)
-            {
-                _columnDropIndicatorTransform.X = x;
-            }
-
-            if (_dragHeaderImage is not null)
-            {
-                _dragHeaderImage.Source = headerVisuals;
-            }
+            _columnDropIndicatorTransform?.X = x;
+            _dragHeaderImage?.Source = headerVisuals;
         }
         else
         {
             _isValidDropTarget = false;
-
-            if (_columnDropIndicator is not null)
-            {
-                _columnDropIndicator.Visibility = Visibility.Collapsed;
-            }
+            _columnDropIndicator?.Visibility = Visibility.Collapsed;
         }
     }
 
@@ -640,6 +644,11 @@ public partial class TableViewHeaderRow : Control
     /// <param name="header">The header to remove.</param>
     public void RemoveHeader(TableViewColumnHeader header)
     {
+        if (header.Column?.HeaderControl == header)
+        {
+            header.Column.HeaderControl = null;
+        }
+
         if (_frozenHeadersPanel?.Children.Contains(header) ?? false)
         {
             _frozenHeadersPanel.Children.Remove(header);
@@ -655,6 +664,14 @@ public partial class TableViewHeaderRow : Control
     /// </summary>
     public void ClearHeaders()
     {
+        foreach (var header in Headers)
+        {
+            if (header.Column?.HeaderControl == header)
+            {
+                header.Column.HeaderControl = null;
+            }
+        }
+
         _frozenHeadersPanel?.Children.Clear();
         _scrollableHeadersPanel?.Children.Clear();
     }
@@ -686,26 +703,43 @@ public partial class TableViewHeaderRow : Control
         if (e.OldValue is TableView oldTableView)
         {
             oldTableView.SizeChanged -= OnTableViewSizeChanged;
-            oldTableView.SelectionChanged -= delegate { OnTableViewSelectionChanged(); };
-            oldTableView.Items.VectorChanged -= delegate { OnTableViewSelectionChanged(); };
+            oldTableView.SelectionChanged -= OnTableViewSelectionChanged;
+            oldTableView.Items.VectorChanged -= OnTableViewItemsVectorChanged;
             oldTableView.Columns.CollectionChanged -= OnTableViewColumnsCollectionChanged;
             oldTableView.Columns.ColumnPropertyChanged -= OnColumnPropertyChanged;
 
-            oldTableView.UnregisterPropertyChangedCallback(ListViewBase.SelectionModeProperty, _callbackTokens[ListViewBase.SelectionModeProperty]);
-            oldTableView.UnregisterPropertyChangedCallback(TableView.CornerButtonModeProperty, _callbackTokens[TableView.CornerButtonModeProperty]);
-            oldTableView.UnregisterPropertyChangedCallback(TableView.ItemsSourceProperty, _callbackTokens[TableView.ItemsSourceProperty]);
+            UnregisterPropertyChangedCallback(oldTableView, ListViewBase.SelectionModeProperty);
+            UnregisterPropertyChangedCallback(oldTableView, TableView.CornerButtonModeProperty);
+            UnregisterPropertyChangedCallback(oldTableView, TableView.ItemsSourceProperty);
         }
 
         if (e.NewValue is TableView newTableView)
         {
             newTableView.SizeChanged += OnTableViewSizeChanged;
-            newTableView.SelectionChanged += delegate { OnTableViewSelectionChanged(); };
-            newTableView.Items.VectorChanged += delegate { OnTableViewSelectionChanged(); };
+            newTableView.SelectionChanged += OnTableViewSelectionChanged;
+            newTableView.Items.VectorChanged += OnTableViewItemsVectorChanged;
             newTableView.Columns.CollectionChanged += OnTableViewColumnsCollectionChanged;
             newTableView.Columns.ColumnPropertyChanged += OnColumnPropertyChanged;
 
+            _callbackTokens[ListViewBase.SelectionModeProperty] =
+                newTableView.RegisterPropertyChangedCallback(ListViewBase.SelectionModeProperty, OnTableViewSelectionModePropertyChanged);
+            _callbackTokens[TableView.CornerButtonModeProperty] =
+                newTableView.RegisterPropertyChangedCallback(TableView.CornerButtonModeProperty, OnTableViewCornerButtonModePropertyChanged);
             _callbackTokens[TableView.ItemsSourceProperty] =
-                newTableView.RegisterPropertyChangedCallback(TableView.ItemsSourceProperty, delegate { OnTableViewSelectionChanged(); });
+                newTableView.RegisterPropertyChangedCallback(TableView.ItemsSourceProperty, OnTableViewItemsSourcePropertyChanged);
+        }
+    }
+
+    /// <summary>
+    /// Unregisters a property changed callback from the associated TableView.
+    /// </summary>
+    /// <param name="tableView">The TableView that owns the callback registration.</param>
+    /// <param name="property">The dependency property to unregister.</param>
+    private void UnregisterPropertyChangedCallback(TableView tableView, DependencyProperty property)
+    {
+        if (_callbackTokens.Remove(property, out var callbackToken))
+        {
+            tableView.UnregisterPropertyChangedCallback(property, callbackToken);
         }
     }
 

@@ -14,14 +14,8 @@ namespace WinUI.TableView;
 [StyleTypedProperty(Property = nameof(CellStyle), StyleTargetType = typeof(TableViewCell))]
 public abstract partial class TableViewColumn : DependencyObject
 {
-    private TableViewColumnHeader? _headerControl;
-    private double _desiredWidth;
-    private SD? _sortDirection;
-    private bool _isFiltered;
-    private bool _isFrozen;
     private Func<object, object?>? _funcCompiledPropertyPath;
     private Func<object, object?>? _funcCompiledClipboardPropertyPath;
-    private Binding? _clipboardContentBinding;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TableViewColumn"/> class with default conditional cell styles.
@@ -244,11 +238,14 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     public TableViewColumnHeader? HeaderControl
     {
-        get => _headerControl;
+        get;
         internal set
         {
-            _headerControl = value;
-            EnsureHeaderStyle();
+            if (field != value)
+            {
+                field = value;
+                EnsureHeaderStyle();
+            }
         }
     }
 
@@ -322,12 +319,12 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     internal double DesiredWidth
     {
-        get => _desiredWidth;
+        get;
         set
         {
-            if (_desiredWidth != value)
+            if (field != value)
             {
-                _desiredWidth = value;
+                field = value;
                 OwningCollection?.HandleColumnPropertyChanged(this, nameof(DesiredWidth));
             }
         }
@@ -348,11 +345,14 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     public SD? SortDirection
     {
-        get => _sortDirection;
+        get;
         set
         {
-            _sortDirection = value;
-            OnSortDirectionChanged();
+            if (field != value)
+            {
+                field = value;
+                OnSortDirectionChanged();
+            }
         }
     }
 
@@ -361,11 +361,14 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     public bool IsFiltered
     {
-        get => _isFiltered;
+        get;
         set
         {
-            _isFiltered = value;
-            OnIsFilteredChanged();
+            if (field != value)
+            {
+                field = value;
+                OnIsFilteredChanged();
+            }
         }
     }
 
@@ -374,12 +377,12 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     public bool IsFrozen
     {
-        get => _isFrozen;
+        get;
         internal set
         {
-            if (_isFrozen != value)
+            if (field != value)
             {
-                _isFrozen = value;
+                field = value;
                 OwningCollection?.HandleColumnPropertyChanged(this, nameof(IsFrozen));
             }
         }
@@ -401,8 +404,8 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     public Binding? ClipboardContentBinding
     {
-        get => _clipboardContentBinding ?? OperationContentBinding;
-        set => _clipboardContentBinding = value;
+        get => field ?? OperationContentBinding;
+        set;
     }
 
     /// <summary>
@@ -436,10 +439,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     internal void EnsureHeaderStyle()
     {
-        if (_headerControl is not null)
-        {
-            _headerControl.Style = HeaderStyle ?? TableView?.ColumnHeaderStyle;
-        }
+        HeaderControl?.Style = HeaderStyle ?? TableView?.ColumnHeaderStyle;
     }
 
     /// <summary>

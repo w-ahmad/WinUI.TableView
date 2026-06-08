@@ -28,7 +28,6 @@ namespace WinUI.TableView;
 #endif
 public partial class TableViewCell : ContentControl
 {
-    private TableViewColumn? _column;
     private ScrollViewer? _scrollViewer;
     private ContentPresenter? _contentPresenter;
     private Border? _selectionBorder;
@@ -65,6 +64,13 @@ public partial class TableViewCell : ContentControl
     {
         if (!e.TryGetPosition(sender, out var position)) return;
 #endif
+
+        // Select the cell before showing the Context Menu
+        if (TableView is not null && TableView.ForceRowOrCellSelectionOnContextRequested && !IsSelected)
+        {
+            TableView.MakeSelection(Slot, false);
+        }
+
         e.Handled = TableView?.ShowCellContext(this, position) is true;
     }
 
@@ -490,6 +496,8 @@ public partial class TableViewCell : ContentControl
             Focus(FocusState.Pointer);
         });
 #endif
+
+        DispatcherQueue.TryEnqueue(InvalidateMeasure);
     }
 
     /// <summary>
@@ -612,12 +620,12 @@ public partial class TableViewCell : ContentControl
     /// </summary>
     public TableViewColumn? Column
     {
-        get => _column;
+        get;
         internal set
         {
-            if (_column != value)
+            if (field != value)
             {
-                _column = value;
+                field = value;
                 OnColumnChanged();
             }
         }
