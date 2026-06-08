@@ -25,15 +25,9 @@ public partial class TableViewFilterMenuFlyout : Flyout
         Items = [];
         Opening += OnOpening;
         Closed += OnClosed;
-    }
 
-    /// <summary>
-    /// Finalizes an instance of the <see cref="TableViewFilterMenuFlyout"/> class.
-    /// </summary>
-    ~TableViewFilterMenuFlyout()
-    {
-        Opening -= OnOpening;
-        Closed -= OnClosed;
+        _okCommand.ExecuteRequested += delegate { ExecuteOkCommand(); };
+        _cancelCommand.ExecuteRequested += delegate { Hide(); };
     }
 
     /// <inheritdoc/>
@@ -76,8 +70,6 @@ public partial class TableViewFilterMenuFlyout : Flyout
         _filterItemsControl = presenter.FindDescendant<TableViewFilterItemsControl>();
         _filterItemsControl?.TableView = TableView;
         _filterItemsControl?.ColumnHeader = ColumnHeader;
-        _okCommand.ExecuteRequested += delegate { ExecuteOkCommand(); };
-        _cancelCommand.ExecuteRequested += delegate { Hide(); };
 
         okButton?.Command = _okCommand;
         cancelButton?.Command = _cancelCommand;

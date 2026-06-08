@@ -38,7 +38,6 @@ public partial class TableViewColumnHeader : ContentControl
     private TableViewHeaderRow? _headerRow;
     private Button? _optionsButton;
     private TableViewFilterMenuFlyout? _optionsFlyout;
-    private MenuFlyoutItem? _filterItemsMenuItem;
     private ContentPresenter? _contentPresenter;
     private Rectangle? _v_gridLine;
     private bool _resizeStarted;
@@ -240,7 +239,6 @@ public partial class TableViewColumnHeader : ContentControl
         _headerRow = this.FindAscendant<TableViewHeaderRow>();
         _optionsButton = GetTemplateChild("OptionsButton") as Button;
         _optionsFlyout = GetTemplateChild("OptionsFlyout") as TableViewFilterMenuFlyout;
-        _filterItemsMenuItem = GetTemplateChild("FilterItemsMenuItem") as MenuFlyoutItem;
         _contentPresenter = GetTemplateChild("ContentPresenter") as ContentPresenter;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
 
