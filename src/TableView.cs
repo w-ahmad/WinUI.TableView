@@ -326,6 +326,10 @@ public partial class TableView : ListView
             CopyToClipboardInternal(shiftKey);
             return true;
         }
+        else if (key == VirtualKey.V && ctrlKey && !shiftKey)
+        {
+            return TryStartPasteFromClipboard();
+        }
 
         return false;
     }
@@ -510,7 +514,7 @@ public partial class TableView : ListView
         var args = new TableViewCopyToClipboardEventArgs(includeHeaders);
         OnCopyToClipboard(args);
 
-        if (args.Handled)
+        if (!CanCopy || args.Handled)
         {
             return;
         }
