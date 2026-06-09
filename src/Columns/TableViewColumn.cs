@@ -170,6 +170,9 @@ public abstract partial class TableViewColumn : DependencyObject
             if (_compliedClipboardValueSetter is null && !string.IsNullOrWhiteSpace(ClipboardContentBindingPropertyPath))
                 _compliedClipboardValueSetter = dataItem.GetCompiledValueSetter(ClipboardContentBindingPropertyPath!);
 
+            if (_compliedClipboardValueSetter is null)
+                return false;
+
             if (ClipboardContentBinding?.Converter is not null)
             {
                 value = ClipboardContentBinding.Converter.ConvertBack(
@@ -179,7 +182,7 @@ public abstract partial class TableViewColumn : DependencyObject
                     ClipboardContentBinding.ConverterLanguage);
             }
 
-            _compliedClipboardValueSetter?.Invoke(dataItem, value);
+            _compliedClipboardValueSetter(dataItem, value);
             return true;
         }
         catch (Exception ex)

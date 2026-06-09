@@ -38,6 +38,7 @@ public partial class TableView
     /// </summary>
     private async void PasteFromClipboardAsync()
     {
+        var previousAllowLiveShaping = _collectionView.AllowLiveShaping;
         try
         {
             var content = Clipboard.GetContent();
@@ -59,10 +60,11 @@ public partial class TableView
                     RefreshView();
             }
 
-            _collectionView.AllowLiveShaping = true;
+            _collectionView.AllowLiveShaping = previousAllowLiveShaping;
         }
         catch (Exception ex)
         {
+            _collectionView.AllowLiveShaping = previousAllowLiveShaping;
             Debug.WriteLine($"TableView: Clipboard.GetText failed: {ex}");
         }
     }
@@ -109,9 +111,11 @@ public partial class TableView
                 var column = Columns.VisibleColumns[columnIndex];
                 var value = values[valueIndex];
 
-                if (column.IsReadOnly) continue;
+                if (!column.IsReadOnly)
+                {
+                    pastedAnyValue |= column.SetClipboardContent(item, value);
+                }
 
-                pastedAnyValue = column.SetClipboardContent(item, value);
                 columnIndex++;
             }
         }

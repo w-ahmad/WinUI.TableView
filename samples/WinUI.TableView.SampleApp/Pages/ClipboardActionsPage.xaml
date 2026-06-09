@@ -12,7 +12,7 @@
     <Grid>
         <controls:SamplePresenter Header="Clipboard Actions">
             <controls:SamplePresenter.Description>
-                <x:String xml:space="preserve">Use Ctrl+C, Ctrl+Shift+V or the corner options menu to copy the current selection.
+                <x:String xml:space="preserve">Use Ctrl+C, Ctrl+Shift+C or the corner options menu to copy the current selection.
 Paste tab-delimited data from Excel with Ctrl+V or the same menu.</x:String>
             </controls:SamplePresenter.Description>
             <controls:SamplePresenter.Example>
