@@ -222,6 +222,11 @@ public partial class TableView
     public static readonly DependencyProperty RowHeaderTemplateSelectorProperty = DependencyProperty.Register(nameof(RowHeaderTemplateSelector), typeof(DataTemplateSelector), typeof(TableView), new PropertyMetadata(null, OnRowHeaderTemplateChanged));
 
     /// <summary>
+    /// Identifies the ColumnAutoWidthMode dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ColumnAutoWidthModeProperty = DependencyProperty.Register(nameof(ColumnAutoWidthMode), typeof(ColumnAutoWidthMode), typeof(TableView), new PropertyMetadata(ColumnAutoWidthMode.Both));
+
+    /// <summary>
     /// Identifies the FrozenColumnCount dependency property.
     /// </summary>
     public static readonly DependencyProperty FrozenColumnCountProperty = DependencyProperty.Register(nameof(FrozenColumnCount), typeof(int), typeof(TableView), new PropertyMetadata(0, OnFrozenColumnCountChanged));
@@ -766,6 +771,15 @@ public partial class TableView
     {
         get => (DataTemplateSelector?)GetValue(RowHeaderTemplateSelectorProperty);
         set => SetValue(RowHeaderTemplateSelectorProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the ColumnAutoWidthMode for all columns.
+    /// </summary>
+    public ColumnAutoWidthMode ColumnAutoWidthMode
+    {
+        get => (ColumnAutoWidthMode)GetValue(ColumnAutoWidthModeProperty);
+        set => SetValue(ColumnAutoWidthModeProperty, value);
     }
 
     /// <summary>

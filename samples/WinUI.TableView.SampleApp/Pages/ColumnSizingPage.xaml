@@ -1,0 +1,82 @@
+<Page x:Class="WinUI.TableView.SampleApp.Pages.ColumnSizingPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:tv="using:WinUI.TableView"
+      xmlns:ui="using:CommunityToolkit.WinUI"
+      d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
+      mc:Ignorable="d">
+
+    <Grid>
+        <controls:SamplePresenter Description="This sample demonstrate the different ways column can be sized." 
+                                  Header="Column Sizing">
+            <controls:SamplePresenter.Example>
+                <tv:TableView x:Name="tableView"
+                              AutoGenerateColumns="False"
+                              CanSortColumns="False"
+                              DataContextChanged="OnDataContextChanged"
+                              GridLinesVisibility="None"
+                              ItemsSource="{Binding Items}">
+                    <tv:TableView.Columns>
+                        <tv:TableViewNumberColumn Binding="{Binding Id}" 
+                                                  Header="Id" />
+                        <tv:TableViewTextColumn Binding="{Binding FirstName}" 
+                                                Header="First Name" />
+                        <tv:TableViewTextColumn Binding="{Binding LastName}"
+                                                ColumnAutoWidthMode="Cells"
+                                                Header="Last Name" />
+                        <tv:TableViewTextColumn Binding="{Binding Email}"
+                                                Header="Email"
+                                                Width="{x:Bind (GridLength)columnWidth.SelectedValue, Mode=OneWay}" 
+                                                ColumnAutoWidthMode="{x:Bind (tv:ColumnAutoWidthMode)columnAutoWidthMode.SelectedValue, Mode=OneWay}"/>
+                        <tv:TableViewTextColumn Binding="{Binding Gender}"
+                                                Header="Gender Identity"
+                                                Width="{x:Bind (GridLength)columnWidth.SelectedValue, Mode=OneWay}" 
+                                                ColumnAutoWidthMode="{x:Bind (tv:ColumnAutoWidthMode)columnAutoWidthMode.SelectedValue, Mode=OneWay}"/>
+                        <tv:TableViewDateColumn Binding="{Binding Dob}" 
+                                                Header="Date of Birth" 
+                                                Width="{x:Bind (GridLength)columnWidth.SelectedValue, Mode=OneWay}" 
+                                                ColumnAutoWidthMode="{x:Bind (tv:ColumnAutoWidthMode)columnAutoWidthMode.SelectedValue, Mode=OneWay}"/>
+                    </tv:TableView.Columns>
+                </tv:TableView>
+            </controls:SamplePresenter.Example>
+            <controls:SamplePresenter.Options>
+                <StackPanel Spacing="16" MinWidth="200">
+                    <ComboBox x:Name="columnWidth"
+                              HorizontalAlignment="Stretch"
+                              Header="Widths of Last Three Columns"
+                              SelectedIndex="1"
+                              SelectedValuePath="Tag">
+                        <ComboBoxItem Content="200 pixels">
+                            <ComboBoxItem.Tag>
+                                <GridLength>200</GridLength>
+                            </ComboBoxItem.Tag>
+                        </ComboBoxItem>
+                        <ComboBoxItem Content="Star size">
+                            <ComboBoxItem.Tag>
+                                <GridLength>*</GridLength>
+                            </ComboBoxItem.Tag>
+                        </ComboBoxItem>
+                        <ComboBoxItem Content="Auto">
+                            <ComboBoxItem.Tag>
+                                <GridLength>Auto</GridLength>
+                            </ComboBoxItem.Tag>
+                        </ComboBoxItem>
+                    </ComboBox>
+                    <ComboBox x:Name="columnAutoWidthMode"  
+                              HorizontalAlignment="Stretch"
+                              Header="Column Auto Width Mode"
+                              SelectedIndex="0"
+                              SelectedValuePath="Tag">
+                        <ComboBoxItem Content="Both Header and Cells" Tag="{x:Bind tv:ColumnAutoWidthMode.Both}"/>
+                        <ComboBoxItem Content="Header" Tag="{x:Bind tv:ColumnAutoWidthMode.Header}"/>
+                        <ComboBoxItem Content="Cells" Tag="{x:Bind tv:ColumnAutoWidthMode.Cells}"/>
+                    </ComboBox>
+                </StackPanel>
+            </controls:SamplePresenter.Options>
+        </controls:SamplePresenter>
+    </Grid>
+</Page>
