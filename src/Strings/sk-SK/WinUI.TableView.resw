@@ -180,4 +180,10 @@
   <data name="Copy" xml:space="preserve">
     <value>Kopírovať</value>
   </data>
+  <data name="Paste" xml:space="preserve">
+    <value>Prilepiť</value>
+  </data>
+  <data name="PasteCommandDescription" xml:space="preserve">
+    <value>Prilepiť obsah schránky do buniek.</value>
+  </data>
 </root>

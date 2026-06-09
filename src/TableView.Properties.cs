@@ -273,6 +273,34 @@ public partial class TableView
     public static readonly DependencyProperty ForceRowOrCellSelectionOnContextRequestedProperty = DependencyProperty.Register(nameof(ForceRowOrCellSelectionOnContextRequested), typeof(bool), typeof(TableView), new PropertyMetadata(false));
 
     /// <summary>
+    /// Identifies the <see cref="CanCopy"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty CanCopyProperty = DependencyProperty.Register(nameof(CanCopy), typeof(bool), typeof(TableView), new PropertyMetadata(true));
+
+    /// <summary>
+    /// Identifies the <see cref="CanPaste"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty CanPasteProperty = DependencyProperty.Register(nameof(CanPaste), typeof(bool), typeof(TableView), new PropertyMetadata(true));
+
+    /// <summary>
+    /// Gets or sets a value that indicates whether users can copy selected cells or rows to the clipboard.
+    /// </summary>
+    public bool CanCopy
+    {
+        get => (bool)GetValue(CanCopyProperty);
+        set => SetValue(CanCopyProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value that indicates whether users can paste clipboard data into the TableView.
+    /// </summary>
+    public bool CanPaste
+    {
+        get => (bool)GetValue(CanPasteProperty);
+        set => SetValue(CanPasteProperty, value);
+    }
+
+    /// <summary>
     /// Gets or sets a value indicating whether opening the column filter over header right-click is enabled.
     /// </summary>
     public bool UseRightClickForColumnFilter
