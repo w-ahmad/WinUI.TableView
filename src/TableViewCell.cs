@@ -577,6 +577,40 @@ public partial class TableViewCell : ContentControl
     }
 
     /// <summary>
+    /// Ensures highlight colors are applied to the cell.
+    /// </summary>
+    internal void EnsureHighlightColors()
+    {
+        EnsureHighlightColors(TableView?.GetRowHighlight(Row?.Index ?? -1));
+    }
+
+    /// <summary>
+    /// Ensures highlight colors are applied to the cell.
+    /// A row highlight takes precedence over the column highlight where the two intersect.
+    /// </summary>
+    /// <param name="rowHighlight">The active highlight of the cell's row, if any.</param>
+    internal void EnsureHighlightColors(TableViewRowHighlight? rowHighlight)
+    {
+        if (rowHighlight?.Background is null && Column?.HighlightBackground is { } background)
+        {
+            Background = background;
+        }
+        else
+        {
+            ClearValue(BackgroundProperty);
+        }
+
+        if (rowHighlight?.Foreground is null && Column?.HighlightForeground is { } foreground)
+        {
+            Foreground = foreground;
+        }
+        else
+        {
+            ClearValue(ForegroundProperty);
+        }
+    }
+
+    /// <summary>
     /// Ensures the correct style is applied to the cell.
     /// </summary>
     /// <param name="item">The data item associated with the cell.</param>

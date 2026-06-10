@@ -262,6 +262,11 @@ public partial class TableView
     public static readonly DependencyProperty ConditionalCellStylesProperty = DependencyProperty.Register(nameof(ConditionalCellStyles), typeof(IList<TableViewConditionalCellStyle>), typeof(TableView), new PropertyMetadata(default));
 
     /// <summary>
+    /// Identifies the <see cref="RowHighlights"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty RowHighlightsProperty = DependencyProperty.Register(nameof(RowHighlights), typeof(TableViewRowHighlightsCollection), typeof(TableView), new PropertyMetadata(null, OnRowHighlightsChanged));
+
+    /// <summary>
     /// Identifies the <see cref="ShowFilterItemsCount"/> dependency property.
     /// </summary>
     public static readonly DependencyProperty ShowFilterItemsCountProperty = DependencyProperty.Register(nameof(ShowFilterItemsCount), typeof(bool), typeof(TableView), new PropertyMetadata(false));
@@ -354,6 +359,17 @@ public partial class TableView
     {
         get => (IList<TableViewConditionalCellStyle>)GetValue(ConditionalCellStylesProperty);
         set => SetValue(ConditionalCellStylesProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the collection of row highlights. A row highlight colors a single row,
+    /// the same way the <see cref="AlternateRowBackground"/> and <see cref="AlternateRowForeground"/> brushes do,
+    /// and takes precedence over them.
+    /// </summary>
+    public TableViewRowHighlightsCollection RowHighlights
+    {
+        get => (TableViewRowHighlightsCollection)GetValue(RowHighlightsProperty);
+        set => SetValue(RowHighlightsProperty, value);
     }
 
     /// <summary>
@@ -1000,6 +1016,27 @@ public partial class TableView
     {
         if (d is TableView tableView)
         {
+            tableView.EnsureAlternateRowColors();
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the RowHighlights property.
+    /// </summary>
+    private static void OnRowHighlightsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            if (e.OldValue is TableViewRowHighlightsCollection oldHighlights)
+            {
+                oldHighlights.HighlightsChanged -= tableView.OnRowHighlightsCollectionChanged;
+            }
+
+            if (e.NewValue is TableViewRowHighlightsCollection newHighlights)
+            {
+                newHighlights.HighlightsChanged += tableView.OnRowHighlightsCollectionChanged;
+            }
+
             tableView.EnsureAlternateRowColors();
         }
     }

@@ -1,0 +1,109 @@
+<Page x:Class="WinUI.TableView.SampleApp.Pages.HighlightsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:tv="using:WinUI.TableView"
+      xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
+      xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
+      d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
+      mc:Ignorable="d">
+
+    <Grid>
+        <controls:SamplePresenter Header="Row &amp; Column Highlights"
+                                  Description="Showcasing highlighting individual rows and columns, each with its own colors.">
+            <controls:SamplePresenter.Example>
+                <tv:TableView x:Name="tableView"
+                              ItemsSource="{Binding Items}"
+                              AutoGeneratingColumn="{x:Bind local:ExampleModelColumnsHelper.OnAutoGeneratingColumns}">
+                </tv:TableView>
+            </controls:SamplePresenter.Example>
+            <controls:SamplePresenter.Options>
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Row highlight"
+                               Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <NumberBox x:Name="rowIndexBox"
+                               Header="Row index"
+                               Minimum="0"
+                               Value="2"
+                               SpinButtonPlacementMode="Inline" />
+                    <TextBlock Text="Background / Foreground" />
+                    <StackPanel Spacing="8"
+                                Orientation="Horizontal">
+                        <toolkit:ColorPickerButton x:Name="rowBackgroundPicker"
+                                                   SelectedColor="#50515C6B" />
+                        <toolkit:ColorPickerButton x:Name="rowForegroundPicker"
+                                                   SelectedColor="#FF00FFFF" />
+                    </StackPanel>
+                    <StackPanel Spacing="8"
+                                Orientation="Horizontal">
+                        <Button Content="Highlight row"
+                                Click="OnHighlightRow" />
+                        <Button Content="Clear"
+                                Click="OnClearRowHighlight" />
+                    </StackPanel>
+
+                    <TextBlock Text="Column highlight"
+                               Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <ComboBox x:Name="columnComboBox"
+                              Header="Column"
+                              MinWidth="160" />
+                    <TextBlock Text="Background / Foreground" />
+                    <StackPanel Spacing="8"
+                                Orientation="Horizontal">
+                        <toolkit:ColorPickerButton x:Name="columnBackgroundPicker"
+                                                   SelectedColor="#5046C7B4" />
+                        <toolkit:ColorPickerButton x:Name="columnForegroundPicker"
+                                                   SelectedColor="#FFFFD700" />
+                    </StackPanel>
+                    <StackPanel Spacing="8"
+                                Orientation="Horizontal">
+                        <Button Content="Highlight column"
+                                Click="OnHighlightColumn" />
+                        <Button Content="Clear"
+                                Click="OnClearColumnHighlight" />
+                    </StackPanel>
+
+                    <Button Content="Clear all highlights"
+                            Click="OnClearAllHighlights" />
+                </StackPanel>
+            </controls:SamplePresenter.Options>
+            <controls:SamplePresenter.Xaml>
+                <x:String xml:space="preserve">
+&lt;tv:TableView x:Name="tableView"
+    ItemsSource="{Binding Items}"&gt;
+    &lt;tv:TableView.RowHighlights&gt;
+        &lt;tv:TableViewRowHighlight Index="2"
+            Background="#50515C6B"
+            Foreground="#FF00FFFF" /&gt;
+    &lt;/tv:TableView.RowHighlights&gt;
+&lt;/tv:TableView&gt;
+                </x:String>
+            </controls:SamplePresenter.Xaml>
+            <controls:SamplePresenter.CSharp>
+                <x:String xml:space="preserve">
+// Highlight a single row, e.g. from an external tool
+tableView.HighlightRow(2, background, foreground);
+
+// or edit the RowHighlights collection directly
+tableView.RowHighlights.Add(new TableViewRowHighlight
+{
+    Index = 2,
+    Background = new SolidColorBrush(Colors.Gold)
+});
+
+// Highlight columns, each with its own colors
+tableView.HighlightColumn(1, background, foreground);
+
+// or set the brushes on the column object directly
+tableView.Columns[3].HighlightBackground = new SolidColorBrush(Colors.SeaGreen);
+
+// Clear highlights
+tableView.ClearRowHighlight(2);
+tableView.ClearColumnHighlights();
+                </x:String>
+            </controls:SamplePresenter.CSharp>
+        </controls:SamplePresenter>
+    </Grid>
+</Page>

@@ -101,6 +101,11 @@
                         </FontIcon>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
+                <NavigationViewItem Content="Row &amp; Column Highlights">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE7E6;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
                 <NavigationViewItem Content="Context Flyouts">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE8A4;" />

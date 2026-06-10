@@ -408,6 +408,7 @@ public partial class TableViewRowPresenter : Control
         }
 
         cell.EnsureStyle(TableViewRow?.Content);
+        cell.EnsureHighlightColors();
     }
 
     /// <summary>

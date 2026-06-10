@@ -96,6 +96,7 @@ public sealed partial class NavigationPage : Page
                 "Selection" => typeof(SelectionPage),
                 "Corner Button" => typeof(CornerButtonPage),
                 "Alternate Row Color" => typeof(AlternateRowColorPage),
+                "Row & Column Highlights" => typeof(HighlightsPage),
                 "Context Flyouts" => typeof(ContextFlyoutsPage),
                 "Row Reorder" => typeof(ReorderRowsPage),
                 "Pagination" => typeof(PaginationPage),
