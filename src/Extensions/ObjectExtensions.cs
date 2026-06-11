@@ -15,23 +15,23 @@ namespace WinUI.TableView.Extensions;
 /// </summary>
 internal static partial class ObjectExtensions
 {
-    // Regex to split property paths into property names and indexers (for cases like e.g. "[2].Foo[0].Bar", where Foo might be a Property that returns an array)
+    // Regex to split binding paths into segments; property names and indexers (for cases like e.g. "[2].Foo[0].Bar", where Foo might be a Property that returns an array)
     [GeneratedRegex(@"([^.[]+)|(\[[^\]]+\])", RegexOptions.Compiled)]
-    private static partial Regex PropertyPathRegex();
+    private static partial Regex BindingPathRegex();
 
     /// <summary>
-    /// Creates and returns a compiled lambda expression for accessing the property path on instances, with runtime type checking and casting support.
+    /// Creates and returns a compiled lambda expression for accessing the binding path on instances, with runtime type checking and casting support.
     /// </summary>
     /// <param name="dataItem">The data item instance to use for runtime type evaluation.</param>
     /// <param name="bindingPath">The binding path to access, e.g. "[0].SubPropertyArray[0].SubSubProperty".</param>
-    /// <returns>A compiled function that takes an instance and returns the property value, or null if the property path is invalid.</returns>
+    /// <returns>A compiled function that takes an instance and returns the property value, or null if the binding path is invalid.</returns>
     internal static Func<object, object?>? GetCompiledValueGetter(this object dataItem, string bindingPath)
     {
         try
         {
             // Build the property access expression chain with runtime type checking
             var parameterObj = Expression.Parameter(typeof(object), "obj");
-            var expressionTree = BuildPropertyPathExpressionTree(parameterObj, bindingPath, dataItem);
+            var expressionTree = BuildGetterExpressionTree(parameterObj, bindingPath, dataItem);
 
             // Compile the lambda expression
             var lambda = Expression.Lambda<Func<object, object?>>(expressionTree, parameterObj);
@@ -50,7 +50,7 @@ internal static partial class ObjectExtensions
             var parameterObj = Expression.Parameter(typeof(object), "obj");
             var parameterValue = Expression.Parameter(typeof(object), "value");
 
-            var expressionTree = BuildPropertyPathSetterExpressionTree(
+            var expressionTree = BuildSetterExpressionTree(
                 parameterObj,
                 parameterValue,
                 bindingPath,
@@ -69,9 +69,9 @@ internal static partial class ObjectExtensions
         }
     }
 
-    private static Expression BuildPropertyPathSetterExpressionTree(ParameterExpression parameterObj, ParameterExpression parameterValue, string bindingPath, object dataItem)
+    private static Expression BuildSetterExpressionTree(ParameterExpression parameterObj, ParameterExpression parameterValue, string bindingPath, object dataItem)
     {
-        var matches = PropertyPathRegex().Matches(bindingPath);
+        var matches = BindingPathRegex().Matches(bindingPath);
 
         if (matches.Count == 0)
             throw new ArgumentException("Binding path is empty.", nameof(bindingPath));
@@ -519,17 +519,17 @@ internal static partial class ObjectExtensions
     }
 
     /// <summary>
-    /// Builds an expression tree for accessing a property path on the given instance expression, with runtime type checking and casting support.
+    /// Builds an expression tree for accessing a binding path on the given instance expression, with runtime type checking and casting support.
     /// </summary>
     /// <param name="parameterObj">The expression representing the instance parameter for which the binding path will be evaluated.</param>
     /// <param name="bindingPath">The binding path to access.</param>
     /// <param name="dataItem">The actual data item to use for runtime type evaluation, to help with any needed subclass type conversions.</param>
     /// <returns>An expression that accesses the property value specified by the binding path for the provided dataItem instance.</returns>
-    private static Expression BuildPropertyPathExpressionTree(ParameterExpression parameterObj, string bindingPath, object dataItem)
+    private static Expression BuildGetterExpressionTree(ParameterExpression parameterObj, string bindingPath, object dataItem)
     {
         Expression current = parameterObj;
 
-        var matches = PropertyPathRegex().Matches(bindingPath);
+        var matches = BindingPathRegex().Matches(bindingPath);
 
         // The function uses a generic object input parameter to allow for any type of data item,
         // but we cast only to the root type that actually declares the first path segment.
