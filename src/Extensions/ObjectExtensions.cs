@@ -78,10 +78,17 @@ internal static partial class ObjectExtensions
 
         Expression current = parameterObj;
 
-        var actualType = dataItem.GetType();
-
-        if (current.Type != actualType && !actualType.IsValueType)
-            current = Expression.Convert(current, actualType);
+        // The function uses a generic object input parameter to allow for any type of data item,
+        // but we cast only to the root type that actually declares the first path segment.
+        // This keeps the accessor compatible with sibling subclasses in mixed collections.
+        {
+            var t = dataItem.GetType();
+            // Resolve the declaring type for the first segment (property or indexer).
+            // If we cannot resolve it, keep the original runtime type as fallback.
+            var typeRoot = matches.Count > 0 ? GetDeclaringTypeForPathSegment(t, matches[0].Value) ?? t : t;
+            if (current.Type != typeRoot && !typeRoot.IsValueType)
+                current = Expression.Convert(current, typeRoot);
+        }
 
         // Navigate to the parent object of the final path segment.
         for (int i = 0; i < matches.Count - 1; i++)
@@ -101,10 +108,13 @@ internal static partial class ObjectExtensions
             if (currentValue is null)
                 throw new ArgumentException($"Cannot build setter. Path segment '{part}' evaluates to null.");
 
-            var runtimeType = currentValue.GetType();
+            // Use the declaring type of the NEXT segment instead of the sample instance's runtime type.
+            // This prevents lock-in to a specific sibling subtype and maintains mixed-collection compatibility.
+            var nextSegment = matches[i + 1].Value;
+            var typeCompatible = GetDeclaringTypeForPathSegment(currentValue.GetType(), nextSegment) ?? currentValue.GetType();
 
-            if (current.Type != runtimeType)
-                current = Expression.Convert(current, runtimeType);
+            if (current.Type != typeCompatible)
+                current = Expression.Convert(current, typeCompatible);
         }
 
         var finalPart = matches[^1].Value;
