@@ -519,19 +519,23 @@ internal static partial class ObjectExtensions
     {
         Expression current = parameterObj;
 
-        // The function uses a generic object input parameter to allow for any type of data item,
-        // but we need to ensure that the runtime type matches the data item type that is inputted as example to be able to find members
-        {
-            var typeActual = dataItem.GetType();
-            if (current.Type != typeActual && !typeActual.IsValueType)
-                current = Expression.Convert(current, dataItem.GetType());
-        }
-
         var matches = PropertyPathRegex().Matches(bindingPath);
 
-        foreach (Match match in matches)
+        // The function uses a generic object input parameter to allow for any type of data item,
+        // but we cast only to the root type that actually declares the first path segment.
+        // This keeps the accessor compatible with sibling subclasses in mixed collections.
         {
-            string part = match.Value;
+            var t = dataItem.GetType();
+            // Resolve the declaring type for the first segment (property or indexer).
+            // If we cannot resolve it, keep the original runtime type as fallback.
+            var typeRoot = matches.Count > 0 ? GetDeclaringTypeForPathSegment(t, matches[0].Value) ?? t : t;
+            if (current.Type != typeRoot && !typeRoot.IsValueType)
+                current = Expression.Convert(current, typeRoot);
+        }
+
+        for (var matchIndex = 0; matchIndex < matches.Count; matchIndex++)
+        {
+            var part = matches[matchIndex].Value;
             Expression nextPropertyAccess;
 
             // Indexer
@@ -577,21 +581,28 @@ internal static partial class ObjectExtensions
                 );
             }
 
-            // Only check for type compatibility (i.e.: the need for conversion) if this is not the last match
-            if (match != matches[^1])
+            // Only check for type compatibility (i.e.: the need for conversion) if this is not the last match.
+            // We only specialize when the expression type is still object, to avoid over-specializing
+            // to a sample instance subtype and breaking mixed type rows.
+            if (matchIndex < matches.Count - 1 && current.Type == typeof(object))
             {
-                // Compile a lambda of the partial expression thus far (cast to object), to see if we need to add a cast
                 var lambdaTemp = Expression.Lambda<Func<object, object?>>(EnsureObjectCompatibleResult(current), parameterObj);
                 var funcCurrent = lambdaTemp.Compile();
-                // Evaluate this compiled function, to see if the result type is more specific than the current expression type. If so, cast to it
                 var result = funcCurrent(dataItem);
-                var typeResult = result?.GetType() ?? current.Type;
 
-                if (current.Type != typeResult)
+                // The partial result gives us the runtime container for the NEXT segment.
+                // Convert to the most general declaring type for that next segment (property/indexer)
+                // instead of converting directly to the concrete runtime subtype.
+                var typeResult = result?.GetType();
+                if (typeResult != null)
                 {
-                    // Note that we do not need to check for null before we convert, as the null check is already done in the previous condition
-                    // So, we can safely convert the expression to the result type, even for value types (without the null check, a conversion of null to e.g. an int would result in a NullException being thrown)
-                    current = Expression.Convert(current, typeResult);
+                    var nextPart = matches[matchIndex + 1].Value;
+                    var typeCompatible = GetDeclaringTypeForPathSegment(typeResult, nextPart) ?? typeResult;
+
+                    if (current.Type != typeCompatible)
+                    {
+                        current = Expression.Convert(current, typeCompatible);
+                    }
                 }
             }
         }
@@ -605,6 +616,48 @@ internal static partial class ObjectExtensions
         if (expression.Type.IsValueType)
             return Expression.Convert(expression, typeof(object));
         return expression;
+    }
+
+    /// <summary>
+    /// Resolves the declaring type for one binding-path segment on the provided candidate type.
+    /// </summary>
+    /// <param name="candidateType">The type on which the segment should be resolved.</param>
+    /// <param name="segment">One binding path segment, either a property name or an indexer token like "[0]".</param>
+    /// <returns>The segment declaring type when resolved; otherwise <see langword="null"/>.</returns>
+    private static Type? GetDeclaringTypeForPathSegment(Type candidateType, string segment)
+    {
+        if (string.IsNullOrWhiteSpace(segment))
+            return null;
+
+        // Indexer segment
+        if (segment.StartsWith('[') && segment.EndsWith(']'))
+        {
+            // Infer CLR argument types from parsed index values.
+            var indices = GetIndices(segment[1..^1]);
+            var indexTypes = indices.Select(i => i.GetType()).ToArray();
+
+            // Find an indexer whose parameter list is assignment-compatible with parsed index types.
+            // GetProperties includes inherited members, so we can resolve indexers declared on a base class as well.
+            var indexerInfo = candidateType
+                .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                .Where(p => p.GetIndexParameters().Length == indexTypes.Length)
+                .FirstOrDefault(p =>
+                {
+                    var indexParameters = p.GetIndexParameters();
+                    for (var i = 0; i < indexParameters.Length; i++)
+                    {
+                        if (!indexParameters[i].ParameterType.IsAssignableFrom(indexTypes[i]))
+                            return false;
+                    }
+                    return true;
+                });
+
+            return indexerInfo?.DeclaringType;
+        }
+
+        // Property segment
+        var propertyInfo = candidateType.GetProperty(segment, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        return propertyInfo?.DeclaringType;
     }
 
     /// <summary>
