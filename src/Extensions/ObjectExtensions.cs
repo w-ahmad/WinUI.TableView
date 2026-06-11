@@ -76,46 +76,9 @@ internal static partial class ObjectExtensions
         if (matches.Count == 0)
             throw new ArgumentException("Binding path is empty.", nameof(bindingPath));
 
-        Expression current = parameterObj;
-
-        // The function uses a generic object input parameter to allow for any type of data item,
-        // but we cast only to the root type that actually declares the first path segment.
-        // This keeps the accessor compatible with sibling subclasses in mixed collections.
-        {
-            var t = dataItem.GetType();
-            // Resolve the declaring type for the first segment (property or indexer).
-            // If we cannot resolve it, keep the original runtime type as fallback.
-            var typeRoot = matches.Count > 0 ? GetDeclaringTypeForPathSegment(t, matches[0].Value) ?? t : t;
-            if (current.Type != typeRoot && !typeRoot.IsValueType)
-                current = Expression.Convert(current, typeRoot);
-        }
-
-        // Navigate to the parent object of the final path segment.
-        for (int i = 0; i < matches.Count - 1; i++)
-        {
-            var part = matches[i].Value;
-
-            current = part.StartsWith('[') && part.EndsWith(']')
-                ? BuildIndexerGetterExpression(current, part)
-                : BuildPropertyGetterExpression(current, part);
-
-            var lambdaTemp = Expression.Lambda<Func<object, object?>>(
-                EnsureObjectCompatibleResult(current),
-                parameterObj);
-
-            var currentValue = lambdaTemp.Compile()(dataItem);
-
-            if (currentValue is null)
-                throw new ArgumentException($"Cannot build setter. Path segment '{part}' evaluates to null.");
-
-            // Use the declaring type of the NEXT segment instead of the sample instance's runtime type.
-            // This prevents lock-in to a specific sibling subtype and maintains mixed-collection compatibility.
-            var nextSegment = matches[i + 1].Value;
-            var typeCompatible = GetDeclaringTypeForPathSegment(currentValue.GetType(), nextSegment) ?? currentValue.GetType();
-
-            if (current.Type != typeCompatible)
-                current = Expression.Convert(current, typeCompatible);
-        }
+        // Reuse the getter's navigation logic to reach the parent of the final segment.
+        // Only the final segment is setter-specific (a write target instead of a read).
+        var current = BuildPathNavigationExpression(parameterObj, matches, dataItem, matches.Count - 1);
 
         var finalPart = matches[^1].Value;
 
@@ -271,7 +234,14 @@ internal static partial class ObjectExtensions
                 typeof(IList).IsAssignableFrom(current.Type) ||
                 typeof(ICollection).IsAssignableFrom(current.Type))
             {
-                var countProperty = current.Type.GetProperty("Count");
+                // Count may be declared on a base interface (e.g. IList inherits Count from ICollection),
+                // and reflection does not surface inherited interface members, so search interfaces too.
+                // The container type is no longer specialized to the concrete runtime type during navigation,
+                // so current.Type can legitimately be an interface like IList here.
+                var countProperty = current.Type.GetProperty("Count")
+                    ?? current.Type.GetInterfaces()
+                        .Select(i => i.GetProperty("Count"))
+                        .FirstOrDefault(p => p is not null);
 
                 if (countProperty != null)
                 {
@@ -497,27 +467,6 @@ internal static partial class ObjectExtensions
         }
     }
 
-    private static Expression ConvertValueExpression(Expression value, Type targetType)
-    {
-        if (targetType == typeof(object))
-            return value;
-
-        var nullableType = Nullable.GetUnderlyingType(targetType);
-
-        if (nullableType is not null)
-        {
-            return Expression.Condition(
-                Expression.Equal(value, Expression.Constant(null)),
-                Expression.Constant(null, targetType),
-                Expression.Convert(value, targetType));
-        }
-
-        if (!targetType.IsValueType)
-            return Expression.Convert(value, targetType);
-
-        return Expression.Convert(value, targetType);
-    }
-
     /// <summary>
     /// Builds an expression tree for accessing a binding path on the given instance expression, with runtime type checking and casting support.
     /// </summary>
@@ -527,9 +476,28 @@ internal static partial class ObjectExtensions
     /// <returns>An expression that accesses the property value specified by the binding path for the provided dataItem instance.</returns>
     private static Expression BuildGetterExpressionTree(ParameterExpression parameterObj, string bindingPath, object dataItem)
     {
-        Expression current = parameterObj;
-
         var matches = BindingPathRegex().Matches(bindingPath);
+
+        // Navigate through every segment to reach the final value.
+        var current = BuildPathNavigationExpression(parameterObj, matches, dataItem, matches.Count);
+
+        return EnsureObjectCompatibleResult(current);
+    }
+
+    /// <summary>
+    /// Builds the expression that navigates the first <paramref name="navigateCount"/> segments of a binding path on
+    /// the given instance expression, with runtime null-checks and mixed-collection-friendly type specialization.
+    /// Shared by both the getter (which navigates every segment) and the setter (which navigates to the parent of the
+    /// final segment), so the navigation logic only lives in one place.
+    /// </summary>
+    /// <param name="parameterObj">The expression representing the instance parameter for which the binding path will be evaluated.</param>
+    /// <param name="matches">The parsed binding path segments.</param>
+    /// <param name="dataItem">The actual data item to use for runtime type evaluation, to help with any needed subclass type conversions.</param>
+    /// <param name="navigateCount">The number of leading segments to navigate into.</param>
+    /// <returns>An expression that accesses the value at the requested depth for the provided dataItem instance.</returns>
+    private static Expression BuildPathNavigationExpression(ParameterExpression parameterObj, MatchCollection matches, object dataItem, int navigateCount)
+    {
+        Expression current = parameterObj;
 
         // The function uses a generic object input parameter to allow for any type of data item,
         // but we cast only to the root type that actually declares the first path segment.
@@ -543,37 +511,13 @@ internal static partial class ObjectExtensions
                 current = Expression.Convert(current, typeRoot);
         }
 
-        for (var matchIndex = 0; matchIndex < matches.Count; matchIndex++)
+        for (var matchIndex = 0; matchIndex < navigateCount; matchIndex++)
         {
             var part = matches[matchIndex].Value;
-            Expression nextPropertyAccess;
 
-            // Indexer
-            if (part.StartsWith('[') && part.EndsWith(']'))
-            {
-                object[] indices = GetIndices(part[1..^1]);
-
-                if (current.Type.IsArray)
-                {
-                    // Arrays only support integer indexing
-                    if (!indices.All(idx => idx is int))
-                        throw new ArgumentException($"Arrays only support integer indexing, not the provided indexer [{part[1..^1]}]");
-
-                    nextPropertyAccess = AddArrayAccessWithBoundsCheck(current, [.. indices.Select(index => (int)index)]);
-                }
-                else
-                {
-                    nextPropertyAccess = AddIndexerAccessWithSafetyChecks(current, indices);
-                }
-            }
-            // Simple property access
-            else
-            {
-                var propertyInfo = current.Type.GetProperty(part, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                    ?? throw new ArgumentException($"Property '{part}' not found on type '{current.Type.Name}'");
-
-                nextPropertyAccess = Expression.Property(current, propertyInfo);
-            }
+            var nextPropertyAccess = part.StartsWith('[') && part.EndsWith(']')
+                ? BuildIndexerGetterExpression(current, part)
+                : BuildPropertyGetterExpression(current, part);
 
             if (nextPropertyAccess.Type.IsValueType && !nextPropertyAccess.Type.IsNullableType())
             {
@@ -591,10 +535,10 @@ internal static partial class ObjectExtensions
                 );
             }
 
-            // Only check for type compatibility (i.e.: the need for conversion) if this is not the last match.
+            // Only check for type compatibility (i.e.: the need for conversion) if there is a following segment.
             // We only specialize when the expression type is still object, to avoid over-specializing
             // to a sample instance subtype and breaking mixed type rows.
-            if (matchIndex < matches.Count - 1 && current.Type == typeof(object))
+            if (matchIndex + 1 < matches.Count && current.Type == typeof(object))
             {
                 var lambdaTemp = Expression.Lambda<Func<object, object?>>(EnsureObjectCompatibleResult(current), parameterObj);
                 var funcCurrent = lambdaTemp.Compile();
@@ -617,7 +561,7 @@ internal static partial class ObjectExtensions
             }
         }
 
-        return EnsureObjectCompatibleResult(current);
+        return current;
     }
 
     private static Expression EnsureObjectCompatibleResult(Expression expression)
