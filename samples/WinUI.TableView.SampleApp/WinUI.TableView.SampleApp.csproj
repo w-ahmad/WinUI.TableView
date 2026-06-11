@@ -11,8 +11,6 @@
     <ApplicationIcon>Assets/TableView.ico</ApplicationIcon>
     <UseWinUI>true</UseWinUI>
     <EnableMsixTooling>true</EnableMsixTooling>
-    <!-- Unpackaged starten (auch F5 in Visual Studio), kein MSIX-Deploy noetig -->
-    <WindowsPackageType>None</WindowsPackageType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>
       DISABLE_XAML_GENERATED_BINDING_DEBUG_OUTPUT;
