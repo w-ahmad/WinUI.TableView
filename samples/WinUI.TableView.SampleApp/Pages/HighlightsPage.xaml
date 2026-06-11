@@ -65,6 +65,20 @@
                                 Click="OnClearColumnHighlight" />
                     </StackPanel>
 
+                    <TextBlock Text="Overlap behavior"
+                               Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <ToggleSwitch x:Name="mergeToggle"
+                                  Header="Merge colors when overlapping"
+                                  Toggled="OnMergeToggled" />
+                    <ComboBox x:Name="priorityComboBox"
+                              Header="Winner when not merging"
+                              MinWidth="160"
+                              SelectedIndex="0"
+                              SelectionChanged="OnPriorityChanged">
+                        <ComboBoxItem Content="Row" />
+                        <ComboBoxItem Content="Column" />
+                    </ComboBox>
+
                     <Button Content="Clear all highlights"
                             Click="OnClearAllHighlights" />
                 </StackPanel>

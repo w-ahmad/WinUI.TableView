@@ -33,7 +33,11 @@ public sealed partial class MainPage : Page
         SetLoading(false);
 
 #if DEBUG
-        navigationView.SelectedItem = navigationView.MenuItems[2];
+        // Beim Debuggen direkt auf der Row-Highlights-Seite starten
+        navigationView.SelectedItem = navigationView.MenuItems
+            .OfType<NavigationViewItem>()
+            .FirstOrDefault(i => i.Content as string == "Row Highlights")
+            ?? navigationView.MenuItems[2];
 #else
         navigationView.SelectedItem = overViewNavItem;
 #endif

@@ -86,4 +86,17 @@ public sealed partial class HighlightsPage : Page
         tableView.ClearRowHighlights();
         tableView.ClearColumnHighlights();
     }
+
+    private void OnMergeToggled(object sender, RoutedEventArgs e)
+    {
+        tableView.MergeOverlappingHighlights = mergeToggle.IsOn;
+        priorityComboBox.IsEnabled = !mergeToggle.IsOn;
+    }
+
+    private void OnPriorityChanged(object sender, SelectionChangedEventArgs e)
+    {
+        tableView.OverlappingHighlightPriority = priorityComboBox.SelectedIndex == 1
+            ? TableViewHighlightPriority.Column
+            : TableViewHighlightPriority.Row;
+    }
 }
