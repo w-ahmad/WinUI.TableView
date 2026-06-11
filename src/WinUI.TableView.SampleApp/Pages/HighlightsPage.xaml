@@ -78,6 +78,11 @@
             Background="#50515C6B"
             Foreground="#FF00FFFF" /&gt;
     &lt;/tv:TableView.RowHighlights&gt;
+    &lt;tv:TableView.ColumnHighlights&gt;
+        &lt;tv:TableViewColumnHighlight Index="1"
+            Background="#5046C7B4"
+            Foreground="#FFFFD700" /&gt;
+    &lt;/tv:TableView.ColumnHighlights&gt;
 &lt;/tv:TableView&gt;
                 </x:String>
             </controls:SamplePresenter.Xaml>
@@ -96,8 +101,12 @@ tableView.RowHighlights.Add(new TableViewRowHighlight
 // Highlight columns, each with its own colors
 tableView.HighlightColumn(1, background, foreground);
 
-// or set the brushes on the column object directly
-tableView.Columns[3].HighlightBackground = new SolidColorBrush(Colors.SeaGreen);
+// or edit the ColumnHighlights collection directly
+tableView.ColumnHighlights.Add(new TableViewColumnHighlight
+{
+    Index = 3,
+    Background = new SolidColorBrush(Colors.SeaGreen)
+});
 
 // Clear highlights
 tableView.ClearRowHighlight(2);

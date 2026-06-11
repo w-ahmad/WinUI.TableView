@@ -267,6 +267,11 @@ public partial class TableView
     public static readonly DependencyProperty RowHighlightsProperty = DependencyProperty.Register(nameof(RowHighlights), typeof(TableViewRowHighlightsCollection), typeof(TableView), new PropertyMetadata(null, OnRowHighlightsChanged));
 
     /// <summary>
+    /// Identifies the <see cref="ColumnHighlights"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ColumnHighlightsProperty = DependencyProperty.Register(nameof(ColumnHighlights), typeof(TableViewColumnHighlightsCollection), typeof(TableView), new PropertyMetadata(null, OnColumnHighlightsChanged));
+
+    /// <summary>
     /// Identifies the <see cref="ShowFilterItemsCount"/> dependency property.
     /// </summary>
     public static readonly DependencyProperty ShowFilterItemsCountProperty = DependencyProperty.Register(nameof(ShowFilterItemsCount), typeof(bool), typeof(TableView), new PropertyMetadata(false));
@@ -370,6 +375,18 @@ public partial class TableView
     {
         get => (TableViewRowHighlightsCollection)GetValue(RowHighlightsProperty);
         set => SetValue(RowHighlightsProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the collection of column highlights. A column highlight colors every cell
+    /// of a single column, the same way the <see cref="AlternateRowBackground"/> and
+    /// <see cref="AlternateRowForeground"/> brushes do. Row highlights take precedence
+    /// over column highlights at intersecting cells.
+    /// </summary>
+    public TableViewColumnHighlightsCollection ColumnHighlights
+    {
+        get => (TableViewColumnHighlightsCollection)GetValue(ColumnHighlightsProperty);
+        set => SetValue(ColumnHighlightsProperty, value);
     }
 
     /// <summary>
@@ -1035,6 +1052,27 @@ public partial class TableView
             if (e.NewValue is TableViewRowHighlightsCollection newHighlights)
             {
                 newHighlights.HighlightsChanged += tableView.OnRowHighlightsCollectionChanged;
+            }
+
+            tableView.EnsureAlternateRowColors();
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the ColumnHighlights property.
+    /// </summary>
+    private static void OnColumnHighlightsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            if (e.OldValue is TableViewColumnHighlightsCollection oldHighlights)
+            {
+                oldHighlights.HighlightsChanged -= tableView.OnColumnHighlightsCollectionChanged;
+            }
+
+            if (e.NewValue is TableViewColumnHighlightsCollection newHighlights)
+            {
+                newHighlights.HighlightsChanged += tableView.OnColumnHighlightsCollectionChanged;
             }
 
             tableView.EnsureAlternateRowColors();

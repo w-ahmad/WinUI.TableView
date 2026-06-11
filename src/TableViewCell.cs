@@ -591,7 +591,11 @@ public partial class TableViewCell : ContentControl
     /// <param name="rowHighlight">The active highlight of the cell's row, if any.</param>
     internal void EnsureHighlightColors(TableViewRowHighlight? rowHighlight)
     {
-        if (rowHighlight?.Background is null && Column?.HighlightBackground is { } background)
+        var columnHighlight = Column is not null && TableView is not null
+            ? TableView.GetColumnHighlight(TableView.Columns.IndexOf(Column))
+            : null;
+
+        if (rowHighlight?.Background is null && columnHighlight?.Background is { } background)
         {
             Background = background;
         }
@@ -600,7 +604,7 @@ public partial class TableViewCell : ContentControl
             ClearValue(BackgroundProperty);
         }
 
-        if (rowHighlight?.Foreground is null && Column?.HighlightForeground is { } foreground)
+        if (rowHighlight?.Foreground is null && columnHighlight?.Foreground is { } foreground)
         {
             Foreground = foreground;
         }

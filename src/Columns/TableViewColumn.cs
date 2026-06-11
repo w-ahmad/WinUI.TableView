@@ -1,6 +1,5 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -353,24 +352,6 @@ public abstract partial class TableViewColumn : DependencyObject
         set => SetValue(ConditionalCellStylesProperty, value);
     }
 
-    /// <summary>
-    /// Gets or sets the background brush used to highlight the cells of the column.
-    /// </summary>
-    public Brush? HighlightBackground
-    {
-        get => (Brush?)GetValue(HighlightBackgroundProperty);
-        set => SetValue(HighlightBackgroundProperty, value);
-    }
-
-    /// <summary>
-    /// Gets or sets the foreground brush used to highlight the cells of the column.
-    /// </summary>
-    public Brush? HighlightForeground
-    {
-        get => (Brush?)GetValue(HighlightForegroundProperty);
-        set => SetValue(HighlightForegroundProperty, value);
-    }
-
     internal TableViewColumnsCollection? OwningCollection { get; set; }
 
     /// <summary>
@@ -524,10 +505,6 @@ public abstract partial class TableViewColumn : DependencyObject
                 column.OwningCollection.HandleColumnPropertyChanged(column, nameof(Visibility));
             else if (e.Property == OrderProperty)
                 column.OwningCollection.HandleColumnPropertyChanged(column, nameof(Order));
-            else if (e.Property == HighlightBackgroundProperty)
-                column.OwningCollection.HandleColumnPropertyChanged(column, nameof(HighlightBackground));
-            else if (e.Property == HighlightForegroundProperty)
-                column.OwningCollection.HandleColumnPropertyChanged(column, nameof(HighlightForeground));
         }
     }
 
@@ -646,14 +623,4 @@ public abstract partial class TableViewColumn : DependencyObject
     /// Identifies the <see cref="ConditionalCellStyles"/> dependency property.
     /// </summary>
     public static readonly DependencyProperty ConditionalCellStylesProperty = DependencyProperty.Register(nameof(ConditionalCellStyles), typeof(IList<TableViewConditionalCellStyle>), typeof(TableViewColumn), new PropertyMetadata(default));
-
-    /// <summary>
-    /// Identifies the <see cref="HighlightBackground"/> dependency property.
-    /// </summary>
-    public static readonly DependencyProperty HighlightBackgroundProperty = DependencyProperty.Register(nameof(HighlightBackground), typeof(Brush), typeof(TableViewColumn), new PropertyMetadata(null, OnPropertyChanged));
-
-    /// <summary>
-    /// Identifies the <see cref="HighlightForeground"/> dependency property.
-    /// </summary>
-    public static readonly DependencyProperty HighlightForegroundProperty = DependencyProperty.Register(nameof(HighlightForeground), typeof(Brush), typeof(TableViewColumn), new PropertyMetadata(null, OnPropertyChanged));
 }

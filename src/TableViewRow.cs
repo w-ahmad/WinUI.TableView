@@ -307,13 +307,6 @@ public partial class TableViewRow : ListViewItem
         {
             EnsureCellsStyle(e.Column);
         }
-        else if (e.PropertyName is nameof(TableViewColumn.HighlightBackground) or nameof(TableViewColumn.HighlightForeground))
-        {
-            if (Cells.FirstOrDefault(x => x.Column == e.Column) is { } cell)
-            {
-                cell.EnsureHighlightColors();
-            }
-        }
         else if (e.PropertyName is nameof(TableViewBoundColumn.ElementStyle))
         {
             EnsureElementStyle(e.Column);
