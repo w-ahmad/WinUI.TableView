@@ -303,7 +303,7 @@ public partial class TableView
     /// <summary>
     /// Identifies the <see cref="ShowDragRectangle"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty ShowDragRectangleProperty = DependencyProperty.Register(nameof(ShowDragRectangle), typeof(bool), typeof(TableView), new PropertyMetadata(false, OnShowDragRectangleChanged));
+    public static readonly DependencyProperty ShowDragRectangleProperty = DependencyProperty.Register(nameof(ShowDragRectangle), typeof(bool), typeof(TableView), new PropertyMetadata(true, OnShowDragRectangleChanged));
 
     /// <summary>
     /// Gets or sets a value indicating whether opening the column filter over header right-click is enabled.
