@@ -49,11 +49,11 @@ public class DragSelectionRectangleTests
     public async Task StartDragSelection_SetsIsDragging_WhenExtendedMode()
     {
         var tv = await CreateAndLoadTableView(ListViewSelectionMode.Extended);
-        Assert.IsFalse(tv._isDragSelecting);
+        Assert.IsFalse(tv.IsDragSelecting);
 
         tv.StartDragSelection(new Point(10, 10));
 
-        Assert.IsTrue(tv._isDragSelecting);
+        Assert.IsTrue(tv.IsDragSelecting);
 
         tv.EndDragSelection();
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tv);
@@ -66,7 +66,7 @@ public class DragSelectionRectangleTests
 
         tv.StartDragSelection(new Point(10, 10));
 
-        Assert.IsFalse(tv._isDragSelecting);
+        Assert.IsFalse(tv.IsDragSelecting);
     }
 
     [UITestMethod]
@@ -76,7 +76,7 @@ public class DragSelectionRectangleTests
 
         tv.StartDragSelection(new Point(10, 10));
 
-        Assert.IsFalse(tv._isDragSelecting);
+        Assert.IsFalse(tv.IsDragSelecting);
     }
 
     [UITestMethod]
@@ -88,8 +88,8 @@ public class DragSelectionRectangleTests
         tv.StartDragSelection(new Point(10, 10));
 
         // Drag selection and auto-scroll are active, but rectangle visual is not shown
-        Assert.IsTrue(tv._isDragSelecting);
-        Assert.AreEqual(Visibility.Collapsed, tv._dragRectangleCanvas?.Children.OfType<Border>().FirstOrDefault()?.Visibility);
+        Assert.IsTrue(tv.IsDragSelecting);
+        Assert.AreEqual(Visibility.Collapsed, tv.DragRectangleCanvas?.Children.OfType<Border>().FirstOrDefault()?.Visibility);
 
         tv.EndDragSelection();
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tv);
@@ -102,7 +102,7 @@ public class DragSelectionRectangleTests
 
         tv.StartDragSelection(new Point(10, 10));
 
-        Assert.IsTrue(tv._isDragSelecting);
+        Assert.IsTrue(tv.IsDragSelecting);
 
         tv.EndDragSelection();
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tv);
@@ -113,11 +113,11 @@ public class DragSelectionRectangleTests
     {
         var tv = await CreateAndLoadTableView(ListViewSelectionMode.Extended);
         tv.StartDragSelection(new Point(10, 10));
-        Assert.IsTrue(tv._isDragSelecting);
+        Assert.IsTrue(tv.IsDragSelecting);
 
         tv.EndDragSelection();
 
-        Assert.IsFalse(tv._isDragSelecting);
+        Assert.IsFalse(tv.IsDragSelecting);
 
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tv);
     }
@@ -131,7 +131,7 @@ public class DragSelectionRectangleTests
         tv.EndDragSelection();
         tv.EndDragSelection(); // second call should not throw
 
-        Assert.IsFalse(tv._isDragSelecting);
+        Assert.IsFalse(tv.IsDragSelecting);
     }
 
     [UITestMethod]
@@ -139,12 +139,12 @@ public class DragSelectionRectangleTests
     {
         var tv = await CreateAndLoadTableView(ListViewSelectionMode.Extended);
         tv.StartDragSelection(new Point(10, 10));
-        Assert.IsTrue(tv._isDragSelecting);
+        Assert.IsTrue(tv.IsDragSelecting);
 
         tv.ShowDragRectangle = false;
 
         // Drag selection and auto-scroll remain active, but rectangle visual is hidden
-        Assert.IsTrue(tv._isDragSelecting);
+        Assert.IsTrue(tv.IsDragSelecting);
 
         tv.EndDragSelection();
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tv);
@@ -170,14 +170,14 @@ public class DragSelectionRectangleTests
     [UITestMethod]
     public void StartDragSelection_StartsEvenWhenCanvasIsNull()
     {
-        // Before OnApplyTemplate, _dragRectangleCanvas is null
+        // Before OnApplyTemplate, DragRectangleCanvas is null
         var tv = CreateTableView(ListViewSelectionMode.Extended);
-        Assert.IsNull(tv._dragRectangleCanvas);
+        Assert.IsNull(tv.DragRectangleCanvas);
 
         tv.StartDragSelection(new Point(10, 10));
 
         // Drag selection and auto-scroll start even without canvas (rectangle visual just won't show)
-        Assert.IsTrue(tv._isDragSelecting);
+        Assert.IsTrue(tv.IsDragSelecting);
 
         tv.EndDragSelection();
     }
@@ -190,6 +190,6 @@ public class DragSelectionRectangleTests
         // Should be a no-op, not throw
         tv.UpdateDragRectangleVisual(new Point(50, 50));
 
-        Assert.IsFalse(tv._isDragSelecting);
+        Assert.IsFalse(tv.IsDragSelecting);
     }
 }
