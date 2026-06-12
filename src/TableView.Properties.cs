@@ -301,6 +301,11 @@ public partial class TableView
     }
 
     /// <summary>
+    /// Identifies the <see cref="ShowDragRectangle"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ShowDragRectangleProperty = DependencyProperty.Register(nameof(ShowDragRectangle), typeof(bool), typeof(TableView), new PropertyMetadata(true, OnShowDragRectangleChanged));
+
+    /// <summary>
     /// Gets or sets a value indicating whether opening the column filter over header right-click is enabled.
     /// </summary>
     public bool UseRightClickForColumnFilter
@@ -366,6 +371,15 @@ public partial class TableView
     }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the drag selection rectangle is shown during cell drag selection.
+    /// </summary>
+    public bool ShowDragRectangle
+    {
+        get => (bool)GetValue(ShowDragRectangleProperty);
+        set => SetValue(ShowDragRectangleProperty, value);
+    }
+
+    /// <summary>
     /// Gets or sets a value that indicates whether the TableView should force select the Row or Cell depending on the SelectionUnit
     /// </summary>
     public bool ForceRowOrCellSelectionOnContextRequested
@@ -403,6 +417,16 @@ public partial class TableView
     /// Gets or sets a value indicating whether the TableView is in editing mode.
     /// </summary>
     internal bool IsEditing { get; private set; }
+
+    /// <summary>
+    /// Gets the canvas that hosts the drag selection rectangle.
+    /// </summary>
+    internal Canvas? DragRectangleCanvas { get; private set; }
+
+    /// <summary>
+    /// Gets a value indicating whether a drag selection is currently in progress.
+    /// </summary>
+    internal bool IsDragSelecting { get; private set; }
 
     /// <summary>
     /// Gets the visibility states of details pane for each item.
@@ -925,6 +949,23 @@ public partial class TableView
             {
                 tableView.CurrentCellSlot = null;
             }
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the ShowDragRectangle property.
+    /// </summary>
+    private static void OnShowDragRectangleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView && e.NewValue is false)
+        {
+            // Hide the rectangle visual but don't stop drag selection or auto-scroll
+            if (tableView._dragRectangle is not null)
+            {
+                tableView._dragRectangle.Visibility = Visibility.Collapsed;
+            }
+
+            tableView._dragStartPoint = null;
         }
     }
 
