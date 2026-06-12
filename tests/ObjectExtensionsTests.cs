@@ -305,6 +305,61 @@ public class ObjectExtensionsTests
     }
 
     [TestMethod]
+    public void GetCompiledValueGetter_ShouldSupportMixedSiblingRows_WhenFirstPropertyDeclaredOnBaseType()
+    {
+        SharedRow first = new VariantRowA { Group = "AAA" };
+        var func = first.GetCompiledValueGetter("Group");
+        Assert.IsNotNull(func);
+
+        SharedRow second = new VariantRowB { Group = "BBB" };
+        var result = func(second);
+
+        Assert.AreEqual("BBB", result);
+    }
+
+    [TestMethod]
+    public void GetCompiledValueGetter_ShouldSupportTwoStepPath_WithNestedSubclassValueFromDifferentSibling()
+    {
+        var first = new RootRowA
+        {
+            Shared = new SharedContainer
+            {
+                Nested = new NestedA { Name = "AAA" }
+            }
+        };
+
+        var func = first.GetCompiledValueGetter("Shared.Nested.Name");
+        Assert.IsNotNull(func);
+
+        var second = new RootRowB
+        {
+            Shared = new SharedContainer
+            {
+                Nested = new NestedB { Name = "BBB" }
+            }
+        };
+
+        var result = func(second);
+        Assert.AreEqual("BBB", result);
+    }
+
+    [TestMethod]
+    public void GetCompiledValueGetter_ShouldSupportIndexerFirstPath_WhenIndexerDeclaredOnBaseType()
+    {
+        SharedRow first = new VariantRowA();
+        first[1] = "AAA";
+
+        var func = first.GetCompiledValueGetter("[1]");
+        Assert.IsNotNull(func);
+
+        SharedRow second = new VariantRowB();
+        second[1] = "BBB";
+
+        var result = func(second);
+        Assert.AreEqual("BBB", result);
+    }
+
+    [TestMethod]
     public void GetCompiledValueSetter_ShouldSetSimpleProperty()
     {
         var testItem = new TestItem { Number = 7 };
@@ -928,6 +983,59 @@ public class ObjectExtensionsTests
     public struct TestStruct
     {
         public int Value { get; set; }
+    }
+    private abstract class SharedRow
+    {
+        public string Group { get; set; } = string.Empty;
+
+        private readonly Dictionary<int, string> _values = new();
+
+        public string this[int key]
+        {
+            get => _values[key];
+            set => _values[key] = value;
+        }
+    }
+
+    private class VariantRowA : SharedRow
+    {
+        public string Value { get; set; } = string.Empty;
+    }
+
+    private class VariantRowB : SharedRow
+    {
+        public bool Flag { get; set; }
+    }
+
+    private class RootBase
+    {
+        public SharedContainer Shared { get; set; } = new();
+    }
+
+    private class RootRowA : RootBase
+    {
+    }
+
+    private class RootRowB : RootBase
+    {
+    }
+
+    private class SharedContainer
+    {
+        public NestedBase Nested { get; set; } = new NestedA();
+    }
+
+    private class NestedBase
+    {
+        public string Name { get; set; } = string.Empty;
+    }
+
+    private class NestedA : NestedBase
+    {
+    }
+
+    private class NestedB : NestedBase
+    {
     }
 }
 
