@@ -180,4 +180,10 @@
   <data name="Copy" xml:space="preserve">
     <value>Kopieren</value>
   </data>
+  <data name="Paste" xml:space="preserve">
+    <value>Einfügen</value>
+  </data>
+  <data name="PasteCommandDescription" xml:space="preserve">
+    <value>Fügt den Inhalt der Zwischenablage in die Zellen ein.</value>
+  </data>
 </root>

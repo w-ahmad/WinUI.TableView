@@ -8,6 +8,7 @@
     </TargetFrameworks>
 
     <OutputType>Exe</OutputType>
+    <OutputType Condition="'$(TargetFramework)'=='$(NetVersion)-desktop'">WinExe</OutputType>
     <UnoSingleProject>true</UnoSingleProject>
     <AssemblyName>WinUI.TableView.SampleApp</AssemblyName>
 

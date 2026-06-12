@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -36,6 +37,7 @@ public partial class TableView : ListView
     private RowDefinition? _headerRowDefinition;
     private bool _shouldThrowSelectionModeChangedException;
     private bool _ensureColumns = true;
+    private bool _isItemsSourceSuspended;
     private readonly List<TableViewRow> _rows = [];
     private readonly CollectionView _collectionView = [];
     private Border? _dragRectangle;
@@ -117,6 +119,12 @@ public partial class TableView : ListView
         {
             if (element is TableViewRow row)
             {
+                if (!_rows.Contains(row))
+                {
+                    _rows.Add(row);
+                }
+
+                row.TableView = this;
                 row.EnsureCellsStyle(default, item);
                 row.ApplyCellsSelectionState();
                 row.RowPresenter?.ApplyDetailsPaneState(item);
@@ -127,6 +135,18 @@ public partial class TableView : ListView
                 }
             }
         });
+    }
+
+    /// <inheritdoc/>
+    protected override void ClearContainerForItemOverride(DependencyObject element, object item)
+    {
+        if (element is TableViewRow row)
+        {
+            _rows.Remove(row);
+            row.TableView = null;
+        }
+
+        base.ClearContainerForItemOverride(element, item);
     }
 
     /// <inheritdoc/>
@@ -143,7 +163,7 @@ public partial class TableView : ListView
     }
 
     /// <inheritdoc/>
-    protected override async void OnKeyDown(KeyRoutedEventArgs e)
+    protected override void OnKeyDown(KeyRoutedEventArgs e)
     {
         var shiftKey = KeyboardHelper.IsShiftKeyDown();
         var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
@@ -154,19 +174,19 @@ public partial class TableView : ListView
             return;
         }
 
-        await HandleNavigations(e, shiftKey, ctrlKey);
+        HandleNavigations(e, shiftKey, ctrlKey);
     }
 
     /// <summary>
     /// Handles navigation keys.
     /// </summary>
-    private async Task HandleNavigations(KeyRoutedEventArgs e, bool shiftKey, bool ctrlKey)
+    private void HandleNavigations(KeyRoutedEventArgs e, bool shiftKey, bool ctrlKey)
     {
         var currentCell = CurrentCellSlot.HasValue ? GetCellFromSlot(CurrentCellSlot.Value) : default;
 
         if (e.Key is VirtualKey.F2 && currentCell is { IsReadOnly: false } && !IsEditing)
         {
-            e.Handled = await currentCell.BeginCellEditing(e);
+            e.Handled = currentCell.BeginCellEditing(e);
         }
         else if (e.Key is VirtualKey.Escape && currentCell is not null && IsEditing)
         {
@@ -202,7 +222,7 @@ public partial class TableView : ListView
             {
                 if (!EndCellEditing(TableViewEditAction.Commit, currentCell)) return;
 
-                if (CurrentCellSlot == newSlot || GetCellFromSlot(newSlot) is not { } nextCell || !await nextCell.BeginCellEditing(e))
+                if (CurrentCellSlot == newSlot || GetCellFromSlot(newSlot) is not { } nextCell || !nextCell.BeginCellEditing(e))
                 {
                     SetIsEditing(false);
                 }
@@ -240,6 +260,42 @@ public partial class TableView : ListView
             MakeSelection(newSlot, shiftKey);
             e.Handled = true;
         }
+        else if (e.Key is VirtualKey.Home or VirtualKey.End)
+        {
+            var row = ctrlKey ? (e.Key == VirtualKey.Home ? 0 : _collectionView.Count - 1) : CurrentCellSlot?.Row;
+            var column = e.Key == VirtualKey.Home ? 0 : Columns.VisibleColumns.Count - 1;
+
+            var newSlot = new TableViewCellSlot(row ?? -1, column);
+            MakeSelection(newSlot, shiftKey);
+            e.Handled = true;
+        }
+        else if (e.Key is VirtualKey.PageDown or VirtualKey.PageUp)
+        {
+            var pageSize = CalculateAvailablePageSize();
+
+            var row = (LastSelectionUnit is TableViewSelectionUnit.Row ? CurrentRowIndex : CurrentCellSlot?.Row) ?? -1;
+            var column = CurrentCellSlot?.Column ?? -1;
+
+            var numRows = CollectionView.Count;
+            var nextRow = e.Key == VirtualKey.PageDown
+                ? Math.Min(numRows - 1, row + pageSize)
+                : Math.Max(0, row - pageSize);
+
+            var newSlot = new TableViewCellSlot(nextRow, column);
+            MakeSelection(newSlot, shiftKey);
+            e.Handled = true;
+        }
+    }
+
+    /// <summary>
+    /// Calculates how many rows should be able to fit within the actual height of the table without scrolling.
+    /// </summary>
+    private int CalculateAvailablePageSize()
+    {
+        var rowHeight = RowHeight is not double.NaN ? RowHeight : RowMinHeight;
+        var headerHeight = HeaderRowHeight is not double.NaN ? HeaderRowHeight : HeaderRowMinHeight;
+        var availableHeight = ActualHeight - headerHeight;
+        return (int)Math.Floor(availableHeight / rowHeight);
     }
 
     internal bool EndCellEditing(TableViewEditAction editAction, TableViewCell cell)
@@ -280,6 +336,10 @@ public partial class TableView : ListView
             CopyToClipboardInternal(shiftKey);
             return true;
         }
+        else if (key == VirtualKey.V && ctrlKey && !shiftKey)
+        {
+            return TryStartPasteFromClipboard();
+        }
 
         return false;
     }
@@ -294,8 +354,8 @@ public partial class TableView : ListView
         _headerRowDefinition = GetTemplateChild("HeaderRowDefinition") as RowDefinition;
         DragRectangleCanvas = GetTemplateChild("DragRectangleCanvas") as Canvas;
         _dragRectangle = GetTemplateChild("DragRectangle") as Border;
-        if (_scrollViewer is not null) _scrollViewer.Loaded += OnScrollViewerLoaded;
-        
+        _scrollViewer?.Loaded += OnScrollViewerLoaded;
+
         if (IsLoaded)
         {
             while (ItemsPanelRoot is null) await Task.Yield();
@@ -315,15 +375,9 @@ public partial class TableView : ListView
         var xScrollBar = _scrollViewer?.FindDescendant<ScrollBar>(sb => sb.Name is "HorizontalScrollBar2");
         var yScrollBar = _scrollViewer?.FindDescendant<ScrollBar>(sb => sb.Name is "VerticalScrollBar");
 
-        if (scrollPresenter is not null)
-        {
-            scrollPresenter.PointerWheelChanged += OnScrollContentPresenterPointerWheelChanged;
-        }
+        scrollPresenter?.PointerWheelChanged += OnScrollContentPresenterPointerWheelChanged;
 
-        if (yScrollBar is not null)
-        {
-            yScrollBar.ValueChanged += (_, _) => SetValue(VerticalOffsetProperty, yScrollBar.Value);
-        }
+        yScrollBar?.ValueChanged += (_, _) => SetValue(VerticalOffsetProperty, yScrollBar.Value);
 
         xScrollBar?.SetBinding(RangeBase.ValueProperty, new Binding
         {
@@ -332,12 +386,13 @@ public partial class TableView : ListView
             Source = this
         });
     }
-    
+
     /// <summary>
     /// Handles the Loaded event of the TableView control.
     /// </summary>
     private void OnLoaded(object sender, RoutedEventArgs e)
-    {        
+    {
+        ResumeItemsSource();
         EnsureAutoColumns();
     }
 
@@ -353,6 +408,43 @@ public partial class TableView : ListView
         {
             currentCell.EndEditing(TableViewEditAction.Commit);
         }
+
+        SuspendItemsSource();
+    }
+
+    /// <summary>
+    /// Suspends subscriptions to the current items source while the control is unloaded.
+    /// </summary>
+    private void SuspendItemsSource()
+    {
+        if (_isItemsSourceSuspended)
+        {
+            return;
+        }
+
+        _collectionView.ItemPropertyChanged -= OnItemPropertyChanged;
+        _collectionView.Source = Enumerable.Empty<object>();
+        _isItemsSourceSuspended = true;
+    }
+
+    /// <summary>
+    /// Restores subscriptions to the current items source when the control is loaded.
+    /// </summary>
+    private void ResumeItemsSource()
+    {
+        if (!_isItemsSourceSuspended)
+        {
+            return;
+        }
+
+        _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
+
+        if (ItemsSource is IEnumerable source)
+        {
+            _collectionView.Source = source;
+        }
+
+        _isItemsSourceSuspended = false;
     }
 
     /// <summary>
@@ -426,17 +518,44 @@ public partial class TableView : ListView
     /// </summary>
     internal void CopyToClipboardInternal(bool includeHeaders)
     {
-        var args = new TableViewCopyToClipboardEventArgs(includeHeaders);
-        OnCopyToClipboard(args);
-
-        if (args.Handled)
+        // Skip TableView copy logic when a cell editor already handles Ctrl+C.
+        // TextBox, PasswordBox, and RichEditBox all implement their own copy behavior.
+        var focused = FocusManager.GetFocusedElement(XamlRoot!) as FrameworkElement;
+        if (focused is TextBox or PasswordBox or RichEditBox)
         {
             return;
         }
 
-        var package = new DataPackage();
-        package.SetText(GetSelectedClipboardContent(includeHeaders));
-        Clipboard.SetContent(package);
+        var args = new TableViewCopyToClipboardEventArgs(includeHeaders);
+        OnCopyToClipboard(args);
+
+        if (!CanCopy || args.Handled)
+        {
+            return;
+        }
+
+        var content = GetSelectedClipboardContent(includeHeaders);
+
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return;
+        }
+
+        // Try/catch to prevent CLIPBRD_E_CANT_OPEN crashes.
+        try
+        {
+            var package = new DataPackage();
+            package.SetText(content);
+
+            Clipboard.SetContent(package);
+        }
+        catch (Exception ex)
+        {
+            // Clipboard failures are normal on Windows (e.g., CLIPBRD_E_CANT_OPEN).
+            // Swallow to avoid crashing the application.
+            Debug.WriteLine(
+                $"TableView: Clipboard.SetContent failed: {ex}");
+        }
     }
 
     /// <summary>
@@ -551,7 +670,7 @@ public partial class TableView : ListView
 
             for (var col = minColumn; col <= maxColumn; col++)
             {
-                if (Columns.VisibleColumns[col] is not TableViewBoundColumn column ||
+                if (Columns.VisibleColumns[col] is not TableViewColumn column ||
                    !slots.Contains(new TableViewCellSlot(row, col)))
                 {
                     stringBuilder.Append(separator);
@@ -700,7 +819,10 @@ public partial class TableView : ListView
         {
             EnsureAutoColumns();
 
-            _collectionView.Source = source;
+            if (!_isItemsSourceSuspended)
+            {
+                _collectionView.Source = source;
+            }
         }
     }
 
@@ -789,7 +911,11 @@ public partial class TableView : ListView
     /// <summary>
     /// Gets a storage file for saving the CSV.
     /// </summary>
-    private async Task<StorageFile> GetStorageFile()
+    private
+#if !WINDOWS
+    static
+#endif
+    async Task<StorageFile> GetStorageFile()
     {
         var savePicker = new FileSavePicker();
         savePicker.FileTypeChoices.Add("CSV (Comma delimited)", [".csv"]);
@@ -829,10 +955,7 @@ public partial class TableView : ListView
 
         foreach (var column in Columns.Where(c => c.SortDirection is not null))
         {
-            if (column is not null)
-            {
-                column.SortDirection = null;
-            }
+            column?.SortDirection = null;
         }
     }
 

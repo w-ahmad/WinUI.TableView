@@ -28,7 +28,6 @@ namespace WinUI.TableView;
 #endif
 public partial class TableViewCell : ContentControl
 {
-    private TableViewColumn? _column;
     private ScrollViewer? _scrollViewer;
     private ContentPresenter? _contentPresenter;
     private Border? _selectionBorder;
@@ -65,6 +64,13 @@ public partial class TableViewCell : ContentControl
     {
         if (!e.TryGetPosition(sender, out var position)) return;
 #endif
+
+        // Select the cell before showing the Context Menu
+        if (TableView is not null && TableView.ForceRowOrCellSelectionOnContextRequested && !IsSelected)
+        {
+            TableView.MakeSelection(Slot, false);
+        }
+
         e.Handled = TableView?.ShowCellContext(this, position) is true;
     }
 
@@ -210,18 +216,14 @@ public partial class TableViewCell : ContentControl
     }
 
     /// <inheritdoc/>
-    protected override async void OnTapped(TappedRoutedEventArgs e)
+    protected override void OnTapped(TappedRoutedEventArgs e)
     {
         base.OnTapped(e);
 
-        if ((TableView?.IsEditing ?? false) &&
-             TableView.CurrentCellSlot != Slot &&
-             TableView.CurrentCellSlot.HasValue &&
-             TableView.GetCellFromSlot(TableView.CurrentCellSlot.Value) is { } currentCell)
+        if (!TryEndCurrentCellEdit())
         {
-            e.Handled = !TableView.EndCellEditing(TableViewEditAction.Commit, currentCell);
-
-            if (e.Handled) return;
+            e.Handled = true;
+            return;
         }
 
         if (TableView?.CurrentCellSlot != Slot || TableView?.LastSelectionUnit is TableViewSelectionUnit.Row)
@@ -236,9 +238,15 @@ public partial class TableViewCell : ContentControl
     {
         base.OnPointerPressed(e);
 
+        if (!TryEndCurrentCellEdit())
+        {
+            e.Handled = true;
+            return;
+        }
+
         if (!KeyboardHelper.IsShiftKeyDown() && TableView is not null)
         {
-            TableView.SelectionStartCellSlot = TableView.SelectionUnit is not TableViewSelectionUnit.Row || !IsReadOnly ? Slot : default; ;
+            TableView.SelectionStartCellSlot = TableView.SelectionUnit is not TableViewSelectionUnit.Row || !IsReadOnly ? Slot : default;
             TableView.SelectionStartRowIndex = Index;
             CapturePointer(e.Pointer);
 
@@ -309,6 +317,26 @@ public partial class TableViewCell : ContentControl
     }
 
     /// <summary>
+    /// Tries to end the current edit operation, if any.
+    /// </summary>
+    /// <returns>True if an edit operation was successfully ended, or there is no edit operation.
+    /// False if the current edit operation can not be ended.</returns>
+    private bool TryEndCurrentCellEdit()
+    {
+        if ((TableView?.IsEditing ?? false) &&
+             TableView.CurrentCellSlot != Slot &&
+             TableView.CurrentCellSlot.HasValue &&
+             TableView.GetCellFromSlot(TableView.CurrentCellSlot.Value) is { } currentCell)
+        {
+            if (!TableView.EndCellEditing(TableViewEditAction.Commit, currentCell)) return false;
+
+            TableView.SetIsEditing(false);
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// Gets the height of the horizontal gridlines/>.
     /// </summary>
     private double GetHorizontalGridlineHeight()
@@ -357,7 +385,7 @@ public partial class TableViewCell : ContentControl
     }
 
     /// <inheritdoc/>
-    protected override async void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
+    protected override void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
     {
         var eventArgs = new TableViewCellDoubleTappedEventArgs(Slot, this, Row?.Content);
         TableView?.OnCellDoubleTapped(eventArgs);
@@ -369,7 +397,7 @@ public partial class TableViewCell : ContentControl
 
         if (!IsReadOnly && TableView is not null && !TableView.IsEditing && !Column?.UseSingleElement is true)
         {
-            e.Handled = await BeginCellEditing(e);
+            e.Handled = BeginCellEditing(e);
         }
         else
         {
@@ -418,7 +446,7 @@ public partial class TableViewCell : ContentControl
     /// <param name="editingArgs">The event data associated with the editing request. Cannot be null.</param>
     /// <returns>A task that represents the asynchronous operation. The task result is <see langword="true"/> if cell editing was
     /// successfully started; otherwise, <see langword="false"/> if the operation was canceled.</returns>
-    internal async Task<bool> BeginCellEditing(RoutedEventArgs editingArgs)
+    internal bool BeginCellEditing(RoutedEventArgs editingArgs)
     {
         var args = new TableViewBeginningEditEventArgs(this, Row?.Content, Column!, editingArgs);
         TableView?.OnBeginningEdit(args);
@@ -516,6 +544,8 @@ public partial class TableViewCell : ContentControl
             Focus(FocusState.Pointer);
         });
 #endif
+
+        DispatcherQueue.TryEnqueue(InvalidateMeasure);
     }
 
     /// <summary>
@@ -638,12 +668,12 @@ public partial class TableViewCell : ContentControl
     /// </summary>
     public TableViewColumn? Column
     {
-        get => _column;
+        get;
         internal set
         {
-            if (_column != value)
+            if (field != value)
             {
-                _column = value;
+                field = value;
                 OnColumnChanged();
             }
         }
