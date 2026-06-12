@@ -286,7 +286,7 @@ public partial class TableViewCell : ContentControl
         if (PointerCaptures?.Any() is true)
         {
             // Update drag rectangle visual and auto-scroll
-            if (TableView?._isDragSelecting is true)
+            if (TableView?.IsDragSelecting is true)
             {
                 var canvasPoint = TransformPointToCanvas(e.Position);
                 if (canvasPoint.HasValue)
@@ -343,11 +343,11 @@ public partial class TableViewCell : ContentControl
     /// </summary>
     private Point? TransformPointToCanvas(Point position)
     {
-        if (TableView?._dragRectangleCanvas is null) return null;
+        if (TableView?.DragRectangleCanvas is null) return null;
 
         try
         {
-            var transform = TransformToVisual(TableView._dragRectangleCanvas);
+            var transform = TransformToVisual(TableView.DragRectangleCanvas);
             return transform.TransformPoint(position);
         }
         catch (ArgumentException)

@@ -376,6 +376,16 @@ public partial class TableView
     internal bool IsEditing { get; private set; }
 
     /// <summary>
+    /// Gets the canvas that hosts the drag selection rectangle.
+    /// </summary>
+    internal Canvas? DragRectangleCanvas { get; private set; }
+
+    /// <summary>
+    /// Gets a value indicating whether a drag selection is currently in progress.
+    /// </summary>
+    internal bool IsDragSelecting { get; private set; }
+
+    /// <summary>
     /// Gets the visibility states of details pane for each item.
     /// </summary>
     internal ConditionalWeakTable<object, TValue<bool>> DetailsPaneStates { get; } = [];
