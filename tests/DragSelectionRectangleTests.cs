@@ -31,10 +31,10 @@ public class DragSelectionRectangleTests
     }
 
     [UITestMethod]
-    public void ShowDragRectangle_DefaultsToFalse()
+    public void ShowDragRectangle_DefaultsToTrue()
     {
         var tv = new TableView();
-        Assert.IsFalse(tv.ShowDragRectangle);
+        Assert.IsTrue(tv.ShowDragRectangle);
     }
 
     [UITestMethod]
@@ -156,7 +156,7 @@ public class DragSelectionRectangleTests
         var tv = new TableView();
         var value = tv.GetValue(TableView.ShowDragRectangleProperty);
         Assert.IsInstanceOfType(value, typeof(bool));
-        Assert.IsFalse((bool)value);
+        Assert.IsTrue((bool)value);
     }
 
     [UITestMethod]
