@@ -103,6 +103,7 @@ public sealed partial class MainPage : Page
                 "Corner Button" => typeof(CornerButtonPage),
                 "Alternate Row Color" => typeof(AlternateRowColorPage),
                 "Context Flyouts" => typeof(ContextFlyoutsPage),
+                "Row Highlights" => typeof(HighlightsPage),
                 "Row Reorder" => typeof(ReorderRowsPage),
                 "Pagination" => typeof(PaginationPage),
                 "Filtering" => typeof(FilteringPage),

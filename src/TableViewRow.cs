@@ -585,17 +585,24 @@ public partial class TableViewRow : ListViewItem
     }
 
     /// <summary>
-    /// Ensures alternate colors are applied to the row.
+    /// Ensures alternate colors and highlight colors are applied to the row.
     /// </summary>
     internal void EnsureAlternateColors()
     {
         if (TableView is null || RowPresenter is null) return;
 
-        RowPresenter.Background =
-            Index % 2 == 1 && TableView.AlternateRowBackground is not null ? TableView.AlternateRowBackground : _cellPresenterBackground;
+        var highlight = TableView.GetRowHighlight(Index);
 
-        RowPresenter.Foreground =
-            Index % 2 == 1 && TableView.AlternateRowForeground is not null ? TableView.AlternateRowForeground : _cellPresenterForeground;
+        RowPresenter.Background = highlight?.Background ??
+            (Index % 2 == 1 && TableView.AlternateRowBackground is not null ? TableView.AlternateRowBackground : _cellPresenterBackground);
+
+        RowPresenter.Foreground = highlight?.Foreground ??
+            (Index % 2 == 1 && TableView.AlternateRowForeground is not null ? TableView.AlternateRowForeground : _cellPresenterForeground);
+
+        foreach (var cell in Cells)
+        {
+            cell.EnsureHighlightColors(highlight);
+        }
     }
 
     internal void UpdateSelectCheckMarkOpacity()

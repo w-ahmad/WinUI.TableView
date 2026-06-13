@@ -262,6 +262,26 @@ public partial class TableView
     public static readonly DependencyProperty ConditionalCellStylesProperty = DependencyProperty.Register(nameof(ConditionalCellStyles), typeof(IList<TableViewConditionalCellStyle>), typeof(TableView), new PropertyMetadata(default));
 
     /// <summary>
+    /// Identifies the <see cref="RowHighlights"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty RowHighlightsProperty = DependencyProperty.Register(nameof(RowHighlights), typeof(TableViewRowHighlightsCollection), typeof(TableView), new PropertyMetadata(null, OnRowHighlightsChanged));
+
+    /// <summary>
+    /// Identifies the <see cref="ColumnHighlights"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ColumnHighlightsProperty = DependencyProperty.Register(nameof(ColumnHighlights), typeof(TableViewColumnHighlightsCollection), typeof(TableView), new PropertyMetadata(null, OnColumnHighlightsChanged));
+
+    /// <summary>
+    /// Identifies the <see cref="MergeOverlappingHighlights"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty MergeOverlappingHighlightsProperty = DependencyProperty.Register(nameof(MergeOverlappingHighlights), typeof(bool), typeof(TableView), new PropertyMetadata(false, OnHighlightOverlapOptionChanged));
+
+    /// <summary>
+    /// Identifies the <see cref="OverlappingHighlightPriority"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty OverlappingHighlightPriorityProperty = DependencyProperty.Register(nameof(OverlappingHighlightPriority), typeof(TableViewHighlightPriority), typeof(TableView), new PropertyMetadata(TableViewHighlightPriority.Row, OnHighlightOverlapOptionChanged));
+
+    /// <summary>
     /// Identifies the <see cref="ShowFilterItemsCount"/> dependency property.
     /// </summary>
     public static readonly DependencyProperty ShowFilterItemsCountProperty = DependencyProperty.Register(nameof(ShowFilterItemsCount), typeof(bool), typeof(TableView), new PropertyMetadata(false));
@@ -359,6 +379,50 @@ public partial class TableView
     {
         get => (IList<TableViewConditionalCellStyle>)GetValue(ConditionalCellStylesProperty);
         set => SetValue(ConditionalCellStylesProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the collection of row highlights. A row highlight colors a single row,
+    /// the same way the <see cref="AlternateRowBackground"/> and <see cref="AlternateRowForeground"/> brushes do,
+    /// and takes precedence over them.
+    /// </summary>
+    public TableViewRowHighlightsCollection RowHighlights
+    {
+        get => (TableViewRowHighlightsCollection)GetValue(RowHighlightsProperty);
+        set => SetValue(RowHighlightsProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the collection of column highlights. A column highlight colors every cell
+    /// of a single column, the same way the <see cref="AlternateRowBackground"/> and
+    /// <see cref="AlternateRowForeground"/> brushes do. Row highlights take precedence
+    /// over column highlights at intersecting cells.
+    /// </summary>
+    public TableViewColumnHighlightsCollection ColumnHighlights
+    {
+        get => (TableViewColumnHighlightsCollection)GetValue(ColumnHighlightsProperty);
+        set => SetValue(ColumnHighlightsProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value that indicates whether the colors of a row highlight and a column
+    /// highlight are merged where the two overlap. When disabled,
+    /// <see cref="OverlappingHighlightPriority"/> determines which highlight wins.
+    /// </summary>
+    public bool MergeOverlappingHighlights
+    {
+        get => (bool)GetValue(MergeOverlappingHighlightsProperty);
+        set => SetValue(MergeOverlappingHighlightsProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets which highlight wins where a row highlight and a column highlight overlap,
+    /// when <see cref="MergeOverlappingHighlights"/> is disabled.
+    /// </summary>
+    public TableViewHighlightPriority OverlappingHighlightPriority
+    {
+        get => (TableViewHighlightPriority)GetValue(OverlappingHighlightPriorityProperty);
+        set => SetValue(OverlappingHighlightPriorityProperty, value);
     }
 
     /// <summary>
@@ -1038,6 +1102,59 @@ public partial class TableView
     /// Handles changes to the alternate row color properties.
     /// </summary>
     private static void OnAlternateRowColorChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            tableView.EnsureAlternateRowColors();
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the RowHighlights property.
+    /// </summary>
+    private static void OnRowHighlightsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            if (e.OldValue is TableViewRowHighlightsCollection oldHighlights)
+            {
+                oldHighlights.HighlightsChanged -= tableView.OnRowHighlightsCollectionChanged;
+            }
+
+            if (e.NewValue is TableViewRowHighlightsCollection newHighlights)
+            {
+                newHighlights.HighlightsChanged += tableView.OnRowHighlightsCollectionChanged;
+            }
+
+            tableView.EnsureAlternateRowColors();
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the ColumnHighlights property.
+    /// </summary>
+    private static void OnColumnHighlightsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            if (e.OldValue is TableViewColumnHighlightsCollection oldHighlights)
+            {
+                oldHighlights.HighlightsChanged -= tableView.OnColumnHighlightsCollectionChanged;
+            }
+
+            if (e.NewValue is TableViewColumnHighlightsCollection newHighlights)
+            {
+                newHighlights.HighlightsChanged += tableView.OnColumnHighlightsCollectionChanged;
+            }
+
+            tableView.EnsureAlternateRowColors();
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the MergeOverlappingHighlights and OverlappingHighlightPriority properties.
+    /// </summary>
+    private static void OnHighlightOverlapOptionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is TableView tableView)
         {

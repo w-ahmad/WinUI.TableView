@@ -64,6 +64,8 @@ public partial class TableView : ListView
         base.SelectionMode = SelectionMode;
 
         SetValue(ConditionalCellStylesProperty, new TableViewConditionalCellStylesCollection());
+        SetValue(RowHighlightsProperty, new TableViewRowHighlightsCollection());
+        SetValue(ColumnHighlightsProperty, new TableViewColumnHighlightsCollection());
         RegisterPropertyChangedCallback(ItemsControl.ItemsSourceProperty, OnBaseItemsSourceChanged);
         RegisterPropertyChangedCallback(ListViewBase.SelectionModeProperty, OnBaseSelectionModeChanged);
 
@@ -1849,7 +1851,7 @@ public partial class TableView : ListView
     }
 
     /// <summary>
-    /// Ensures alternate row colors are applied.
+    /// Ensures alternate row colors and highlight colors are applied.
     /// </summary>
     internal void EnsureAlternateRowColors()
     {
@@ -1860,6 +1862,199 @@ public partial class TableView : ListView
                 row.EnsureAlternateColors();
             }
         });
+    }
+
+    /// <summary>
+    /// Handles changes to the RowHighlights collection or one of its highlights.
+    /// </summary>
+    private void OnRowHighlightsCollectionChanged(object? sender, EventArgs e)
+    {
+        EnsureAlternateRowColors();
+    }
+
+    /// <summary>
+    /// Gets the active highlight for the specified row index, if any.
+    /// </summary>
+    internal TableViewRowHighlight? GetRowHighlight(int index)
+    {
+        if (index < 0 || RowHighlights is not { } highlights) return null;
+
+        TableViewRowHighlight? rowHighlight = null;
+
+        for (var i = 0; i < highlights.Count; i++)
+        {
+            if (highlights[i] is TableViewRowHighlight highlight && highlight.Index == index)
+            {
+                rowHighlight = highlight; // the last matching highlight wins
+            }
+        }
+
+        return rowHighlight;
+    }
+
+    /// <summary>
+    /// Highlights the row at the specified index with the given brushes.
+    /// If the row is already highlighted, the existing highlight is updated.
+    /// </summary>
+    /// <param name="index">The index of the row to highlight.</param>
+    /// <param name="background">The background brush for the row. Pass null to keep the regular background.</param>
+    /// <param name="foreground">The foreground brush for the row. Pass null to keep the regular foreground.</param>
+    public void HighlightRow(int index, Brush? background, Brush? foreground = null)
+    {
+        if (index < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index), "Row index cannot be negative.");
+        }
+
+        RowHighlights ??= new TableViewRowHighlightsCollection();
+
+        if (GetRowHighlight(index) is { } highlight)
+        {
+            highlight.Background = background;
+            highlight.Foreground = foreground;
+        }
+        else
+        {
+            RowHighlights.Add(new TableViewRowHighlight { Index = index, Background = background, Foreground = foreground });
+        }
+    }
+
+    /// <summary>
+    /// Removes the highlight from the row at the specified index.
+    /// </summary>
+    /// <param name="index">The index of the row to clear the highlight from.</param>
+    public void ClearRowHighlight(int index)
+    {
+        if (RowHighlights is not { } highlights) return;
+
+        for (var i = highlights.Count - 1; i >= 0; i--)
+        {
+            if (highlights[i] is TableViewRowHighlight highlight && highlight.Index == index)
+            {
+                highlights.RemoveAt(i);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Removes all row highlights.
+    /// </summary>
+    public void ClearRowHighlights()
+    {
+        RowHighlights?.Clear();
+    }
+
+    /// <summary>
+    /// Handles changes to the ColumnHighlights collection or one of its highlights.
+    /// </summary>
+    private void OnColumnHighlightsCollectionChanged(object? sender, EventArgs e)
+    {
+        EnsureAlternateRowColors();
+    }
+
+    /// <summary>
+    /// Gets the active highlight for the specified column index, if any.
+    /// </summary>
+    internal TableViewColumnHighlight? GetColumnHighlight(int index)
+    {
+        if (index < 0 || ColumnHighlights is not { } highlights) return null;
+
+        TableViewColumnHighlight? columnHighlight = null;
+
+        for (var i = 0; i < highlights.Count; i++)
+        {
+            if (highlights[i] is TableViewColumnHighlight highlight && highlight.Index == index)
+            {
+                columnHighlight = highlight; // the last matching highlight wins
+            }
+        }
+
+        return columnHighlight;
+    }
+
+    /// <summary>
+    /// Highlights the cells of the column at the specified index with the given brushes.
+    /// If the column is already highlighted, the existing highlight is updated.
+    /// </summary>
+    /// <param name="index">The index of the column in the <see cref="Columns"/> collection.</param>
+    /// <param name="background">The background brush for the column. Pass null to keep the regular background.</param>
+    /// <param name="foreground">The foreground brush for the column. Pass null to keep the regular foreground.</param>
+    public void HighlightColumn(int index, Brush? background, Brush? foreground = null)
+    {
+        if (index < 0 || index >= Columns.Count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index), "Column index is out of range.");
+        }
+
+        ColumnHighlights ??= new TableViewColumnHighlightsCollection();
+
+        if (GetColumnHighlight(index) is { } highlight)
+        {
+            highlight.Background = background;
+            highlight.Foreground = foreground;
+        }
+        else
+        {
+            ColumnHighlights.Add(new TableViewColumnHighlight { Index = index, Background = background, Foreground = foreground });
+        }
+    }
+
+    /// <summary>
+    /// Highlights the cells of the specified column with the given brushes.
+    /// If the column is already highlighted, the existing highlight is updated.
+    /// </summary>
+    /// <param name="column">The column to highlight.</param>
+    /// <param name="background">The background brush for the column. Pass null to keep the regular background.</param>
+    /// <param name="foreground">The foreground brush for the column. Pass null to keep the regular foreground.</param>
+    public void HighlightColumn(TableViewColumn column, Brush? background, Brush? foreground = null)
+    {
+        if (column is null)
+        {
+            throw new ArgumentNullException(nameof(column));
+        }
+
+        var index = Columns.IndexOf(column);
+
+        if (index < 0)
+        {
+            throw new ArgumentException("Column is not part of this TableView.", nameof(column));
+        }
+
+        HighlightColumn(index, background, foreground);
+    }
+
+    /// <summary>
+    /// Removes the highlight from the column at the specified index.
+    /// </summary>
+    /// <param name="index">The index of the column in the <see cref="Columns"/> collection.</param>
+    public void ClearColumnHighlight(int index)
+    {
+        if (ColumnHighlights is not { } highlights) return;
+
+        for (var i = highlights.Count - 1; i >= 0; i--)
+        {
+            if (highlights[i] is TableViewColumnHighlight highlight && highlight.Index == index)
+            {
+                highlights.RemoveAt(i);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Removes the highlight from the specified column.
+    /// </summary>
+    /// <param name="column">The column to clear the highlight from.</param>
+    public void ClearColumnHighlight(TableViewColumn column)
+    {
+        ClearColumnHighlight(Columns.IndexOf(column));
+    }
+
+    /// <summary>
+    /// Removes all column highlights.
+    /// </summary>
+    public void ClearColumnHighlights()
+    {
+        ColumnHighlights?.Clear();
     }
 
     /// <summary>
