@@ -4,5 +4,7 @@
   href: getting-started.md
 - name: Getting Started with Uno
   href: getting-started-with-uno.md
+- name: Feature Comparison with DataGrid
+  href: datagrid-feature-comparison.md
 - name: Customization
   href: customization.md
