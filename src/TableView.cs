@@ -375,6 +375,11 @@ public partial class TableView : ListView
     /// </summary>
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
+        if (_isItemsSourceSuspended) // indicates that the control was unloaded and loaded back
+        {
+            HeaderRow?.CalculateHeaderWidths();  // Needed when switching back to an existing TableView (without provided column Widths)
+        }
+
         ResumeItemsSource();
         EnsureAutoColumns();
     }

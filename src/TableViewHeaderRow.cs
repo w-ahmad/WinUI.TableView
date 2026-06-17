@@ -204,6 +204,7 @@ public partial class TableViewHeaderRow : Control
         }
         else if (e.PropertyName is nameof(TableViewColumn.DesiredWidth))
         {
+            // Coalesce multiple updates (see in-loop Measure() call in CalculateHeaderWidths) to avoid excessive header width calculations.
             _desiredWidthTimer ??= new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
             _desiredWidthTimer.Tick -= OnDesiredWidthTimerTick;
             _desiredWidthTimer.Tick += OnDesiredWidthTimerTick;
