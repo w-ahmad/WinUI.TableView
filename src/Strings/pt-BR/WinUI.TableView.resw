@@ -180,4 +180,10 @@
   <data name="Copy" xml:space="preserve">
     <value>Copiar</value>
   </data>
+  <data name="Paste" xml:space="preserve">
+    <value>Colar</value>
+  </data>
+  <data name="PasteCommandDescription" xml:space="preserve">
+    <value>Cola o conteúdo da área de transferência nas células.</value>
+  </data>
 </root>

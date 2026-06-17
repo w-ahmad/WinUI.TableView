@@ -266,6 +266,45 @@ public partial class TableView
     /// </summary>
     public static readonly DependencyProperty ShowFilterItemsCountProperty = DependencyProperty.Register(nameof(ShowFilterItemsCount), typeof(bool), typeof(TableView), new PropertyMetadata(false));
 
+
+    /// <summary>
+    /// Identifies the <see cref="ForceRowOrCellSelectionOnContextRequested"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ForceRowOrCellSelectionOnContextRequestedProperty = DependencyProperty.Register(nameof(ForceRowOrCellSelectionOnContextRequested), typeof(bool), typeof(TableView), new PropertyMetadata(false));
+
+    /// <summary>
+    /// Identifies the <see cref="CanCopy"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty CanCopyProperty = DependencyProperty.Register(nameof(CanCopy), typeof(bool), typeof(TableView), new PropertyMetadata(true));
+
+    /// <summary>
+    /// Identifies the <see cref="CanPaste"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty CanPasteProperty = DependencyProperty.Register(nameof(CanPaste), typeof(bool), typeof(TableView), new PropertyMetadata(true));
+
+    /// <summary>
+    /// Gets or sets a value that indicates whether users can copy selected cells or rows to the clipboard.
+    /// </summary>
+    public bool CanCopy
+    {
+        get => (bool)GetValue(CanCopyProperty);
+        set => SetValue(CanCopyProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value that indicates whether users can paste clipboard data into the TableView.
+    /// </summary>
+    public bool CanPaste
+    {
+        get => (bool)GetValue(CanPasteProperty);
+        set => SetValue(CanPasteProperty, value);
+    }
+
+    /// <summary>
+    /// Identifies the <see cref="ShowDragRectangle"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ShowDragRectangleProperty = DependencyProperty.Register(nameof(ShowDragRectangle), typeof(bool), typeof(TableView), new PropertyMetadata(true, OnShowDragRectangleChanged));
+
     /// <summary>
     /// Gets or sets a value indicating whether opening the column filter over header right-click is enabled.
     /// </summary>
@@ -332,6 +371,24 @@ public partial class TableView
     }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the drag selection rectangle is shown during cell drag selection.
+    /// </summary>
+    public bool ShowDragRectangle
+    {
+        get => (bool)GetValue(ShowDragRectangleProperty);
+        set => SetValue(ShowDragRectangleProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value that indicates whether the TableView should force select the Row or Cell depending on the SelectionUnit
+    /// </summary>
+    public bool ForceRowOrCellSelectionOnContextRequested
+    {
+        get => (bool)GetValue(ForceRowOrCellSelectionOnContextRequestedProperty);
+        set => SetValue(ForceRowOrCellSelectionOnContextRequestedProperty, value);
+    }
+
+    /// <summary>
     /// Gets or sets the selection start cell slot.
     /// </summary>
     internal TableViewCellSlot? SelectionStartCellSlot { get; set; }
@@ -362,14 +419,19 @@ public partial class TableView
     internal bool IsEditing { get; private set; }
 
     /// <summary>
+    /// Gets the canvas that hosts the drag selection rectangle.
+    /// </summary>
+    internal Canvas? DragRectangleCanvas { get; private set; }
+
+    /// <summary>
+    /// Gets a value indicating whether a drag selection is currently in progress.
+    /// </summary>
+    internal bool IsDragSelecting { get; private set; }
+
+    /// <summary>
     /// Gets the visibility states of details pane for each item.
     /// </summary>
     internal ConditionalWeakTable<object, TValue<bool>> DetailsPaneStates { get; } = [];
-
-    /// <summary>
-    /// Gets or sets the header row of the TableView.
-    /// </summary>
-    internal TableViewHeaderRow? HeaderRow { get; set; }
 
     /// <summary>
     /// Gets or sets the filter handler for the TableView.
@@ -839,7 +901,7 @@ public partial class TableView
     {
         if (d is TableView tableView)
         {
-            tableView.HeaderRow?.SetExportOptionsVisibility();
+            tableView._headerRow?.SetExportOptionsVisibility();
         }
     }
 
@@ -891,13 +953,30 @@ public partial class TableView
     }
 
     /// <summary>
+    /// Handles changes to the ShowDragRectangle property.
+    /// </summary>
+    private static void OnShowDragRectangleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView && e.NewValue is false)
+        {
+            // Hide the rectangle visual but don't stop drag selection or auto-scroll
+            if (tableView._dragRectangle is not null)
+            {
+                tableView._dragRectangle.Visibility = Visibility.Collapsed;
+            }
+
+            tableView._dragStartPoint = null;
+        }
+    }
+
+    /// <summary>
     /// Handles changes to the CanFilterColumns property.
     /// </summary>
     private static void OnCanFilterColumnsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableView tableView && tableView.HeaderRow is not null)
+        if (d is TableView tableView && tableView._headerRow is not null)
         {
-            foreach (var header in tableView.HeaderRow.Headers)
+            foreach (var header in tableView._headerRow.Headers)
             {
                 header.SetFilterButtonVisibility();
             }
@@ -909,9 +988,9 @@ public partial class TableView
     /// </summary>
     private static void OnMinColumnWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableView table && table.HeaderRow is not null)
+        if (d is TableView table && table._headerRow is not null)
         {
-            table.HeaderRow.CalculateHeaderWidths();
+            table._headerRow.CalculateHeaderWidths();
         }
     }
 
@@ -920,9 +999,9 @@ public partial class TableView
     /// </summary>
     private static void OnMaxColumnWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableView table && table.HeaderRow is not null)
+        if (d is TableView table && table._headerRow is not null)
         {
-            table.HeaderRow.CalculateHeaderWidths();
+            table._headerRow.CalculateHeaderWidths();
         }
     }
 
@@ -1005,9 +1084,9 @@ public partial class TableView
     /// </summary>
     private static void OnHorizontalOffsetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableView { HeaderRow: { } } tableView)
+        if (d is TableView { _headerRow: { } } tableView)
         {
-            tableView.HeaderRow.InvalidateArrange();
+            tableView._headerRow.InvalidateArrange();
 
             foreach (var row in tableView._rows)
             {

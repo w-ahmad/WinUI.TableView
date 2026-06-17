@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Windows.System;
 
@@ -50,10 +49,7 @@ public partial class TableViewFilterItemsControl : UserControl
     /// </summary>
     internal void ClearSearchBox()
     {
-        if (searchBox is not null)
-        {
-            searchBox.Text = string.Empty;
-        }
+        searchBox?.Text = string.Empty;
     }
 
     private void OnSearchBoxTextChanged(object sender, TextChangedEventArgs e)
@@ -68,7 +64,8 @@ public partial class TableViewFilterItemsControl : UserControl
     {
         if (e.Key == VirtualKey.Enter && searchBox?.Text.Length > 0)
         {
-            ColumnHeader?.ExecuteOkCommand();
+            ColumnHeader?.HideFlyout();
+            ColumnHeader?.ApplyFilter();
 
             e.Handled = true;
         }
@@ -176,7 +173,19 @@ public partial class TableViewFilterItemsControl : UserControl
     /// <summary>
     /// Gets or sets the column header associated with the filter items control.
     /// </summary>
-    public TableViewColumnHeader? ColumnHeader { get; internal set; }
+    public TableViewColumnHeader? ColumnHeader
+    {
+        get;
+        set
+        {
+            if (value is { FilterItemsControl: null })
+            {
+                value.FilterItemsControl = this;
+            }
+
+            field = value;
+        }
+    }
 
     /// <summary>
     /// Gets or sets the TableView associated with the filter items control.

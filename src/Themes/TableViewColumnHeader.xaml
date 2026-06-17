@@ -6,7 +6,7 @@
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/Resources.xaml" />
     </ResourceDictionary.MergedDictionaries>
-    
+
     <Style x:Key="DefaultTableViewColumnHeaderStyle"
            TargetType="local:TableViewColumnHeader">
         <Setter Property="FontWeight"
@@ -130,49 +130,95 @@
                                     </Grid>
 
                                     <Button.Flyout>
-                                        <MenuFlyout x:Name="OptionsFlyout"
-                                                    Placement="Bottom">
-                                            <MenuFlyoutItem x:Name="SortAscendingMenuItem">
-                                                <MenuFlyoutItem.Icon>
-                                                    <FontIcon Glyph="&#xf0ad;" />
-                                                </MenuFlyoutItem.Icon>
-                                            </MenuFlyoutItem>
-                                            <MenuFlyoutItem x:Name="SortDescendingMenuItem">
-                                                <MenuFlyoutItem.Icon>
-                                                    <FontIcon Glyph="&#xf0ae;" />
-                                                </MenuFlyoutItem.Icon>
-                                            </MenuFlyoutItem>
-                                            <MenuFlyoutItem x:Name="ClearSortingMenuItem" />
-                                            <MenuFlyoutSeparator />
-                                            <MenuFlyoutItem x:Name="ClearFilterMenuItem" />                                            
-                                            <MenuFlyoutItem x:Name="FilterItemsMenuItem">
-                                                <MenuFlyoutItem.Template>
-                                                    <ControlTemplate TargetType="MenuFlyoutItem">
-                                                        <controls:TableViewFilterItemsControl />
-                                                    </ControlTemplate>
-                                                </MenuFlyoutItem.Template>
-                                            </MenuFlyoutItem>
-                                            <MenuFlyoutSeparator />
-                                            <MenuFlyoutItem x:Name="ActionButtonsMenuItem">
-                                                <MenuFlyoutItem.Template>
-                                                    <ControlTemplate TargetType="MenuFlyoutItem">
-                                                        <Grid Margin="12,4"
-                                                              ColumnSpacing="16">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="*" />
-                                                                <ColumnDefinition Width="*" />
-                                                            </Grid.ColumnDefinitions>
-                                                            <Button x:Name="OkButton"
-                                                                    HorizontalAlignment="Stretch"
-                                                                    Style="{StaticResource AccentButtonStyle}" />
-                                                            <Button x:Name="CancelButton"
-                                                                    Grid.Column="1"
-                                                                    HorizontalAlignment="Stretch" />
-                                                        </Grid>
-                                                    </ControlTemplate>
-                                                </MenuFlyoutItem.Template>
-                                            </MenuFlyoutItem>
-                                        </MenuFlyout>
+                                        <local:TableViewFilterMenuFlyout x:Name="OptionsFlyout"
+                                                                         Placement="Bottom">
+                                            <local:TableViewFilterMenuFlyout.Items>
+                                                <MenuFlyoutItem x:Name="SortAscendingMenuItem">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xf0ad;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutItem x:Name="SortDescendingMenuItem">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xf0ae;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutItem x:Name="ClearSortingMenuItem" />
+                                                <MenuFlyoutSeparator x:Name="MenuFlyoutSeparator" />
+                                                <MenuFlyoutItem x:Name="ClearFilterMenuItem" />
+                                            </local:TableViewFilterMenuFlyout.Items>
+                                            <local:TableViewFilterMenuFlyout.FlyoutPresenterStyle>
+                                                <Style TargetType="FlyoutPresenter"
+                                                       BasedOn="{StaticResource DefaultFlyoutPresenterStyle}">                                                    
+                                                    <Setter Property="Background" Value="{ThemeResource FlyoutPresenterBackground}" />
+                                                    <Setter Property="BorderBrush" Value="{ThemeResource MenuFlyoutPresenterBorderBrush}" />
+                                                    <Setter Property="BorderThickness" Value="{ThemeResource MenuFlyoutPresenterBorderThemeThickness}" />
+                                                    <Setter Property="Padding" Value="{StaticResource MenuFlyoutPresenterThemePadding}" />
+                                                    <Setter Property="ScrollViewer.HorizontalScrollMode" Value="Disabled" />
+                                                    <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+                                                    <Setter Property="ScrollViewer.VerticalScrollMode" Value="Disabled" />
+                                                    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
+                                                    <Setter Property="ScrollViewer.IsHorizontalRailEnabled" Value="False" />
+                                                    <Setter Property="ScrollViewer.IsVerticalRailEnabled" Value="False" />
+                                                    <Setter Property="ScrollViewer.ZoomMode" Value="Disabled" />
+                                                    <Setter Property="MinWidth" Value="{ThemeResource FlyoutThemeMinWidth}" />
+                                                    <Setter Property="MinHeight" Value="{StaticResource MenuFlyoutThemeMinHeight}" />
+                                                    <Setter Property="CornerRadius" Value="{ThemeResource OverlayCornerRadius}" />
+                                                    <Setter Property="Template">                                                        
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="FlyoutPresenter">
+                                                                <Border Background="{TemplateBinding Background}"
+                                                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                                                        CornerRadius="{TemplateBinding CornerRadius}"
+                                                                        BackgroundSizing="InnerBorderEdge">
+                                                                    <Grid>
+                                                                        <Grid.RowDefinitions>
+                                                                            <RowDefinition Height="Auto" />
+                                                                            <RowDefinition Height="*" />
+                                                                            <RowDefinition Height="Auto" />
+                                                                        </Grid.RowDefinitions>
+                                                                        <MenuFlyoutPresenter Background="Transparent"
+                                                                                             SystemBackdrop="{x:Null}"
+                                                                                             Padding="0"
+                                                                                             CornerRadius="0"
+                                                                                             BorderThickness="0"
+                                                                                             IsDefaultShadowEnabled="False"
+                                                                                             Margin="{TemplateBinding Padding}"
+                                                                                             HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                                                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                                                                            <MenuFlyoutPresenter.Resources>
+                                                                                <Style TargetType="MenuFlyoutItem"
+                                                                                       BasedOn="{StaticResource DefaultMenuFlyoutItemStyle}">
+                                                                                    <Setter Property="Padding" Value="{StaticResource MenuFlyoutItemThemePaddingNarrow}" />
+                                                                                </Style>
+                                                                            </MenuFlyoutPresenter.Resources>
+                                                                        </MenuFlyoutPresenter>
+
+                                                                        <controls:TableViewFilterItemsControl Grid.Row="1" />
+
+                                                                        <Grid Grid.Row="2"
+                                                                              Margin="12,4"
+                                                                              ColumnSpacing="16">
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition Width="*" />
+                                                                                <ColumnDefinition Width="*" />
+                                                                            </Grid.ColumnDefinitions>
+                                                                            <Button x:Name="OkButton"
+                                                                                    HorizontalAlignment="Stretch"
+                                                                                    Style="{StaticResource AccentButtonStyle}" />
+                                                                            <Button x:Name="CancelButton"
+                                                                                    Grid.Column="1"
+                                                                                    HorizontalAlignment="Stretch" />
+                                                                        </Grid>
+                                                                    </Grid>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </local:TableViewFilterMenuFlyout.FlyoutPresenterStyle>                                                                               
+                                        </local:TableViewFilterMenuFlyout>
                                     </Button.Flyout>
                                 </Button>
                             </Grid>

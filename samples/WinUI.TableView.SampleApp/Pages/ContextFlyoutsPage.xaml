@@ -25,6 +25,7 @@
                               ItemsSource="{Binding Items}"
                               CellContextFlyoutOpening="OnCellContextFlyoutOpening"
                               RowContextFlyoutOpening="OnRowContextFlyoutOpening"
+                              ForceRowOrCellSelectionOnContextRequested="{x:Bind ForceRowOrCellSelectionToggleSwitch.IsOn, Mode=OneWay}"
                               AutoGeneratingColumn="{x:Bind local:ExampleModelColumnsHelper.OnAutoGeneratingColumns}">
                     <tv:TableView.RowContextFlyout>
                         <MenuFlyout>
@@ -75,12 +76,26 @@
                     </tv:TableView.CellContextFlyout>
                 </tv:TableView>
             </controls:SamplePresenter.Example>
+            <controls:SamplePresenter.Options>
+                <StackPanel MaxWidth="250" Spacing="16">
+                    <ToggleSwitch
+                     x:Name="ForceRowOrCellSelectionToggleSwitch"
+                     Header="Force Row or Cell to be selected on ContextFlyoutOpening"
+                     IsOn="True"
+                     OffContent="False"
+                     OnContent="True" />
+                </StackPanel>
+            </controls:SamplePresenter.Options>
             <controls:SamplePresenter.Xaml>
                 <x:String xml:space="preserve">
 &lt;tv:TableView x:Name="tableView"
-    ItemsSource="{Binding Items}" /&gt;
+    ItemsSource="{Binding Items}"
+    ForceRowOrCellSelectionOnContextRequested="$(ForceRowOrCellSelect)" /&gt;
                 </x:String>
             </controls:SamplePresenter.Xaml>
+            <controls:SamplePresenter.Substitutions>
+                <controls:CodeSubstitution Key="ForceRowOrCellSelect" Value="{x:Bind tableView.ForceRowOrCellSelectionOnContextRequested, Mode=OneWay}" />
+            </controls:SamplePresenter.Substitutions>
         </controls:SamplePresenter>
     </Grid>
 </Page>
