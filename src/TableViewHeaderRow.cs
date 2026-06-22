@@ -41,6 +41,7 @@ public partial class TableViewHeaderRow : Control
     private Border? _columnDropIndicator;
     private TranslateTransform? _columnDropIndicatorTransform;
     private Image? _dragHeaderImage;
+    private DispatcherTimer? _desiredWidthTimer;
     private bool _calculatingHeaderWidths;
     private int _dropColumnIndex;
     private bool _isValidDropTarget;
@@ -200,6 +201,28 @@ public partial class TableViewHeaderRow : Control
             {
                 CalculateHeaderWidths();
             }
+        }
+        else if (e.PropertyName is nameof(TableViewColumn.DesiredWidth))
+        {
+            // Coalesce multiple updates (see in-loop Measure() call in CalculateHeaderWidths) to avoid excessive header width calculations.
+            _desiredWidthTimer ??= new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
+            _desiredWidthTimer.Tick -= OnDesiredWidthTimerTick;
+            _desiredWidthTimer.Tick += OnDesiredWidthTimerTick;
+            _desiredWidthTimer.Stop();
+            _desiredWidthTimer.Start();
+        }
+    }
+
+    /// <summary>
+    /// Recalculates header widths after deferred desired-width updates.
+    /// </summary>
+    private void OnDesiredWidthTimerTick(object? sender, object e)
+    {
+        _desiredWidthTimer?.Stop();
+
+        if (!_calculatingHeaderWidths)
+        {
+            CalculateHeaderWidths();
         }
     }
 
