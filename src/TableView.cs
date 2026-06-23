@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
@@ -71,6 +72,12 @@ public partial class TableView : ListView
         Unloaded += OnUnloaded;
         SelectionChanged += TableView_SelectionChanged;
         _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
+
+        // Wire StateChanged to sort, filter and to column property / reorder changes
+        ((INotifyCollectionChanged)SortDescriptions).CollectionChanged += (_, _) => RaiseStateChanged(TableViewStateChangedKind.Sort);
+        ((INotifyCollectionChanged)FilterDescriptions).CollectionChanged += (_, _) => RaiseStateChanged(TableViewStateChangedKind.Filter);
+        Columns.ColumnPropertyChanged += OnColumnsPropertyChangedForState;
+        Columns.CollectionChanged += OnColumnsCollectionChangedForState;
     }
 
     /// <summary>
