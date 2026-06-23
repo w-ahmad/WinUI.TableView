@@ -29,7 +29,7 @@ internal static partial class ObjectExtensions
     {
         try
         {
-            // Build the property access expression chain with runtime type checking
+            // Build the value access expression chain with runtime type checking
             var parameterObj = Expression.Parameter(typeof(object), "obj");
             var expressionTree = BuildGetterExpressionTree(parameterObj, bindingPath, dataItem);
 
@@ -87,7 +87,7 @@ internal static partial class ObjectExtensions
             : BuildPropertySetterExpression(current, finalPart, parameterValue);
     }
 
-    private static Expression BuildPropertyGetterExpression(Expression current, string propertyName)
+    private static MemberExpression BuildPropertyGetterExpression(Expression current, string propertyName)
     {
         var propertyInfo = current.Type.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
             ?? throw new ArgumentException($"Property '{propertyName}' not found on type '{current.Type.Name}'.");
@@ -101,10 +101,9 @@ internal static partial class ObjectExtensions
 
         if (current.Type.IsArray)
         {
-            if (!indices.All(index => index is int))
-                throw new ArgumentException($"Arrays only support integer indexing: {indexerPart}");
-
-            return AddArrayAccessWithBoundsCheck(current, [.. indices.Select(index => (int)index)]);
+            return !indices.All(index => index is int)
+                ? throw new ArgumentException($"Arrays only support integer indexing: {indexerPart}")
+                : (Expression)AddArrayAccessWithBoundsCheck(current, [.. indices.Select(index => (int)index)]);
         }
 
         return AddIndexerAccessWithSafetyChecks(current, indices);
@@ -127,13 +126,12 @@ internal static partial class ObjectExtensions
     {
         var indices = GetIndices(indexerPart[1..^1]);
 
-        if (current.Type.IsArray)
-            return BuildArraySetterExpression(current, indices, value);
-
-        return BuildObjectIndexerSetterExpression(current, indices, value);
+        return current.Type.IsArray
+            ? BuildArraySetterExpression(current, indices, value)
+            : BuildObjectIndexerSetterExpression(current, indices, value);
     }
 
-    private static Expression BuildArraySetterExpression(Expression current, object[] indices, Expression value)
+    private static BlockExpression BuildArraySetterExpression(Expression current, object[] indices, Expression value)
     {
         if (!indices.All(index => index is int))
             throw new ArgumentException("Arrays only support integer indexers.");
@@ -275,7 +273,7 @@ internal static partial class ObjectExtensions
             indexerProperty.PropertyType);
     }
 
-    private static Expression BuildConvertedAssignExpression(Expression target, Expression value, Type targetType)
+    private static BlockExpression BuildConvertedAssignExpression(Expression target, Expression value, Type targetType)
     {
         var convertedValue = Expression.Variable(typeof(object), "convertedValue");
         var error = Expression.Variable(typeof(string), "error");
@@ -473,7 +471,7 @@ internal static partial class ObjectExtensions
     /// <param name="parameterObj">The expression representing the instance parameter for which the binding path will be evaluated.</param>
     /// <param name="bindingPath">The binding path to access.</param>
     /// <param name="dataItem">The actual data item to use for runtime type evaluation, to help with any needed subclass type conversions.</param>
-    /// <returns>An expression that accesses the property value specified by the binding path for the provided dataItem instance.</returns>
+    /// <returns>An expression that gets the value specified by the binding path for the provided dataItem instance.</returns>
     private static Expression BuildGetterExpressionTree(ParameterExpression parameterObj, string bindingPath, object dataItem)
     {
         var matches = BindingPathRegex().Matches(bindingPath);
@@ -515,14 +513,14 @@ internal static partial class ObjectExtensions
         {
             var part = matches[matchIndex].Value;
 
-            var nextPropertyAccess = part.StartsWith('[') && part.EndsWith(']')
+            var nextSegmentAccess = part.StartsWith('[') && part.EndsWith(']')
                 ? BuildIndexerGetterExpression(current, part)
                 : BuildPropertyGetterExpression(current, part);
 
-            if (nextPropertyAccess.Type.IsValueType && !nextPropertyAccess.Type.IsNullableType())
+            if (nextSegmentAccess.Type.IsValueType && !nextSegmentAccess.Type.IsNullableType())
             {
-                // Value types cannot be null, so don't need to check for null, and we can directly assign the property access
-                current = nextPropertyAccess;
+                // Value types cannot be null, so don't need to check for null, and we can directly assign the access to the next segment
+                current = nextSegmentAccess;
             }
             else
             {
@@ -530,8 +528,8 @@ internal static partial class ObjectExtensions
                 var notNullCheck = Expression.NotEqual(current, Expression.Constant(null));
                 current = Expression.Condition(
                     notNullCheck,
-                    nextPropertyAccess,
-                    Expression.Constant(null, nextPropertyAccess.Type)
+                    nextSegmentAccess,
+                    Expression.Constant(null, nextSegmentAccess.Type)
                 );
             }
 
