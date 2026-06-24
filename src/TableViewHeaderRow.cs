@@ -363,7 +363,7 @@ public partial class TableViewHeaderRow : Control
         var autoWidthMode = column.ColumnAutoWidthMode ?? TableView?.ColumnAutoWidthMode;
         var width = column.DesiredWidth;
 
-        if (column.HeaderControl is { } header && autoWidthMode is not ColumnAutoWidthMode.Cells)
+        if (column.HeaderControl is { } header && autoWidthMode is not TableViewColumnAutoWidthMode.Cells)
         {
             header.Width = double.NaN;
             header.Measure(new Size(double.PositiveInfinity, ActualHeight));

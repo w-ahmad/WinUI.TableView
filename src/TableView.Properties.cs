@@ -224,7 +224,7 @@ public partial class TableView
     /// <summary>
     /// Identifies the ColumnAutoWidthMode dependency property.
     /// </summary>
-    public static readonly DependencyProperty ColumnAutoWidthModeProperty = DependencyProperty.Register(nameof(ColumnAutoWidthMode), typeof(ColumnAutoWidthMode), typeof(TableView), new PropertyMetadata(ColumnAutoWidthMode.Both, OnColumnAutoWidthModeChanged));
+    public static readonly DependencyProperty ColumnAutoWidthModeProperty = DependencyProperty.Register(nameof(ColumnAutoWidthMode), typeof(TableViewColumnAutoWidthMode), typeof(TableView), new PropertyMetadata(TableViewColumnAutoWidthMode.Both, OnColumnAutoWidthModeChanged));
 
     /// <summary>
     /// Identifies the FrozenColumnCount dependency property.
@@ -733,9 +733,9 @@ public partial class TableView
     /// <summary>
     /// Gets or sets the ColumnAutoWidthMode for all columns.
     /// </summary>
-    public ColumnAutoWidthMode ColumnAutoWidthMode
+    public TableViewColumnAutoWidthMode ColumnAutoWidthMode
     {
-        get => (ColumnAutoWidthMode)GetValue(ColumnAutoWidthModeProperty);
+        get => (TableViewColumnAutoWidthMode)GetValue(ColumnAutoWidthModeProperty);
         set => SetValue(ColumnAutoWidthModeProperty, value);
     }
 

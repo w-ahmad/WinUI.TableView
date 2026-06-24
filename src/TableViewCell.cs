@@ -133,7 +133,7 @@ public partial class TableViewCell : ContentControl
             element.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
 
             var autoSizeMode = Column.ColumnAutoWidthMode ?? TableView.ColumnAutoWidthMode;
-            if (autoSizeMode is ColumnAutoWidthMode.Cells or ColumnAutoWidthMode.Both)
+            if (autoSizeMode is TableViewColumnAutoWidthMode.Cells or TableViewColumnAutoWidthMode.Both)
             {
                 var desiredWidth = element.DesiredSize.Width;
                 desiredWidth += Padding.Left;

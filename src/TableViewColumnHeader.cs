@@ -597,7 +597,7 @@ public partial class TableViewColumnHeader : ContentControl
         if (Column is not null && _tableView is not null)
         {
             var autoWidthMode = Column.ColumnAutoWidthMode ?? _tableView.ColumnAutoWidthMode;
-            if (autoWidthMode is ColumnAutoWidthMode.Header or ColumnAutoWidthMode.Both)
+            if (autoWidthMode is TableViewColumnAutoWidthMode.Header or TableViewColumnAutoWidthMode.Both)
             {
                 var desiredHeaderSize = base.MeasureOverride(new Size(double.PositiveInfinity, double.PositiveInfinity));
                 Column.DesiredWidth = Math.Max(Column.DesiredWidth, desiredHeaderSize.Width);

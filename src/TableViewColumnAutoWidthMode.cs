@@ -3,7 +3,7 @@
 /// <summary>
 /// Specifies the behavior for automatic column width.
 /// </summary>
-public enum ColumnAutoWidthMode
+public enum TableViewColumnAutoWidthMode
 {
     /// <summary>
     /// Column width is adjusted to both header and maximum cell width.

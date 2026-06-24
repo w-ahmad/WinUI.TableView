@@ -186,9 +186,9 @@ public abstract partial class TableViewColumn : DependencyObject
     /// <summary>
     /// Gets or sets the ColumnAutoWidthMode of the column.
     /// </summary>
-    public ColumnAutoWidthMode? ColumnAutoWidthMode
+    public TableViewColumnAutoWidthMode? ColumnAutoWidthMode
     {
-        get => (ColumnAutoWidthMode?)GetValue(ColumnAutoWidthModeProperty);
+        get => (TableViewColumnAutoWidthMode?)GetValue(ColumnAutoWidthModeProperty);
         set => SetValue(ColumnAutoWidthModeProperty, value);
     }
 
@@ -527,7 +527,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// <summary>
     /// Identifies the ColumnAutoWidthMode dependency property.
     /// </summary>
-    public static readonly DependencyProperty ColumnAutoWidthModeProperty = DependencyProperty.Register(nameof(ColumnAutoWidthMode), typeof(ColumnAutoWidthMode?), typeof(TableViewColumn), new PropertyMetadata(null, OnColumnAutoWidthModeChanged));
+    public static readonly DependencyProperty ColumnAutoWidthModeProperty = DependencyProperty.Register(nameof(ColumnAutoWidthMode), typeof(TableViewColumnAutoWidthMode?), typeof(TableViewColumn), new PropertyMetadata(null, OnColumnAutoWidthModeChanged));
 
     /// <summary>
     /// Identifies the CanResize dependency property.
