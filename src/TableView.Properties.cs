@@ -224,7 +224,7 @@ public partial class TableView
     /// <summary>
     /// Identifies the ColumnAutoWidthMode dependency property.
     /// </summary>
-    public static readonly DependencyProperty ColumnAutoWidthModeProperty = DependencyProperty.Register(nameof(ColumnAutoWidthMode), typeof(ColumnAutoWidthMode), typeof(TableView), new PropertyMetadata(ColumnAutoWidthMode.Both));
+    public static readonly DependencyProperty ColumnAutoWidthModeProperty = DependencyProperty.Register(nameof(ColumnAutoWidthMode), typeof(ColumnAutoWidthMode), typeof(TableView), new PropertyMetadata(ColumnAutoWidthMode.Both, OnColumnAutoWidthModeChanged));
 
     /// <summary>
     /// Identifies the FrozenColumnCount dependency property.
@@ -899,6 +899,17 @@ public partial class TableView
             {
                 header.SetFilterButtonVisibility();
             }
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the ColumnAutoWidthMode property.
+    /// </summary>
+    private static void OnColumnAutoWidthModeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            tableView.RefreshColumnsAutoWidth();
         }
     }
 

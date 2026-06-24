@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Windows.Foundation;
 using Windows.System;
 using Windows.UI.Core;
@@ -67,7 +68,7 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     private void OnWidthChanged(DependencyObject sender, DependencyProperty dp)
     {
-        if (Column is not null)
+        if (Column is not null && !double.IsNaN(Width))
         {
             Column.ActualWidth = Width;
         }
@@ -463,19 +464,11 @@ public partial class TableViewColumnHeader : ContentControl
 
         if (position.X <= 8 && _headerRow?.GetPreviousHeader(this) is { Column: { } } header)
         {
-            var width = Math.Clamp(
-                header.Column.DesiredWidth,
-                header.Column.MinWidth ?? _tableView.MinColumnWidth,
-                header.Column.MaxWidth ?? _tableView.MaxColumnWidth);
-            header.Column.Width = new GridLength(width, GridUnitType.Pixel);
+            header.Column.Width = GridLength.Auto;
         }
         else if (Column is not null)
         {
-            var width = Math.Clamp(
-                Column.DesiredWidth,
-                Column.MinWidth ?? _tableView.MinColumnWidth,
-                Column.MaxWidth ?? _tableView.MaxColumnWidth);
-            Column.Width = new GridLength(width, GridUnitType.Pixel);
+            Column.Width = GridLength.Auto;
         }
     }
 
@@ -601,18 +594,17 @@ public partial class TableViewColumnHeader : ContentControl
     /// <inheritdoc/>
     protected override Size MeasureOverride(Size availableSize)
     {
-        var desiredHeaderSize = base.MeasureOverride(availableSize);
-
         if (Column is not null && _tableView is not null)
         {
             var autoWidthMode = Column.ColumnAutoWidthMode ?? _tableView.ColumnAutoWidthMode;
             if (autoWidthMode is ColumnAutoWidthMode.Header or ColumnAutoWidthMode.Both)
             {
+                var desiredHeaderSize = base.MeasureOverride(new Size(double.PositiveInfinity, double.PositiveInfinity));
                 Column.DesiredWidth = Math.Max(Column.DesiredWidth, desiredHeaderSize.Width);
             }
         }
 
-        return desiredHeaderSize;
+        return base.MeasureOverride(availableSize);
     }
 
     /// <summary>

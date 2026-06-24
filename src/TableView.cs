@@ -1384,6 +1384,38 @@ public partial class TableView : ListView
     }
 
     /// <summary>
+    /// Resets the auto-calculated widths of the specified columns and recalculates them.
+    /// </summary>
+    /// <param name="columns">The columns to refresh. When null, all columns are refreshed.</param>
+    internal void RefreshColumnsAutoWidth(IEnumerable<TableViewColumn>? columns = null)
+    {
+        var targetColumns = (columns ?? Columns).ToList();
+        if (targetColumns.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var column in targetColumns)
+        {
+            column.DesiredWidth = 0d;
+            column.HeaderControl?.InvalidateMeasure();
+        }
+
+        foreach (var row in _rows)
+        {
+            foreach (var cell in row.Cells)
+            {
+                if (cell.Column is { } cellColumn && targetColumns.Contains(cellColumn))
+                {
+                    cell.InvalidateMeasure();
+                }
+            }
+        }
+
+        DispatcherQueue.TryEnqueue(() => _headerRow?.CalculateHeaderWidths());
+    }
+
+    /// <summary>
     /// Ensures the column headers style is applied.
     /// </summary>
     private void EnsureColumnHeadersStyle()

@@ -443,6 +443,17 @@ public abstract partial class TableViewColumn : DependencyObject
     }
 
     /// <summary>
+    /// Handles changes to the ColumnAutoWidthMode property.
+    /// </summary>
+    private static void OnColumnAutoWidthModeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableViewColumn column)
+        {
+            column.TableView?.RefreshColumnsAutoWidth([column]);
+        }
+    }
+
+    /// <summary>
     /// Handles changes to the CanFilter property.
     /// </summary>
     private static void OnCanFilterChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -514,9 +525,9 @@ public abstract partial class TableViewColumn : DependencyObject
     public static readonly DependencyProperty ActualWidthProperty = DependencyProperty.Register(nameof(ActualWidth), typeof(double), typeof(TableViewColumn), new PropertyMetadata(0d, OnPropertyChanged));
 
     /// <summary>
-    /// Identifies the ActualWidth dependency property.
+    /// Identifies the ColumnAutoWidthMode dependency property.
     /// </summary>
-    public static readonly DependencyProperty ColumnAutoWidthModeProperty = DependencyProperty.Register(nameof(ColumnAutoWidthMode), typeof(ColumnAutoWidthMode?), typeof(TableViewColumn), new PropertyMetadata(null));
+    public static readonly DependencyProperty ColumnAutoWidthModeProperty = DependencyProperty.Register(nameof(ColumnAutoWidthMode), typeof(ColumnAutoWidthMode?), typeof(TableViewColumn), new PropertyMetadata(null, OnColumnAutoWidthModeChanged));
 
     /// <summary>
     /// Identifies the CanResize dependency property.
