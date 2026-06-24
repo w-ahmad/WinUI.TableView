@@ -8,75 +8,36 @@
       xmlns:tv="using:WinUI.TableView"
       xmlns:ui="using:CommunityToolkit.WinUI"
       d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
-      mc:Ignorable="d">
+      mc:Ignorable="d"
+      DataContextChanged="OnDataContextChanged">
 
     <Grid>
         <controls:SamplePresenter Description="This sample demonstrate the different ways column can be sized." 
                                   Header="Column Sizing">
             <controls:SamplePresenter.Example>
                 <tv:TableView x:Name="tableView"
-                              AutoGenerateColumns="False"
-                              CanSortColumns="False"
-                              DataContextChanged="OnDataContextChanged"
-                              GridLinesVisibility="None"
-                              ItemsSource="{Binding Items}">
-                    <tv:TableView.Columns>
-                        <tv:TableViewNumberColumn Binding="{Binding Id}" 
-                                                  Header="Id" />
-                        <tv:TableViewTextColumn Binding="{Binding FirstName}" 
-                                                Header="First Name" />
-                        <tv:TableViewTextColumn Binding="{Binding LastName}"
-                                                ColumnAutoWidthMode="Cells"
-                                                Header="Last Name" />
-                        <tv:TableViewTextColumn Binding="{Binding Email}"
-                                                Header="Email"
-                                                Width="{x:Bind (GridLength)columnWidth.SelectedValue, Mode=OneWay}" 
-                                                ColumnAutoWidthMode="{x:Bind (tv:ColumnAutoWidthMode)columnAutoWidthMode.SelectedValue, Mode=OneWay}"/>
-                        <tv:TableViewTextColumn Binding="{Binding Gender}"
-                                                Header="Gender Identity"
-                                                Width="{x:Bind (GridLength)columnWidth.SelectedValue, Mode=OneWay}" 
-                                                ColumnAutoWidthMode="{x:Bind (tv:ColumnAutoWidthMode)columnAutoWidthMode.SelectedValue, Mode=OneWay}"/>
-                        <tv:TableViewDateColumn Binding="{Binding Dob}" 
-                                                Header="Date of Birth" 
-                                                Width="{x:Bind (GridLength)columnWidth.SelectedValue, Mode=OneWay}" 
-                                                ColumnAutoWidthMode="{x:Bind (tv:ColumnAutoWidthMode)columnAutoWidthMode.SelectedValue, Mode=OneWay}"/>
-                    </tv:TableView.Columns>
-                </tv:TableView>
+                              ItemsSource="{Binding Items}" />
             </controls:SamplePresenter.Example>
             <controls:SamplePresenter.Options>
-                <StackPanel Spacing="16" MinWidth="200">
-                    <ComboBox x:Name="columnWidth"
-                              HorizontalAlignment="Stretch"
-                              Header="Widths of Last Three Columns"
-                              SelectedIndex="1"
-                              SelectedValuePath="Tag">
-                        <ComboBoxItem Content="200 pixels">
-                            <ComboBoxItem.Tag>
-                                <GridLength>200</GridLength>
-                            </ComboBoxItem.Tag>
-                        </ComboBoxItem>
-                        <ComboBoxItem Content="Star size">
-                            <ComboBoxItem.Tag>
-                                <GridLength>*</GridLength>
-                            </ComboBoxItem.Tag>
-                        </ComboBoxItem>
-                        <ComboBoxItem Content="Auto">
-                            <ComboBoxItem.Tag>
-                                <GridLength>Auto</GridLength>
-                            </ComboBoxItem.Tag>
-                        </ComboBoxItem>
-                    </ComboBox>
-                    <ComboBox x:Name="columnAutoWidthMode"  
+                <StackPanel Spacing="16"
+                            MinWidth="200">
+                    <ComboBox x:Name="columnAutoWidthMode"
                               HorizontalAlignment="Stretch"
                               Header="Column Auto Width Mode"
-                              SelectedIndex="0"
-                              SelectedValuePath="Tag">
-                        <ComboBoxItem Content="Both Header and Cells" Tag="{x:Bind tv:ColumnAutoWidthMode.Both}"/>
-                        <ComboBoxItem Content="Header" Tag="{x:Bind tv:ColumnAutoWidthMode.Header}"/>
-                        <ComboBoxItem Content="Cells" Tag="{x:Bind tv:ColumnAutoWidthMode.Cells}"/>
-                    </ComboBox>
+                              SelectedItem="{Binding ColumnAutoWidthMode, Mode=TwoWay, ElementName=tableView}"
+                              ItemsSource="{ui:EnumValues Type=tv:TableViewColumnAutoWidthMode}" />
                 </StackPanel>
             </controls:SamplePresenter.Options>
+            <controls:SamplePresenter.Xaml>
+                <x:String xml:space="preserve">
+&lt;tv:TableView ItemsSource="{Binding Items}"
+    ColumnAutoWidthMode="$(ColumnAutoWidthMode)"/>
+                </x:String>
+            </controls:SamplePresenter.Xaml>
+            <controls:SamplePresenter.Substitutions>
+                <controls:CodeSubstitution Key="ColumnAutoWidthMode"
+                                           Value="{x:Bind columnAutoWidthMode.SelectedItem, Mode=OneWay}" />
+            </controls:SamplePresenter.Substitutions>
         </controls:SamplePresenter>
     </Grid>
 </Page>

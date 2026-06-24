@@ -15,6 +15,6 @@ public sealed partial class ColumnSizingPage : Page
     {
         if (DataContext is not ExampleViewModel viewModel) return;
 
-        viewModel.Items = new(ExampleViewModel.ItemsList.Take(20));
+        viewModel.Items = [.. ExampleViewModel.ItemsList.Take(20)];
     }
 }
