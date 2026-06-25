@@ -1873,7 +1873,7 @@ public partial class TableView : ListView
     /// <param name="columns">The columns to refresh. When null, all columns are refreshed.</param>
     internal void RefreshColumnsAutoWidth(IEnumerable<TableViewColumn>? columns = null)
     {
-        var targetColumns = (columns ?? Columns).ToList();
+        var targetColumns = (columns ?? Columns).ToHashSet();
         if (targetColumns.Count == 0)
         {
             return;

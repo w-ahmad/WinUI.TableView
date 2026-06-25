@@ -338,7 +338,6 @@ public partial class TableViewHeaderRow : Control
                     width = width < minWidth ? minWidth : width;
                     width = width > maxWidth ? maxWidth : width;
                     header.Width = width;
-                    header.MaxWidth = width;
 
                     DispatcherQueue.TryEnqueue(() =>
                         header.Measure(
