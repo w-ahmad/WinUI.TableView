@@ -43,6 +43,7 @@ public partial class TableView : ListView
     private Border? _dragRectangle;
     private Point? _dragStartPoint;
     private bool _cellSelectionDirty;
+    private bool _suppressSelectionChangedCellClear;
     private Point? _lastDragCanvasPoint;
     private DispatcherTimer? _autoScrollTimer;
     private double _autoScrollVerticalDelta;
@@ -78,21 +79,28 @@ public partial class TableView : ListView
     /// </summary>
     private void TableView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (!KeyboardHelper.IsCtrlKeyDown())
+        if (_suppressSelectionChangedCellClear)
         {
-            SelectedCellRanges.Clear();
+            _suppressSelectionChangedCellClear = false;
         }
         else
         {
-            SelectedCellRanges.RemoveWhere(slots =>
+            if (!KeyboardHelper.IsCtrlKeyDown())
             {
-                slots.RemoveWhere(slot => SelectedRanges.Any(range => range.IsInRange(slot.Row)));
-                return slots.Count == 0;
-            });
-        }
+                SelectedCellRanges.Clear();
+            }
+            else
+            {
+                SelectedCellRanges.RemoveWhere(slots =>
+                {
+                    slots.RemoveWhere(slot => SelectedRanges.Any(range => range.IsInRange(slot.Row)));
+                    return slots.Count == 0;
+                });
+            }
 
-        CurrentCellSlot = null;
-        OnCellSelectionChanged();
+            CurrentCellSlot = null;
+            OnCellSelectionChanged();
+        }
 
         if (SelectedItems?.Count == 1)
         {
@@ -1114,9 +1122,12 @@ public partial class TableView : ListView
         {
             ctrlKey = ctrlKey || SelectionMode is ListViewSelectionMode.Multiple;
 
-            if (SelectionUnit is TableViewSelectionUnit.Row
-               || (LastSelectionUnit is TableViewSelectionUnit.Row && slot.IsValidRow(this) && !slot.IsValidColumn(this))
-               || (SelectionUnit is TableViewSelectionUnit.CellOrRow && slot.IsValidRow(this) && !slot.IsValidColumn(this)))
+            var shouldSelectRows = SelectionUnit is TableViewSelectionUnit.Row
+                || (SelectionUnit is TableViewSelectionUnit.CellWithRow && !slot.IsValidColumn(this))
+                || (LastSelectionUnit is TableViewSelectionUnit.Row && slot.IsValidRow(this) && !slot.IsValidColumn(this))
+                || (SelectionUnit is TableViewSelectionUnit.CellOrRow && slot.IsValidRow(this) && !slot.IsValidColumn(this));
+
+            if (shouldSelectRows)
             {
                 if (!ctrlKey)
                     DeselectAllCells();
@@ -1125,8 +1136,16 @@ public partial class TableView : ListView
             }
             else
             {
-                if (!ctrlKey)
+                if (SelectionUnit is TableViewSelectionUnit.CellWithRow)
+                {
+                    _suppressSelectionChangedCellClear = true;
+                    SelectRows(slot, shiftKey, ctrlKey);
+                }
+                else if (!ctrlKey)
+                {
                     DeselectAllItems();
+                }
+
                 SelectCells(slot, shiftKey, ctrlKey);
                 LastSelectionUnit = TableViewSelectionUnit.Cell;
             }
@@ -1210,12 +1229,29 @@ public partial class TableView : ListView
 
         if (!ctrlKey || !(SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended))
         {
-            DeselectAll();
+            if (SelectionUnit is TableViewSelectionUnit.CellWithRow)
+            {
+                DeselectAllCells();
+            }
+            else
+            {
+                DeselectAll();
+            }
         }
 
         var selectionRange = (SelectionStartCellSlot is null ? null : SelectedCellRanges.LastOrDefault(x => SelectionStartCellSlot.HasValue && x.Contains(SelectionStartCellSlot.Value))) ?? [];
-        SelectedCellRanges.Remove(selectionRange);
-        selectionRange.Clear();
+
+        if (ctrlKey && SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended)
+        {
+            selectionRange = SelectedCellRanges.SelectMany(x => x).ToHashSet();
+            SelectedCellRanges.Clear();
+        }
+        else
+        {
+            SelectedCellRanges.Remove(selectionRange);
+            selectionRange.Clear();
+        }
+
         SelectionStartCellSlot ??= CurrentCellSlot;
         SelectionStartCellSlot ??= slot;
 
