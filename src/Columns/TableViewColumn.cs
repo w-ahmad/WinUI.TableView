@@ -499,12 +499,30 @@ public abstract partial class TableViewColumn : DependencyObject
                 column.OwningCollection.HandleColumnPropertyChanged(column, nameof(MaxWidth));
             else if (e.Property == ActualWidthProperty)
                 column.OwningCollection.HandleColumnPropertyChanged(column, nameof(ActualWidth));
-            else if (e.Property == IsReadOnlyProperty)
-                column.OwningCollection.HandleColumnPropertyChanged(column, nameof(IsReadOnly));
             else if (e.Property == VisibilityProperty)
                 column.OwningCollection.HandleColumnPropertyChanged(column, nameof(Visibility));
             else if (e.Property == OrderProperty)
                 column.OwningCollection.HandleColumnPropertyChanged(column, nameof(Order));
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the IsReadOnly property.
+    /// </summary>
+    private static void OnIsReadOnlyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableViewColumn column)
+        {
+            if (column.TableView is TableView tableView &&
+                tableView.IsEditing &&
+                tableView.CurrentCellSlot is not null &&
+                tableView.GetCellFromSlot(tableView.CurrentCellSlot.Value) is { } currentCell &&
+                tableView.EndCellEditing(TableViewEditAction.Cancel, currentCell))
+            {
+                tableView.SetIsEditing(false);
+            }
+
+            column.OwningCollection?.HandleColumnPropertyChanged(column, nameof(IsReadOnly));
         }
     }
 
@@ -587,7 +605,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// <summary>
     /// Identifies the IsReadOnly dependency property.
     /// </summary>
-    public static readonly DependencyProperty IsReadOnlyProperty = DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(TableViewColumn), new PropertyMetadata(false, OnPropertyChanged));
+    public static readonly DependencyProperty IsReadOnlyProperty = DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(TableViewColumn), new PropertyMetadata(false, OnIsReadOnlyChanged));
 
     /// <summary>
     /// Identifies the Visibility dependency property.
