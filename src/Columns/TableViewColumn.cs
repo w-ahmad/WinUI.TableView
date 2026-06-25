@@ -520,7 +520,7 @@ public abstract partial class TableViewColumn : DependencyObject
                 tableView.GetCellFromSlot(tableView.CurrentCellSlot.Value) is { } currentCell &&
                 tableView.EndCellEditing(TableViewEditAction.Cancel, currentCell))
             {
-                column.TableView.SetIsEditing(false);
+                tableView.SetIsEditing(false);
             }
 
             column.OwningCollection?.HandleColumnPropertyChanged(column, nameof(IsReadOnly));
