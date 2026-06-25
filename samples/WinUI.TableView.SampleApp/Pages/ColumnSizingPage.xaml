@@ -12,7 +12,7 @@
       DataContextChanged="OnDataContextChanged">
 
     <Grid>
-        <controls:SamplePresenter Description="This sample demonstrate the different ways column can be sized." 
+        <controls:SamplePresenter Description="This sample demonstrates the different ways a column can be sized." 
                                   Header="Column Sizing">
             <controls:SamplePresenter.Example>
                 <tv:TableView x:Name="tableView"
