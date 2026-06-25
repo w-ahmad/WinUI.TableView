@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.Foundation;
 using Windows.System;
 using Windows.UI.Core;
 using WinUI.TableView.Collections;
@@ -63,7 +64,10 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     private void OnWidthChanged(DependencyObject sender, DependencyProperty dp)
     {
-        Column?.ActualWidth = Width;
+        if (!double.IsNaN(Width))
+        {
+            Column?.ActualWidth = Width;
+        }
     }
 
     /// <summary>
@@ -348,19 +352,11 @@ public partial class TableViewColumnHeader : ContentControl
 
         if (position.X <= 8 && _headerRow?.GetPreviousHeader(this) is { Column: { } } header)
         {
-            var width = Math.Clamp(
-                header.Column.DesiredWidth,
-                header.Column.MinWidth ?? _tableView.MinColumnWidth,
-                header.Column.MaxWidth ?? _tableView.MaxColumnWidth);
-            header.Column.Width = new GridLength(width, GridUnitType.Pixel);
+            header.Column.Width = GridLength.Auto;
         }
         else if (Column is not null)
         {
-            var width = Math.Clamp(
-                Column.DesiredWidth,
-                Column.MinWidth ?? _tableView.MinColumnWidth,
-                Column.MaxWidth ?? _tableView.MaxColumnWidth);
-            Column.Width = new GridLength(width, GridUnitType.Pixel);
+            Column.Width = GridLength.Auto;
         }
     }
 
@@ -481,6 +477,22 @@ public partial class TableViewColumnHeader : ContentControl
         _resizeStarted = false;
         _resizePreviousStarted = false;
         _reorderStarted = false;
+    }
+
+    /// <inheritdoc/>
+    protected override Size MeasureOverride(Size availableSize)
+    {
+        if (Column is not null && _tableView is not null)
+        {
+            var autoWidthMode = Column.ColumnAutoWidthMode ?? _tableView.ColumnAutoWidthMode;
+            if (autoWidthMode is TableViewColumnAutoWidthMode.Header or TableViewColumnAutoWidthMode.Both)
+            {
+                var desiredHeaderSize = base.MeasureOverride(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                Column.DesiredWidth = Math.Max(Column.DesiredWidth, desiredHeaderSize.Width);
+            }
+        }
+
+        return base.MeasureOverride(availableSize);
     }
 
     /// <summary>

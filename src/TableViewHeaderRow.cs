@@ -282,19 +282,10 @@ public partial class TableViewHeaderRow : Control
             var autoColumns = allColumns.Where(x => x.Width.IsAuto).ToList();
             var absoluteColumns = allColumns.Where(x => x.Width.IsAbsolute).ToList();
 
-            var height = ActualHeight;
             var availableWidth = TableView.ActualWidth - 32;
             var starUnitWeight = starColumns.Select(x => x.Width.Value).Sum();
-            var fixedWidth = autoColumns.Select(x =>
-            {
-                if (x.HeaderControl is { } header)
-                {
-                    header.Measure(new Size(double.PositiveInfinity, height));
-                    return Math.Max(x.DesiredWidth, header.DesiredSize.Width);
-                }
 
-                return x.DesiredWidth;
-            }).Sum();
+            var fixedWidth = autoColumns.Select(GetColumnDesiredWidth).Sum();
             fixedWidth += absoluteColumns.Select(x => x.ActualWidth).Sum();
 
             availableWidth -= fixedWidth;
@@ -339,7 +330,7 @@ public partial class TableViewHeaderRow : Control
                     var width = column.Width.IsStar
                                 ? starUnitWidth * column.Width.Value
                                 : column.Width.IsAbsolute ? column.Width.Value
-                                : Math.Max(header.DesiredSize.Width, column.DesiredWidth);
+                                : GetColumnDesiredWidth(column);
 
                     var minWidth = column.MinWidth ?? TableView.MinColumnWidth;
                     var maxWidth = column.MaxWidth ?? TableView.MaxColumnWidth;
@@ -347,7 +338,6 @@ public partial class TableViewHeaderRow : Control
                     width = width < minWidth ? minWidth : width;
                     width = width > maxWidth ? maxWidth : width;
                     header.Width = width;
-                    header.MaxWidth = width;
 
                     DispatcherQueue.TryEnqueue(() =>
                         header.Measure(
@@ -360,6 +350,24 @@ public partial class TableViewHeaderRow : Control
 
             TableView.UpdateHorizontalScrollBarMargin();
         }
+    }
+
+    /// <summary>
+    /// Gets the desired width of a column based on its header and cells.
+    /// </summary>
+    private double GetColumnDesiredWidth(TableViewColumn column)
+    {
+        var autoWidthMode = column.ColumnAutoWidthMode ?? TableView?.ColumnAutoWidthMode;
+        var width = column.DesiredWidth;
+
+        if (column.HeaderControl is { } header && autoWidthMode is not TableViewColumnAutoWidthMode.Cells)
+        {
+            header.Width = double.NaN;
+            header.Measure(new Size(double.PositiveInfinity, ActualHeight));
+            width = Math.Max(width, header.DesiredSize.Width);
+        }
+
+        return width;
     }
 
     /// <summary>
