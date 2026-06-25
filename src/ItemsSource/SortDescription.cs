@@ -10,7 +10,7 @@ namespace WinUI.TableView;
 /// </summary>
 public class SortDescription
 {
-    private Func<object, object?>? _funcCompiled;
+    private Func<object, object?>? _compiledValueGetter;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SortDescription"/> class that describes
@@ -42,10 +42,10 @@ public class SortDescription
         
         if (ValueDelegate is not null) return ValueDelegate(item);
         
-        if (_funcCompiled is null && !string.IsNullOrWhiteSpace(PropertyName))
-            _funcCompiled = item.GetFuncCompiledPropertyPath(PropertyName!);
+        if (_compiledValueGetter is null && !string.IsNullOrWhiteSpace(PropertyName))
+            _compiledValueGetter = item.GetCompiledValueGetter(PropertyName!);
             
-        return _funcCompiled?.Invoke(item);
+        return _compiledValueGetter?.Invoke(item);
 }
 
     /// <summary>

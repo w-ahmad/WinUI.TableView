@@ -11,6 +11,7 @@ public sealed partial class ExternalFilteringPage : Page
         InitializeComponent();
 
         tableView.FilterDescriptions.Add(new FilterDescription(string.Empty, Filter));
+        Unloaded += OnPageUnloaded;
     }
 
     private bool Filter(object? item)
@@ -46,12 +47,19 @@ public sealed partial class ExternalFilteringPage : Page
         {
             await Task.Delay(200, token);
         }
-        catch
+        catch (OperationCanceledException)
         {
             return;
         }
 
         _token = null;
         tableView.RefreshFilter();
+    }
+
+    private void OnPageUnloaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        _token?.Cancel();
+        _token?.Dispose();
+        _token = null;
     }
 }

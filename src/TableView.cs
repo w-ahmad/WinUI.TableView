@@ -3,11 +3,13 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -35,8 +37,18 @@ public partial class TableView : ListView
     private RowDefinition? _headerRowDefinition;
     private bool _shouldThrowSelectionModeChangedException;
     private bool _ensureColumns = true;
+    private bool _isItemsSourceSuspended;
     private readonly List<TableViewRow> _rows = [];
     private readonly CollectionView _collectionView = [];
+    private Border? _dragRectangle;
+    private Point? _dragStartPoint;
+    private bool _cellSelectionDirty;
+    private Point? _lastDragCanvasPoint;
+    private DispatcherTimer? _autoScrollTimer;
+    private double _autoScrollVerticalDelta;
+    private double _autoScrollHorizontalDelta;
+    private double _dragStartVerticalOffset;
+    private double _dragStartHorizontalOffset;
 
     /// <summary>
     /// Initializes a new instance of the TableView class.
@@ -107,6 +119,12 @@ public partial class TableView : ListView
         {
             if (element is TableViewRow row)
             {
+                if (!_rows.Contains(row))
+                {
+                    _rows.Add(row);
+                }
+
+                row.TableView = this;
                 row.EnsureCellsStyle(default, item);
                 row.ApplyCellsSelectionState();
                 row.RowPresenter?.ApplyDetailsPaneState(item);
@@ -117,6 +135,18 @@ public partial class TableView : ListView
                 }
             }
         });
+    }
+
+    /// <inheritdoc/>
+    protected override void ClearContainerForItemOverride(DependencyObject element, object item)
+    {
+        if (element is TableViewRow row)
+        {
+            _rows.Remove(row);
+            row.TableView = null;
+        }
+
+        base.ClearContainerForItemOverride(element, item);
     }
 
     /// <inheritdoc/>
@@ -133,7 +163,7 @@ public partial class TableView : ListView
     }
 
     /// <inheritdoc/>
-    protected override async void OnKeyDown(KeyRoutedEventArgs e)
+    protected override void OnKeyDown(KeyRoutedEventArgs e)
     {
         var shiftKey = KeyboardHelper.IsShiftKeyDown();
         var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
@@ -144,19 +174,19 @@ public partial class TableView : ListView
             return;
         }
 
-        await HandleNavigations(e, shiftKey, ctrlKey);
+        HandleNavigations(e, shiftKey, ctrlKey);
     }
 
     /// <summary>
     /// Handles navigation keys.
     /// </summary>
-    private async Task HandleNavigations(KeyRoutedEventArgs e, bool shiftKey, bool ctrlKey)
+    private void HandleNavigations(KeyRoutedEventArgs e, bool shiftKey, bool ctrlKey)
     {
         var currentCell = CurrentCellSlot.HasValue ? GetCellFromSlot(CurrentCellSlot.Value) : default;
 
         if (e.Key is VirtualKey.F2 && currentCell is { IsReadOnly: false } && !IsEditing)
         {
-            e.Handled = await currentCell.BeginCellEditing(e);
+            e.Handled = currentCell.BeginCellEditing(e);
         }
         else if (e.Key is VirtualKey.Escape && currentCell is not null && IsEditing)
         {
@@ -192,7 +222,7 @@ public partial class TableView : ListView
             {
                 if (!EndCellEditing(TableViewEditAction.Commit, currentCell)) return;
 
-                if (CurrentCellSlot == newSlot || GetCellFromSlot(newSlot) is not { } nextCell || !await nextCell.BeginCellEditing(e))
+                if (CurrentCellSlot == newSlot || GetCellFromSlot(newSlot) is not { } nextCell || !nextCell.BeginCellEditing(e))
                 {
                     SetIsEditing(false);
                 }
@@ -230,6 +260,42 @@ public partial class TableView : ListView
             MakeSelection(newSlot, shiftKey);
             e.Handled = true;
         }
+        else if (e.Key is VirtualKey.Home or VirtualKey.End)
+        {
+            var row = ctrlKey ? (e.Key == VirtualKey.Home ? 0 : _collectionView.Count - 1) : CurrentCellSlot?.Row;
+            var column = e.Key == VirtualKey.Home ? 0 : Columns.VisibleColumns.Count - 1;
+
+            var newSlot = new TableViewCellSlot(row ?? -1, column);
+            MakeSelection(newSlot, shiftKey);
+            e.Handled = true;
+        }
+        else if (e.Key is VirtualKey.PageDown or VirtualKey.PageUp)
+        {
+            var pageSize = CalculateAvailablePageSize();
+
+            var row = (LastSelectionUnit is TableViewSelectionUnit.Row ? CurrentRowIndex : CurrentCellSlot?.Row) ?? -1;
+            var column = CurrentCellSlot?.Column ?? -1;
+
+            var numRows = CollectionView.Count;
+            var nextRow = e.Key == VirtualKey.PageDown
+                ? Math.Min(numRows - 1, row + pageSize)
+                : Math.Max(0, row - pageSize);
+
+            var newSlot = new TableViewCellSlot(nextRow, column);
+            MakeSelection(newSlot, shiftKey);
+            e.Handled = true;
+        }
+    }
+
+    /// <summary>
+    /// Calculates how many rows should be able to fit within the actual height of the table without scrolling.
+    /// </summary>
+    private int CalculateAvailablePageSize()
+    {
+        var rowHeight = RowHeight is not double.NaN ? RowHeight : RowMinHeight;
+        var headerHeight = HeaderRowHeight is not double.NaN ? HeaderRowHeight : HeaderRowMinHeight;
+        var availableHeight = ActualHeight - headerHeight;
+        return (int)Math.Floor(availableHeight / rowHeight);
     }
 
     internal bool EndCellEditing(TableViewEditAction editAction, TableViewCell cell)
@@ -270,6 +336,10 @@ public partial class TableView : ListView
             CopyToClipboardInternal(shiftKey);
             return true;
         }
+        else if (key == VirtualKey.V && ctrlKey && !shiftKey)
+        {
+            return TryStartPasteFromClipboard();
+        }
 
         return false;
     }
@@ -282,8 +352,10 @@ public partial class TableView : ListView
         _headerRow = GetTemplateChild("HeaderRow") as TableViewHeaderRow;
         _scrollViewer = GetTemplateChild("ScrollViewer") as ScrollViewer;
         _headerRowDefinition = GetTemplateChild("HeaderRowDefinition") as RowDefinition;
-        if (_scrollViewer is not null) _scrollViewer.Loaded += OnScrollViewerLoaded;
-        
+        DragRectangleCanvas = GetTemplateChild("DragRectangleCanvas") as Canvas;
+        _dragRectangle = GetTemplateChild("DragRectangle") as Border;
+        _scrollViewer?.Loaded += OnScrollViewerLoaded;
+
         if (IsLoaded)
         {
             while (ItemsPanelRoot is null) await Task.Yield();
@@ -303,15 +375,9 @@ public partial class TableView : ListView
         var xScrollBar = _scrollViewer?.FindDescendant<ScrollBar>(sb => sb.Name is "HorizontalScrollBar2");
         var yScrollBar = _scrollViewer?.FindDescendant<ScrollBar>(sb => sb.Name is "VerticalScrollBar");
 
-        if (scrollPresenter is not null)
-        {
-            scrollPresenter.PointerWheelChanged += OnScrollContentPresenterPointerWheelChanged;
-        }
+        scrollPresenter?.PointerWheelChanged += OnScrollContentPresenterPointerWheelChanged;
 
-        if (yScrollBar is not null)
-        {
-            yScrollBar.ValueChanged += (_, _) => SetValue(VerticalOffsetProperty, yScrollBar.Value);
-        }
+        yScrollBar?.ValueChanged += (_, _) => SetValue(VerticalOffsetProperty, yScrollBar.Value);
 
         xScrollBar?.SetBinding(RangeBase.ValueProperty, new Binding
         {
@@ -320,12 +386,18 @@ public partial class TableView : ListView
             Source = this
         });
     }
-    
+
     /// <summary>
     /// Handles the Loaded event of the TableView control.
     /// </summary>
     private void OnLoaded(object sender, RoutedEventArgs e)
-    {        
+    {
+        if (_isItemsSourceSuspended) // indicates that the control was unloaded and loaded back
+        {
+            _headerRow?.CalculateHeaderWidths();  // Needed when switching back to an existing TableView (without provided column Widths)
+        }
+
+        ResumeItemsSource();
         EnsureAutoColumns();
     }
 
@@ -334,10 +406,50 @@ public partial class TableView : ListView
     /// </summary>
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
+        EndDragSelection();
+        StopAutoScroll();
+
         if (IsEditing && CurrentCellSlot.HasValue && GetCellFromSlot(CurrentCellSlot.Value) is { } currentCell)
         {
             currentCell.EndEditing(TableViewEditAction.Commit);
         }
+
+        SuspendItemsSource();
+    }
+
+    /// <summary>
+    /// Suspends subscriptions to the current items source while the control is unloaded.
+    /// </summary>
+    private void SuspendItemsSource()
+    {
+        if (_isItemsSourceSuspended)
+        {
+            return;
+        }
+
+        _collectionView.ItemPropertyChanged -= OnItemPropertyChanged;
+        _collectionView.Source = Enumerable.Empty<object>();
+        _isItemsSourceSuspended = true;
+    }
+
+    /// <summary>
+    /// Restores subscriptions to the current items source when the control is loaded.
+    /// </summary>
+    private void ResumeItemsSource()
+    {
+        if (!_isItemsSourceSuspended)
+        {
+            return;
+        }
+
+        _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
+
+        if (ItemsSource is IEnumerable source)
+        {
+            _collectionView.Source = source;
+        }
+
+        _isItemsSourceSuspended = false;
     }
 
     /// <summary>
@@ -411,17 +523,44 @@ public partial class TableView : ListView
     /// </summary>
     internal void CopyToClipboardInternal(bool includeHeaders)
     {
-        var args = new TableViewCopyToClipboardEventArgs(includeHeaders);
-        OnCopyToClipboard(args);
-
-        if (args.Handled)
+        // Skip TableView copy logic when a cell editor already handles Ctrl+C.
+        // TextBox, PasswordBox, and RichEditBox all implement their own copy behavior.
+        var focused = FocusManager.GetFocusedElement(XamlRoot!) as FrameworkElement;
+        if (focused is TextBox or PasswordBox or RichEditBox)
         {
             return;
         }
 
-        var package = new DataPackage();
-        package.SetText(GetSelectedClipboardContent(includeHeaders));
-        Clipboard.SetContent(package);
+        var args = new TableViewCopyToClipboardEventArgs(includeHeaders);
+        OnCopyToClipboard(args);
+
+        if (!CanCopy || args.Handled)
+        {
+            return;
+        }
+
+        var content = GetSelectedClipboardContent(includeHeaders);
+
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return;
+        }
+
+        // Try/catch to prevent CLIPBRD_E_CANT_OPEN crashes.
+        try
+        {
+            var package = new DataPackage();
+            package.SetText(content);
+
+            Clipboard.SetContent(package);
+        }
+        catch (Exception ex)
+        {
+            // Clipboard failures are normal on Windows (e.g., CLIPBRD_E_CANT_OPEN).
+            // Swallow to avoid crashing the application.
+            Debug.WriteLine(
+                $"TableView: Clipboard.SetContent failed: {ex}");
+        }
     }
 
     /// <summary>
@@ -536,7 +675,7 @@ public partial class TableView : ListView
 
             for (var col = minColumn; col <= maxColumn; col++)
             {
-                if (Columns.VisibleColumns[col] is not TableViewBoundColumn column ||
+                if (Columns.VisibleColumns[col] is not TableViewColumn column ||
                    !slots.Contains(new TableViewCellSlot(row, col)))
                 {
                     stringBuilder.Append(separator);
@@ -685,7 +824,10 @@ public partial class TableView : ListView
         {
             EnsureAutoColumns();
 
-            _collectionView.Source = source;
+            if (!_isItemsSourceSuspended)
+            {
+                _collectionView.Source = source;
+            }
         }
     }
 
@@ -774,7 +916,11 @@ public partial class TableView : ListView
     /// <summary>
     /// Gets a storage file for saving the CSV.
     /// </summary>
-    private async Task<StorageFile> GetStorageFile()
+    private
+#if !WINDOWS
+    static
+#endif
+    async Task<StorageFile> GetStorageFile()
     {
         var savePicker = new FileSavePicker();
         savePicker.FileTypeChoices.Add("CSV (Comma delimited)", [".csv"]);
@@ -814,10 +960,7 @@ public partial class TableView : ListView
 
         foreach (var column in Columns.Where(c => c.SortDirection is not null))
         {
-            if (column is not null)
-            {
-                column.SortDirection = null;
-            }
+            column?.SortDirection = null;
         }
     }
 
@@ -1147,8 +1290,18 @@ public partial class TableView : ListView
 
         if (newSlot.HasValue)
         {
-            var cell = await ScrollCellIntoView(newSlot.Value);
-            cell?.ApplyCurrentCellState();
+            // During drag selection, skip expensive scroll-into-view and focus operations.
+            // The drag rectangle handles visual feedback, and focus is restored when dragging ends.
+            if (IsDragSelecting)
+            {
+                var cell = GetCellFromSlot(newSlot.Value);
+                cell?.ApplyCurrentCellState(skipFocus: true);
+            }
+            else
+            {
+                var cell = await ScrollCellIntoView(newSlot.Value);
+                cell?.ApplyCurrentCellState();
+            }
         }
     }
 
@@ -1157,8 +1310,13 @@ public partial class TableView : ListView
     /// </summary>
     private void OnCellSelectionChanged()
     {
-        DispatcherQueue.TryEnqueue(() =>
+        if (_cellSelectionDirty) return;
+        _cellSelectionDirty = true;
+
+        if (!DispatcherQueue.TryEnqueue(() =>
         {
+            _cellSelectionDirty = false;
+
             var oldSelection = SelectedCells;
             SelectedCells = [.. SelectedCellRanges.SelectMany(x => x)];
 
@@ -1171,7 +1329,10 @@ public partial class TableView : ListView
             }
 
             InvokeCellSelectionChangedEvent(oldSelection);
-        });
+        }))
+        {
+            _cellSelectionDirty = false;
+        }
     }
 
     /// <summary>
@@ -1185,6 +1346,329 @@ public partial class TableView : ListView
         if (removedCells.Count > 0 || addedCells.Count > 0)
         {
             OnCellSelectionChanged(new TableViewCellSelectionChangedEventArgs(removedCells, addedCells));
+        }
+    }
+
+    /// <summary>
+    /// Starts drag selection tracking, auto-scroll, and optionally the drag rectangle visual.
+    /// </summary>
+    /// <param name="startPoint">The starting point relative to the drag rectangle canvas.</param>
+    internal void StartDragSelection(Point startPoint)
+    {
+        if (SelectionMode is not (ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended))
+        {
+            return;
+        }
+
+        // Guard against re-entry (e.g., multi-touch) to prevent double ViewChanged subscription
+        if (IsDragSelecting)
+        {
+            EndDragSelection();
+        }
+
+        IsDragSelecting = true;
+        _lastDragCanvasPoint = startPoint;
+        _dragStartVerticalOffset = _scrollViewer?.VerticalOffset ?? 0;
+        _dragStartHorizontalOffset = HorizontalOffset;
+
+        if (_scrollViewer is not null)
+        {
+            _scrollViewer.ViewChanged += OnScrollViewerViewChangedDuringDrag;
+        }
+
+        // Show the drag rectangle visual if enabled and template parts are available
+        if (ShowDragRectangle && DragRectangleCanvas is not null && _dragRectangle is not null)
+        {
+            _dragStartPoint = startPoint;
+
+            Canvas.SetLeft(_dragRectangle, startPoint.X);
+            Canvas.SetTop(_dragRectangle, startPoint.Y);
+            _dragRectangle.Width = 0;
+            _dragRectangle.Height = 0;
+
+            _dragRectangle.Visibility = Visibility.Visible;
+        }
+    }
+
+    /// <summary>
+    /// Updates the drag visual and auto-scroll during drag selection.
+    /// </summary>
+    /// <param name="currentPoint">The current pointer position relative to the drag rectangle canvas.</param>
+    internal void UpdateDragRectangleVisual(Point currentPoint)
+    {
+        if (!IsDragSelecting)
+        {
+            return;
+        }
+
+        _lastDragCanvasPoint = currentPoint;
+
+        // Update the rectangle visual if it's active
+        if (_dragStartPoint is not null && DragRectangleCanvas is not null && _dragRectangle is not null)
+        {
+            PositionDragRectangle(currentPoint);
+        }
+
+        UpdateAutoScroll(currentPoint);
+    }
+
+    /// <summary>
+    /// Positions the drag rectangle visual from the scroll-adjusted start point to the current point,
+    /// so the rectangle follows the mouse and extends naturally when content scrolls.
+    /// </summary>
+    private void PositionDragRectangle(Point currentPoint)
+    {
+        if (_dragStartPoint is null || DragRectangleCanvas is null || _dragRectangle is null) return;
+
+        // Adjust the start point by how much the view has scrolled since drag began.
+        // This makes the rectangle extend naturally as content scrolls.
+        var verticalScrollDelta = (_scrollViewer?.VerticalOffset ?? 0) - _dragStartVerticalOffset;
+        var horizontalScrollDelta = HorizontalOffset - _dragStartHorizontalOffset;
+        var adjustedStartY = _dragStartPoint.Value.Y - verticalScrollDelta;
+        var adjustedStartX = _dragStartPoint.Value.X - horizontalScrollDelta;
+
+        var canvasWidth = DragRectangleCanvas.ActualWidth;
+        var canvasHeight = DragRectangleCanvas.ActualHeight;
+
+        var left = Math.Max(0, Math.Min(adjustedStartX, currentPoint.X));
+        var top = Math.Max(0, Math.Min(adjustedStartY, currentPoint.Y));
+        var right = Math.Min(canvasWidth, Math.Max(adjustedStartX, currentPoint.X));
+        var bottom = Math.Min(canvasHeight, Math.Max(adjustedStartY, currentPoint.Y));
+
+        Canvas.SetLeft(_dragRectangle, left);
+        Canvas.SetTop(_dragRectangle, top);
+        _dragRectangle.Width = Math.Max(0, right - left);
+        _dragRectangle.Height = Math.Max(0, bottom - top);
+    }
+
+    /// <summary>
+    /// Manages auto-scroll behavior when the pointer is near the top or bottom edge during drag selection.
+    /// </summary>
+    private void UpdateAutoScroll(Point canvasPoint)
+    {
+        if (_scrollViewer is null) return;
+
+        const double edgeThreshold = 40;
+        const double maxScrollSpeed = 20;
+
+        var viewportHeight = _scrollViewer.ViewportHeight;
+        var viewportWidth = _scrollViewer.ViewportWidth;
+        double vDelta = 0;
+        double hDelta = 0;
+
+        if (canvasPoint.Y > viewportHeight - edgeThreshold)
+        {
+            var proximity = Math.Min(1.0, (canvasPoint.Y - (viewportHeight - edgeThreshold)) / edgeThreshold);
+            vDelta = proximity * maxScrollSpeed;
+        }
+        else if (canvasPoint.Y < edgeThreshold)
+        {
+            var proximity = Math.Min(1.0, (edgeThreshold - canvasPoint.Y) / edgeThreshold);
+            vDelta = -(proximity * maxScrollSpeed);
+        }
+
+        if (canvasPoint.X > viewportWidth - edgeThreshold)
+        {
+            var proximity = Math.Min(1.0, (canvasPoint.X - (viewportWidth - edgeThreshold)) / edgeThreshold);
+            hDelta = proximity * maxScrollSpeed;
+        }
+        else if (canvasPoint.X < edgeThreshold)
+        {
+            var proximity = Math.Min(1.0, (edgeThreshold - canvasPoint.X) / edgeThreshold);
+            hDelta = -(proximity * maxScrollSpeed);
+        }
+
+        if (Math.Abs(vDelta) > 0.5 || Math.Abs(hDelta) > 0.5)
+        {
+            _autoScrollVerticalDelta = vDelta;
+            _autoScrollHorizontalDelta = hDelta;
+            if (_autoScrollTimer is null)
+            {
+                _autoScrollTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
+                _autoScrollTimer.Tick += OnAutoScrollTimerTick;
+            }
+
+            _autoScrollTimer.Start();
+        }
+        else
+        {
+            StopAutoScroll();
+        }
+    }
+
+    /// <summary>
+    /// Handles the auto-scroll timer tick to scroll the view and update drag selection.
+    /// </summary>
+    private void OnAutoScrollTimerTick(object? sender, object e)
+    {
+        if (!IsDragSelecting || _scrollViewer is null)
+        {
+            StopAutoScroll();
+            return;
+        }
+
+        var scrolled = false;
+
+        // Vertical auto-scroll via ChangeView
+        if (Math.Abs(_autoScrollVerticalDelta) > 0.5)
+        {
+            var newOffset = Math.Clamp(
+                _scrollViewer.VerticalOffset + _autoScrollVerticalDelta,
+                0,
+                _scrollViewer.ScrollableHeight);
+
+            if (Math.Abs(newOffset - _scrollViewer.VerticalOffset) >= 0.5)
+            {
+                _scrollViewer.ChangeView(null, newOffset, null, true);
+                scrolled = true;
+            }
+        }
+
+        // Horizontal auto-scroll via HorizontalOffset DP
+        if (Math.Abs(_autoScrollHorizontalDelta) > 0.5)
+        {
+            var newOffset = Math.Clamp(
+                HorizontalOffset + _autoScrollHorizontalDelta,
+                0,
+                _scrollViewer.ScrollableWidth);
+
+            if (Math.Abs(newOffset - HorizontalOffset) >= 0.5)
+            {
+                SetValue(HorizontalOffsetProperty, newOffset);
+                scrolled = true;
+            }
+        }
+
+        if (!scrolled)
+        {
+            StopAutoScroll();
+            return;
+        }
+
+        // Horizontal scroll via HorizontalOffset DP does not fire ViewChanged,
+        // so reposition rectangle and update selection here.
+        // Vertical scroll fires ViewChanged which handles it via OnScrollViewerViewChangedDuringDrag.
+        if (Math.Abs(_autoScrollHorizontalDelta) > 0.5 && _lastDragCanvasPoint is not null)
+        {
+            if (_dragStartPoint is not null && DragRectangleCanvas is not null && _dragRectangle is not null)
+            {
+                PositionDragRectangle(_lastDragCanvasPoint.Value);
+            }
+
+            SelectCellAtDragPoint();
+        }
+    }
+
+    /// <summary>
+    /// Stops the auto-scroll timer.
+    /// </summary>
+    private void StopAutoScroll()
+    {
+        if (_autoScrollTimer is not null)
+        {
+            _autoScrollTimer.Stop();
+            _autoScrollTimer.Tick -= OnAutoScrollTimerTick;
+            _autoScrollTimer = null;
+        }
+    }
+
+    /// <summary>
+    /// Handles ScrollViewer.ViewChanged during drag to re-evaluate selection when scroll position changes.
+    /// </summary>
+    private void OnScrollViewerViewChangedDuringDrag(object? sender, ScrollViewerViewChangedEventArgs e)
+    {
+        if (!IsDragSelecting || _lastDragCanvasPoint is null) return;
+
+        // Reposition the rectangle using scroll-adjusted start point (if rectangle is active)
+        if (_dragStartPoint is not null && DragRectangleCanvas is not null && _dragRectangle is not null)
+        {
+            PositionDragRectangle(_lastDragCanvasPoint.Value);
+        }
+
+        // Update selection for newly visible rows during auto-scroll
+        SelectCellAtDragPoint();
+    }
+
+    /// <summary>
+    /// Selects the cell at the last known drag pointer position.
+    /// Used during auto-scroll to select newly visible cells when the pointer isn't moving.
+    /// </summary>
+    private void SelectCellAtDragPoint()
+    {
+        if (_scrollViewer is null || _lastDragCanvasPoint is null || DragRectangleCanvas is null)
+        {
+            return;
+        }
+
+        // Clamp to the cell area within the viewport.
+        // CellsHorizontalOffset accounts for row headers so we don't hit-test on header area.
+        var canvasPoint = _lastDragCanvasPoint.Value;
+        var minX = CellsHorizontalOffset + 1;
+        var clampedPoint = new Point(
+            Math.Clamp(canvasPoint.X, minX, Math.Max(minX, _scrollViewer.ViewportWidth - 1)),
+            Math.Clamp(canvasPoint.Y, 1, Math.Max(1, _scrollViewer.ViewportHeight - 1)));
+
+        try
+        {
+            var screenPoint = DragRectangleCanvas.TransformToVisual(null).TransformPoint(clampedPoint);
+#if WINDOWS
+            var cell = VisualTreeHelper.FindElementsInHostCoordinates(screenPoint, _scrollViewer)
+#else
+            var cell = VisualTreeHelper.FindElementsInHostCoordinates(screenPoint, _scrollViewer, true)
+                                       .OfType<ContentPresenter>()
+                                       .Where(x => x.Name is "Content")
+                                       .Select(x => x.FindAscendant<TableViewCell>() is { } c ? c : default)
+#endif
+                                       .OfType<TableViewCell>()
+                                       .FirstOrDefault();
+
+            if (cell is not null && cell.Slot != CurrentCellSlot)
+            {
+                var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
+                MakeSelection(cell.Slot, true, ctrlKey);
+            }
+        }
+        catch (ArgumentException)
+        {
+            // Element not in visual tree during container recycling
+        }
+    }
+
+    /// <summary>
+    /// Ends drag selection tracking, auto-scroll, and hides the drag rectangle if visible.
+    /// </summary>
+    internal async void EndDragSelection()
+    {
+        if (!IsDragSelecting) return;
+
+        StopAutoScroll();
+
+        if (_scrollViewer is not null)
+        {
+            _scrollViewer.ViewChanged -= OnScrollViewerViewChangedDuringDrag;
+        }
+
+        if (_dragRectangle is not null)
+        {
+            _dragRectangle.Visibility = Visibility.Collapsed;
+        }
+
+        IsDragSelecting = false;
+        _dragStartPoint = null;
+        _lastDragCanvasPoint = null;
+
+        // Restore focus and scroll to the current cell now that dragging has ended
+        try
+        {
+            if (CurrentCellSlot.HasValue)
+            {
+                var cell = await ScrollCellIntoView(CurrentCellSlot.Value);
+                cell?.ApplyCurrentCellState();
+            }
+        }
+        catch (Exception)
+        {
+            // Focus restoration is best-effort after drag ends
         }
     }
 

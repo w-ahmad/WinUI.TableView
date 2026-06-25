@@ -180,4 +180,10 @@
   <data name="Copy" xml:space="preserve">
     <value>Копировать</value>
   </data>
+  <data name="Paste" xml:space="preserve">
+    <value>Вставить</value>
+  </data>
+  <data name="PasteCommandDescription" xml:space="preserve">
+    <value>Вставить содержимое буфера обмена в ячейки.</value>
+  </data>
 </root>

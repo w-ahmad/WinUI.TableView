@@ -13,25 +13,25 @@ partial class CollectionView
     /// </summary>
     public IEnumerable Source
     {
-        get => _source;
+        get;
         set
         {
-            if (_source == value) return;
+            if (field == value) return;
 
-            DetachCollectionChangedHandlers(_source);
-            DetachPropertyChangedHandlers(_source);
+            DetachCollectionChangedHandlers(field);
+            DetachPropertyChangedHandlers(field);
 
-            _source = value;
+            field = value;
 
-            AttachCollectionChangedHandlers(_source);
-            AttachPropertyChangedHandlers(_source);
+            AttachCollectionChangedHandlers(field);
+            AttachPropertyChangedHandlers(field);
 
-            CreateItemsCopy(_source);
+            CreateItemsCopy(field);
 
             HandleSourceChanged();
             OnPropertyChanged();
         }
-    }
+    } = new List<object>();
 
     /// <summary>
     /// Gets a value indicating whether this CollectionView can filter its items.
@@ -81,7 +81,7 @@ partial class CollectionView
     /// <summary>
     /// Gets a value indicating whether there are more items to load.
     /// </summary>
-    public bool HasMoreItems => (_source as ISupportIncrementalLoading)?.HasMoreItems ?? false;
+    public bool HasMoreItems => (Source as ISupportIncrementalLoading)?.HasMoreItems ?? false;
 
     /// <summary>
     /// Gets a value indicating whether the current item is after the last item in the view.
@@ -101,23 +101,23 @@ partial class CollectionView
     /// <summary>
     /// Gets a value indicating whether the collection is read-only.
     /// </summary>
-    public bool IsReadOnly => _source == null || _source.IsReadOnly();
+    public bool IsReadOnly => Source == null || Source.IsReadOnly();
 
     /// <summary>
     /// Gets or sets a value indicating whether live shaping is enabled.
     /// </summary>
     public bool AllowLiveShaping
     {
-        get => _allowLiveShaping;
+        get;
         set
         {
-            if (_allowLiveShaping == value) return;
+            if (field == value) return;
 
-            _allowLiveShaping = value;
-            if (_allowLiveShaping)
-                AttachPropertyChangedHandlers(_source);
+            field = value;
+            if (field)
+                AttachPropertyChangedHandlers(Source);
             else
-                DetachPropertyChangedHandlers(_source);
+                DetachPropertyChangedHandlers(Source);
         }
     }
 }

@@ -7,7 +7,8 @@
       xmlns:tv="using:WinUI.TableView"
       xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
       mc:Ignorable="d"
-      Loaded="OnPageLoaded">
+      Loaded="OnPageLoaded"
+      Unloaded="OnPageUnloaded">
 
     <Page.DataContext>
         <local:SalesViewModel />

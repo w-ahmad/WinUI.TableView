@@ -1,9 +1,5 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
-using System;
-using System.Linq.Expressions;
-using System.Reflection;
-using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView;
 
@@ -12,33 +8,6 @@ namespace WinUI.TableView;
 /// </summary>
 public abstract class TableViewBoundColumn : TableViewColumn
 {
-    private Binding _binding = new();
-    private Func<object, object?>? _funcCompiledPropertyPath;
-
-    /// <inheritdoc/>
-    public override object? GetCellContent(object? dataItem)
-    {
-        if (dataItem is null)
-            return null;
-
-        if (_funcCompiledPropertyPath is null && !string.IsNullOrWhiteSpace(PropertyPath))
-            _funcCompiledPropertyPath = dataItem.GetFuncCompiledPropertyPath(PropertyPath!);
-
-        if (_funcCompiledPropertyPath is not null)
-            dataItem = _funcCompiledPropertyPath(dataItem);
-
-        if (Binding?.Converter is not null)
-        {
-            dataItem = Binding.Converter.Convert(
-                dataItem,
-                typeof(object),
-                Binding.ConverterParameter,
-                Binding.ConverterLanguage);
-        }
-
-        return dataItem;
-    }
-
     /// <summary>
     /// Gets the property path for the binding.
     /// </summary>
@@ -49,10 +18,10 @@ public abstract class TableViewBoundColumn : TableViewColumn
     /// </summary>
     public virtual Binding Binding
     {
-        get => _binding;
+        get;
         set
         {
-            if (_binding != value)
+            if (field != value)
             {
                 if (value is not null)
                 {
@@ -64,19 +33,19 @@ public abstract class TableViewBoundColumn : TableViewColumn
                     }
                 }
 
-                _binding = value!;
+                field = value!;
             }
         }
-    }
+    } = new();
 
     /// <summary>
-    /// Gets or sets the data binding used to retrieve cell content when copying to the clipboard.
-    /// If no explicit clipboard binding is set, the column's <see cref="Binding"/> is returned as a fallback.
+    /// Gets or sets the optional data binding used to perform operations on cell content, for example sorting, filtering and exporting.
+    /// If no explicit operation binding is set, the column's <see cref="Binding"/> is returned as a fallback.
     /// </summary>
-    public override Binding? ClipboardContentBinding
+    public override Binding? OperationContentBinding
     {
-        get => base.ClipboardContentBinding ?? Binding;
-        set => base.ClipboardContentBinding = value;
+        get => base.OperationContentBinding ?? Binding;
+        set => base.OperationContentBinding = value;
     }
 
     /// <summary>

@@ -33,6 +33,7 @@ public partial class TableViewRowPresenter : Control
     private ContentPresenter? _detailsPresenter;
     private ToggleButton? _detailsToggleButton;
     private ListViewItemPresenter? _itemPresenter;
+    private long? _detailsPanelVisibilityCallbackToken;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TableViewRowPresenter"/> class.
@@ -47,6 +48,16 @@ public partial class TableViewRowPresenter : Control
     {
         base.OnApplyTemplate();
 
+        _detailsToggleButton?.Tapped -= OnDetailsToggleButtonTapped;
+
+        _detailsPanel?.SizeChanged -= OnDetailsPanelSizeChanged;
+
+        if (_detailsPanelVisibilityCallbackToken is long token)
+        {
+            _detailsPanel?.UnregisterPropertyChangedCallback(VisibilityProperty, token);
+            _detailsPanelVisibilityCallbackToken = null;
+        }
+
         _rowHeader = GetTemplateChild("RowHeader") as TableViewRowHeader;
         _rootPanel = GetTemplateChild("RootPanel") as Panel;
         _scrollableCellsPanel = GetTemplateChild("ScrollableCellsPanel") as StackPanel;
@@ -60,23 +71,16 @@ public partial class TableViewRowPresenter : Control
         _itemPresenter = this.FindAscendant<ListViewItemPresenter>();
         TableViewRow = this.FindAscendant<TableViewRow>();
         TableView = TableViewRow?.TableView;
+        _rowHeader?.TableView = TableView;
+        _rowHeader?.TableViewRow = TableViewRow;
 
-        if (_rowHeader is not null)
-        {
-            _rowHeader.TableView = TableView;
-            _rowHeader.TableViewRow = TableViewRow;
-        }
-
-        if (_detailsToggleButton is not null)
-        {
-            _detailsToggleButton.Tapped += OnDetailsToggleButtonTapped;
-        }
+        _detailsToggleButton?.Tapped += OnDetailsToggleButtonTapped;
 
         if (_detailsPanel is not null)
         {
-            _detailsPanel.SizeChanged += (_, _) => TableViewRow?.EnsureLayout();
-            _detailsPanel.RegisterPropertyChangedCallback(VisibilityProperty, (_, _)
-                => TableViewRow?.EnsureLayout());
+            _detailsPanel.SizeChanged += OnDetailsPanelSizeChanged;
+            _detailsPanelVisibilityCallbackToken =
+                _detailsPanel.RegisterPropertyChangedCallback(VisibilityProperty, OnDetailsPanelVisibilityChanged);
         }
 
         TableViewRow?.EnsureCells();
@@ -87,6 +91,22 @@ public partial class TableViewRowPresenter : Control
         SetRowHeaderWidth();
         SetRowDetailsVisibility();
         SetRowDetailsTemplate();
+    }
+
+    /// <summary>
+    /// Handles size changes in the row details panel.
+    /// </summary>
+    private void OnDetailsPanelSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        TableViewRow?.EnsureLayout();
+    }
+
+    /// <summary>
+    /// Handles visibility changes in the row details panel.
+    /// </summary>
+    private void OnDetailsPanelVisibilityChanged(DependencyObject sender, DependencyProperty dp)
+    {
+        TableViewRow?.EnsureLayout();
     }
 
     /// <inheritdoc/>
@@ -233,7 +253,7 @@ public partial class TableViewRowPresenter : Control
         if (TableView?.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded &&
             _detailsToggleButton is not null && TableView is not null && item is not null)
         {
-            var isChecked = TableView.DetailsPaneStates.TryGetValue(item, out var value) ? value.Value : false;
+            var isChecked = TableView.DetailsPaneStates.TryGetValue(item, out var value) && value.Value;
             _detailsToggleButton!.IsChecked = isChecked;
             ToggleDetailsPane(item, isChecked);
         }

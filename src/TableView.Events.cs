@@ -66,6 +66,20 @@ partial class TableView
     }
 
     /// <summary>
+    /// Event triggered when pasting clipboard content into the TableView.
+    /// </summary>
+    public event EventHandler<TableViewPasteFromClipboardEventArgs>? PasteFromClipboard;
+
+    /// <summary>
+    /// Called before the <see cref="PasteFromClipboard"/> event occurs.
+    /// </summary>
+    /// <param name="args">Handleable event args.</param>
+    protected virtual void OnPasteFromClipboard(TableViewPasteFromClipboardEventArgs args)
+    {
+        PasteFromClipboard?.Invoke(this, args);
+    }
+
+    /// <summary>
     /// Event triggered when the IsReadOnly property changes.
     /// </summary>
     public event DependencyPropertyChangedEventHandler? IsReadOnlyChanged;

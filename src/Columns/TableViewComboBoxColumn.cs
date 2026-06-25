@@ -15,9 +15,6 @@ namespace WinUI.TableView;
 #endif
 public partial class TableViewComboBoxColumn : TableViewBoundColumn
 {
-    private Binding? _textBinding;
-    private Binding? _selectedValueBinding;
-
     /// <summary>
     /// Generates a TextBlock element for the cell.
     /// </summary>
@@ -135,32 +132,26 @@ public partial class TableViewComboBoxColumn : TableViewBoundColumn
     /// <summary>
     /// Gets or sets the binding for the text property of the ComboBox.
     /// </summary>
-    public virtual Binding TextBinding
+    public virtual Binding? TextBinding
     {
-        get => _textBinding!;
+        get;
         set
         {
-            _textBinding = value;
-            if (_textBinding is not null)
-            {
-                _textBinding.Mode = BindingMode.TwoWay;
-            }
+            field = value;
+            field?.Mode = BindingMode.TwoWay;
         }
     }
 
     /// <summary>
     /// Gets or sets the binding for the selected value property of the ComboBox.
     /// </summary>
-    public virtual Binding SelectedValueBinding
+    public virtual Binding? SelectedValueBinding
     {
-        get => _selectedValueBinding!;
+        get;
         set
         {
-            _selectedValueBinding = value;
-            if (_selectedValueBinding is not null)
-            {
-                _selectedValueBinding.Mode = BindingMode.TwoWay;
-            }
+            field = value;
+            field?.Mode = BindingMode.TwoWay;
         }
     }
 
