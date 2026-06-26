@@ -1122,6 +1122,7 @@ public partial class TableView : ListView
         {
             ctrlKey = ctrlKey || SelectionMode is ListViewSelectionMode.Multiple;
 
+            _suppressSelectionChangedCellClear = SelectionUnit is TableViewSelectionUnit.CellWithRow;
             var shouldSelectRows = SelectionUnit is TableViewSelectionUnit.Row
                 || (SelectionUnit is TableViewSelectionUnit.CellWithRow && !slot.IsValidColumn(this))
                 || (LastSelectionUnit is TableViewSelectionUnit.Row && slot.IsValidRow(this) && !slot.IsValidColumn(this))
@@ -1137,8 +1138,7 @@ public partial class TableView : ListView
             else
             {
                 if (SelectionUnit is TableViewSelectionUnit.CellWithRow)
-                {
-                    _suppressSelectionChangedCellClear = true;
+                {                    
                     SelectRows(slot, shiftKey, ctrlKey);
                 }
                 else if (!ctrlKey)
@@ -1860,7 +1860,6 @@ public partial class TableView : ListView
     private void UpdateBaseSelectionMode()
     {
         _shouldThrowSelectionModeChangedException = true;
-
         base.SelectionMode = SelectionUnit is TableViewSelectionUnit.Cell ? ListViewSelectionMode.None : SelectionMode;
 
         UpdateHorizontalScrollBarMargin();
