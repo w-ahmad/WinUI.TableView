@@ -186,7 +186,7 @@ public partial class TableViewRow : ListViewItem
     {
         base.OnTapped(e);
 
-        if (TableView?.SelectionUnit is TableViewSelectionUnit.Row or TableViewSelectionUnit.CellOrRow)
+        if (TableView?.SelectionUnit is TableViewSelectionUnit.Row or TableViewSelectionUnit.CellOrRow or TableViewSelectionUnit.CellWithRow)
         {
             TableView.CurrentRowIndex = Index;
             TableView.LastSelectionUnit = TableViewSelectionUnit.Row;
