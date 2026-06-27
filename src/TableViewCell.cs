@@ -31,6 +31,8 @@ public partial class TableViewCell : ContentControl
     private ScrollViewer? _scrollViewer;
     private ContentPresenter? _contentPresenter;
     private Border? _selectionBorder;
+    private Border? _backgroundBorder;
+    private CornerRadius _defaultBackgroundCornerRadius;
     private Rectangle? _v_gridLine;
     private object? _uneditedValue;
     private RoutedEventArgs? _editingArgs;
@@ -91,10 +93,13 @@ public partial class TableViewCell : ContentControl
 
         _contentPresenter = GetTemplateChild("Content") as ContentPresenter;
         _selectionBorder = GetTemplateChild("SelectionBorder") as Border;
+        _backgroundBorder = GetTemplateChild("BackgroundBorder") as Border;
+        _defaultBackgroundCornerRadius = _backgroundBorder?.CornerRadius ?? default;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
 
         EnsureGridLines();
         EnsureStyle(Row?.Content);
+        EnsureHighlightColors();
     }
 
     /// <inheritdoc/>
@@ -622,6 +627,98 @@ public partial class TableViewCell : ContentControl
                                      || TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
                                      ? Visibility.Visible : Visibility.Collapsed;
         }
+    }
+
+    /// <summary>
+    /// Ensures highlight colors are applied to the cell.
+    /// </summary>
+    internal void EnsureHighlightColors()
+    {
+        EnsureHighlightColors(TableView?.GetRowHighlight(Row?.Index ?? -1));
+    }
+
+    /// <summary>
+    /// Ensures highlight colors are applied to the cell.
+    /// Where a row highlight and a column highlight intersect, the colors are either merged
+    /// (<see cref="TableView.MergeOverlappingHighlights"/>) or the highlight chosen by
+    /// <see cref="TableView.OverlappingHighlightPriority"/> wins.
+    /// </summary>
+    /// <param name="rowHighlight">The active highlight of the cell's row, if any.</param>
+    internal void EnsureHighlightColors(TableViewRowHighlight? rowHighlight)
+    {
+        var columnHighlight = Column is not null && TableView is not null
+            ? TableView.GetColumnHighlight(TableView.Columns.IndexOf(Column))
+            : null;
+
+        Brush? background;
+        Brush? foreground;
+
+        if (rowHighlight is not null && columnHighlight is not null && TableView?.MergeOverlappingHighlights is true)
+        {
+            background = MergeBrushes(rowHighlight.Background, columnHighlight.Background);
+            foreground = MergeBrushes(rowHighlight.Foreground, columnHighlight.Foreground);
+        }
+        else if (rowHighlight is not null && columnHighlight is not null && TableView?.OverlappingHighlightPriority is TableViewHighlightPriority.Column)
+        {
+            // The column wins; null falls through to the row band painted by the row presenter.
+            background = columnHighlight.Background;
+            foreground = columnHighlight.Foreground;
+        }
+        else
+        {
+            // The row wins; the row band is painted by the row presenter, so the cell only
+            // paints the column highlight where the row does not provide a brush.
+            background = rowHighlight?.Background is null ? columnHighlight?.Background : null;
+            foreground = rowHighlight?.Foreground is null ? columnHighlight?.Foreground : null;
+        }
+
+        if (background is not null)
+        {
+            Background = background;
+        }
+        else
+        {
+            ClearValue(BackgroundProperty);
+        }
+
+        if (foreground is not null)
+        {
+            Foreground = foreground;
+        }
+        else
+        {
+            ClearValue(ForegroundProperty);
+        }
+
+        // Highlights should appear as one continuous band like row highlights,
+        // so drop the rounded corners while a highlight background is shown.
+        if (_backgroundBorder is not null)
+        {
+            _backgroundBorder.CornerRadius = background is not null ? new CornerRadius(0) : _defaultBackgroundCornerRadius;
+        }
+    }
+
+    /// <summary>
+    /// Merges two highlight brushes into one. Solid color brushes are blended channel-wise;
+    /// for other brush types the column brush wins as merging is not possible.
+    /// </summary>
+    private static Brush? MergeBrushes(Brush? rowBrush, Brush? columnBrush)
+    {
+        if (rowBrush is null) return columnBrush;
+        if (columnBrush is null) return rowBrush;
+
+        if (rowBrush is SolidColorBrush row && columnBrush is SolidColorBrush column)
+        {
+            static byte Mix(byte a, byte b) => (byte)((a + b) / 2);
+
+            return new SolidColorBrush(Windows.UI.Color.FromArgb(
+                Math.Max(row.Color.A, column.Color.A),
+                Mix(row.Color.R, column.Color.R),
+                Mix(row.Color.G, column.Color.G),
+                Mix(row.Color.B, column.Color.B)));
+        }
+
+        return columnBrush;
     }
 
     /// <summary>
