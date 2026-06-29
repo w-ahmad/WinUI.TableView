@@ -1,4 +1,4 @@
-# Export to CSV
+﻿# Export to CSV
 
 `TableView` has built-in support for exporting data to a CSV file. When enabled, export options appear in the table's options menu (the corner button).
 
@@ -12,7 +12,7 @@ Use CSV export when users need to download the displayed data for use in Excel, 
 <tv:TableView ItemsSource="{x:Bind Products}" ShowExportOptions="True" />
 ```
 
-When `ShowExportOptions` is `true`, the options menu in the top-left corner shows **Export all** and **Export selected** items.
+When [`ShowExportOptions`](xref:WinUI.TableView.TableView.ShowExportOptions) is `true`, the options menu in the top-left corner shows **Export all** and **Export selected** items.
 
 ## Export events
 
@@ -45,7 +45,7 @@ tableView.ExportSelectedContent += (s, e) =>
 };
 ```
 
-Both events use `TableViewExportContentEventArgs` which inherits from `HandledEventArgs`.
+Both events use [`TableViewExportContentEventArgs`](xref:WinUI.TableView.TableViewExportContentEventArgs) which inherits from `HandledEventArgs`.
 
 | Property | Description |
 |---|---|
@@ -55,15 +55,15 @@ Both events use `TableViewExportContentEventArgs` which inherits from `HandledEv
 
 | Property | Type | Default | Description |
 |---|---|---|---|
-| `ShowExportOptions` | `bool` | `false` | Shows export options in the corner button menu |
-| `ExportAllContent` | event | — | Fires when exporting all rows |
-| `ExportSelectedContent` | event | — | Fires when exporting selected rows |
+| [`ShowExportOptions`](xref:WinUI.TableView.TableView.ShowExportOptions) | `bool` | `false` | Shows export options in the corner button menu |
+| [`ExportAllContent`](xref:WinUI.TableView.TableView.ExportAllContent) | event | — | Fires when exporting all rows |
+| [`ExportSelectedContent`](xref:WinUI.TableView.TableView.ExportSelectedContent) | event | — | Fires when exporting selected rows |
 
 ## Notes and limitations
 
 - The default export opens a **Save As** dialog (`FileSavePicker`) and writes a UTF-8 CSV file.
-- Exported values use each column's `GetClipboardContent` method, so `ClipboardContentBinding` and `OperationContentBinding` affect export output.
-- `ShowExportOptions` requires `CornerButtonMode` to be `Options` (the default). If `CornerButtonMode` is set to `None` or `SelectAll`, the options menu is not shown and the export options will not appear.
+- Exported values use each column's `GetClipboardContent` method, so [`ClipboardContentBinding`](xref:WinUI.TableView.TableViewColumn.ClipboardContentBinding) and [`OperationContentBinding`](xref:WinUI.TableView.TableViewColumn.OperationContentBinding) affect export output.
+- [`ShowExportOptions`](xref:WinUI.TableView.TableView.ShowExportOptions) requires [`CornerButtonMode`](xref:WinUI.TableView.TableView.CornerButtonMode) to be `Options` (the default). If [`CornerButtonMode`](xref:WinUI.TableView.TableView.CornerButtonMode) is set to `None` or `SelectAll`, the options menu is not shown and the export options will not appear.
 
 ## Related articles
 

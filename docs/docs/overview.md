@@ -1,4 +1,4 @@
-# Overview
+﻿# Overview
 
 WinUI.TableView is a data grid control for WinUI 3 and Uno Platform applications. It provides a familiar, Excel-like tabular UI for displaying, sorting, filtering, and editing structured data.
 
@@ -22,11 +22,11 @@ TableView (derives from ListView)
 
 Each column is an object that lives in `TableView.Columns`. Columns define:
 
-- which data property to display (`Binding`)
+- which data property to display ([`Binding`](xref:WinUI.TableView.TableViewBoundColumn.Binding))
 - which editing control to show when a cell enters edit mode
 - styling, sizing, and sorting behavior
 
-All built-in column types inherit from `TableViewColumn`. Columns that bind to a data property inherit from `TableViewBoundColumn`.
+All built-in column types inherit from [`TableViewColumn`](xref:WinUI.TableView.TableViewColumn). Columns that bind to a data property inherit from [`TableViewBoundColumn`](xref:WinUI.TableView.TableViewBoundColumn).
 
 See [Column types](column-types.md) and [Defining columns](defining-columns.md).
 
@@ -38,19 +38,19 @@ See [Binding data](binding-data.md).
 
 ### Selection
 
-The control supports row selection, cell selection, or both, through `SelectionMode` and `SelectionUnit`. Selected cells are tracked via `TableViewCellSlot` (a `(Row, Column)` record struct).
+The control supports row selection, cell selection, or both, through [`SelectionMode`](xref:WinUI.TableView.TableView.SelectionMode) and [`SelectionUnit`](xref:WinUI.TableView.TableView.SelectionUnit). Selected cells are tracked via [`TableViewCellSlot`](xref:WinUI.TableView.TableViewCellSlot) (a `(Row, Column)` record struct).
 
 See [Selection](selection.md).
 
 ### Editing
 
-Double-tapping a cell, or pressing F2, enters edit mode for that cell. The column's `GenerateEditingElement` method provides the editing control. The lifecycle fires `BeginningEdit`, `PreparingCellForEdit`, `CellEditEnding`, and `CellEditEnded`.
+Double-tapping a cell, or pressing F2, enters edit mode for that cell. The column's `GenerateEditingElement` method provides the editing control. The lifecycle fires [`BeginningEdit`](xref:WinUI.TableView.TableView.BeginningEdit), [`PreparingCellForEdit`](xref:WinUI.TableView.TableView.PreparingCellForEdit), [`CellEditEnding`](xref:WinUI.TableView.TableView.CellEditEnding), and [`CellEditEnded`](xref:WinUI.TableView.TableView.CellEditEnded).
 
 See [Editing](editing.md).
 
 ### Collection view
 
-`TableView` exposes a `CollectionView` property that gives direct access to the internal `ICollectionView`. You can programmatically add sort or filter descriptions to this view.
+`TableView` exposes a [`CollectionView`](xref:WinUI.TableView.TableView.CollectionView) property that gives direct access to the internal `ICollectionView`. You can programmatically add sort or filter descriptions to this view.
 
 ```csharp
 tableView.SortDescriptions.Add(new SortDescription("Price", SortDirection.Ascending));

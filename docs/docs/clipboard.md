@@ -1,4 +1,4 @@
-# Clipboard and copy/paste
+﻿# Clipboard and copy/paste
 
 `TableView` supports copying selected rows or cells to the clipboard and pasting tab-delimited clipboard content back into the table.
 
@@ -35,7 +35,7 @@ Disable pasting:
 
 ## CopyToClipboard event
 
-The `CopyToClipboard` event fires before the copy operation. Set `e.Handled = true` to replace the default copy with your own implementation:
+The [`CopyToClipboard`](xref:WinUI.TableView.TableView.CopyToClipboard) event fires before the copy operation. Set `e.Handled = true` to replace the default copy with your own implementation:
 
 ```csharp
 tableView.CopyToClipboard += (s, e) =>
@@ -49,7 +49,7 @@ tableView.CopyToClipboard += (s, e) =>
 };
 ```
 
-`TableViewCopyToClipboardEventArgs` properties:
+[`TableViewCopyToClipboardEventArgs`](xref:WinUI.TableView.TableViewCopyToClipboardEventArgs) properties:
 
 | Property | Description |
 |---|---|
@@ -58,7 +58,7 @@ tableView.CopyToClipboard += (s, e) =>
 
 ## PasteFromClipboard event
 
-The `PasteFromClipboard` event fires before the paste operation. Set `e.Handled = true` to suppress the default paste:
+The [`PasteFromClipboard`](xref:WinUI.TableView.TableView.PasteFromClipboard) event fires before the paste operation. Set `e.Handled = true` to suppress the default paste:
 
 ```csharp
 tableView.PasteFromClipboard += (s, e) =>
@@ -70,7 +70,7 @@ tableView.PasteFromClipboard += (s, e) =>
 
 ## Customizing clipboard content per column
 
-Override clipboard content per column using `ClipboardContentBinding`. This lets you specify a different value for clipboard operations than what is displayed in the cell:
+Override clipboard content per column using [`ClipboardContentBinding`](xref:WinUI.TableView.TableViewColumn.ClipboardContentBinding). This lets you specify a different value for clipboard operations than what is displayed in the cell:
 
 ```xml
 <tv:TableViewTextColumn Header="Price"
@@ -81,23 +81,23 @@ Override clipboard content per column using `ClipboardContentBinding`. This lets
 </tv:TableViewTextColumn>
 ```
 
-The `OperationContentBinding` property on `TableViewColumn` also controls the value used for sort, filter, and clipboard operations when set separately from `Binding`.
+The [`OperationContentBinding`](xref:WinUI.TableView.TableViewColumn.OperationContentBinding) property on [`TableViewColumn`](xref:WinUI.TableView.TableViewColumn) also controls the value used for sort, filter, and clipboard operations when set separately from [`Binding`](xref:WinUI.TableView.TableViewBoundColumn.Binding).
 
 ## Common options
 
 | Property / Event | Description |
 |---|---|
-| `CanCopy` | Enables or disables Ctrl+C copy (default `true`) |
-| `CanPaste` | Enables or disables Ctrl+V paste (default `true`) |
-| `CopyToClipboard` | Fires before copying; set `Handled = true` for custom behavior |
-| `PasteFromClipboard` | Fires before pasting; set `Handled = true` for custom behavior |
+| [`CanCopy`](xref:WinUI.TableView.TableView.CanCopy) | Enables or disables Ctrl+C copy (default `true`) |
+| [`CanPaste`](xref:WinUI.TableView.TableView.CanPaste) | Enables or disables Ctrl+V paste (default `true`) |
+| [`CopyToClipboard`](xref:WinUI.TableView.TableView.CopyToClipboard) | Fires before copying; set `Handled = true` for custom behavior |
+| [`PasteFromClipboard`](xref:WinUI.TableView.TableView.PasteFromClipboard) | Fires before pasting; set `Handled = true` for custom behavior |
 
 ## Notes and limitations
 
 - Copy output is tab-delimited text, which pastes naturally into Excel and similar tools.
 - Paste parses tab-delimited text. Each column in the clipboard text is mapped to the corresponding column in the table starting from the current cell.
 - Columns where `SetClipboardContent` returns `false` (e.g., no binding path) are skipped during paste.
-- The paste operation calls `SetClipboardContent` on `TableViewColumn`. If you have a `TableViewTemplateColumn` without `OperationContentBinding`, paste will not write values to those columns.
+- The paste operation calls `SetClipboardContent` on [`TableViewColumn`](xref:WinUI.TableView.TableViewColumn). If you have a [`TableViewTemplateColumn`](xref:WinUI.TableView.TableViewTemplateColumn) without [`OperationContentBinding`](xref:WinUI.TableView.TableViewColumn.OperationContentBinding), paste will not write values to those columns.
 
 ## Related articles
 

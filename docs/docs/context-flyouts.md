@@ -1,4 +1,4 @@
-# Context flyouts
+﻿# Context flyouts
 
 `TableView` supports context flyouts at both the row level and the cell level. These flyouts open when the user right-clicks a row or cell (or long-presses on touch).
 
@@ -8,7 +8,7 @@ Use context flyouts to provide quick actions that apply to the right-clicked row
 
 ## Row context flyout
 
-Assign a `FlyoutBase` to `RowContextFlyout`. It opens when the user right-clicks any row:
+Assign a `FlyoutBase` to [`RowContextFlyout`](xref:WinUI.TableView.TableView.RowContextFlyout). It opens when the user right-clicks any row:
 
 ```xml
 <tv:TableView ItemsSource="{x:Bind Products}">
@@ -25,7 +25,7 @@ Assign a `FlyoutBase` to `RowContextFlyout`. It opens when the user right-clicks
 
 ## Cell context flyout
 
-Assign a `FlyoutBase` to `CellContextFlyout`. It opens when the user right-clicks any cell:
+Assign a `FlyoutBase` to [`CellContextFlyout`](xref:WinUI.TableView.TableView.CellContextFlyout). It opens when the user right-clicks any cell:
 
 ```xml
 <tv:TableView ItemsSource="{x:Bind Products}">
@@ -39,7 +39,7 @@ Assign a `FlyoutBase` to `CellContextFlyout`. It opens when the user right-click
 
 ## Accessing the row or cell from a flyout handler
 
-Use the `RowContextFlyoutOpening` and `CellContextFlyoutOpening` events to access the row/cell context before the flyout opens. You can also use `ForceRowOrCellSelectionOnContextRequested` to ensure the right-clicked item is selected, making `SelectedItem` / `CurrentCellSlot` reliable inside the flyout handler:
+Use the [`RowContextFlyoutOpening`](xref:WinUI.TableView.TableView.RowContextFlyoutOpening) and [`CellContextFlyoutOpening`](xref:WinUI.TableView.TableView.CellContextFlyoutOpening) events to access the row/cell context before the flyout opens. You can also use [`ForceRowOrCellSelectionOnContextRequested`](xref:WinUI.TableView.TableView.ForceRowOrCellSelectionOnContextRequested) to ensure the right-clicked item is selected, making `SelectedItem` / [`CurrentCellSlot`](xref:WinUI.TableView.TableView.CurrentCellSlot) reliable inside the flyout handler:
 
 ```xml
 <tv:TableView ForceRowOrCellSelectionOnContextRequested="True"
@@ -66,23 +66,23 @@ private void OnRowContextFlyoutOpening(object sender, TableViewRowContextFlyoutE
 
 ### RowContextFlyoutOpening event args
 
-`TableViewRowContextFlyoutEventArgs` properties:
+[`TableViewRowContextFlyoutEventArgs`](xref:WinUI.TableView.TableViewRowContextFlyoutEventArgs) properties:
 
 | Property | Description |
 |---|---|
 | `Index` | Zero-based index of the row |
-| `Row` | The `TableViewRow` control |
+| `Row` | The [`TableViewRow`](xref:WinUI.TableView.TableViewRow) control |
 | `Item` | The data item for the row |
 | `Flyout` | The flyout that will be shown |
 | `Handled` | Set `true` to suppress the flyout |
 
 ### CellContextFlyoutOpening event args
 
-`TableViewCellContextFlyoutEventArgs` exposes:
+[`TableViewCellContextFlyoutEventArgs`](xref:WinUI.TableView.TableViewCellContextFlyoutEventArgs) exposes:
 
 | Property | Description |
 |---|---|
-| `Cell` | The `TableViewCell` control |
+| `Cell` | The [`TableViewCell`](xref:WinUI.TableView.TableViewCell) control |
 | `DataItem` | The data item for the row |
 | `Column` | The column of the cell |
 | `Flyout` | The flyout that will be shown |
@@ -106,16 +106,16 @@ tableView.RowContextFlyoutOpening += (s, e) =>
 
 | Property / Event | Description |
 |---|---|
-| `RowContextFlyout` | `FlyoutBase` shown on row right-click |
-| `CellContextFlyout` | `FlyoutBase` shown on cell right-click |
-| `RowContextFlyoutOpening` | Fires before the row flyout opens |
-| `CellContextFlyoutOpening` | Fires before the cell flyout opens |
-| `ForceRowOrCellSelectionOnContextRequested` | Selects the row/cell before the flyout opens |
+| [`RowContextFlyout`](xref:WinUI.TableView.TableView.RowContextFlyout) | `FlyoutBase` shown on row right-click |
+| [`CellContextFlyout`](xref:WinUI.TableView.TableView.CellContextFlyout) | `FlyoutBase` shown on cell right-click |
+| [`RowContextFlyoutOpening`](xref:WinUI.TableView.TableView.RowContextFlyoutOpening) | Fires before the row flyout opens |
+| [`CellContextFlyoutOpening`](xref:WinUI.TableView.TableView.CellContextFlyoutOpening) | Fires before the cell flyout opens |
+| [`ForceRowOrCellSelectionOnContextRequested`](xref:WinUI.TableView.TableView.ForceRowOrCellSelectionOnContextRequested) | Selects the row/cell before the flyout opens |
 
 ## Notes and limitations
 
-- `RowContextFlyout` and `CellContextFlyout` are mutually available. Both can be set at the same time; the cell flyout takes precedence when right-clicking a cell.
-- If neither a `RowContextFlyout` nor a `CellContextFlyout` is set, no flyout appears on right-click.
+- [`RowContextFlyout`](xref:WinUI.TableView.TableView.RowContextFlyout) and [`CellContextFlyout`](xref:WinUI.TableView.TableView.CellContextFlyout) are mutually available. Both can be set at the same time; the cell flyout takes precedence when right-clicking a cell.
+- If neither a [`RowContextFlyout`](xref:WinUI.TableView.TableView.RowContextFlyout) nor a [`CellContextFlyout`](xref:WinUI.TableView.TableView.CellContextFlyout) is set, no flyout appears on right-click.
 - The opening events fire every time the flyout is about to open, including repeated right-clicks on the same item.
 
 ## Related articles

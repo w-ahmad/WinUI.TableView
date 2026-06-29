@@ -1,4 +1,4 @@
-# Binding data
+﻿# Binding data
 
 `TableView` accepts any `IEnumerable` as its items source. For the best experience, use `ObservableCollection<T>` so that item additions and removals are reflected automatically, and implement `INotifyPropertyChanged` on your model so that cell values update when the underlying data changes.
 
@@ -66,8 +66,8 @@ public class Product : INotifyPropertyChanged
 
 | Property | Type | Default | Description |
 |---|---|---|---|
-| `ItemsSource` | `object` | `null` | The data collection to display. |
-| `AutoGenerateColumns` | `bool` | `true` | When `true`, columns are generated automatically from the public properties of the item type. |
+| [`ItemsSource`](xref:WinUI.TableView.TableView.ItemsSource) | `object` | `null` | The data collection to display. |
+| [`AutoGenerateColumns`](xref:WinUI.TableView.TableView.AutoGenerateColumns) | `bool` | `true` | When `true`, columns are generated automatically from the public properties of the item type. |
 
 ## Using CollectionView
 
@@ -90,9 +90,9 @@ Live shaping has a performance cost on large collections. Disable it if you do n
 
 ## Notes and limitations
 
-- Setting `ItemsSource` to `null` clears the table.
-- If you replace the entire collection (by assigning a new list to `ItemsSource`) any applied sort or filter descriptions are preserved on the internal view and applied to the new source.
-- The internal `CollectionView` is read-only; do not cast and mutate it directly. Use `TableView.SortDescriptions` and `TableView.FilterDescriptions` instead.
+- Setting [`ItemsSource`](xref:WinUI.TableView.TableView.ItemsSource) to `null` clears the table.
+- If you replace the entire collection (by assigning a new list to [`ItemsSource`](xref:WinUI.TableView.TableView.ItemsSource)) any applied sort or filter descriptions are preserved on the internal view and applied to the new source.
+- The internal [`CollectionView`](xref:WinUI.TableView.TableView.CollectionView) is read-only; do not cast and mutate it directly. Use `TableView.SortDescriptions` and `TableView.FilterDescriptions` instead.
 
 ## Related articles
 

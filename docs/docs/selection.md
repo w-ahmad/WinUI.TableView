@@ -1,6 +1,6 @@
-# Selection
+﻿# Selection
 
-`TableView` supports selecting individual cells, whole rows, or a combination of both. You control the selection behavior through `SelectionMode` and `SelectionUnit`.
+`TableView` supports selecting individual cells, whole rows, or a combination of both. You control the selection behavior through [`SelectionMode`](xref:WinUI.TableView.TableView.SelectionMode) and [`SelectionUnit`](xref:WinUI.TableView.TableView.SelectionUnit).
 
 ## When to use it
 
@@ -10,7 +10,7 @@
 
 ## SelectionMode
 
-`SelectionMode` inherits from `ListViewSelectionMode` and controls how many rows (or cells) can be selected at once:
+[`SelectionMode`](xref:WinUI.TableView.TableView.SelectionMode) inherits from `ListViewSelectionMode` and controls how many rows (or cells) can be selected at once:
 
 | Value | Description |
 |---|---|
@@ -25,7 +25,7 @@
 
 ## SelectionUnit
 
-`SelectionUnit` determines what the user can select:
+[`SelectionUnit`](xref:WinUI.TableView.TableView.SelectionUnit) determines what the user can select:
 
 | Value | Description |
 |---|---|
@@ -53,7 +53,7 @@ foreach (var item in tableView.SelectedItems.OfType<Product>())
 }
 ```
 
-For cell selection, use `SelectedCells` or listen to `CellSelectionChanged`:
+For cell selection, use `SelectedCells` or listen to [`CellSelectionChanged`](xref:WinUI.TableView.TableView.CellSelectionChanged):
 
 ```csharp
 tableView.CellSelectionChanged += (s, e) =>
@@ -74,7 +74,7 @@ tableView.CellSelectionChanged += (s, e) =>
 
 ## TableViewCellSlot
 
-A `TableViewCellSlot` is a lightweight `record struct` that identifies a cell by its row and column indices:
+A [`TableViewCellSlot`](xref:WinUI.TableView.TableViewCellSlot) is a lightweight `record struct` that identifies a cell by its row and column indices:
 
 ```csharp
 public readonly record struct TableViewCellSlot(int Row, int Column);
@@ -87,7 +87,7 @@ tableView.CurrentCellSlot = new TableViewCellSlot(2, 1);
 
 ## CurrentCellSlot
 
-`CurrentCellSlot` is a nullable dependency property that identifies the currently focused cell:
+[`CurrentCellSlot`](xref:WinUI.TableView.TableView.CurrentCellSlot) is a nullable dependency property that identifies the currently focused cell:
 
 ```csharp
 var current = tableView.CurrentCellSlot;
@@ -97,7 +97,7 @@ if (current.HasValue)
 }
 ```
 
-Handle `CurrentCellChanged` to react when focus moves to a different cell:
+Handle [`CurrentCellChanged`](xref:WinUI.TableView.TableView.CurrentCellChanged) to react when focus moves to a different cell:
 
 ```csharp
 tableView.CurrentCellChanged += (s, e) =>
@@ -108,7 +108,7 @@ tableView.CurrentCellChanged += (s, e) =>
 
 ## Corner button (Select All)
 
-Set `CornerButtonMode` to `SelectAll` to show a button in the top-left corner that selects all rows:
+Set [`CornerButtonMode`](xref:WinUI.TableView.TableView.CornerButtonMode) to `SelectAll` to show a button in the top-left corner that selects all rows:
 
 ```xml
 <tv:TableView CornerButtonMode="SelectAll" />
@@ -140,7 +140,7 @@ tableView.CellSelectionChanged += (s, e) =>
 
 ## Notes and limitations
 
-- When `SelectionUnit` is `Row`, the `SelectedCells` collection and `CellSelectionChanged` are not used.
+- When [`SelectionUnit`](xref:WinUI.TableView.TableView.SelectionUnit) is `Row`, the `SelectedCells` collection and [`CellSelectionChanged`](xref:WinUI.TableView.TableView.CellSelectionChanged) are not used.
 - Drag selection is supported for cell selection. The selection rectangle is shown by default; disable it with `ShowDragRectangle = false`.
 - In `CellOrRow` mode, row and cell selections are tracked independently. A selected row does not mean its cells are in `SelectedCells`.
 

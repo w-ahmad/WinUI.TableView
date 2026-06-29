@@ -1,4 +1,4 @@
-# Performance guidance
+﻿# Performance guidance
 
 `TableView` is built on `ListView`, which provides UI virtualization out of the box. This means only the rows currently visible on screen are instantiated. The following guidance helps you get the best performance when working with large datasets.
 
@@ -33,7 +33,7 @@ Enable it only when users expect items to move or disappear in real time after e
 
 ## Auto-generated columns
 
-`AutoGenerateColumns` uses reflection to inspect the item type. For types with many properties, or in hot-path scenarios, prefer explicit columns to avoid reflection overhead:
+[`AutoGenerateColumns`](xref:WinUI.TableView.TableView.AutoGenerateColumns) uses reflection to inspect the item type. For types with many properties, or in hot-path scenarios, prefer explicit columns to avoid reflection overhead:
 
 ```xml
 <tv:TableView AutoGenerateColumns="False">
@@ -57,11 +57,11 @@ ctx.DataItem is Product p && p.Tags.Any(t => t.StartsWith("clearance"))
 
 ## Column auto-width
 
-`ColumnAutoWidthMode` measures cell content to determine the column width. On large virtualized lists, only visible cells are measured. This means the initial auto-width may be narrower than the actual maximum value width. If accuracy matters, consider using a fixed or star width instead.
+[`ColumnAutoWidthMode`](xref:WinUI.TableView.TableView.ColumnAutoWidthMode) measures cell content to determine the column width. On large virtualized lists, only visible cells are measured. This means the initial auto-width may be narrower than the actual maximum value width. If accuracy matters, consider using a fixed or star width instead.
 
 ## Filtering and sorting
 
-Filtering and sorting operate on the internal `AdvancedCollectionView`. These run on the UI thread. For very large collections (100,000+ items), consider pre-filtering in your ViewModel before setting `ItemsSource`.
+Filtering and sorting operate on the internal `AdvancedCollectionView`. These run on the UI thread. For very large collections (100,000+ items), consider pre-filtering in your ViewModel before setting [`ItemsSource`](xref:WinUI.TableView.TableView.ItemsSource).
 
 ## Horizontal scrolling and column count
 

@@ -1,4 +1,4 @@
-# Editing
+﻿# Editing
 
 `TableView` supports in-place cell editing. Double-tapping a cell, or pressing **F2** when a cell has focus, enters edit mode. The column provides the editing control. Pressing **Enter** or tabbing out commits the change; pressing **Escape** cancels it.
 
@@ -58,7 +58,7 @@ tableView.BeginningEdit += (s, e) =>
 };
 ```
 
-`TableViewBeginningEditEventArgs` properties:
+[`TableViewBeginningEditEventArgs`](xref:WinUI.TableView.TableViewBeginningEditEventArgs) properties:
 
 | Property | Description |
 |---|---|
@@ -83,7 +83,7 @@ tableView.PreparingCellForEdit += (s, e) =>
 };
 ```
 
-`TableViewPreparingCellForEditEventArgs` properties:
+[`TableViewPreparingCellForEditEventArgs`](xref:WinUI.TableView.TableViewPreparingCellForEditEventArgs) properties:
 
 | Property | Description |
 |---|---|
@@ -112,7 +112,7 @@ tableView.CellEditEnding += (s, e) =>
 };
 ```
 
-`TableViewCellEditEndingEventArgs` properties:
+[`TableViewCellEditEndingEventArgs`](xref:WinUI.TableView.TableViewCellEditEndingEventArgs) properties:
 
 | Property | Description |
 |---|---|
@@ -137,7 +137,7 @@ tableView.CellEditEnded += (s, e) =>
 };
 ```
 
-`TableViewCellEditEndedEventArgs` properties are the same as `CellEditEndingEventArgs` (without `Cancel`).
+[`TableViewCellEditEndedEventArgs`](xref:WinUI.TableView.TableViewCellEditEndedEventArgs) properties are the same as `CellEditEndingEventArgs` (without `Cancel`).
 
 ## TableViewEditAction
 
@@ -148,7 +148,7 @@ tableView.CellEditEnded += (s, e) =>
 
 ## IsReadOnlyChanged event
 
-`TableView` raises `IsReadOnlyChanged` when the `IsReadOnly` property changes:
+`TableView` raises [`IsReadOnlyChanged`](xref:WinUI.TableView.TableView.IsReadOnlyChanged) when the [`IsReadOnly`](xref:WinUI.TableView.TableView.IsReadOnly) property changes:
 
 ```csharp
 tableView.IsReadOnlyChanged += (s, e) =>
@@ -159,7 +159,7 @@ tableView.IsReadOnlyChanged += (s, e) =>
 
 ## Double-tap events
 
-`RowDoubleTapped` and `CellDoubleTapped` fire when a row or cell is double-tapped, before editing begins. You can use these to take custom action (such as opening a details dialog) instead of entering edit mode:
+[`RowDoubleTapped`](xref:WinUI.TableView.TableView.RowDoubleTapped) and [`CellDoubleTapped`](xref:WinUI.TableView.TableView.CellDoubleTapped) fire when a row or cell is double-tapped, before editing begins. You can use these to take custom action (such as opening a details dialog) instead of entering edit mode:
 
 ```csharp
 tableView.CellDoubleTapped += (s, e) =>
@@ -170,8 +170,8 @@ tableView.CellDoubleTapped += (s, e) =>
 
 ## Notes and limitations
 
-- `TableViewCheckBoxColumn` and `TableViewToggleSwitchColumn` use `UseSingleElement = true`. The checkbox or toggle responds to clicks directly and commits the value without a separate edit mode.
-- The `Binding` on bound columns is automatically set to `TwoWay` with `UpdateSourceTrigger = Explicit`. Changes are written back to the source only when `CellEditEnding` runs with `Commit`.
+- [`TableViewCheckBoxColumn`](xref:WinUI.TableView.TableViewCheckBoxColumn) and [`TableViewToggleSwitchColumn`](xref:WinUI.TableView.TableViewToggleSwitchColumn) use `UseSingleElement = true`. The checkbox or toggle responds to clicks directly and commits the value without a separate edit mode.
+- The [`Binding`](xref:WinUI.TableView.TableViewBoundColumn.Binding) on bound columns is automatically set to `TwoWay` with `UpdateSourceTrigger = Explicit`. Changes are written back to the source only when [`CellEditEnding`](xref:WinUI.TableView.TableView.CellEditEnding) runs with `Commit`.
 - Pressing **Tab** commits the current cell and moves to the next editable cell.
 
 ## Related articles

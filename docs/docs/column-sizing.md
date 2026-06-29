@@ -1,4 +1,4 @@
-# Column sizing
+﻿# Column sizing
 
 `TableView` gives you fine-grained control over how columns measure and size themselves. You can set fixed widths, star widths, auto widths, and per-column size constraints.
 
@@ -23,24 +23,24 @@ Use column sizing to make your table fit its container, give important columns m
 
 ## Width values
 
-`Width` is a `GridLength`, the same type used in `Grid.ColumnDefinitions`:
+[`Width`](xref:WinUI.TableView.TableViewColumn.Width) is a `GridLength`, the same type used in `Grid.ColumnDefinitions`:
 
 | Value | Meaning |
 |---|---|
 | `80` or `80px` | Fixed 80 device-independent pixels |
-| `Auto` | Size to fit the column's content (see `ColumnAutoWidthMode`) |
+| `Auto` | Size to fit the column's content (see [`ColumnAutoWidthMode`](xref:WinUI.TableView.TableView.ColumnAutoWidthMode)) |
 | `*` | One star unit — shares remaining space equally |
 | `2*` | Two star units — gets twice as much space as `1*` |
 
 ## ColumnAutoWidthMode
 
-When `Width="Auto"`, the `ColumnAutoWidthMode` property (available on both the `TableView` and individual columns) controls what content is measured:
+When `Width="Auto"`, the [`ColumnAutoWidthMode`](xref:WinUI.TableView.TableView.ColumnAutoWidthMode) property (available on both the `TableView` and individual columns) controls what content is measured:
 
 | Value | Description |
 |---|---|
 | `Both` (default) | Width is the maximum of the header width and the widest cell content |
 | `Cells` | Width is determined by the widest cell content only |
-| `Header` | Width is determined by the header content only |
+| [`Header`](xref:WinUI.TableView.TableViewColumn.Header) | Width is determined by the header content only |
 
 Set a default for all auto columns at the table level, and override it per column:
 
@@ -59,7 +59,7 @@ Set a default for all auto columns at the table level, and override it per colum
 
 ## Per-column minimum and maximum width
 
-Use `MinWidth` and `MaxWidth` on a column to clamp its size:
+Use [`MinWidth`](xref:WinUI.TableView.TableViewColumn.MinWidth) and [`MaxWidth`](xref:WinUI.TableView.TableViewColumn.MaxWidth) on a column to clamp its size:
 
 ```xml
 <tv:TableViewTextColumn Header="Description"
@@ -77,7 +77,7 @@ Set a global constraint that applies to all columns:
 <tv:TableView MinColumnWidth="60" MaxColumnWidth="300" />
 ```
 
-Individual column `MinWidth` / `MaxWidth` values override the table-level defaults.
+Individual column [`MinWidth`](xref:WinUI.TableView.TableViewColumn.MinWidth) / [`MaxWidth`](xref:WinUI.TableView.TableViewColumn.MaxWidth) values override the table-level defaults.
 
 ## User column resizing
 
@@ -100,12 +100,12 @@ Control row heights with the following `TableView` properties:
 
 | Property | Default | Description |
 |---|---|---|
-| `RowHeight` | `NaN` (auto) | Fixed height for all data rows |
-| `RowMinHeight` | `40` | Minimum height for data rows |
-| `RowMaxHeight` | `∞` | Maximum height for data rows |
-| `HeaderRowHeight` | `NaN` (auto) | Fixed height for the header row |
-| `HeaderRowMinHeight` | `32` | Minimum header row height |
-| `HeaderRowMaxHeight` | `∞` | Maximum header row height |
+| [`RowHeight`](xref:WinUI.TableView.TableView.RowHeight) | `NaN` (auto) | Fixed height for all data rows |
+| [`RowMinHeight`](xref:WinUI.TableView.TableView.RowMinHeight) | `40` | Minimum height for data rows |
+| [`RowMaxHeight`](xref:WinUI.TableView.TableView.RowMaxHeight) | `∞` | Maximum height for data rows |
+| [`HeaderRowHeight`](xref:WinUI.TableView.TableView.HeaderRowHeight) | `NaN` (auto) | Fixed height for the header row |
+| [`HeaderRowMinHeight`](xref:WinUI.TableView.TableView.HeaderRowMinHeight) | `32` | Minimum header row height |
+| [`HeaderRowMaxHeight`](xref:WinUI.TableView.TableView.HeaderRowMaxHeight) | `∞` | Maximum header row height |
 
 ```xml
 <tv:TableView RowHeight="48" HeaderRowHeight="40" />
@@ -114,8 +114,8 @@ Control row heights with the following `TableView` properties:
 ## Notes and limitations
 
 - Star widths require the `TableView` to have a defined width (or be inside a container that constrains it). In an unconstrained panel they fall back to `Auto`.
-- `ActualWidth` is a read-only property on each column that reflects the column's rendered width.
-- `ColumnAutoWidthMode` measures visible cells only. If the widest content is in a row that has not been rendered yet (due to virtualization), the column may be narrower than expected.
+- [`ActualWidth`](xref:WinUI.TableView.TableViewColumn.ActualWidth) is a read-only property on each column that reflects the column's rendered width.
+- [`ColumnAutoWidthMode`](xref:WinUI.TableView.TableView.ColumnAutoWidthMode) measures visible cells only. If the widest content is in a row that has not been rendered yet (due to virtualization), the column may be narrower than expected.
 
 ## Related articles
 

@@ -1,4 +1,4 @@
-# Sorting
+﻿# Sorting
 
 `TableView` has built-in column sorting. Clicking a column header cycles the sort direction for that column: ascending → descending → cleared.
 
@@ -44,7 +44,7 @@ tableView.SortDescriptions.Add(new SortDescription("Name", SortDirection.Ascendi
 tableView.SortDescriptions.Add(new SortDescription("Price", SortDirection.Ascending));
 ```
 
-The `SortDescriptions` collection comes from the internal `AdvancedCollectionView`. Changes take effect immediately.
+The [`SortDescriptions`](xref:WinUI.TableView.TableView.SortDescriptions) collection comes from the internal `AdvancedCollectionView`. Changes take effect immediately.
 
 Clear all sorting:
 
@@ -54,7 +54,7 @@ tableView.SortDescriptions.Clear();
 
 ## The Sorting event
 
-Handle the `Sorting` event to replace or supplement the built-in sort logic. Setting `e.Handled = true` prevents the default sort from running:
+Handle the [`Sorting`](xref:WinUI.TableView.TableView.Sorting) event to replace or supplement the built-in sort logic. Setting `e.Handled = true` prevents the default sort from running:
 
 ```csharp
 tableView.Sorting += (s, e) =>
@@ -78,7 +78,7 @@ tableView.Sorting += (s, e) =>
 };
 ```
 
-`TableViewSortingEventArgs` properties:
+[`TableViewSortingEventArgs`](xref:WinUI.TableView.TableViewSortingEventArgs) properties:
 
 | Property | Description |
 |---|---|
@@ -87,7 +87,7 @@ tableView.Sorting += (s, e) =>
 
 ## The ClearSorting event
 
-`ClearSorting` fires when the sort is removed from a column (third click cycles back to no sort):
+[`ClearSorting`](xref:WinUI.TableView.TableView.ClearSorting) fires when the sort is removed from a column (third click cycles back to no sort):
 
 ```csharp
 tableView.ClearSorting += (s, e) =>
@@ -96,7 +96,7 @@ tableView.ClearSorting += (s, e) =>
 };
 ```
 
-`TableViewClearSortingEventArgs` properties:
+[`TableViewClearSortingEventArgs`](xref:WinUI.TableView.TableViewClearSortingEventArgs) properties:
 
 | Property | Description |
 |---|---|
@@ -117,17 +117,17 @@ var descriptions = tableView.SortDescriptions; // the active SortDescription lis
 
 | Property / Event | Description |
 |---|---|
-| `CanSortColumns` | Enables or disables sorting for all columns |
+| [`CanSortColumns`](xref:WinUI.TableView.TableView.CanSortColumns) | Enables or disables sorting for all columns |
 | `TableViewColumn.CanSort` | Per-column sort toggle |
 | `TableViewColumn.SortDirection` | Current sort direction (`Ascending`, `Descending`, or `null`) |
-| `SortDescriptions` | Collection of active sort descriptions |
-| `IsSorted` | `true` if any sort is applied |
-| `Sorting` | Fires before the default sort runs; can be cancelled |
-| `ClearSorting` | Fires when a column's sort is cleared |
+| [`SortDescriptions`](xref:WinUI.TableView.TableView.SortDescriptions) | Collection of active sort descriptions |
+| [`IsSorted`](xref:WinUI.TableView.TableView.IsSorted) | `true` if any sort is applied |
+| [`Sorting`](xref:WinUI.TableView.TableView.Sorting) | Fires before the default sort runs; can be cancelled |
+| [`ClearSorting`](xref:WinUI.TableView.TableView.ClearSorting) | Fires when a column's sort is cleared |
 
 ## Notes and limitations
 
-- `TableViewTemplateColumn` has `CanSort = false` by default because there is no bound property path. Set `OperationContentBinding` to enable sorting on template columns.
+- [`TableViewTemplateColumn`](xref:WinUI.TableView.TableViewTemplateColumn) has `CanSort = false` by default because there is no bound property path. Set [`OperationContentBinding`](xref:WinUI.TableView.TableViewColumn.OperationContentBinding) to enable sorting on template columns.
 - Sorting is applied to the internal `AdvancedCollectionView`. It does not mutate the original collection.
 
 ## Related articles

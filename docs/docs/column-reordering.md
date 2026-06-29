@@ -1,4 +1,4 @@
-# Column reordering
+﻿# Column reordering
 
 Users can drag column headers to rearrange the columns in any order. This is enabled by default.
 
@@ -47,7 +47,7 @@ tableView.ColumnReordering += (s, e) =>
 };
 ```
 
-`TableViewColumnReorderingEventArgs` properties:
+[`TableViewColumnReorderingEventArgs`](xref:WinUI.TableView.TableViewColumnReorderingEventArgs) properties:
 
 | Property | Description |
 |---|---|
@@ -65,7 +65,7 @@ tableView.ColumnReordered += (s, e) =>
 };
 ```
 
-`TableViewColumnReorderedEventArgs` properties:
+[`TableViewColumnReorderedEventArgs`](xref:WinUI.TableView.TableViewColumnReorderedEventArgs) properties:
 
 | Property | Description |
 |---|---|
@@ -75,7 +75,7 @@ tableView.ColumnReordered += (s, e) =>
 
 ## Setting column order programmatically
 
-Use the `Order` property on each column to set the display order:
+Use the [`Order`](xref:WinUI.TableView.TableViewColumn.Order) property on each column to set the display order:
 
 ```xml
 <tv:TableViewTextColumn Header="Name"  Binding="{Binding Name}"  Order="0" />
@@ -83,7 +83,7 @@ Use the `Order` property on each column to set the display order:
 <tv:TableViewTextColumn Header="Phone" Binding="{Binding Phone}" Order="2" />
 ```
 
-Or reorder by moving columns in the `Columns` collection in code:
+Or reorder by moving columns in the [`Columns`](xref:WinUI.TableView.TableView.Columns) collection in code:
 
 ```csharp
 var column = tableView.Columns[3];
@@ -94,15 +94,15 @@ tableView.Columns.Move(3, 0); // Move column at index 3 to index 0
 
 | Property / Event | Description |
 |---|---|
-| `CanReorderColumns` | Enables or disables drag reordering for all columns |
+| [`CanReorderColumns`](xref:WinUI.TableView.TableView.CanReorderColumns) | Enables or disables drag reordering for all columns |
 | `TableViewColumn.CanReorder` | Per-column drag reorder toggle |
 | `TableViewColumn.Order` | Explicit display order index |
-| `ColumnReordering` | Fires before a column is moved; can be cancelled |
-| `ColumnReordered` | Fires after a column is successfully moved |
+| [`ColumnReordering`](xref:WinUI.TableView.TableView.ColumnReordering) | Fires before a column is moved; can be cancelled |
+| [`ColumnReordered`](xref:WinUI.TableView.TableView.ColumnReordered) | Fires after a column is successfully moved |
 
 ## Notes and limitations
 
-- Reordering changes the column's position in `TableView.Columns`. The `Order` property, if set, may conflict with dragged positions; prefer one approach or the other.
+- Reordering changes the column's position in `TableView.Columns`. The [`Order`](xref:WinUI.TableView.TableViewColumn.Order) property, if set, may conflict with dragged positions; prefer one approach or the other.
 - Frozen columns cannot be dragged past the frozen boundary. See [Frozen columns](frozen-columns.md).
 
 ## Related articles

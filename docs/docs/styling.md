@@ -1,4 +1,4 @@
-# Styling rows, cells, and headers
+﻿# Styling rows, cells, and headers
 
 `TableView` provides several ways to customize the appearance of rows, cells, and column headers. You can apply global styles, per-column styles, grid line settings, and alternate row colors.
 
@@ -63,7 +63,7 @@ Apply a style to a specific column's header:
 
 ## Element style and editing element style
 
-For bound column types, use `ElementStyle` to style the display element and `EditingElementStyle` to style the editing element:
+For bound column types, use [`ElementStyle`](xref:WinUI.TableView.TableViewBoundColumn.ElementStyle) to style the display element and [`EditingElementStyle`](xref:WinUI.TableView.TableViewBoundColumn.EditingElementStyle) to style the editing element:
 
 ```xml
 <tv:TableViewTextColumn Header="Notes" Binding="{Binding Notes}">
@@ -106,14 +106,14 @@ Control the visibility and appearance of grid lines:
 
 | Property | Type | Default | Description |
 |---|---|---|---|
-| `GridLinesVisibility` | `TableViewGridLinesVisibility` | `All` | Which grid lines to show for data rows |
-| `HeaderGridLinesVisibility` | `TableViewGridLinesVisibility` | `All` | Which grid lines to show in the header row |
-| `HorizontalGridLinesStrokeThickness` | `double` | `1` | Thickness of horizontal lines |
-| `VerticalGridLinesStrokeThickness` | `double` | `1` | Thickness of vertical lines |
-| `HorizontalGridLinesStroke` | `Brush` | theme default | Color of horizontal lines |
-| `VerticalGridLinesStroke` | `Brush` | theme default | Color of vertical lines |
+| [`GridLinesVisibility`](xref:WinUI.TableView.TableView.GridLinesVisibility) | [`TableViewGridLinesVisibility`](xref:WinUI.TableView.TableViewGridLinesVisibility) | `All` | Which grid lines to show for data rows |
+| [`HeaderGridLinesVisibility`](xref:WinUI.TableView.TableView.HeaderGridLinesVisibility) | [`TableViewGridLinesVisibility`](xref:WinUI.TableView.TableViewGridLinesVisibility) | `All` | Which grid lines to show in the header row |
+| [`HorizontalGridLinesStrokeThickness`](xref:WinUI.TableView.TableView.HorizontalGridLinesStrokeThickness) | `double` | `1` | Thickness of horizontal lines |
+| [`VerticalGridLinesStrokeThickness`](xref:WinUI.TableView.TableView.VerticalGridLinesStrokeThickness) | `double` | `1` | Thickness of vertical lines |
+| [`HorizontalGridLinesStroke`](xref:WinUI.TableView.TableView.HorizontalGridLinesStroke) | `Brush` | theme default | Color of horizontal lines |
+| [`VerticalGridLinesStroke`](xref:WinUI.TableView.TableView.VerticalGridLinesStroke) | `Brush` | theme default | Color of vertical lines |
 
-`TableViewGridLinesVisibility` values:
+[`TableViewGridLinesVisibility`](xref:WinUI.TableView.TableViewGridLinesVisibility) values:
 
 | Value | Description |
 |---|---|
@@ -133,16 +133,16 @@ Control the visibility and appearance of grid lines:
 
 | Property | Target | Level |
 |---|---|---|
-| `CellStyle` | `TableViewCell` | Table or column |
-| `ColumnHeaderStyle` | `TableViewColumnHeader` | Table |
-| `TableViewColumn.HeaderStyle` | `TableViewColumnHeader` | Column |
-| `TableViewColumn.CellStyle` | `TableViewCell` | Column |
+| [`CellStyle`](xref:WinUI.TableView.TableView.CellStyle) | [`TableViewCell`](xref:WinUI.TableView.TableViewCell) | Table or column |
+| [`ColumnHeaderStyle`](xref:WinUI.TableView.TableView.ColumnHeaderStyle) | [`TableViewColumnHeader`](xref:WinUI.TableView.TableViewColumnHeader) | Table |
+| `TableViewColumn.HeaderStyle` | [`TableViewColumnHeader`](xref:WinUI.TableView.TableViewColumnHeader) | Column |
+| `TableViewColumn.CellStyle` | [`TableViewCell`](xref:WinUI.TableView.TableViewCell) | Column |
 | `TableViewBoundColumn.ElementStyle` | Display element (e.g. `TextBlock`) | Column |
 | `TableViewBoundColumn.EditingElementStyle` | Editing element (e.g. `TextBox`) | Column |
-| `AlternateRowBackground` | Row background | Table |
-| `AlternateRowForeground` | Row foreground | Table |
-| `GridLinesVisibility` | Grid lines | Table |
-| `HeaderGridLinesVisibility` | Header grid lines | Table |
+| [`AlternateRowBackground`](xref:WinUI.TableView.TableView.AlternateRowBackground) | Row background | Table |
+| [`AlternateRowForeground`](xref:WinUI.TableView.TableView.AlternateRowForeground) | Row foreground | Table |
+| [`GridLinesVisibility`](xref:WinUI.TableView.TableView.GridLinesVisibility) | Grid lines | Table |
+| [`HeaderGridLinesVisibility`](xref:WinUI.TableView.TableView.HeaderGridLinesVisibility) | Header grid lines | Table |
 
 ## Related articles
 

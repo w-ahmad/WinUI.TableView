@@ -1,4 +1,4 @@
-# Migrating from WCT DataGrid
+﻿# Migrating from WCT DataGrid
 
 The Windows Community Toolkit (WCT) DataGrid (`CommunityToolkit.WinUI.UI.Controls.DataGrid`) was available for UWP and early Uno Platform apps but is now archived and no longer maintained. The archived Toolkit documentation recommends using newer alternatives such as WinUI.TableView for new development.
 
@@ -27,61 +27,61 @@ xmlns:tv="using:WinUI.TableView"
 
 | WCT DataGrid | WinUI.TableView | Notes |
 |---|---|---|
-| `DataGridTextColumn` | `TableViewTextColumn` | Same purpose. |
-| `DataGridCheckBoxColumn` | `TableViewCheckBoxColumn` | Same purpose. |
-| `DataGridComboBoxColumn` | `TableViewComboBoxColumn` | Similar. |
-| `DataGridTemplateColumn` | `TableViewTemplateColumn` | Same purpose. Uses `CellTemplate` / `EditingTemplate`. |
-| *(no equivalent)* | `TableViewNumberColumn` | Uses `NumberBox` for editing. |
-| *(no equivalent)* | `TableViewDateColumn` | Date picker editing. |
-| *(no equivalent)* | `TableViewTimeColumn` | Time picker editing. |
-| *(no equivalent)* | `TableViewToggleSwitchColumn` | Fluent toggle switch. |
-| *(no equivalent)* | `TableViewHyperlinkColumn` | Hyperlink display. |
+| `DataGridTextColumn` | [`TableViewTextColumn`](xref:WinUI.TableView.TableViewTextColumn) | Same purpose. |
+| `DataGridCheckBoxColumn` | [`TableViewCheckBoxColumn`](xref:WinUI.TableView.TableViewCheckBoxColumn) | Same purpose. |
+| `DataGridComboBoxColumn` | [`TableViewComboBoxColumn`](xref:WinUI.TableView.TableViewComboBoxColumn) | Similar. |
+| `DataGridTemplateColumn` | [`TableViewTemplateColumn`](xref:WinUI.TableView.TableViewTemplateColumn) | Same purpose. Uses [`CellTemplate`](xref:WinUI.TableView.TableViewTemplateColumn.CellTemplate) / [`EditingTemplate`](xref:WinUI.TableView.TableViewTemplateColumn.EditingTemplate). |
+| *(no equivalent)* | [`TableViewNumberColumn`](xref:WinUI.TableView.TableViewNumberColumn) | Uses `NumberBox` for editing. |
+| *(no equivalent)* | [`TableViewDateColumn`](xref:WinUI.TableView.TableViewDateColumn) | Date picker editing. |
+| *(no equivalent)* | [`TableViewTimeColumn`](xref:WinUI.TableView.TableViewTimeColumn) | Time picker editing. |
+| *(no equivalent)* | [`TableViewToggleSwitchColumn`](xref:WinUI.TableView.TableViewToggleSwitchColumn) | Fluent toggle switch. |
+| *(no equivalent)* | [`TableViewHyperlinkColumn`](xref:WinUI.TableView.TableViewHyperlinkColumn) | Hyperlink display. |
 
 ## Property mapping
 
 | WCT DataGrid property | WinUI.TableView equivalent | Notes |
 |---|---|---|
-| `AutoGenerateColumns` | `AutoGenerateColumns` | Same behavior. |
-| `IsReadOnly` | `IsReadOnly` | Same behavior. |
-| `CanUserSortColumns` | `CanSortColumns` | Same behavior. |
-| `CanUserReorderColumns` | `CanReorderColumns` | Same behavior. |
-| `CanUserResizeColumns` | `CanResizeColumns` | Same behavior. |
-| `FrozenColumnCount` | `FrozenColumnCount` | Same behavior. |
-| `RowDetailsTemplate` | `RowDetailsTemplate` | Same behavior. |
-| `RowDetailsVisibilityMode` | `RowDetailsVisibilityMode` | Enum values map directly. |
-| `AreRowDetailsFrozen` | `AreRowDetailsFrozen` | Same behavior. |
-| `HeadersVisibility` | `HeadersVisibility` | `TableViewHeadersVisibility` mirrors `DataGridHeadersVisibility`. |
-| `RowHeight` | `RowHeight` | Same behavior. |
-| `ColumnHeaderHeight` | `HeaderRowHeight` | Renamed. |
-| `MinRowHeight` | `RowMinHeight` | Renamed. |
-| `MinColumnWidth` | `MinColumnWidth` | Same behavior. |
-| `MaxColumnWidth` | `MaxColumnWidth` | Same behavior. |
-| `GridLinesVisibility` | `GridLinesVisibility` | Similar enum values. |
-| `HorizontalGridLinesBrush` | `HorizontalGridLinesStroke` | Renamed. |
-| `VerticalGridLinesBrush` | `VerticalGridLinesStroke` | Renamed. |
-| `AlternatingRowBackground` | `AlternateRowBackground` | Renamed. |
-| `SelectionMode` | `SelectionMode` | Uses `ListViewSelectionMode`. |
+| [`AutoGenerateColumns`](xref:WinUI.TableView.TableView.AutoGenerateColumns) | [`AutoGenerateColumns`](xref:WinUI.TableView.TableView.AutoGenerateColumns) | Same behavior. |
+| [`IsReadOnly`](xref:WinUI.TableView.TableView.IsReadOnly) | [`IsReadOnly`](xref:WinUI.TableView.TableView.IsReadOnly) | Same behavior. |
+| `CanUserSortColumns` | [`CanSortColumns`](xref:WinUI.TableView.TableView.CanSortColumns) | Same behavior. |
+| `CanUserReorderColumns` | [`CanReorderColumns`](xref:WinUI.TableView.TableView.CanReorderColumns) | Same behavior. |
+| `CanUserResizeColumns` | [`CanResizeColumns`](xref:WinUI.TableView.TableView.CanResizeColumns) | Same behavior. |
+| [`FrozenColumnCount`](xref:WinUI.TableView.TableView.FrozenColumnCount) | [`FrozenColumnCount`](xref:WinUI.TableView.TableView.FrozenColumnCount) | Same behavior. |
+| [`RowDetailsTemplate`](xref:WinUI.TableView.TableView.RowDetailsTemplate) | [`RowDetailsTemplate`](xref:WinUI.TableView.TableView.RowDetailsTemplate) | Same behavior. |
+| [`RowDetailsVisibilityMode`](xref:WinUI.TableView.TableView.RowDetailsVisibilityMode) | [`RowDetailsVisibilityMode`](xref:WinUI.TableView.TableView.RowDetailsVisibilityMode) | Enum values map directly. |
+| [`AreRowDetailsFrozen`](xref:WinUI.TableView.TableView.AreRowDetailsFrozen) | [`AreRowDetailsFrozen`](xref:WinUI.TableView.TableView.AreRowDetailsFrozen) | Same behavior. |
+| [`HeadersVisibility`](xref:WinUI.TableView.TableView.HeadersVisibility) | [`HeadersVisibility`](xref:WinUI.TableView.TableView.HeadersVisibility) | [`TableViewHeadersVisibility`](xref:WinUI.TableView.TableViewHeadersVisibility) mirrors `DataGridHeadersVisibility`. |
+| [`RowHeight`](xref:WinUI.TableView.TableView.RowHeight) | [`RowHeight`](xref:WinUI.TableView.TableView.RowHeight) | Same behavior. |
+| `ColumnHeaderHeight` | [`HeaderRowHeight`](xref:WinUI.TableView.TableView.HeaderRowHeight) | Renamed. |
+| `MinRowHeight` | [`RowMinHeight`](xref:WinUI.TableView.TableView.RowMinHeight) | Renamed. |
+| [`MinColumnWidth`](xref:WinUI.TableView.TableView.MinColumnWidth) | [`MinColumnWidth`](xref:WinUI.TableView.TableView.MinColumnWidth) | Same behavior. |
+| [`MaxColumnWidth`](xref:WinUI.TableView.TableView.MaxColumnWidth) | [`MaxColumnWidth`](xref:WinUI.TableView.TableView.MaxColumnWidth) | Same behavior. |
+| [`GridLinesVisibility`](xref:WinUI.TableView.TableView.GridLinesVisibility) | [`GridLinesVisibility`](xref:WinUI.TableView.TableView.GridLinesVisibility) | Similar enum values. |
+| `HorizontalGridLinesBrush` | [`HorizontalGridLinesStroke`](xref:WinUI.TableView.TableView.HorizontalGridLinesStroke) | Renamed. |
+| `VerticalGridLinesBrush` | [`VerticalGridLinesStroke`](xref:WinUI.TableView.TableView.VerticalGridLinesStroke) | Renamed. |
+| `AlternatingRowBackground` | [`AlternateRowBackground`](xref:WinUI.TableView.TableView.AlternateRowBackground) | Renamed. |
+| [`SelectionMode`](xref:WinUI.TableView.TableView.SelectionMode) | [`SelectionMode`](xref:WinUI.TableView.TableView.SelectionMode) | Uses `ListViewSelectionMode`. |
 | `CurrentColumn` | *(not directly available)* | Use `CurrentCellSlot.Column` index. |
-| `ClipboardCopyMode` | `CanCopy` + `CopyToClipboard` event | Simpler model. |
-| *(no equivalent)* | `CanPaste` | WCT DataGrid does not have built-in paste. WinUI.TableView does. |
-| *(no equivalent)* | `ShowExportOptions` | WCT DataGrid does not have built-in CSV export. |
-| *(no equivalent)* | `ConditionalCellStyles` | WCT DataGrid requires manual style triggers. |
-| *(no equivalent)* | `RowContextFlyout` / `CellContextFlyout` | WCT DataGrid has no built-in context flyout. |
+| `ClipboardCopyMode` | [`CanCopy`](xref:WinUI.TableView.TableView.CanCopy) + [`CopyToClipboard`](xref:WinUI.TableView.TableView.CopyToClipboard) event | Simpler model. |
+| *(no equivalent)* | [`CanPaste`](xref:WinUI.TableView.TableView.CanPaste) | WCT DataGrid does not have built-in paste. WinUI.TableView does. |
+| *(no equivalent)* | [`ShowExportOptions`](xref:WinUI.TableView.TableView.ShowExportOptions) | WCT DataGrid does not have built-in CSV export. |
+| *(no equivalent)* | [`ConditionalCellStyles`](xref:WinUI.TableView.TableView.ConditionalCellStyles) | WCT DataGrid requires manual style triggers. |
+| *(no equivalent)* | [`RowContextFlyout`](xref:WinUI.TableView.TableView.RowContextFlyout) / [`CellContextFlyout`](xref:WinUI.TableView.TableView.CellContextFlyout) | WCT DataGrid has no built-in context flyout. |
 | *(no equivalent)* | Column filtering | WCT DataGrid has no built-in filtering. WinUI.TableView has an Excel-like filter flyout. |
 
 ## Event mapping
 
 | WCT DataGrid event | WinUI.TableView equivalent | Notes |
 |---|---|---|
-| `AutoGeneratingColumn` | `AutoGeneratingColumn` | Same purpose. |
-| `BeginningEdit` | `BeginningEdit` | Same purpose. Cancelable. |
-| `PreparingCellForEdit` | `PreparingCellForEdit` | Same purpose. |
-| `CellEditEnding` | `CellEditEnding` | Same purpose. |
-| `CellEditEnded` | `CellEditEnded` | Same purpose. |
-| `Sorting` (custom event) | `Sorting` | In WCT DataGrid, sorting is not built-in; the event fires but no sort is applied. In WinUI.TableView, the default sort is applied unless `Handled = true`. |
-| `SelectionChanged` | `SelectionChanged` + `CellSelectionChanged` | Inherited `SelectionChanged` + new `CellSelectionChanged`. |
-| `CopyingRowClipboardContent` | `CopyToClipboard` | Renamed. |
-| `ColumnReordered` | `ColumnReordered` | Same purpose. |
+| [`AutoGeneratingColumn`](xref:WinUI.TableView.TableView.AutoGeneratingColumn) | [`AutoGeneratingColumn`](xref:WinUI.TableView.TableView.AutoGeneratingColumn) | Same purpose. |
+| [`BeginningEdit`](xref:WinUI.TableView.TableView.BeginningEdit) | [`BeginningEdit`](xref:WinUI.TableView.TableView.BeginningEdit) | Same purpose. Cancelable. |
+| [`PreparingCellForEdit`](xref:WinUI.TableView.TableView.PreparingCellForEdit) | [`PreparingCellForEdit`](xref:WinUI.TableView.TableView.PreparingCellForEdit) | Same purpose. |
+| [`CellEditEnding`](xref:WinUI.TableView.TableView.CellEditEnding) | [`CellEditEnding`](xref:WinUI.TableView.TableView.CellEditEnding) | Same purpose. |
+| [`CellEditEnded`](xref:WinUI.TableView.TableView.CellEditEnded) | [`CellEditEnded`](xref:WinUI.TableView.TableView.CellEditEnded) | Same purpose. |
+| [`Sorting`](xref:WinUI.TableView.TableView.Sorting) (custom event) | [`Sorting`](xref:WinUI.TableView.TableView.Sorting) | In WCT DataGrid, sorting is not built-in; the event fires but no sort is applied. In WinUI.TableView, the default sort is applied unless `Handled = true`. |
+| `SelectionChanged` | `SelectionChanged` + [`CellSelectionChanged`](xref:WinUI.TableView.TableView.CellSelectionChanged) | Inherited `SelectionChanged` + new [`CellSelectionChanged`](xref:WinUI.TableView.TableView.CellSelectionChanged). |
+| `CopyingRowClipboardContent` | [`CopyToClipboard`](xref:WinUI.TableView.TableView.CopyToClipboard) | Renamed. |
+| [`ColumnReordered`](xref:WinUI.TableView.TableView.ColumnReordered) | [`ColumnReordered`](xref:WinUI.TableView.TableView.ColumnReordered) | Same purpose. |
 | `LoadingRowGroup` | *(no equivalent)* | WinUI.TableView does not support row grouping. |
 | `LoadingRow` | *(no equivalent)* | WinUI.TableView does not have a `LoadingRow` event. Use `ContainerContentChanging` inherited from `ListView`. |
 
@@ -108,7 +108,7 @@ dataGrid.Sorting += (s, e) =>
 <tv:TableView ItemsSource="{x:Bind Products}" />
 ```
 
-For custom sort, set `e.Handled = true` in the `Sorting` event and apply your own `SortDescription`.
+For custom sort, set `e.Handled = true` in the [`Sorting`](xref:WinUI.TableView.TableView.Sorting) event and apply your own [`SortDescription`](xref:WinUI.TableView.SortDescription).
 
 ## Filtering
 

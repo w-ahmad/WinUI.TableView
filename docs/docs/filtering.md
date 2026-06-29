@@ -1,4 +1,4 @@
-# Filtering
+﻿# Filtering
 
 `TableView` provides an Excel-like column filter flyout that lets users select which values to show in each column. Filtering is built in and requires no extra code for the standard case.
 
@@ -61,7 +61,7 @@ tableView.FilterDescriptions.Clear();
 
 ## Custom filter handler
 
-The `FilterHandler` property accepts an `IColumnFilterHandler` implementation. This allows you to replace the built-in filter logic entirely:
+The [`FilterHandler`](xref:WinUI.TableView.TableView.FilterHandler) property accepts an `IColumnFilterHandler` implementation. This allows you to replace the built-in filter logic entirely:
 
 ```csharp
 public class MyFilterHandler : IColumnFilterHandler
@@ -83,19 +83,19 @@ bool isFiltered = tableView.IsFiltered;
 
 | Property | Description |
 |---|---|
-| `CanFilterColumns` | Enables or disables filtering for all columns (default `true`) |
+| [`CanFilterColumns`](xref:WinUI.TableView.TableView.CanFilterColumns) | Enables or disables filtering for all columns (default `true`) |
 | `TableViewColumn.CanFilter` | Per-column filter toggle |
 | `TableViewColumn.IsFiltered` | `true` if a filter is active on this column |
-| `FilterDescriptions` | The collection of active filter descriptions |
-| `IsFiltered` | `true` if any filter is applied to the view |
-| `ShowFilterItemsCount` | Shows the count of matching rows next to each filter value |
-| `UseRightClickForColumnFilter` | Opens the filter flyout on column header right-click |
-| `FilterHandler` | Custom filter handler implementation |
+| [`FilterDescriptions`](xref:WinUI.TableView.TableView.FilterDescriptions) | The collection of active filter descriptions |
+| [`IsFiltered`](xref:WinUI.TableView.TableView.IsFiltered) | `true` if any filter is applied to the view |
+| [`ShowFilterItemsCount`](xref:WinUI.TableView.TableView.ShowFilterItemsCount) | Shows the count of matching rows next to each filter value |
+| [`UseRightClickForColumnFilter`](xref:WinUI.TableView.TableView.UseRightClickForColumnFilter) | Opens the filter flyout on column header right-click |
+| [`FilterHandler`](xref:WinUI.TableView.TableView.FilterHandler) | Custom filter handler implementation |
 
 ## Notes and limitations
 
 - Filtering is applied to the internal `AdvancedCollectionView`. It does not mutate the original collection.
-- `TableViewTemplateColumn` has `CanFilter = false` by default. Set `OperationContentBinding` to enable filtering on template columns.
+- [`TableViewTemplateColumn`](xref:WinUI.TableView.TableViewTemplateColumn) has `CanFilter = false` by default. Set [`OperationContentBinding`](xref:WinUI.TableView.TableViewColumn.OperationContentBinding) to enable filtering on template columns.
 - When a filter is active, new items added to the source collection may not appear in the view until the filter is re-evaluated or live shaping is enabled (`AllowLiveShaping = true`).
 
 ## Related articles

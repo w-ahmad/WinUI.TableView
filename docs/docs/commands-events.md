@@ -1,4 +1,4 @@
-# Events and commands reference
+﻿# Events and commands reference
 
 This page lists all public events exposed by `TableView` and related types.
 
@@ -8,61 +8,61 @@ This page lists all public events exposed by `TableView` and related types.
 
 | Event | Args type | Description |
 |---|---|---|
-| `AutoGeneratingColumn` | `TableViewAutoGeneratingColumnEventArgs` | Fires for each column being auto-generated. Can be cancelled. |
+| [`AutoGeneratingColumn`](xref:WinUI.TableView.TableView.AutoGeneratingColumn) | [`TableViewAutoGeneratingColumnEventArgs`](xref:WinUI.TableView.TableViewAutoGeneratingColumnEventArgs) | Fires for each column being auto-generated. Can be cancelled. |
 
 ### Editing lifecycle
 
 | Event | Args type | Description |
 |---|---|---|
-| `BeginningEdit` | `TableViewBeginningEditEventArgs` | Fires before a cell enters edit mode. Set `Cancel = true` to block. |
-| `PreparingCellForEdit` | `TableViewPreparingCellForEditEventArgs` | Fires after the editing element is created. |
-| `CellEditEnding` | `TableViewCellEditEndingEventArgs` | Fires just before a commit or cancel. Set `Cancel = true` to stay in edit mode. |
-| `CellEditEnded` | `TableViewCellEditEndedEventArgs` | Fires after a cell edit is committed or cancelled. |
-| `IsReadOnlyChanged` | `DependencyPropertyChangedEventArgs` | Fires when `IsReadOnly` changes. |
+| [`BeginningEdit`](xref:WinUI.TableView.TableView.BeginningEdit) | [`TableViewBeginningEditEventArgs`](xref:WinUI.TableView.TableViewBeginningEditEventArgs) | Fires before a cell enters edit mode. Set `Cancel = true` to block. |
+| [`PreparingCellForEdit`](xref:WinUI.TableView.TableView.PreparingCellForEdit) | [`TableViewPreparingCellForEditEventArgs`](xref:WinUI.TableView.TableViewPreparingCellForEditEventArgs) | Fires after the editing element is created. |
+| [`CellEditEnding`](xref:WinUI.TableView.TableView.CellEditEnding) | [`TableViewCellEditEndingEventArgs`](xref:WinUI.TableView.TableViewCellEditEndingEventArgs) | Fires just before a commit or cancel. Set `Cancel = true` to stay in edit mode. |
+| [`CellEditEnded`](xref:WinUI.TableView.TableView.CellEditEnded) | [`TableViewCellEditEndedEventArgs`](xref:WinUI.TableView.TableViewCellEditEndedEventArgs) | Fires after a cell edit is committed or cancelled. |
+| [`IsReadOnlyChanged`](xref:WinUI.TableView.TableView.IsReadOnlyChanged) | `DependencyPropertyChangedEventArgs` | Fires when [`IsReadOnly`](xref:WinUI.TableView.TableView.IsReadOnly) changes. |
 
 ### Selection
 
 | Event | Args type | Description |
 |---|---|---|
-| `CellSelectionChanged` | `TableViewCellSelectionChangedEventArgs` | Fires when the set of selected cells changes. Provides added and removed cell slots. |
-| `CurrentCellChanged` | `DependencyPropertyChangedEventArgs` | Fires when `CurrentCellSlot` changes. |
+| [`CellSelectionChanged`](xref:WinUI.TableView.TableView.CellSelectionChanged) | [`TableViewCellSelectionChangedEventArgs`](xref:WinUI.TableView.TableViewCellSelectionChangedEventArgs) | Fires when the set of selected cells changes. Provides added and removed cell slots. |
+| [`CurrentCellChanged`](xref:WinUI.TableView.TableView.CurrentCellChanged) | `DependencyPropertyChangedEventArgs` | Fires when [`CurrentCellSlot`](xref:WinUI.TableView.TableView.CurrentCellSlot) changes. |
 
 ### Sorting
 
 | Event | Args type | Description |
 |---|---|---|
-| `Sorting` | `TableViewSortingEventArgs` | Fires before the default sort runs. Set `Handled = true` for custom sort. |
-| `ClearSorting` | `TableViewClearSortingEventArgs` | Fires when a column's sort direction is cleared. |
+| [`Sorting`](xref:WinUI.TableView.TableView.Sorting) | [`TableViewSortingEventArgs`](xref:WinUI.TableView.TableViewSortingEventArgs) | Fires before the default sort runs. Set `Handled = true` for custom sort. |
+| [`ClearSorting`](xref:WinUI.TableView.TableView.ClearSorting) | [`TableViewClearSortingEventArgs`](xref:WinUI.TableView.TableViewClearSortingEventArgs) | Fires when a column's sort direction is cleared. |
 
 ### Clipboard and export
 
 | Event | Args type | Description |
 |---|---|---|
-| `CopyToClipboard` | `TableViewCopyToClipboardEventArgs` | Fires before the default copy. Set `Handled = true` for custom copy. |
-| `PasteFromClipboard` | `TableViewPasteFromClipboardEventArgs` | Fires before the default paste. Set `Handled = true` for custom paste. |
-| `ExportAllContent` | `TableViewExportContentEventArgs` | Fires when "Export all" is chosen. Set `Handled = true` for custom export. |
-| `ExportSelectedContent` | `TableViewExportContentEventArgs` | Fires when "Export selected" is chosen. Set `Handled = true` for custom export. |
+| [`CopyToClipboard`](xref:WinUI.TableView.TableView.CopyToClipboard) | [`TableViewCopyToClipboardEventArgs`](xref:WinUI.TableView.TableViewCopyToClipboardEventArgs) | Fires before the default copy. Set `Handled = true` for custom copy. |
+| [`PasteFromClipboard`](xref:WinUI.TableView.TableView.PasteFromClipboard) | [`TableViewPasteFromClipboardEventArgs`](xref:WinUI.TableView.TableViewPasteFromClipboardEventArgs) | Fires before the default paste. Set `Handled = true` for custom paste. |
+| [`ExportAllContent`](xref:WinUI.TableView.TableView.ExportAllContent) | [`TableViewExportContentEventArgs`](xref:WinUI.TableView.TableViewExportContentEventArgs) | Fires when "Export all" is chosen. Set `Handled = true` for custom export. |
+| [`ExportSelectedContent`](xref:WinUI.TableView.TableView.ExportSelectedContent) | [`TableViewExportContentEventArgs`](xref:WinUI.TableView.TableViewExportContentEventArgs) | Fires when "Export selected" is chosen. Set `Handled = true` for custom export. |
 
 ### Context flyouts
 
 | Event | Args type | Description |
 |---|---|---|
-| `RowContextFlyoutOpening` | `TableViewRowContextFlyoutEventArgs` | Fires before the row context flyout opens. Set `Handled = true` to suppress. |
-| `CellContextFlyoutOpening` | `TableViewCellContextFlyoutEventArgs` | Fires before the cell context flyout opens. Set `Handled = true` to suppress. |
+| [`RowContextFlyoutOpening`](xref:WinUI.TableView.TableView.RowContextFlyoutOpening) | [`TableViewRowContextFlyoutEventArgs`](xref:WinUI.TableView.TableViewRowContextFlyoutEventArgs) | Fires before the row context flyout opens. Set `Handled = true` to suppress. |
+| [`CellContextFlyoutOpening`](xref:WinUI.TableView.TableView.CellContextFlyoutOpening) | [`TableViewCellContextFlyoutEventArgs`](xref:WinUI.TableView.TableViewCellContextFlyoutEventArgs) | Fires before the cell context flyout opens. Set `Handled = true` to suppress. |
 
 ### User interaction
 
 | Event | Args type | Description |
 |---|---|---|
-| `RowDoubleTapped` | `TableViewRowDoubleTappedEventArgs` | Fires when a row is double-tapped. |
-| `CellDoubleTapped` | `TableViewCellDoubleTappedEventArgs` | Fires when a cell is double-tapped. |
+| [`RowDoubleTapped`](xref:WinUI.TableView.TableView.RowDoubleTapped) | [`TableViewRowDoubleTappedEventArgs`](xref:WinUI.TableView.TableViewRowDoubleTappedEventArgs) | Fires when a row is double-tapped. |
+| [`CellDoubleTapped`](xref:WinUI.TableView.TableView.CellDoubleTapped) | `TableViewCellDoubleTappedEventArgs` | Fires when a cell is double-tapped. |
 
 ### Column reordering
 
 | Event | Args type | Description |
 |---|---|---|
-| `ColumnReordering` | `TableViewColumnReorderingEventArgs` | Fires before a column is moved. Set `Cancel = true` to prevent. |
-| `ColumnReordered` | `TableViewColumnReorderedEventArgs` | Fires after a column has been moved. |
+| [`ColumnReordering`](xref:WinUI.TableView.TableView.ColumnReordering) | [`TableViewColumnReorderingEventArgs`](xref:WinUI.TableView.TableViewColumnReorderingEventArgs) | Fires before a column is moved. Set `Cancel = true` to prevent. |
+| [`ColumnReordered`](xref:WinUI.TableView.TableView.ColumnReordered) | [`TableViewColumnReorderedEventArgs`](xref:WinUI.TableView.TableViewColumnReorderedEventArgs) | Fires after a column has been moved. |
 
 ---
 
@@ -74,16 +74,16 @@ This page lists all public events exposed by `TableView` and related types.
 |---|---|---|
 | `PropertyName` | `string` | Name of the data property |
 | `PropertyType` | `Type?` | Runtime type of the property |
-| `Column` | `TableViewColumn` | The column being generated; replaceable |
+| `Column` | [`TableViewColumn`](xref:WinUI.TableView.TableViewColumn) | The column being generated; replaceable |
 | `Cancel` (inherited) | `bool` | Set `true` to skip the column |
 
 ### TableViewBeginningEditEventArgs
 
 | Property | Type | Description |
 |---|---|---|
-| `Cell` | `TableViewCell` | The cell entering edit mode |
+| `Cell` | [`TableViewCell`](xref:WinUI.TableView.TableViewCell) | The cell entering edit mode |
 | `DataItem` | `object?` | The row's data object |
-| `Column` | `TableViewColumn` | The column |
+| `Column` | [`TableViewColumn`](xref:WinUI.TableView.TableViewColumn) | The column |
 | `EditingArgs` | `RoutedEventArgs` | The triggering input event |
 | `Cancel` (inherited) | `bool` | Set `true` to block editing |
 
@@ -91,11 +91,11 @@ This page lists all public events exposed by `TableView` and related types.
 
 | Property | Type | Description |
 |---|---|---|
-| `Cell` | `TableViewCell` | The cell in edit mode |
+| `Cell` | [`TableViewCell`](xref:WinUI.TableView.TableViewCell) | The cell in edit mode |
 | `DataItem` | `object?` | The row's data object |
-| `Column` | `TableViewColumn` | The column |
+| `Column` | [`TableViewColumn`](xref:WinUI.TableView.TableViewColumn) | The column |
 | `EditingElement` | `FrameworkElement` | The editing control |
-| `EditAction` | `TableViewEditAction` | `Commit` or `Cancel` |
+| `EditAction` | [`TableViewEditAction`](xref:WinUI.TableView.TableViewEditAction) | `Commit` or `Cancel` |
 | `Cancel` (inherited) | `bool` | Set `true` to stay in edit mode |
 
 ### TableViewCellSelectionChangedEventArgs
@@ -109,7 +109,7 @@ This page lists all public events exposed by `TableView` and related types.
 
 | Property | Type | Description |
 |---|---|---|
-| `Column` | `TableViewColumn` | The column being sorted |
+| `Column` | [`TableViewColumn`](xref:WinUI.TableView.TableViewColumn) | The column being sorted |
 | `Handled` (inherited) | `bool` | Set `true` to suppress default sort |
 
 ### TableViewCopyToClipboardEventArgs
@@ -124,7 +124,7 @@ This page lists all public events exposed by `TableView` and related types.
 | Property | Type | Description |
 |---|---|---|
 | `Index` | `int` | Row index |
-| `Row` | `TableViewRow` | The row control |
+| `Row` | [`TableViewRow`](xref:WinUI.TableView.TableViewRow) | The row control |
 | `Item` | `object` | The data item |
 | `Flyout` | `FlyoutBase?` | The flyout to be shown |
 | `Handled` (inherited) | `bool` | Set `true` to suppress the flyout |
@@ -133,16 +133,16 @@ This page lists all public events exposed by `TableView` and related types.
 
 | Property | Type | Description |
 |---|---|---|
-| `Column` | `TableViewColumn` | The column being moved |
+| `Column` | [`TableViewColumn`](xref:WinUI.TableView.TableViewColumn) | The column being moved |
 | `Cancel` (inherited) | `bool` | Set `true` to prevent the move |
 
 ### TableViewColumnReorderedEventArgs
 
 | Property | Type | Description |
 |---|---|---|
-| `Column` | `TableViewColumn` | The column that was moved |
-| `OldIndex` | `int` | Previous index in `Columns` |
-| `NewIndex` | `int` | New index in `Columns` |
+| `Column` | [`TableViewColumn`](xref:WinUI.TableView.TableViewColumn) | The column that was moved |
+| `OldIndex` | `int` | Previous index in [`Columns`](xref:WinUI.TableView.TableView.Columns) |
+| `NewIndex` | `int` | New index in [`Columns`](xref:WinUI.TableView.TableView.Columns) |
 
 ---
 
@@ -187,7 +187,7 @@ This page lists all public events exposed by `TableView` and related types.
 | Value | Description |
 |---|---|
 | `All` | Both row and column headers |
-| `Columns` | Column headers only |
+| [`Columns`](xref:WinUI.TableView.TableView.Columns) | Column headers only |
 | `Rows` | Row headers only |
 | `None` | No headers |
 
@@ -205,7 +205,7 @@ This page lists all public events exposed by `TableView` and related types.
 |---|---|
 | `Both` | Max of header and cell widths |
 | `Cells` | Cell content width only |
-| `Header` | Header content width only |
+| [`Header`](xref:WinUI.TableView.TableViewColumn.Header) | Header content width only |
 
 ## Related articles
 

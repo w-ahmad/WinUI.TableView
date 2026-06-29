@@ -1,4 +1,4 @@
-# Row headers
+﻿# Row headers
 
 Row headers appear as a narrow strip on the left side of each row. They can show row numbers, selection indicators, expand/collapse toggles for row details, or any custom content.
 
@@ -8,12 +8,12 @@ Use row headers when you need a persistent left-side control for each row that i
 
 ## Showing and hiding headers
 
-Use `HeadersVisibility` to control which headers are visible:
+Use [`HeadersVisibility`](xref:WinUI.TableView.TableView.HeadersVisibility) to control which headers are visible:
 
 | Value | Description |
 |---|---|
 | `All` (default) | Both row headers and column headers are visible |
-| `Columns` | Only column headers are visible |
+| [`Columns`](xref:WinUI.TableView.TableView.Columns) | Only column headers are visible |
 | `Rows` | Only row headers are visible |
 | `None` | No headers are visible |
 
@@ -24,7 +24,7 @@ Use `HeadersVisibility` to control which headers are visible:
 
 ## Custom row header content
 
-Provide a `DataTemplate` via `RowHeaderTemplate` to display custom content in each row header:
+Provide a `DataTemplate` via [`RowHeaderTemplate`](xref:WinUI.TableView.TableView.RowHeaderTemplate) to display custom content in each row header:
 
 ```xml
 <tv:TableView ItemsSource="{x:Bind Products}">
@@ -45,7 +45,7 @@ Provide a `DataTemplate` via `RowHeaderTemplate` to display custom content in ea
 
 ### Selecting a template per row
 
-Use `RowHeaderTemplateSelector` to choose different templates for different rows:
+Use [`RowHeaderTemplateSelector`](xref:WinUI.TableView.TableView.RowHeaderTemplateSelector) to choose different templates for different rows:
 
 ```csharp
 public class StatusHeaderSelector : DataTemplateSelector
@@ -76,10 +76,10 @@ public class StatusHeaderSelector : DataTemplateSelector
 
 | Property | Default | Description |
 |---|---|---|
-| `RowHeaderWidth` | `NaN` (auto) | Fixed width for the row header column |
-| `RowHeaderMinWidth` | `16` | Minimum row header width |
-| `RowHeaderMaxWidth` | `∞` | Maximum row header width |
-| `RowHeaderActualWidth` | read-only | The rendered width of the row header column |
+| [`RowHeaderWidth`](xref:WinUI.TableView.TableView.RowHeaderWidth) | `NaN` (auto) | Fixed width for the row header column |
+| [`RowHeaderMinWidth`](xref:WinUI.TableView.TableView.RowHeaderMinWidth) | `16` | Minimum row header width |
+| [`RowHeaderMaxWidth`](xref:WinUI.TableView.TableView.RowHeaderMaxWidth) | `∞` | Maximum row header width |
+| [`RowHeaderActualWidth`](xref:WinUI.TableView.TableView.RowHeaderActualWidth) | read-only | The rendered width of the row header column |
 
 ```xml
 <tv:TableView RowHeaderWidth="40" />
@@ -87,7 +87,7 @@ public class StatusHeaderSelector : DataTemplateSelector
 
 ## Row details expand/collapse
 
-When `RowDetailsVisibilityMode` is set to `VisibleWhenExpanded`, the row header shows an expand/collapse toggle button automatically. See [Row details](row-details.md) for the full row details feature.
+When [`RowDetailsVisibilityMode`](xref:WinUI.TableView.TableView.RowDetailsVisibilityMode) is set to `VisibleWhenExpanded`, the row header shows an expand/collapse toggle button automatically. See [Row details](row-details.md) for the full row details feature.
 
 ## Notes and limitations
 

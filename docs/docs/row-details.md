@@ -1,4 +1,4 @@
-# Row details
+﻿# Row details
 
 Row details provide an expandable panel below each data row that can display additional information about that row's item. The panel is defined with a `DataTemplate` and can be shown automatically or on demand.
 
@@ -8,7 +8,7 @@ Use row details when each row's data has more information than fits in the colum
 
 ## Basic example
 
-Provide a `RowDetailsTemplate` and choose a visibility mode:
+Provide a [`RowDetailsTemplate`](xref:WinUI.TableView.TableView.RowDetailsTemplate) and choose a visibility mode:
 
 ```xml
 <tv:TableView ItemsSource="{x:Bind Orders}"
@@ -77,7 +77,7 @@ public class OrderDetailsSelector : DataTemplateSelector
 
 ## Frozen row details
 
-By default the row details panel scrolls horizontally with the row content. Set `AreRowDetailsFrozen` to `true` to keep the details panel anchored at the left edge so it does not scroll:
+By default the row details panel scrolls horizontally with the row content. Set [`AreRowDetailsFrozen`](xref:WinUI.TableView.TableView.AreRowDetailsFrozen) to `true` to keep the details panel anchored at the left edge so it does not scroll:
 
 ```xml
 <tv:TableView AreRowDetailsFrozen="True"
@@ -96,14 +96,14 @@ By default the row details panel scrolls horizontally with the row content. Set 
 
 | Property | Type | Default | Description |
 |---|---|---|---|
-| `RowDetailsTemplate` | `DataTemplate` | `null` | Template for the details panel |
-| `RowDetailsTemplateSelector` | `DataTemplateSelector` | `null` | Selector for per-row templates |
-| `RowDetailsVisibilityMode` | `TableViewRowDetailsVisibilityMode` | `VisibleWhenExpanded` | When the details pane is shown |
-| `AreRowDetailsFrozen` | `bool` | `false` | Prevents the details panel from scrolling horizontally |
+| [`RowDetailsTemplate`](xref:WinUI.TableView.TableView.RowDetailsTemplate) | `DataTemplate` | `null` | Template for the details panel |
+| [`RowDetailsTemplateSelector`](xref:WinUI.TableView.TableView.RowDetailsTemplateSelector) | `DataTemplateSelector` | `null` | Selector for per-row templates |
+| [`RowDetailsVisibilityMode`](xref:WinUI.TableView.TableView.RowDetailsVisibilityMode) | [`TableViewRowDetailsVisibilityMode`](xref:WinUI.TableView.TableViewRowDetailsVisibilityMode) | `VisibleWhenExpanded` | When the details pane is shown |
+| [`AreRowDetailsFrozen`](xref:WinUI.TableView.TableView.AreRowDetailsFrozen) | `bool` | `false` | Prevents the details panel from scrolling horizontally |
 
 ## Notes and limitations
 
-- When `RowDetailsVisibilityMode` is `VisibleWhenExpanded`, the row header shows an expand/collapse toggle button. Make sure `HeadersVisibility` includes `Rows` (or `All`) so the toggle is visible.
+- When [`RowDetailsVisibilityMode`](xref:WinUI.TableView.TableView.RowDetailsVisibilityMode) is `VisibleWhenExpanded`, the row header shows an expand/collapse toggle button. Make sure [`HeadersVisibility`](xref:WinUI.TableView.TableView.HeadersVisibility) includes `Rows` (or `All`) so the toggle is visible.
 - Row details panels increase the height of each row. In `Visible` mode, every row will be taller even if the details content is empty.
 - The `DataContext` of the details template is the row's data item, the same as for cells.
 
