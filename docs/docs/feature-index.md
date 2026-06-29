@@ -58,7 +58,7 @@ This page lists all WinUI.TableView features with links to the relevant document
 |---|---|
 | [Events and commands reference](commands-events.md) | All events, event args, and enum values |
 | [Performance guidance](performance.md) | Virtualization, live shaping, large dataset tips |
-| [API Reference](../api/index.md) | Auto-generated API reference |
+| [API Reference](xref:WinUI.TableView.TableView) | Auto-generated API reference for `TableView` |
 
 ## Migration
 
