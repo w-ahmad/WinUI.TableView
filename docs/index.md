@@ -62,25 +62,28 @@ Explore interactive samples with code snippets in the Samples App on Microsoft S
 
 ## Key features
 
+See the [Feature Index](docs/feature-index.md) for a full list of features and quick links to each topic.
+
 | Feature | Description |
 |---|---|
-| Auto-generating columns | Automatically generate columns based on the data source properties |
-| Column types | Text, Number, CheckBox, ComboBox, ToggleSwitch, Date, Time, Hyperlink, Template |
-| Sorting | Built-in column sorting with sort direction indicators |
-| Filtering | Excel-like column filter flyout |
-| Editing | Double-tap a cell to edit; full editing lifecycle events |
-| Selection | Row, cell, or combined selection modes |
-| Frozen columns | Pin columns to the left while the rest scroll |
-| Row details | Expandable detail panels per row |
-| Row headers | Configurable row header with custom templates |
-| Clipboard | Copy and paste rows/cells; customizable content |
-| CSV export | Built-in export to CSV |
-| Conditional styling | Apply cell styles based on custom predicates |
-| Context flyouts | Row-level and cell-level context menus |
-| Grid lines | Configurable horizontal and vertical grid lines |
-| Alternate rows | Alternating row background and foreground colors |
+| [Auto-generating columns](docs/binding-data.md) | Automatically generate columns based on the data source properties |
+| [Column types](docs/column-types.md) | Text, Number, CheckBox, ComboBox, ToggleSwitch, Date, Time, Hyperlink, Template |
+| [Sorting](docs/sorting.md) | Built-in column sorting with sort direction indicators |
+| [Filtering](docs/filtering.md) | Excel-like column filter flyout |
+| [Editing](docs/editing.md) | Double-tap a cell to edit; full editing lifecycle events |
+| [Selection](docs/selection.md) | Row, cell, or combined selection modes |
+| [Frozen columns](docs/frozen-columns.md) | Pin columns to the left while the rest scroll |
+| [Row details](docs/row-details.md) | Expandable detail panels per row |
+| [Row headers](docs/row-headers.md) | Configurable row header with custom templates |
+| [Clipboard](docs/clipboard.md) | Copy and paste rows/cells; customizable content |
+| [CSV export](docs/export.md) | Built-in export to CSV |
+| [Conditional styling](docs/conditional-styling.md) | Apply cell styles based on custom predicates |
+| [Context flyouts](docs/context-flyouts.md) | Row-level and cell-level context menus |
+| [Styling](docs/styling.md) | Grid lines, alternate rows, and custom cell/header styles |
+| [Column reordering](docs/column-reordering.md) | Drag columns to reorder; configurable per-column |
+| [Column sizing](docs/column-sizing.md) | Fixed, star, auto, and manual resize modes |
 | Localization | Multiple language support |
-| Uno Platform | Cross-platform: Windows, macOS, Linux, WASM, iOS, Android |
+| [Uno Platform](docs/getting-started-with-uno.md) | Cross-platform: Windows, macOS, Linux, WASM, iOS, Android |
 
 ## Documentation
 
