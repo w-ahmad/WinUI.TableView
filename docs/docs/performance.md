@@ -63,6 +63,33 @@ ctx.DataItem is Product p && p.Tags.Any(t => t.StartsWith("clearance"))
 
 Filtering and sorting operate on the internal `AdvancedCollectionView`. These run on the UI thread. For very large collections (100,000+ items), consider pre-filtering in your ViewModel before setting [`ItemsSource`](xref:WinUI.TableView.TableView.ItemsSource).
 
+## Refreshing the view after bulk data changes
+
+When you modify items in your source collection in-place (e.g., changing a property without `INotifyPropertyChanged`, or replacing items in a `List<T>`) the view may not update automatically. Use the refresh methods to force the control to re-evaluate:
+
+| Method | Description |
+|---|---|
+| [`RefreshView()`](xref:WinUI.TableView.TableView.RefreshView) | Re-renders the items view; use after bulk data changes |
+| [`RefreshSorting()`](xref:WinUI.TableView.TableView.RefreshSorting) | Re-applies active sort descriptions without user interaction |
+| [`RefreshFilter()`](xref:WinUI.TableView.TableView.RefreshFilter) | Re-evaluates active filter descriptions without user interaction |
+
+```csharp
+// After modifying items in bulk outside of ObservableCollection:
+foreach (var item in products)
+{
+    item.Price *= 0.9; // Apply a discount
+}
+tableView.RefreshView();
+
+// Re-apply sort after external data update:
+tableView.RefreshSorting();
+
+// Re-run filter after external data update:
+tableView.RefreshFilter();
+```
+
+> **Tip**: Prefer `ObservableCollection<T>` with `INotifyPropertyChanged` models over manual refresh calls whenever possible, as it is more efficient and requires less code.
+
 ## Horizontal scrolling and column count
 
 Unlike rows, columns are not virtualized — all column headers are instantiated regardless of whether they are visible. A very large number of columns (100+) may affect horizontal scroll performance. In practice, most data grids have far fewer columns than rows.

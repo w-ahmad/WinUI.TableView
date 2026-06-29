@@ -29,6 +29,19 @@ Add to your XAML:
 </Window>
 ```
 
+Add the model and data to your code-behind or view model:
+
+```csharp
+public record Product(string Name, double Price, bool InStock);
+
+public ObservableCollection<Product> Products { get; } = new()
+{
+    new Product("Widget A", 9.99,  true),
+    new Product("Widget B", 24.99, false),
+    new Product("Widget C", 4.49,  true),
+};
+```
+
 ## [Samples App](https://github.com/w-ahmad/WinUI.TableView.SampleApp)
 
 Explore interactive samples with code snippets in the Samples App on Microsoft Store or Uno Platform WASM:
@@ -75,27 +88,6 @@ Explore interactive samples with code snippets in the Samples App on Microsoft S
 - [Installation and quick start](docs/getting-started.md)
 - [Getting started with Uno Platform](docs/getting-started-with-uno.md)
 - [Overview and concepts](docs/overview.md)
-
-### Features
-- [Binding data](docs/binding-data.md)
-- [Defining columns](docs/defining-columns.md)
-- [Column types](docs/column-types.md)
-- [Column sizing](docs/column-sizing.md)
-- [Sorting](docs/sorting.md)
-- [Filtering](docs/filtering.md)
-- [Editing](docs/editing.md)
-- [Selection](docs/selection.md)
-- [Row headers](docs/row-headers.md)
-- [Row details](docs/row-details.md)
-- [Frozen columns](docs/frozen-columns.md)
-- [Column reordering](docs/column-reordering.md)
-- [Clipboard and copy/paste](docs/clipboard.md)
-- [Export to CSV](docs/export.md)
-- [Styling rows, cells, and headers](docs/styling.md)
-- [Conditional cell styling](docs/conditional-styling.md)
-- [Context flyouts](docs/context-flyouts.md)
-- [Events and commands reference](docs/commands-events.md)
-- [Performance guidance](docs/performance.md)
 
 ### Migration
 - [Migrating from WPF DataGrid](docs/migration-wpf.md)

@@ -106,19 +106,50 @@ tableView.CurrentCellChanged += (s, e) =>
 };
 ```
 
-## Corner button (Select All)
+## Corner button
 
-Set [`CornerButtonMode`](xref:WinUI.TableView.TableView.CornerButtonMode) to `SelectAll` to show a button in the top-left corner that selects all rows:
+The corner button appears in the top-left cell above the row headers. Its behavior is controlled by the [`CornerButtonMode`](xref:WinUI.TableView.TableView.CornerButtonMode) property.
 
 ```xml
-<tv:TableView CornerButtonMode="SelectAll" />
+<tv:TableView CornerButtonMode="Options" />
 ```
+
+### CornerButtonMode values
 
 | Value | Description |
 |---|---|
-| `None` | No corner button |
-| `SelectAll` | Shows a select-all button |
-| `Options` (default) | Shows a table-level options menu |
+| `None` | No corner button is shown |
+| `SelectAll` | Shows a **Select All** checkbox/button that selects all rows |
+| `Options` (default) | Shows a table-level options menu (flyout) |
+
+### Options flyout
+
+When [`CornerButtonMode`](xref:WinUI.TableView.TableView.CornerButtonMode) is `Options` (the default), clicking the corner button opens a flyout menu with the following commands:
+
+| Menu item | Description |
+|---|---|
+| **Select All** | Selects all rows |
+| **Deselect All** | Clears all selections |
+| **Copy** | Copies selected rows/cells to clipboard (**Ctrl+C**) |
+| **Copy with Headers** | Copies selection with column headers (**Ctrl+Shift+C**) |
+| **Paste** | Pastes clipboard content into the table (**Ctrl+V**) |
+| **Clear Sorting** | Removes all active sort descriptions |
+| **Clear Filter** | Removes all active column filters |
+| **Export All to CSV** | Exports all rows to a CSV file |
+| **Export Selected to CSV** | Exports only the selected rows to a CSV file |
+
+Items are automatically disabled when not applicable — for example, **Paste** is hidden when [`CanPaste`](xref:WinUI.TableView.TableView.CanPaste) is `false`, and the **Export** items are only visible when [`ShowExportOptions`](xref:WinUI.TableView.TableView.ShowExportOptions) is `true`.
+
+```xml
+<!-- Disable the corner button entirely -->
+<tv:TableView CornerButtonMode="None" />
+
+<!-- Show only a Select All button (no flyout) -->
+<tv:TableView CornerButtonMode="SelectAll" />
+
+<!-- Show the full Options flyout (default) -->
+<tv:TableView CornerButtonMode="Options" />
+```
 
 ## ForceRowOrCellSelectionOnContextRequested
 

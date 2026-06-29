@@ -1,6 +1,6 @@
 ﻿# Migrating from WPF DataGrid
 
-This guide helps developers who are migrating a WPF application to WinUI 3 and need a replacement for `System.Windows.Controls.DataGrid`. WinUI.TableView is one of the community-maintained DataGrid alternatives recommended in Microsoft's WPF-to-WinUI migration guidance.
+This guide helps developers who are migrating a WPF application to WinUI 3 and need a replacement for `System.Windows.Controls.DataGrid`. WinUI.TableView is a community-maintained DataGrid control for WinUI 3 that covers most of the DataGrid scenarios found in WPF.
 
 ## Column type mapping
 

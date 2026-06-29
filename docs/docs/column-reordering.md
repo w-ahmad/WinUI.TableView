@@ -95,8 +95,8 @@ tableView.Columns.Move(3, 0); // Move column at index 3 to index 0
 | Property / Event | Description |
 |---|---|
 | [`CanReorderColumns`](xref:WinUI.TableView.TableView.CanReorderColumns) | Enables or disables drag reordering for all columns |
-| `TableViewColumn.CanReorder` | Per-column drag reorder toggle |
-| `TableViewColumn.Order` | Explicit display order index |
+| [`CanReorder`](xref:WinUI.TableView.TableViewColumn.CanReorder) | Per-column drag reorder toggle |
+| [`Order`](xref:WinUI.TableView.TableViewColumn.Order) | Explicit display order index |
 | [`ColumnReordering`](xref:WinUI.TableView.TableView.ColumnReordering) | Fires before a column is moved; can be cancelled |
 | [`ColumnReordered`](xref:WinUI.TableView.TableView.ColumnReordered) | Fires after a column is successfully moved |
 

@@ -56,7 +56,22 @@ tableView.FilterDescriptions.Add(
     new FilterDescription("InStock", new PredicateFilter(v => v is true)));
 
 // Clear all filters
-tableView.FilterDescriptions.Clear();
+tableView.ClearAllFilters();
+```
+
+## Clearing and refreshing filters programmatically
+
+Use [`ClearAllFilters()`](xref:WinUI.TableView.TableView.ClearAllFilters) to remove all active filter descriptions and reset every column's filter state in one call:
+
+```csharp
+tableView.ClearAllFilters();
+```
+
+Use [`RefreshFilter()`](xref:WinUI.TableView.TableView.RefreshFilter) to re-evaluate the current filter against the data without user interaction. Call this after modifying source data in-place so the view reflects the latest values:
+
+```csharp
+// Re-run the current filter after data changed in-place
+tableView.RefreshFilter();
 ```
 
 ## Custom filter handler
@@ -84,10 +99,12 @@ bool isFiltered = tableView.IsFiltered;
 | Property | Description |
 |---|---|
 | [`CanFilterColumns`](xref:WinUI.TableView.TableView.CanFilterColumns) | Enables or disables filtering for all columns (default `true`) |
-| `TableViewColumn.CanFilter` | Per-column filter toggle |
-| `TableViewColumn.IsFiltered` | `true` if a filter is active on this column |
+| [`CanFilter`](xref:WinUI.TableView.TableViewColumn.CanFilter) | Per-column filter toggle |
+| [`IsFiltered`](xref:WinUI.TableView.TableViewColumn.IsFiltered) | `true` if a filter is active on this column |
 | [`FilterDescriptions`](xref:WinUI.TableView.TableView.FilterDescriptions) | The collection of active filter descriptions |
 | [`IsFiltered`](xref:WinUI.TableView.TableView.IsFiltered) | `true` if any filter is applied to the view |
+| [`ClearAllFilters()`](xref:WinUI.TableView.TableView.ClearAllFilters) | Removes all filter descriptions and resets column filter state |
+| [`RefreshFilter()`](xref:WinUI.TableView.TableView.RefreshFilter) | Re-evaluates current filter descriptions without user interaction |
 | [`ShowFilterItemsCount`](xref:WinUI.TableView.TableView.ShowFilterItemsCount) | Shows the count of matching rows next to each filter value |
 | [`UseRightClickForColumnFilter`](xref:WinUI.TableView.TableView.UseRightClickForColumnFilter) | Opens the filter flyout on column header right-click |
 | [`FilterHandler`](xref:WinUI.TableView.TableView.FilterHandler) | Custom filter handler implementation |

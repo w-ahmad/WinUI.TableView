@@ -46,10 +46,19 @@ tableView.SortDescriptions.Add(new SortDescription("Price", SortDirection.Ascend
 
 The [`SortDescriptions`](xref:WinUI.TableView.TableView.SortDescriptions) collection comes from the internal `AdvancedCollectionView`. Changes take effect immediately.
 
-Clear all sorting:
+Clear all sorting using the dedicated method:
 
 ```csharp
-tableView.SortDescriptions.Clear();
+tableView.ClearAllSorting();
+```
+
+## Refreshing the sort
+
+Call [`RefreshSorting()`](xref:WinUI.TableView.TableView.RefreshSorting) to re-apply the current sort descriptions without requiring any user interaction. This is useful after you modify the underlying data outside of an `ObservableCollection` and need the displayed order to reflect the current values:
+
+```csharp
+// Re-evaluate the sort after updating data in place
+tableView.RefreshSorting();
 ```
 
 ## The Sorting event
@@ -66,7 +75,7 @@ tableView.Sorting += (s, e) =>
             ? SortDirection.Descending
             : SortDirection.Ascending;
 
-        tableView.SortDescriptions.Clear();
+        tableView.ClearAllSorting();
         tableView.SortDescriptions.Add(new SortDescription(
             "Name",
             direction,
@@ -118,10 +127,12 @@ var descriptions = tableView.SortDescriptions; // the active SortDescription lis
 | Property / Event | Description |
 |---|---|
 | [`CanSortColumns`](xref:WinUI.TableView.TableView.CanSortColumns) | Enables or disables sorting for all columns |
-| `TableViewColumn.CanSort` | Per-column sort toggle |
-| `TableViewColumn.SortDirection` | Current sort direction (`Ascending`, `Descending`, or `null`) |
+| [`CanSort`](xref:WinUI.TableView.TableViewColumn.CanSort) | Per-column sort toggle |
+| [`SortDirection`](xref:WinUI.TableView.TableViewColumn.SortDirection) | Current sort direction (`Ascending`, `Descending`, or `null`) |
 | [`SortDescriptions`](xref:WinUI.TableView.TableView.SortDescriptions) | Collection of active sort descriptions |
 | [`IsSorted`](xref:WinUI.TableView.TableView.IsSorted) | `true` if any sort is applied |
+| [`ClearAllSorting()`](xref:WinUI.TableView.TableView.ClearAllSorting) | Removes all sort descriptions and resets column indicators |
+| [`RefreshSorting()`](xref:WinUI.TableView.TableView.RefreshSorting) | Re-applies current sort descriptions without user interaction |
 | [`Sorting`](xref:WinUI.TableView.TableView.Sorting) | Fires before the default sort runs; can be cancelled |
 | [`ClearSorting`](xref:WinUI.TableView.TableView.ClearSorting) | Fires when a column's sort is cleared |
 

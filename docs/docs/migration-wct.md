@@ -1,6 +1,6 @@
 ﻿# Migrating from WCT DataGrid
 
-The Windows Community Toolkit (WCT) DataGrid (`CommunityToolkit.WinUI.UI.Controls.DataGrid`) was available for UWP and early Uno Platform apps but is now archived and no longer maintained. The archived Toolkit documentation recommends using newer alternatives such as WinUI.TableView for new development.
+The Windows Community Toolkit (WCT) DataGrid (`CommunityToolkit.WinUI.UI.Controls.DataGrid`) was available for UWP and early Uno Platform apps but is now archived and no longer maintained. WinUI.TableView is a community-maintained replacement that targets WinUI 3 and the Uno Platform.
 
 This guide helps developers moving from the WCT DataGrid to WinUI.TableView.
 

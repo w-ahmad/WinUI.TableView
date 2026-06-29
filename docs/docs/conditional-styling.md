@@ -32,7 +32,7 @@ The `Predicate` property takes a `Predicate<TableViewConditionalCellStyleContext
 The easiest way to supply predicates is from the code-behind or ViewModel. With `x:Bind`, you can bind to a method directly:
 
 ```csharp
-// In MainWindow.xaml.cs
+// Code behind or ViewModel
 public bool IsLowStock(TableViewConditionalCellStyleContext ctx)
 {
     // Apply only to the Stock column

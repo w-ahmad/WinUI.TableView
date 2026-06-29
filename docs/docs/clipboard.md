@@ -10,7 +10,7 @@ Use clipboard support to let users:
 
 ## Copying
 
-By default, users can press **Ctrl+C** to copy the selected rows or cells to the clipboard as tab-delimited text. Column headers are included or excluded based on the context menu option chosen.
+By default, users can press **Ctrl+C** to copy the selected rows or cells to the clipboard as tab-delimited text. To copy with column headers included, users can press **Ctrl+Shift+C** or choose **Copy with Headers** from the context menu.
 
 ```xml
 <!-- Copy is enabled by default -->
@@ -53,7 +53,7 @@ tableView.CopyToClipboard += (s, e) =>
 
 | Property | Description |
 |---|---|
-| `IncludeHeaders` | `true` when the user chose "Copy with headers" |
+| `IncludeHeaders` | `true` when the user chose **Copy with Headers** from the context menu or pressed **Ctrl+Shift+C** |
 | `Handled` | Set `true` to suppress the default clipboard write |
 
 ## PasteFromClipboard event
