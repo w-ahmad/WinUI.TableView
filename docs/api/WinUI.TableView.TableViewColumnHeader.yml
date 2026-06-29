@@ -1,0 +1,1094 @@
+### YamlMime:ManagedReference
+items:
+- uid: WinUI.TableView.TableViewColumnHeader
+  commentId: T:WinUI.TableView.TableViewColumnHeader
+  id: TableViewColumnHeader
+  parent: WinUI.TableView
+  children:
+  - WinUI.TableView.TableViewColumnHeader.#ctor
+  - WinUI.TableView.TableViewColumnHeader.Column
+  - WinUI.TableView.TableViewColumnHeader.MeasureOverride(Windows.Foundation.Size)
+  - WinUI.TableView.TableViewColumnHeader.OnApplyTemplate
+  - WinUI.TableView.TableViewColumnHeader.OnDoubleTapped(Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs)
+  - WinUI.TableView.TableViewColumnHeader.OnManipulationCompleted(Microsoft.UI.Xaml.Input.ManipulationCompletedRoutedEventArgs)
+  - WinUI.TableView.TableViewColumnHeader.OnManipulationDelta(Microsoft.UI.Xaml.Input.ManipulationDeltaRoutedEventArgs)
+  - WinUI.TableView.TableViewColumnHeader.OnPointerMoved(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  - WinUI.TableView.TableViewColumnHeader.OnPointerPressed(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  - WinUI.TableView.TableViewColumnHeader.OnPointerReleased(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  - WinUI.TableView.TableViewColumnHeader.OnTapped(Microsoft.UI.Xaml.Input.TappedRoutedEventArgs)
+  langs:
+  - csharp
+  - vb
+  name: TableViewColumnHeader
+  nameWithType: TableViewColumnHeader
+  fullName: WinUI.TableView.TableViewColumnHeader
+  type: Class
+  source:
+    id: TableViewColumnHeader
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\obj\Release\net8.0-windows10.0.19041.0\WinRT.SourceGenerator\Generator.WinRTAotSourceGenerator\WinUI.TableView.TableViewColumnHeader.WinRTVtable.g.cs
+    startLine: 2
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Represents the header of a column in a TableView.
+  example: []
+  syntax:
+    content: >-
+      [TemplateVisualState(Name = "Normal", GroupName = "CommonStates")]
+
+      [TemplateVisualState(Name = "PointerOver", GroupName = "CommonStates")]
+
+      [TemplateVisualState(Name = "Pressed", GroupName = "CommonStates")]
+
+      [TemplateVisualState(Name = "Focused", GroupName = "FocusStates")]
+
+      [TemplateVisualState(Name = "Unfocused", GroupName = "FocusStates")]
+
+      [TemplateVisualState(Name = "Unsorted", GroupName = "SortStates")]
+
+      [TemplateVisualState(Name = "SortAscending", GroupName = "SortStates")]
+
+      [TemplateVisualState(Name = "SortDescending", GroupName = "SortStates")]
+
+      [TemplateVisualState(Name = "Filtered", GroupName = "FilterStates")]
+
+      [TemplateVisualState(Name = "Unfiltered", GroupName = "FilterStates")]
+
+      [WinRTRuntimeClassName("Microsoft.UI.Xaml.IUIElementOverrides")]
+
+      [WinRTExposedType(typeof(WinUI_TableView_TableViewRowWinRTTypeDetails))]
+
+      public class TableViewColumnHeader : ContentControl, IWinRTObject
+    content.vb: >-
+      <TemplateVisualState(Name:="Normal", GroupName:="CommonStates")>
+
+      <TemplateVisualState(Name:="PointerOver", GroupName:="CommonStates")>
+
+      <TemplateVisualState(Name:="Pressed", GroupName:="CommonStates")>
+
+      <TemplateVisualState(Name:="Focused", GroupName:="FocusStates")>
+
+      <TemplateVisualState(Name:="Unfocused", GroupName:="FocusStates")>
+
+      <TemplateVisualState(Name:="Unsorted", GroupName:="SortStates")>
+
+      <TemplateVisualState(Name:="SortAscending", GroupName:="SortStates")>
+
+      <TemplateVisualState(Name:="SortDescending", GroupName:="SortStates")>
+
+      <TemplateVisualState(Name:="Filtered", GroupName:="FilterStates")>
+
+      <TemplateVisualState(Name:="Unfiltered", GroupName:="FilterStates")>
+
+      <WinRTRuntimeClassName("Microsoft.UI.Xaml.IUIElementOverrides")>
+
+      <WinRTExposedType(GetType(WinUI_TableView_TableViewRowWinRTTypeDetails))>
+
+      Public Class TableViewColumnHeader Inherits ContentControl Implements IWinRTObject
+  inheritance:
+  - System.Object
+  - Microsoft.UI.Xaml.DependencyObject
+  - Microsoft.UI.Xaml.UIElement
+  - Microsoft.UI.Xaml.FrameworkElement
+  - Microsoft.UI.Xaml.Controls.Control
+  - Microsoft.UI.Xaml.Controls.ContentControl
+  implements:
+  - WinRT.IWinRTObject
+  attributes:
+  - type: Microsoft.UI.Xaml.TemplateVisualStateAttribute
+    ctor: Microsoft.UI.Xaml.TemplateVisualStateAttribute.#ctor
+    arguments: []
+    namedArguments:
+    - name: Name
+      type: System.String
+      value: Normal
+    - name: GroupName
+      type: System.String
+      value: CommonStates
+  - type: Microsoft.UI.Xaml.TemplateVisualStateAttribute
+    ctor: Microsoft.UI.Xaml.TemplateVisualStateAttribute.#ctor
+    arguments: []
+    namedArguments:
+    - name: Name
+      type: System.String
+      value: PointerOver
+    - name: GroupName
+      type: System.String
+      value: CommonStates
+  - type: Microsoft.UI.Xaml.TemplateVisualStateAttribute
+    ctor: Microsoft.UI.Xaml.TemplateVisualStateAttribute.#ctor
+    arguments: []
+    namedArguments:
+    - name: Name
+      type: System.String
+      value: Pressed
+    - name: GroupName
+      type: System.String
+      value: CommonStates
+  - type: Microsoft.UI.Xaml.TemplateVisualStateAttribute
+    ctor: Microsoft.UI.Xaml.TemplateVisualStateAttribute.#ctor
+    arguments: []
+    namedArguments:
+    - name: Name
+      type: System.String
+      value: Focused
+    - name: GroupName
+      type: System.String
+      value: FocusStates
+  - type: Microsoft.UI.Xaml.TemplateVisualStateAttribute
+    ctor: Microsoft.UI.Xaml.TemplateVisualStateAttribute.#ctor
+    arguments: []
+    namedArguments:
+    - name: Name
+      type: System.String
+      value: Unfocused
+    - name: GroupName
+      type: System.String
+      value: FocusStates
+  - type: Microsoft.UI.Xaml.TemplateVisualStateAttribute
+    ctor: Microsoft.UI.Xaml.TemplateVisualStateAttribute.#ctor
+    arguments: []
+    namedArguments:
+    - name: Name
+      type: System.String
+      value: Unsorted
+    - name: GroupName
+      type: System.String
+      value: SortStates
+  - type: Microsoft.UI.Xaml.TemplateVisualStateAttribute
+    ctor: Microsoft.UI.Xaml.TemplateVisualStateAttribute.#ctor
+    arguments: []
+    namedArguments:
+    - name: Name
+      type: System.String
+      value: SortAscending
+    - name: GroupName
+      type: System.String
+      value: SortStates
+  - type: Microsoft.UI.Xaml.TemplateVisualStateAttribute
+    ctor: Microsoft.UI.Xaml.TemplateVisualStateAttribute.#ctor
+    arguments: []
+    namedArguments:
+    - name: Name
+      type: System.String
+      value: SortDescending
+    - name: GroupName
+      type: System.String
+      value: SortStates
+  - type: Microsoft.UI.Xaml.TemplateVisualStateAttribute
+    ctor: Microsoft.UI.Xaml.TemplateVisualStateAttribute.#ctor
+    arguments: []
+    namedArguments:
+    - name: Name
+      type: System.String
+      value: Filtered
+    - name: GroupName
+      type: System.String
+      value: FilterStates
+  - type: Microsoft.UI.Xaml.TemplateVisualStateAttribute
+    ctor: Microsoft.UI.Xaml.TemplateVisualStateAttribute.#ctor
+    arguments: []
+    namedArguments:
+    - name: Name
+      type: System.String
+      value: Unfiltered
+    - name: GroupName
+      type: System.String
+      value: FilterStates
+  - type: WinRT.WinRTRuntimeClassNameAttribute
+    ctor: WinRT.WinRTRuntimeClassNameAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: Microsoft.UI.Xaml.IUIElementOverrides
+- uid: WinUI.TableView.TableViewColumnHeader.#ctor
+  commentId: M:WinUI.TableView.TableViewColumnHeader.#ctor
+  id: '#ctor'
+  parent: WinUI.TableView.TableViewColumnHeader
+  langs:
+  - csharp
+  - vb
+  name: TableViewColumnHeader()
+  nameWithType: TableViewColumnHeader.TableViewColumnHeader()
+  fullName: WinUI.TableView.TableViewColumnHeader.TableViewColumnHeader()
+  type: Constructor
+  source:
+    id: .ctor
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewColumnHeader.cs
+    startLine: 53
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Initializes a new instance of the TableViewColumnHeader class.
+  example: []
+  syntax:
+    content: public TableViewColumnHeader()
+    content.vb: Public Sub New()
+  overload: WinUI.TableView.TableViewColumnHeader.#ctor*
+  nameWithType.vb: TableViewColumnHeader.New()
+  fullName.vb: WinUI.TableView.TableViewColumnHeader.New()
+  name.vb: New()
+- uid: WinUI.TableView.TableViewColumnHeader.OnTapped(Microsoft.UI.Xaml.Input.TappedRoutedEventArgs)
+  commentId: M:WinUI.TableView.TableViewColumnHeader.OnTapped(Microsoft.UI.Xaml.Input.TappedRoutedEventArgs)
+  id: OnTapped(Microsoft.UI.Xaml.Input.TappedRoutedEventArgs)
+  parent: WinUI.TableView.TableViewColumnHeader
+  langs:
+  - csharp
+  - vb
+  name: OnTapped(TappedRoutedEventArgs)
+  nameWithType: TableViewColumnHeader.OnTapped(TappedRoutedEventArgs)
+  fullName: WinUI.TableView.TableViewColumnHeader.OnTapped(Microsoft.UI.Xaml.Input.TappedRoutedEventArgs)
+  type: Method
+  source:
+    id: OnTapped
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewColumnHeader.cs
+    startLine: 207
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Called before the Tapped event occurs.
+  example: []
+  syntax:
+    content: protected override void OnTapped(TappedRoutedEventArgs e)
+    parameters:
+    - id: e
+      type: Microsoft.UI.Xaml.Input.TappedRoutedEventArgs
+      description: Event data for the event.
+    content.vb: Protected Overrides Sub OnTapped(e As TappedRoutedEventArgs)
+  overridden: Microsoft.UI.Xaml.Controls.Control.OnTapped(Microsoft.UI.Xaml.Input.TappedRoutedEventArgs)
+  overload: WinUI.TableView.TableViewColumnHeader.OnTapped*
+- uid: WinUI.TableView.TableViewColumnHeader.OnApplyTemplate
+  commentId: M:WinUI.TableView.TableViewColumnHeader.OnApplyTemplate
+  id: OnApplyTemplate
+  parent: WinUI.TableView.TableViewColumnHeader
+  langs:
+  - csharp
+  - vb
+  name: OnApplyTemplate()
+  nameWithType: TableViewColumnHeader.OnApplyTemplate()
+  fullName: WinUI.TableView.TableViewColumnHeader.OnApplyTemplate()
+  type: Method
+  source:
+    id: OnApplyTemplate
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewColumnHeader.cs
+    startLine: 231
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Invoked whenever application code or internal processes (such as a rebuilding layout pass) call ApplyTemplate. In simplest terms, this means the method is called just before a UI element displays in your app. Override this method to influence the default post-template logic of a class.
+  example: []
+  syntax:
+    content: protected override void OnApplyTemplate()
+    content.vb: Protected Overrides Sub OnApplyTemplate()
+  overridden: Microsoft.UI.Xaml.FrameworkElement.OnApplyTemplate
+  overload: WinUI.TableView.TableViewColumnHeader.OnApplyTemplate*
+- uid: WinUI.TableView.TableViewColumnHeader.OnDoubleTapped(Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs)
+  commentId: M:WinUI.TableView.TableViewColumnHeader.OnDoubleTapped(Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs)
+  id: OnDoubleTapped(Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs)
+  parent: WinUI.TableView.TableViewColumnHeader
+  langs:
+  - csharp
+  - vb
+  name: OnDoubleTapped(DoubleTappedRoutedEventArgs)
+  nameWithType: TableViewColumnHeader.OnDoubleTapped(DoubleTappedRoutedEventArgs)
+  fullName: WinUI.TableView.TableViewColumnHeader.OnDoubleTapped(Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs)
+  type: Method
+  source:
+    id: OnDoubleTapped
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewColumnHeader.cs
+    startLine: 341
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Called before the DoubleTapped event occurs.
+  example: []
+  syntax:
+    content: protected override void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
+    parameters:
+    - id: e
+      type: Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs
+      description: Event data for the event.
+    content.vb: Protected Overrides Sub OnDoubleTapped(e As DoubleTappedRoutedEventArgs)
+  overridden: Microsoft.UI.Xaml.Controls.Control.OnDoubleTapped(Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs)
+  overload: WinUI.TableView.TableViewColumnHeader.OnDoubleTapped*
+- uid: WinUI.TableView.TableViewColumnHeader.OnPointerMoved(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  commentId: M:WinUI.TableView.TableViewColumnHeader.OnPointerMoved(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  id: OnPointerMoved(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  parent: WinUI.TableView.TableViewColumnHeader
+  langs:
+  - csharp
+  - vb
+  name: OnPointerMoved(PointerRoutedEventArgs)
+  nameWithType: TableViewColumnHeader.OnPointerMoved(PointerRoutedEventArgs)
+  fullName: WinUI.TableView.TableViewColumnHeader.OnPointerMoved(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  type: Method
+  source:
+    id: OnPointerMoved
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewColumnHeader.cs
+    startLine: 363
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Called before the PointerMoved event occurs.
+  example: []
+  syntax:
+    content: protected override void OnPointerMoved(PointerRoutedEventArgs e)
+    parameters:
+    - id: e
+      type: Microsoft.UI.Xaml.Input.PointerRoutedEventArgs
+      description: Event data for the event.
+    content.vb: Protected Overrides Sub OnPointerMoved(e As PointerRoutedEventArgs)
+  overridden: Microsoft.UI.Xaml.Controls.Control.OnPointerMoved(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  overload: WinUI.TableView.TableViewColumnHeader.OnPointerMoved*
+- uid: WinUI.TableView.TableViewColumnHeader.OnPointerPressed(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  commentId: M:WinUI.TableView.TableViewColumnHeader.OnPointerPressed(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  id: OnPointerPressed(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  parent: WinUI.TableView.TableViewColumnHeader
+  langs:
+  - csharp
+  - vb
+  name: OnPointerPressed(PointerRoutedEventArgs)
+  nameWithType: TableViewColumnHeader.OnPointerPressed(PointerRoutedEventArgs)
+  fullName: WinUI.TableView.TableViewColumnHeader.OnPointerPressed(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  type: Method
+  source:
+    id: OnPointerPressed
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewColumnHeader.cs
+    startLine: 382
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Called before the PointerPressed event occurs.
+  example: []
+  syntax:
+    content: protected override void OnPointerPressed(PointerRoutedEventArgs e)
+    parameters:
+    - id: e
+      type: Microsoft.UI.Xaml.Input.PointerRoutedEventArgs
+      description: Event data for the event.
+    content.vb: Protected Overrides Sub OnPointerPressed(e As PointerRoutedEventArgs)
+  overridden: Microsoft.UI.Xaml.Controls.Control.OnPointerPressed(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  overload: WinUI.TableView.TableViewColumnHeader.OnPointerPressed*
+- uid: WinUI.TableView.TableViewColumnHeader.OnManipulationDelta(Microsoft.UI.Xaml.Input.ManipulationDeltaRoutedEventArgs)
+  commentId: M:WinUI.TableView.TableViewColumnHeader.OnManipulationDelta(Microsoft.UI.Xaml.Input.ManipulationDeltaRoutedEventArgs)
+  id: OnManipulationDelta(Microsoft.UI.Xaml.Input.ManipulationDeltaRoutedEventArgs)
+  parent: WinUI.TableView.TableViewColumnHeader
+  langs:
+  - csharp
+  - vb
+  name: OnManipulationDelta(ManipulationDeltaRoutedEventArgs)
+  nameWithType: TableViewColumnHeader.OnManipulationDelta(ManipulationDeltaRoutedEventArgs)
+  fullName: WinUI.TableView.TableViewColumnHeader.OnManipulationDelta(Microsoft.UI.Xaml.Input.ManipulationDeltaRoutedEventArgs)
+  type: Method
+  source:
+    id: OnManipulationDelta
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewColumnHeader.cs
+    startLine: 409
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Called before the ManipulationDelta event occurs.
+  example: []
+  syntax:
+    content: protected override void OnManipulationDelta(ManipulationDeltaRoutedEventArgs e)
+    parameters:
+    - id: e
+      type: Microsoft.UI.Xaml.Input.ManipulationDeltaRoutedEventArgs
+      description: Event data for the event.
+    content.vb: Protected Overrides Sub OnManipulationDelta(e As ManipulationDeltaRoutedEventArgs)
+  overridden: Microsoft.UI.Xaml.Controls.Control.OnManipulationDelta(Microsoft.UI.Xaml.Input.ManipulationDeltaRoutedEventArgs)
+  overload: WinUI.TableView.TableViewColumnHeader.OnManipulationDelta*
+- uid: WinUI.TableView.TableViewColumnHeader.OnManipulationCompleted(Microsoft.UI.Xaml.Input.ManipulationCompletedRoutedEventArgs)
+  commentId: M:WinUI.TableView.TableViewColumnHeader.OnManipulationCompleted(Microsoft.UI.Xaml.Input.ManipulationCompletedRoutedEventArgs)
+  id: OnManipulationCompleted(Microsoft.UI.Xaml.Input.ManipulationCompletedRoutedEventArgs)
+  parent: WinUI.TableView.TableViewColumnHeader
+  langs:
+  - csharp
+  - vb
+  name: OnManipulationCompleted(ManipulationCompletedRoutedEventArgs)
+  nameWithType: TableViewColumnHeader.OnManipulationCompleted(ManipulationCompletedRoutedEventArgs)
+  fullName: WinUI.TableView.TableViewColumnHeader.OnManipulationCompleted(Microsoft.UI.Xaml.Input.ManipulationCompletedRoutedEventArgs)
+  type: Method
+  source:
+    id: OnManipulationCompleted
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewColumnHeader.cs
+    startLine: 456
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Called before the ManipulationCompleted event occurs.
+  example: []
+  syntax:
+    content: protected override void OnManipulationCompleted(ManipulationCompletedRoutedEventArgs e)
+    parameters:
+    - id: e
+      type: Microsoft.UI.Xaml.Input.ManipulationCompletedRoutedEventArgs
+      description: Event data for the event.
+    content.vb: Protected Overrides Sub OnManipulationCompleted(e As ManipulationCompletedRoutedEventArgs)
+  overridden: Microsoft.UI.Xaml.Controls.Control.OnManipulationCompleted(Microsoft.UI.Xaml.Input.ManipulationCompletedRoutedEventArgs)
+  overload: WinUI.TableView.TableViewColumnHeader.OnManipulationCompleted*
+- uid: WinUI.TableView.TableViewColumnHeader.OnPointerReleased(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  commentId: M:WinUI.TableView.TableViewColumnHeader.OnPointerReleased(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  id: OnPointerReleased(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  parent: WinUI.TableView.TableViewColumnHeader
+  langs:
+  - csharp
+  - vb
+  name: OnPointerReleased(PointerRoutedEventArgs)
+  nameWithType: TableViewColumnHeader.OnPointerReleased(PointerRoutedEventArgs)
+  fullName: WinUI.TableView.TableViewColumnHeader.OnPointerReleased(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  type: Method
+  source:
+    id: OnPointerReleased
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewColumnHeader.cs
+    startLine: 471
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Called before the PointerReleased event occurs.
+  example: []
+  syntax:
+    content: protected override void OnPointerReleased(PointerRoutedEventArgs e)
+    parameters:
+    - id: e
+      type: Microsoft.UI.Xaml.Input.PointerRoutedEventArgs
+      description: Event data for the event.
+    content.vb: Protected Overrides Sub OnPointerReleased(e As PointerRoutedEventArgs)
+  overridden: Microsoft.UI.Xaml.Controls.Control.OnPointerReleased(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  overload: WinUI.TableView.TableViewColumnHeader.OnPointerReleased*
+- uid: WinUI.TableView.TableViewColumnHeader.MeasureOverride(Windows.Foundation.Size)
+  commentId: M:WinUI.TableView.TableViewColumnHeader.MeasureOverride(Windows.Foundation.Size)
+  id: MeasureOverride(Windows.Foundation.Size)
+  parent: WinUI.TableView.TableViewColumnHeader
+  langs:
+  - csharp
+  - vb
+  name: MeasureOverride(Size)
+  nameWithType: TableViewColumnHeader.MeasureOverride(Size)
+  fullName: WinUI.TableView.TableViewColumnHeader.MeasureOverride(Windows.Foundation.Size)
+  type: Method
+  source:
+    id: MeasureOverride
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewColumnHeader.cs
+    startLine: 482
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Provides the behavior for the "Measure" pass of the layout cycle. Classes can override this method to define their own "Measure" pass behavior.
+  example: []
+  syntax:
+    content: protected override Size MeasureOverride(Size availableSize)
+    parameters:
+    - id: availableSize
+      type: Windows.Foundation.Size
+      description: The available size that this object can give to child objects. Infinity can be specified as a value to indicate that the object will size to whatever content is available.
+    return:
+      type: Windows.Foundation.Size
+      description: The size that this object determines it needs during layout, based on its calculations of the allocated sizes for child objects or based on other considerations such as a fixed container size.
+    content.vb: Protected Overrides Function MeasureOverride(availableSize As Size) As Size
+  overridden: Microsoft.UI.Xaml.FrameworkElement.MeasureOverride(Windows.Foundation.Size)
+  overload: WinUI.TableView.TableViewColumnHeader.MeasureOverride*
+- uid: WinUI.TableView.TableViewColumnHeader.Column
+  commentId: P:WinUI.TableView.TableViewColumnHeader.Column
+  id: Column
+  parent: WinUI.TableView.TableViewColumnHeader
+  langs:
+  - csharp
+  - vb
+  name: Column
+  nameWithType: TableViewColumnHeader.Column
+  fullName: WinUI.TableView.TableViewColumnHeader.Column
+  type: Property
+  source:
+    id: Column
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewColumnHeader.cs
+    startLine: 516
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Gets or sets the column associated with the header.
+  example: []
+  syntax:
+    content: public TableViewColumn? Column { get; }
+    parameters: []
+    return:
+      type: WinUI.TableView.TableViewColumn
+    content.vb: Public Property Column As TableViewColumn
+  overload: WinUI.TableView.TableViewColumnHeader.Column*
+references:
+- uid: WinUI.TableView
+  commentId: N:WinUI.TableView
+  href: WinUI.html
+  name: WinUI.TableView
+  nameWithType: WinUI.TableView
+  fullName: WinUI.TableView
+  spec.csharp:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+  spec.vb:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: Microsoft.UI.Xaml.DependencyObject
+  commentId: T:Microsoft.UI.Xaml.DependencyObject
+  parent: Microsoft.UI.Xaml
+  isExternal: true
+  name: DependencyObject
+  nameWithType: DependencyObject
+  fullName: Microsoft.UI.Xaml.DependencyObject
+- uid: Microsoft.UI.Xaml.UIElement
+  commentId: T:Microsoft.UI.Xaml.UIElement
+  parent: Microsoft.UI.Xaml
+  isExternal: true
+  name: UIElement
+  nameWithType: UIElement
+  fullName: Microsoft.UI.Xaml.UIElement
+- uid: Microsoft.UI.Xaml.FrameworkElement
+  commentId: T:Microsoft.UI.Xaml.FrameworkElement
+  parent: Microsoft.UI.Xaml
+  isExternal: true
+  name: FrameworkElement
+  nameWithType: FrameworkElement
+  fullName: Microsoft.UI.Xaml.FrameworkElement
+- uid: Microsoft.UI.Xaml.Controls.Control
+  commentId: T:Microsoft.UI.Xaml.Controls.Control
+  parent: Microsoft.UI.Xaml.Controls
+  isExternal: true
+  name: Control
+  nameWithType: Control
+  fullName: Microsoft.UI.Xaml.Controls.Control
+- uid: Microsoft.UI.Xaml.Controls.ContentControl
+  commentId: T:Microsoft.UI.Xaml.Controls.ContentControl
+  parent: Microsoft.UI.Xaml.Controls
+  isExternal: true
+  name: ContentControl
+  nameWithType: ContentControl
+  fullName: Microsoft.UI.Xaml.Controls.ContentControl
+- uid: WinRT.IWinRTObject
+  commentId: T:WinRT.IWinRTObject
+  parent: WinRT
+  isExternal: true
+  name: IWinRTObject
+  nameWithType: IWinRTObject
+  fullName: WinRT.IWinRTObject
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: Microsoft.UI.Xaml
+  commentId: N:Microsoft.UI.Xaml
+  isExternal: true
+  href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  name: Microsoft.UI.Xaml
+  nameWithType: Microsoft.UI.Xaml
+  fullName: Microsoft.UI.Xaml
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  - name: .
+  - uid: Microsoft.UI
+    name: UI
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui
+  - name: .
+  - uid: Microsoft.UI.Xaml
+    name: Xaml
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  - name: .
+  - uid: Microsoft.UI
+    name: UI
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui
+  - name: .
+  - uid: Microsoft.UI.Xaml
+    name: Xaml
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml
+- uid: Microsoft.UI.Xaml.Controls
+  commentId: N:Microsoft.UI.Xaml.Controls
+  isExternal: true
+  href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  name: Microsoft.UI.Xaml.Controls
+  nameWithType: Microsoft.UI.Xaml.Controls
+  fullName: Microsoft.UI.Xaml.Controls
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  - name: .
+  - uid: Microsoft.UI
+    name: UI
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui
+  - name: .
+  - uid: Microsoft.UI.Xaml
+    name: Xaml
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml
+  - name: .
+  - uid: Microsoft.UI.Xaml.Controls
+    name: Controls
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.controls
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  - name: .
+  - uid: Microsoft.UI
+    name: UI
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui
+  - name: .
+  - uid: Microsoft.UI.Xaml
+    name: Xaml
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml
+  - name: .
+  - uid: Microsoft.UI.Xaml.Controls
+    name: Controls
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.controls
+- uid: WinRT
+  commentId: N:WinRT
+  isExternal: true
+  name: WinRT
+  nameWithType: WinRT
+  fullName: WinRT
+- uid: WinUI.TableView.TableViewColumnHeader.#ctor*
+  commentId: Overload:WinUI.TableView.TableViewColumnHeader.#ctor
+  href: WinUI.TableView.TableViewColumnHeader.html#WinUI_TableView_TableViewColumnHeader__ctor
+  name: TableViewColumnHeader
+  nameWithType: TableViewColumnHeader.TableViewColumnHeader
+  fullName: WinUI.TableView.TableViewColumnHeader.TableViewColumnHeader
+  nameWithType.vb: TableViewColumnHeader.New
+  fullName.vb: WinUI.TableView.TableViewColumnHeader.New
+  name.vb: New
+- uid: Microsoft.UI.Xaml.Controls.Control.OnTapped(Microsoft.UI.Xaml.Input.TappedRoutedEventArgs)
+  commentId: M:Microsoft.UI.Xaml.Controls.Control.OnTapped(Microsoft.UI.Xaml.Input.TappedRoutedEventArgs)
+  parent: Microsoft.UI.Xaml.Controls.Control
+  isExternal: true
+  name: OnTapped(TappedRoutedEventArgs)
+  nameWithType: Control.OnTapped(TappedRoutedEventArgs)
+  fullName: Microsoft.UI.Xaml.Controls.Control.OnTapped(Microsoft.UI.Xaml.Input.TappedRoutedEventArgs)
+  spec.csharp:
+  - uid: Microsoft.UI.Xaml.Controls.Control.OnTapped(Microsoft.UI.Xaml.Input.TappedRoutedEventArgs)
+    name: OnTapped
+    isExternal: true
+  - name: (
+  - uid: Microsoft.UI.Xaml.Input.TappedRoutedEventArgs
+    name: TappedRoutedEventArgs
+    isExternal: true
+  - name: )
+  spec.vb:
+  - uid: Microsoft.UI.Xaml.Controls.Control.OnTapped(Microsoft.UI.Xaml.Input.TappedRoutedEventArgs)
+    name: OnTapped
+    isExternal: true
+  - name: (
+  - uid: Microsoft.UI.Xaml.Input.TappedRoutedEventArgs
+    name: TappedRoutedEventArgs
+    isExternal: true
+  - name: )
+- uid: WinUI.TableView.TableViewColumnHeader.OnTapped*
+  commentId: Overload:WinUI.TableView.TableViewColumnHeader.OnTapped
+  href: WinUI.TableView.TableViewColumnHeader.html#WinUI_TableView_TableViewColumnHeader_OnTapped_Microsoft_UI_Xaml_Input_TappedRoutedEventArgs_
+  name: OnTapped
+  nameWithType: TableViewColumnHeader.OnTapped
+  fullName: WinUI.TableView.TableViewColumnHeader.OnTapped
+- uid: Microsoft.UI.Xaml.Input.TappedRoutedEventArgs
+  commentId: T:Microsoft.UI.Xaml.Input.TappedRoutedEventArgs
+  parent: Microsoft.UI.Xaml.Input
+  isExternal: true
+  name: TappedRoutedEventArgs
+  nameWithType: TappedRoutedEventArgs
+  fullName: Microsoft.UI.Xaml.Input.TappedRoutedEventArgs
+- uid: Microsoft.UI.Xaml.Input
+  commentId: N:Microsoft.UI.Xaml.Input
+  isExternal: true
+  href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  name: Microsoft.UI.Xaml.Input
+  nameWithType: Microsoft.UI.Xaml.Input
+  fullName: Microsoft.UI.Xaml.Input
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  - name: .
+  - uid: Microsoft.UI
+    name: UI
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui
+  - name: .
+  - uid: Microsoft.UI.Xaml
+    name: Xaml
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml
+  - name: .
+  - uid: Microsoft.UI.Xaml.Input
+    name: Input
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.input
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  - name: .
+  - uid: Microsoft.UI
+    name: UI
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui
+  - name: .
+  - uid: Microsoft.UI.Xaml
+    name: Xaml
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml
+  - name: .
+  - uid: Microsoft.UI.Xaml.Input
+    name: Input
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.input
+- uid: Microsoft.UI.Xaml.FrameworkElement.OnApplyTemplate
+  commentId: M:Microsoft.UI.Xaml.FrameworkElement.OnApplyTemplate
+  parent: Microsoft.UI.Xaml.FrameworkElement
+  isExternal: true
+  name: OnApplyTemplate()
+  nameWithType: FrameworkElement.OnApplyTemplate()
+  fullName: Microsoft.UI.Xaml.FrameworkElement.OnApplyTemplate()
+  spec.csharp:
+  - uid: Microsoft.UI.Xaml.FrameworkElement.OnApplyTemplate
+    name: OnApplyTemplate
+    isExternal: true
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: Microsoft.UI.Xaml.FrameworkElement.OnApplyTemplate
+    name: OnApplyTemplate
+    isExternal: true
+  - name: (
+  - name: )
+- uid: WinUI.TableView.TableViewColumnHeader.OnApplyTemplate*
+  commentId: Overload:WinUI.TableView.TableViewColumnHeader.OnApplyTemplate
+  href: WinUI.TableView.TableViewColumnHeader.html#WinUI_TableView_TableViewColumnHeader_OnApplyTemplate
+  name: OnApplyTemplate
+  nameWithType: TableViewColumnHeader.OnApplyTemplate
+  fullName: WinUI.TableView.TableViewColumnHeader.OnApplyTemplate
+- uid: Microsoft.UI.Xaml.Controls.Control.OnDoubleTapped(Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs)
+  commentId: M:Microsoft.UI.Xaml.Controls.Control.OnDoubleTapped(Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs)
+  parent: Microsoft.UI.Xaml.Controls.Control
+  isExternal: true
+  name: OnDoubleTapped(DoubleTappedRoutedEventArgs)
+  nameWithType: Control.OnDoubleTapped(DoubleTappedRoutedEventArgs)
+  fullName: Microsoft.UI.Xaml.Controls.Control.OnDoubleTapped(Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs)
+  spec.csharp:
+  - uid: Microsoft.UI.Xaml.Controls.Control.OnDoubleTapped(Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs)
+    name: OnDoubleTapped
+    isExternal: true
+  - name: (
+  - uid: Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs
+    name: DoubleTappedRoutedEventArgs
+    isExternal: true
+  - name: )
+  spec.vb:
+  - uid: Microsoft.UI.Xaml.Controls.Control.OnDoubleTapped(Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs)
+    name: OnDoubleTapped
+    isExternal: true
+  - name: (
+  - uid: Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs
+    name: DoubleTappedRoutedEventArgs
+    isExternal: true
+  - name: )
+- uid: WinUI.TableView.TableViewColumnHeader.OnDoubleTapped*
+  commentId: Overload:WinUI.TableView.TableViewColumnHeader.OnDoubleTapped
+  href: WinUI.TableView.TableViewColumnHeader.html#WinUI_TableView_TableViewColumnHeader_OnDoubleTapped_Microsoft_UI_Xaml_Input_DoubleTappedRoutedEventArgs_
+  name: OnDoubleTapped
+  nameWithType: TableViewColumnHeader.OnDoubleTapped
+  fullName: WinUI.TableView.TableViewColumnHeader.OnDoubleTapped
+- uid: Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs
+  commentId: T:Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs
+  parent: Microsoft.UI.Xaml.Input
+  isExternal: true
+  name: DoubleTappedRoutedEventArgs
+  nameWithType: DoubleTappedRoutedEventArgs
+  fullName: Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs
+- uid: Microsoft.UI.Xaml.Controls.Control.OnPointerMoved(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  commentId: M:Microsoft.UI.Xaml.Controls.Control.OnPointerMoved(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  parent: Microsoft.UI.Xaml.Controls.Control
+  isExternal: true
+  name: OnPointerMoved(PointerRoutedEventArgs)
+  nameWithType: Control.OnPointerMoved(PointerRoutedEventArgs)
+  fullName: Microsoft.UI.Xaml.Controls.Control.OnPointerMoved(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  spec.csharp:
+  - uid: Microsoft.UI.Xaml.Controls.Control.OnPointerMoved(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+    name: OnPointerMoved
+    isExternal: true
+  - name: (
+  - uid: Microsoft.UI.Xaml.Input.PointerRoutedEventArgs
+    name: PointerRoutedEventArgs
+    isExternal: true
+  - name: )
+  spec.vb:
+  - uid: Microsoft.UI.Xaml.Controls.Control.OnPointerMoved(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+    name: OnPointerMoved
+    isExternal: true
+  - name: (
+  - uid: Microsoft.UI.Xaml.Input.PointerRoutedEventArgs
+    name: PointerRoutedEventArgs
+    isExternal: true
+  - name: )
+- uid: WinUI.TableView.TableViewColumnHeader.OnPointerMoved*
+  commentId: Overload:WinUI.TableView.TableViewColumnHeader.OnPointerMoved
+  href: WinUI.TableView.TableViewColumnHeader.html#WinUI_TableView_TableViewColumnHeader_OnPointerMoved_Microsoft_UI_Xaml_Input_PointerRoutedEventArgs_
+  name: OnPointerMoved
+  nameWithType: TableViewColumnHeader.OnPointerMoved
+  fullName: WinUI.TableView.TableViewColumnHeader.OnPointerMoved
+- uid: Microsoft.UI.Xaml.Input.PointerRoutedEventArgs
+  commentId: T:Microsoft.UI.Xaml.Input.PointerRoutedEventArgs
+  parent: Microsoft.UI.Xaml.Input
+  isExternal: true
+  name: PointerRoutedEventArgs
+  nameWithType: PointerRoutedEventArgs
+  fullName: Microsoft.UI.Xaml.Input.PointerRoutedEventArgs
+- uid: Microsoft.UI.Xaml.Controls.Control.OnPointerPressed(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  commentId: M:Microsoft.UI.Xaml.Controls.Control.OnPointerPressed(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  parent: Microsoft.UI.Xaml.Controls.Control
+  isExternal: true
+  name: OnPointerPressed(PointerRoutedEventArgs)
+  nameWithType: Control.OnPointerPressed(PointerRoutedEventArgs)
+  fullName: Microsoft.UI.Xaml.Controls.Control.OnPointerPressed(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  spec.csharp:
+  - uid: Microsoft.UI.Xaml.Controls.Control.OnPointerPressed(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+    name: OnPointerPressed
+    isExternal: true
+  - name: (
+  - uid: Microsoft.UI.Xaml.Input.PointerRoutedEventArgs
+    name: PointerRoutedEventArgs
+    isExternal: true
+  - name: )
+  spec.vb:
+  - uid: Microsoft.UI.Xaml.Controls.Control.OnPointerPressed(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+    name: OnPointerPressed
+    isExternal: true
+  - name: (
+  - uid: Microsoft.UI.Xaml.Input.PointerRoutedEventArgs
+    name: PointerRoutedEventArgs
+    isExternal: true
+  - name: )
+- uid: WinUI.TableView.TableViewColumnHeader.OnPointerPressed*
+  commentId: Overload:WinUI.TableView.TableViewColumnHeader.OnPointerPressed
+  href: WinUI.TableView.TableViewColumnHeader.html#WinUI_TableView_TableViewColumnHeader_OnPointerPressed_Microsoft_UI_Xaml_Input_PointerRoutedEventArgs_
+  name: OnPointerPressed
+  nameWithType: TableViewColumnHeader.OnPointerPressed
+  fullName: WinUI.TableView.TableViewColumnHeader.OnPointerPressed
+- uid: Microsoft.UI.Xaml.Controls.Control.OnManipulationDelta(Microsoft.UI.Xaml.Input.ManipulationDeltaRoutedEventArgs)
+  commentId: M:Microsoft.UI.Xaml.Controls.Control.OnManipulationDelta(Microsoft.UI.Xaml.Input.ManipulationDeltaRoutedEventArgs)
+  parent: Microsoft.UI.Xaml.Controls.Control
+  isExternal: true
+  name: OnManipulationDelta(ManipulationDeltaRoutedEventArgs)
+  nameWithType: Control.OnManipulationDelta(ManipulationDeltaRoutedEventArgs)
+  fullName: Microsoft.UI.Xaml.Controls.Control.OnManipulationDelta(Microsoft.UI.Xaml.Input.ManipulationDeltaRoutedEventArgs)
+  spec.csharp:
+  - uid: Microsoft.UI.Xaml.Controls.Control.OnManipulationDelta(Microsoft.UI.Xaml.Input.ManipulationDeltaRoutedEventArgs)
+    name: OnManipulationDelta
+    isExternal: true
+  - name: (
+  - uid: Microsoft.UI.Xaml.Input.ManipulationDeltaRoutedEventArgs
+    name: ManipulationDeltaRoutedEventArgs
+    isExternal: true
+  - name: )
+  spec.vb:
+  - uid: Microsoft.UI.Xaml.Controls.Control.OnManipulationDelta(Microsoft.UI.Xaml.Input.ManipulationDeltaRoutedEventArgs)
+    name: OnManipulationDelta
+    isExternal: true
+  - name: (
+  - uid: Microsoft.UI.Xaml.Input.ManipulationDeltaRoutedEventArgs
+    name: ManipulationDeltaRoutedEventArgs
+    isExternal: true
+  - name: )
+- uid: WinUI.TableView.TableViewColumnHeader.OnManipulationDelta*
+  commentId: Overload:WinUI.TableView.TableViewColumnHeader.OnManipulationDelta
+  href: WinUI.TableView.TableViewColumnHeader.html#WinUI_TableView_TableViewColumnHeader_OnManipulationDelta_Microsoft_UI_Xaml_Input_ManipulationDeltaRoutedEventArgs_
+  name: OnManipulationDelta
+  nameWithType: TableViewColumnHeader.OnManipulationDelta
+  fullName: WinUI.TableView.TableViewColumnHeader.OnManipulationDelta
+- uid: Microsoft.UI.Xaml.Input.ManipulationDeltaRoutedEventArgs
+  commentId: T:Microsoft.UI.Xaml.Input.ManipulationDeltaRoutedEventArgs
+  parent: Microsoft.UI.Xaml.Input
+  isExternal: true
+  name: ManipulationDeltaRoutedEventArgs
+  nameWithType: ManipulationDeltaRoutedEventArgs
+  fullName: Microsoft.UI.Xaml.Input.ManipulationDeltaRoutedEventArgs
+- uid: Microsoft.UI.Xaml.Controls.Control.OnManipulationCompleted(Microsoft.UI.Xaml.Input.ManipulationCompletedRoutedEventArgs)
+  commentId: M:Microsoft.UI.Xaml.Controls.Control.OnManipulationCompleted(Microsoft.UI.Xaml.Input.ManipulationCompletedRoutedEventArgs)
+  parent: Microsoft.UI.Xaml.Controls.Control
+  isExternal: true
+  name: OnManipulationCompleted(ManipulationCompletedRoutedEventArgs)
+  nameWithType: Control.OnManipulationCompleted(ManipulationCompletedRoutedEventArgs)
+  fullName: Microsoft.UI.Xaml.Controls.Control.OnManipulationCompleted(Microsoft.UI.Xaml.Input.ManipulationCompletedRoutedEventArgs)
+  spec.csharp:
+  - uid: Microsoft.UI.Xaml.Controls.Control.OnManipulationCompleted(Microsoft.UI.Xaml.Input.ManipulationCompletedRoutedEventArgs)
+    name: OnManipulationCompleted
+    isExternal: true
+  - name: (
+  - uid: Microsoft.UI.Xaml.Input.ManipulationCompletedRoutedEventArgs
+    name: ManipulationCompletedRoutedEventArgs
+    isExternal: true
+  - name: )
+  spec.vb:
+  - uid: Microsoft.UI.Xaml.Controls.Control.OnManipulationCompleted(Microsoft.UI.Xaml.Input.ManipulationCompletedRoutedEventArgs)
+    name: OnManipulationCompleted
+    isExternal: true
+  - name: (
+  - uid: Microsoft.UI.Xaml.Input.ManipulationCompletedRoutedEventArgs
+    name: ManipulationCompletedRoutedEventArgs
+    isExternal: true
+  - name: )
+- uid: WinUI.TableView.TableViewColumnHeader.OnManipulationCompleted*
+  commentId: Overload:WinUI.TableView.TableViewColumnHeader.OnManipulationCompleted
+  href: WinUI.TableView.TableViewColumnHeader.html#WinUI_TableView_TableViewColumnHeader_OnManipulationCompleted_Microsoft_UI_Xaml_Input_ManipulationCompletedRoutedEventArgs_
+  name: OnManipulationCompleted
+  nameWithType: TableViewColumnHeader.OnManipulationCompleted
+  fullName: WinUI.TableView.TableViewColumnHeader.OnManipulationCompleted
+- uid: Microsoft.UI.Xaml.Input.ManipulationCompletedRoutedEventArgs
+  commentId: T:Microsoft.UI.Xaml.Input.ManipulationCompletedRoutedEventArgs
+  parent: Microsoft.UI.Xaml.Input
+  isExternal: true
+  name: ManipulationCompletedRoutedEventArgs
+  nameWithType: ManipulationCompletedRoutedEventArgs
+  fullName: Microsoft.UI.Xaml.Input.ManipulationCompletedRoutedEventArgs
+- uid: Microsoft.UI.Xaml.Controls.Control.OnPointerReleased(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  commentId: M:Microsoft.UI.Xaml.Controls.Control.OnPointerReleased(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  parent: Microsoft.UI.Xaml.Controls.Control
+  isExternal: true
+  name: OnPointerReleased(PointerRoutedEventArgs)
+  nameWithType: Control.OnPointerReleased(PointerRoutedEventArgs)
+  fullName: Microsoft.UI.Xaml.Controls.Control.OnPointerReleased(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+  spec.csharp:
+  - uid: Microsoft.UI.Xaml.Controls.Control.OnPointerReleased(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+    name: OnPointerReleased
+    isExternal: true
+  - name: (
+  - uid: Microsoft.UI.Xaml.Input.PointerRoutedEventArgs
+    name: PointerRoutedEventArgs
+    isExternal: true
+  - name: )
+  spec.vb:
+  - uid: Microsoft.UI.Xaml.Controls.Control.OnPointerReleased(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs)
+    name: OnPointerReleased
+    isExternal: true
+  - name: (
+  - uid: Microsoft.UI.Xaml.Input.PointerRoutedEventArgs
+    name: PointerRoutedEventArgs
+    isExternal: true
+  - name: )
+- uid: WinUI.TableView.TableViewColumnHeader.OnPointerReleased*
+  commentId: Overload:WinUI.TableView.TableViewColumnHeader.OnPointerReleased
+  href: WinUI.TableView.TableViewColumnHeader.html#WinUI_TableView_TableViewColumnHeader_OnPointerReleased_Microsoft_UI_Xaml_Input_PointerRoutedEventArgs_
+  name: OnPointerReleased
+  nameWithType: TableViewColumnHeader.OnPointerReleased
+  fullName: WinUI.TableView.TableViewColumnHeader.OnPointerReleased
+- uid: Microsoft.UI.Xaml.FrameworkElement.MeasureOverride(Windows.Foundation.Size)
+  commentId: M:Microsoft.UI.Xaml.FrameworkElement.MeasureOverride(Windows.Foundation.Size)
+  parent: Microsoft.UI.Xaml.FrameworkElement
+  isExternal: true
+  name: MeasureOverride(Size)
+  nameWithType: FrameworkElement.MeasureOverride(Size)
+  fullName: Microsoft.UI.Xaml.FrameworkElement.MeasureOverride(Windows.Foundation.Size)
+  spec.csharp:
+  - uid: Microsoft.UI.Xaml.FrameworkElement.MeasureOverride(Windows.Foundation.Size)
+    name: MeasureOverride
+    isExternal: true
+  - name: (
+  - uid: Windows.Foundation.Size
+    name: Size
+    isExternal: true
+  - name: )
+  spec.vb:
+  - uid: Microsoft.UI.Xaml.FrameworkElement.MeasureOverride(Windows.Foundation.Size)
+    name: MeasureOverride
+    isExternal: true
+  - name: (
+  - uid: Windows.Foundation.Size
+    name: Size
+    isExternal: true
+  - name: )
+- uid: WinUI.TableView.TableViewColumnHeader.MeasureOverride*
+  commentId: Overload:WinUI.TableView.TableViewColumnHeader.MeasureOverride
+  href: WinUI.TableView.TableViewColumnHeader.html#WinUI_TableView_TableViewColumnHeader_MeasureOverride_Windows_Foundation_Size_
+  name: MeasureOverride
+  nameWithType: TableViewColumnHeader.MeasureOverride
+  fullName: WinUI.TableView.TableViewColumnHeader.MeasureOverride
+- uid: Windows.Foundation.Size
+  commentId: T:Windows.Foundation.Size
+  parent: Windows.Foundation
+  isExternal: true
+  name: Size
+  nameWithType: Size
+  fullName: Windows.Foundation.Size
+- uid: Windows.Foundation
+  commentId: N:Windows.Foundation
+  isExternal: true
+  name: Windows.Foundation
+  nameWithType: Windows.Foundation
+  fullName: Windows.Foundation
+  spec.csharp:
+  - uid: Windows
+    name: Windows
+    isExternal: true
+  - name: .
+  - uid: Windows.Foundation
+    name: Foundation
+    isExternal: true
+  spec.vb:
+  - uid: Windows
+    name: Windows
+    isExternal: true
+  - name: .
+  - uid: Windows.Foundation
+    name: Foundation
+    isExternal: true
+- uid: WinUI.TableView.TableViewColumnHeader.Column*
+  commentId: Overload:WinUI.TableView.TableViewColumnHeader.Column
+  href: WinUI.TableView.TableViewColumnHeader.html#WinUI_TableView_TableViewColumnHeader_Column
+  name: Column
+  nameWithType: TableViewColumnHeader.Column
+  fullName: WinUI.TableView.TableViewColumnHeader.Column
+- uid: WinUI.TableView.TableViewColumn
+  commentId: T:WinUI.TableView.TableViewColumn
+  parent: WinUI.TableView
+  href: WinUI.TableView.TableViewColumn.html
+  name: TableViewColumn
+  nameWithType: TableViewColumn
+  fullName: WinUI.TableView.TableViewColumn

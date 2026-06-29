@@ -117,10 +117,10 @@ Control the visibility and appearance of grid lines:
 
 | Value | Description |
 |---|---|
-| `All` | Both horizontal and vertical grid lines |
-| `Horizontal` | Only horizontal lines |
-| `Vertical` | Only vertical lines |
-| `None` | No grid lines |
+| [`All`](xref:WinUI.TableView.TableViewGridLinesVisibility.All) | Both horizontal and vertical grid lines |
+| [`Horizontal`](xref:WinUI.TableView.TableViewGridLinesVisibility.Horizontal) | Only horizontal lines |
+| [`Vertical`](xref:WinUI.TableView.TableViewGridLinesVisibility.Vertical) | Only vertical lines |
+| [`None`](xref:WinUI.TableView.TableViewGridLinesVisibility.None) | No grid lines |
 
 ### Hide all grid lines
 
@@ -135,10 +135,10 @@ Control the visibility and appearance of grid lines:
 |---|---|---|
 | [`CellStyle`](xref:WinUI.TableView.TableView.CellStyle) | [`TableViewCell`](xref:WinUI.TableView.TableViewCell) | Table or column |
 | [`ColumnHeaderStyle`](xref:WinUI.TableView.TableView.ColumnHeaderStyle) | [`TableViewColumnHeader`](xref:WinUI.TableView.TableViewColumnHeader) | Table |
-| `TableViewColumn.HeaderStyle` | [`TableViewColumnHeader`](xref:WinUI.TableView.TableViewColumnHeader) | Column |
-| `TableViewColumn.CellStyle` | [`TableViewCell`](xref:WinUI.TableView.TableViewCell) | Column |
-| `TableViewBoundColumn.ElementStyle` | Display element (e.g. `TextBlock`) | Column |
-| `TableViewBoundColumn.EditingElementStyle` | Editing element (e.g. `TextBox`) | Column |
+| [`TableViewColumn.HeaderStyle`](xref:WinUI.TableView.TableViewColumn.HeaderStyle) | [`TableViewColumnHeader`](xref:WinUI.TableView.TableViewColumnHeader) | Column |
+| [`TableViewColumn.CellStyle`](xref:WinUI.TableView.TableViewColumn.CellStyle) | [`TableViewCell`](xref:WinUI.TableView.TableViewCell) | Column |
+| [`TableViewBoundColumn.ElementStyle`](xref:WinUI.TableView.TableViewBoundColumn.ElementStyle) | Display element (e.g. `TextBlock`) | Column |
+| [`TableViewBoundColumn.EditingElementStyle`](xref:WinUI.TableView.TableViewBoundColumn.EditingElementStyle) | Editing element (e.g. `TextBox`) | Column |
 | [`AlternateRowBackground`](xref:WinUI.TableView.TableView.AlternateRowBackground) | Row background | Table |
 | [`AlternateRowForeground`](xref:WinUI.TableView.TableView.AlternateRowForeground) | Row foreground | Table |
 | [`GridLinesVisibility`](xref:WinUI.TableView.TableView.GridLinesVisibility) | Grid lines | Table |

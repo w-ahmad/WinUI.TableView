@@ -1,0 +1,281 @@
+### YamlMime:ManagedReference
+items:
+- uid: WinUI.TableView.TableViewCellSelectionChangedEventArgs
+  commentId: T:WinUI.TableView.TableViewCellSelectionChangedEventArgs
+  id: TableViewCellSelectionChangedEventArgs
+  parent: WinUI.TableView
+  children:
+  - WinUI.TableView.TableViewCellSelectionChangedEventArgs.#ctor(System.Collections.Generic.IList{WinUI.TableView.TableViewCellSlot},System.Collections.Generic.IList{WinUI.TableView.TableViewCellSlot})
+  - WinUI.TableView.TableViewCellSelectionChangedEventArgs.AddedCells
+  - WinUI.TableView.TableViewCellSelectionChangedEventArgs.RemovedCells
+  langs:
+  - csharp
+  - vb
+  name: TableViewCellSelectionChangedEventArgs
+  nameWithType: TableViewCellSelectionChangedEventArgs
+  fullName: WinUI.TableView.TableViewCellSelectionChangedEventArgs
+  type: Class
+  source:
+    id: TableViewCellSelectionChangedEventArgs
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewCellSelectionChangedEvenArgs.cs
+    startLine: 8
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Provides data for the cell selection changed event.
+  example: []
+  syntax:
+    content: 'public class TableViewCellSelectionChangedEventArgs : EventArgs'
+    content.vb: Public Class TableViewCellSelectionChangedEventArgs Inherits EventArgs
+  inheritance:
+  - System.Object
+  - System.EventArgs
+- uid: WinUI.TableView.TableViewCellSelectionChangedEventArgs.#ctor(System.Collections.Generic.IList{WinUI.TableView.TableViewCellSlot},System.Collections.Generic.IList{WinUI.TableView.TableViewCellSlot})
+  commentId: M:WinUI.TableView.TableViewCellSelectionChangedEventArgs.#ctor(System.Collections.Generic.IList{WinUI.TableView.TableViewCellSlot},System.Collections.Generic.IList{WinUI.TableView.TableViewCellSlot})
+  id: '#ctor(System.Collections.Generic.IList{WinUI.TableView.TableViewCellSlot},System.Collections.Generic.IList{WinUI.TableView.TableViewCellSlot})'
+  parent: WinUI.TableView.TableViewCellSelectionChangedEventArgs
+  langs:
+  - csharp
+  - vb
+  name: TableViewCellSelectionChangedEventArgs(IList<TableViewCellSlot>, IList<TableViewCellSlot>)
+  nameWithType: TableViewCellSelectionChangedEventArgs.TableViewCellSelectionChangedEventArgs(IList<TableViewCellSlot>, IList<TableViewCellSlot>)
+  fullName: WinUI.TableView.TableViewCellSelectionChangedEventArgs.TableViewCellSelectionChangedEventArgs(System.Collections.Generic.IList<WinUI.TableView.TableViewCellSlot>, System.Collections.Generic.IList<WinUI.TableView.TableViewCellSlot>)
+  type: Constructor
+  source:
+    id: .ctor
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewCellSelectionChangedEvenArgs.cs
+    startLine: 15
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Initializes a new instance of the TableViewCellSelectionChangedEventArgs class.
+  example: []
+  syntax:
+    content: public TableViewCellSelectionChangedEventArgs(IList<TableViewCellSlot> removedCells, IList<TableViewCellSlot> addedCells)
+    parameters:
+    - id: removedCells
+      type: System.Collections.Generic.IList{WinUI.TableView.TableViewCellSlot}
+      description: The list that contains the cells that were unselected.
+    - id: addedCells
+      type: System.Collections.Generic.IList{WinUI.TableView.TableViewCellSlot}
+      description: The list that contains the cells that were selected.
+    content.vb: Public Sub New(removedCells As IList(Of TableViewCellSlot), addedCells As IList(Of TableViewCellSlot))
+  overload: WinUI.TableView.TableViewCellSelectionChangedEventArgs.#ctor*
+  nameWithType.vb: TableViewCellSelectionChangedEventArgs.New(IList(Of TableViewCellSlot), IList(Of TableViewCellSlot))
+  fullName.vb: WinUI.TableView.TableViewCellSelectionChangedEventArgs.New(System.Collections.Generic.IList(Of WinUI.TableView.TableViewCellSlot), System.Collections.Generic.IList(Of WinUI.TableView.TableViewCellSlot))
+  name.vb: New(IList(Of TableViewCellSlot), IList(Of TableViewCellSlot))
+- uid: WinUI.TableView.TableViewCellSelectionChangedEventArgs.RemovedCells
+  commentId: P:WinUI.TableView.TableViewCellSelectionChangedEventArgs.RemovedCells
+  id: RemovedCells
+  parent: WinUI.TableView.TableViewCellSelectionChangedEventArgs
+  langs:
+  - csharp
+  - vb
+  name: RemovedCells
+  nameWithType: TableViewCellSelectionChangedEventArgs.RemovedCells
+  fullName: WinUI.TableView.TableViewCellSelectionChangedEventArgs.RemovedCells
+  type: Property
+  source:
+    id: RemovedCells
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewCellSelectionChangedEvenArgs.cs
+    startLine: 25
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Gets a list that contains the cells that were unselected.
+  example: []
+  syntax:
+    content: public IList<TableViewCellSlot> RemovedCells { get; }
+    parameters: []
+    return:
+      type: System.Collections.Generic.IList{WinUI.TableView.TableViewCellSlot}
+    content.vb: Public ReadOnly Property RemovedCells As IList(Of TableViewCellSlot)
+  overload: WinUI.TableView.TableViewCellSelectionChangedEventArgs.RemovedCells*
+- uid: WinUI.TableView.TableViewCellSelectionChangedEventArgs.AddedCells
+  commentId: P:WinUI.TableView.TableViewCellSelectionChangedEventArgs.AddedCells
+  id: AddedCells
+  parent: WinUI.TableView.TableViewCellSelectionChangedEventArgs
+  langs:
+  - csharp
+  - vb
+  name: AddedCells
+  nameWithType: TableViewCellSelectionChangedEventArgs.AddedCells
+  fullName: WinUI.TableView.TableViewCellSelectionChangedEventArgs.AddedCells
+  type: Property
+  source:
+    id: AddedCells
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewCellSelectionChangedEvenArgs.cs
+    startLine: 30
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Gets a list that contains the cells that were selected.
+  example: []
+  syntax:
+    content: public IList<TableViewCellSlot> AddedCells { get; }
+    parameters: []
+    return:
+      type: System.Collections.Generic.IList{WinUI.TableView.TableViewCellSlot}
+    content.vb: Public ReadOnly Property AddedCells As IList(Of TableViewCellSlot)
+  overload: WinUI.TableView.TableViewCellSelectionChangedEventArgs.AddedCells*
+references:
+- uid: WinUI.TableView
+  commentId: N:WinUI.TableView
+  href: WinUI.html
+  name: WinUI.TableView
+  nameWithType: WinUI.TableView
+  fullName: WinUI.TableView
+  spec.csharp:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+  spec.vb:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.EventArgs
+  commentId: T:System.EventArgs
+  parent: System
+  isExternal: true
+  name: EventArgs
+  nameWithType: EventArgs
+  fullName: System.EventArgs
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: WinUI.TableView.TableViewCellSelectionChangedEventArgs.#ctor*
+  commentId: Overload:WinUI.TableView.TableViewCellSelectionChangedEventArgs.#ctor
+  href: WinUI.TableView.TableViewCellSelectionChangedEventArgs.html#WinUI_TableView_TableViewCellSelectionChangedEventArgs__ctor_System_Collections_Generic_IList_WinUI_TableView_TableViewCellSlot__System_Collections_Generic_IList_WinUI_TableView_TableViewCellSlot__
+  name: TableViewCellSelectionChangedEventArgs
+  nameWithType: TableViewCellSelectionChangedEventArgs.TableViewCellSelectionChangedEventArgs
+  fullName: WinUI.TableView.TableViewCellSelectionChangedEventArgs.TableViewCellSelectionChangedEventArgs
+  nameWithType.vb: TableViewCellSelectionChangedEventArgs.New
+  fullName.vb: WinUI.TableView.TableViewCellSelectionChangedEventArgs.New
+  name.vb: New
+- uid: System.Collections.Generic.IList{WinUI.TableView.TableViewCellSlot}
+  commentId: T:System.Collections.Generic.IList{WinUI.TableView.TableViewCellSlot}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IList`1
+  href: WinUI.TableView.TableViewCellSlot.html
+  name: IList<TableViewCellSlot>
+  nameWithType: IList<TableViewCellSlot>
+  fullName: System.Collections.Generic.IList<WinUI.TableView.TableViewCellSlot>
+  nameWithType.vb: IList(Of TableViewCellSlot)
+  fullName.vb: System.Collections.Generic.IList(Of WinUI.TableView.TableViewCellSlot)
+  name.vb: IList(Of TableViewCellSlot)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+  - name: <
+  - uid: WinUI.TableView.TableViewCellSlot
+    name: TableViewCellSlot
+    href: WinUI.TableView.TableViewCellSlot.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: WinUI.TableView.TableViewCellSlot
+    name: TableViewCellSlot
+    href: WinUI.TableView.TableViewCellSlot.html
+  - name: )
+- uid: System.Collections.Generic.IList`1
+  commentId: T:System.Collections.Generic.IList`1
+  isExternal: true
+  name: IList<T>
+  nameWithType: IList<T>
+  fullName: System.Collections.Generic.IList<T>
+  nameWithType.vb: IList(Of T)
+  fullName.vb: System.Collections.Generic.IList(Of T)
+  name.vb: IList(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic
+  commentId: N:System.Collections.Generic
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Collections.Generic
+  nameWithType: System.Collections.Generic
+  fullName: System.Collections.Generic
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+- uid: WinUI.TableView.TableViewCellSelectionChangedEventArgs.RemovedCells*
+  commentId: Overload:WinUI.TableView.TableViewCellSelectionChangedEventArgs.RemovedCells
+  href: WinUI.TableView.TableViewCellSelectionChangedEventArgs.html#WinUI_TableView_TableViewCellSelectionChangedEventArgs_RemovedCells
+  name: RemovedCells
+  nameWithType: TableViewCellSelectionChangedEventArgs.RemovedCells
+  fullName: WinUI.TableView.TableViewCellSelectionChangedEventArgs.RemovedCells
+- uid: WinUI.TableView.TableViewCellSelectionChangedEventArgs.AddedCells*
+  commentId: Overload:WinUI.TableView.TableViewCellSelectionChangedEventArgs.AddedCells
+  href: WinUI.TableView.TableViewCellSelectionChangedEventArgs.html#WinUI_TableView_TableViewCellSelectionChangedEventArgs_AddedCells
+  name: AddedCells
+  nameWithType: TableViewCellSelectionChangedEventArgs.AddedCells
+  fullName: WinUI.TableView.TableViewCellSelectionChangedEventArgs.AddedCells

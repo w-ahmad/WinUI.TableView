@@ -62,10 +62,10 @@ tableView.BeginningEdit += (s, e) =>
 
 | Property | Description |
 |---|---|
-| `Cell` | The cell entering edit mode |
-| `DataItem` | The data object for the row |
-| `Column` | The column containing the cell |
-| `EditingArgs` | The original input event (double-tap, F2, etc.) |
+| [`Cell`](xref:WinUI.TableView.TableViewBeginningEditEventArgs.Cell) | The cell entering edit mode |
+| [`DataItem`](xref:WinUI.TableView.TableViewBeginningEditEventArgs.DataItem) | The data object for the row |
+| [`Column`](xref:WinUI.TableView.TableViewBeginningEditEventArgs.Column) | The column containing the cell |
+| [`EditingArgs`](xref:WinUI.TableView.TableViewBeginningEditEventArgs.EditingArgs) | The original input event (double-tap, F2, etc.) |
 | `Cancel` | Set `true` to block editing |
 
 ### PreparingCellForEdit
@@ -87,10 +87,10 @@ tableView.PreparingCellForEdit += (s, e) =>
 
 | Property | Description |
 |---|---|
-| `Cell` | The cell in edit mode |
-| `DataItem` | The data object for the row |
-| `Column` | The column containing the cell |
-| `EditingElement` | The editing control that was created |
+| [`Cell`](xref:WinUI.TableView.TableViewPreparingCellForEditEventArgs.Cell) | The cell in edit mode |
+| [`DataItem`](xref:WinUI.TableView.TableViewPreparingCellForEditEventArgs.DataItem) | The data object for the row |
+| [`Column`](xref:WinUI.TableView.TableViewPreparingCellForEditEventArgs.Column) | The column containing the cell |
+| [`EditingElement`](xref:WinUI.TableView.TableViewPreparingCellForEditEventArgs.EditingElement) | The editing control that was created |
 
 ### CellEditEnding
 
@@ -116,11 +116,11 @@ tableView.CellEditEnding += (s, e) =>
 
 | Property | Description |
 |---|---|
-| `Cell` | The cell in edit mode |
-| `DataItem` | The data object for the row |
-| `Column` | The column containing the cell |
-| `EditingElement` | The editing control |
-| `EditAction` | `Commit` or `Cancel` |
+| [`Cell`](xref:WinUI.TableView.TableViewCellEditEndingEventArgs.Cell) | The cell in edit mode |
+| [`DataItem`](xref:WinUI.TableView.TableViewCellEditEndingEventArgs.DataItem) | The data object for the row |
+| [`Column`](xref:WinUI.TableView.TableViewCellEditEndingEventArgs.Column) | The column containing the cell |
+| [`EditingElement`](xref:WinUI.TableView.TableViewCellEditEndingEventArgs.EditingElement) | The editing control |
+| [`EditAction`](xref:WinUI.TableView.TableViewCellEditEndingEventArgs.EditAction) | `Commit` or `Cancel` |
 | `Cancel` | Set `true` to stay in edit mode |
 
 ### CellEditEnded
@@ -143,7 +143,7 @@ tableView.CellEditEnded += (s, e) =>
 
 | Value | Description |
 |---|---|
-| `Commit` | The user confirmed the edit (Enter, Tab, or clicking away) |
+| [`Commit`](xref:WinUI.TableView.TableViewEditAction.Commit) | The user confirmed the edit (Enter, Tab, or clicking away) |
 | `Cancel` | The user cancelled (Escape) |
 
 ## IsReadOnlyChanged event

@@ -1,0 +1,156 @@
+### YamlMime:ManagedReference
+items:
+- uid: WinUI.TableView.TableViewSelectionUnit
+  commentId: T:WinUI.TableView.TableViewSelectionUnit
+  id: TableViewSelectionUnit
+  parent: WinUI.TableView
+  children:
+  - WinUI.TableView.TableViewSelectionUnit.Cell
+  - WinUI.TableView.TableViewSelectionUnit.CellOrRow
+  - WinUI.TableView.TableViewSelectionUnit.CellWithRow
+  - WinUI.TableView.TableViewSelectionUnit.Row
+  langs:
+  - csharp
+  - vb
+  name: TableViewSelectionUnit
+  nameWithType: TableViewSelectionUnit
+  fullName: WinUI.TableView.TableViewSelectionUnit
+  type: Enum
+  source:
+    id: TableViewSelectionUnit
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewSelectionUnit.cs
+    startLine: 5
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Specifies the selection unit for a TableView.
+  example: []
+  syntax:
+    content: public enum TableViewSelectionUnit
+    content.vb: Public Enum TableViewSelectionUnit
+- uid: WinUI.TableView.TableViewSelectionUnit.CellOrRow
+  commentId: F:WinUI.TableView.TableViewSelectionUnit.CellOrRow
+  id: CellOrRow
+  parent: WinUI.TableView.TableViewSelectionUnit
+  langs:
+  - csharp
+  - vb
+  name: CellOrRow
+  nameWithType: TableViewSelectionUnit.CellOrRow
+  fullName: WinUI.TableView.TableViewSelectionUnit.CellOrRow
+  type: Field
+  source:
+    id: CellOrRow
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewSelectionUnit.cs
+    startLine: 10
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Selection can be either a cell or a row, but selecting a cell does not select the owning row.
+  example: []
+  syntax:
+    content: CellOrRow = 0
+    return:
+      type: WinUI.TableView.TableViewSelectionUnit
+- uid: WinUI.TableView.TableViewSelectionUnit.CellWithRow
+  commentId: F:WinUI.TableView.TableViewSelectionUnit.CellWithRow
+  id: CellWithRow
+  parent: WinUI.TableView.TableViewSelectionUnit
+  langs:
+  - csharp
+  - vb
+  name: CellWithRow
+  nameWithType: TableViewSelectionUnit.CellWithRow
+  fullName: WinUI.TableView.TableViewSelectionUnit.CellWithRow
+  type: Field
+  source:
+    id: CellWithRow
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewSelectionUnit.cs
+    startLine: 15
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Selection can be either a cell or a row, but selecting a cell also selects the owning row.
+  example: []
+  syntax:
+    content: CellWithRow = 1
+    return:
+      type: WinUI.TableView.TableViewSelectionUnit
+- uid: WinUI.TableView.TableViewSelectionUnit.Cell
+  commentId: F:WinUI.TableView.TableViewSelectionUnit.Cell
+  id: Cell
+  parent: WinUI.TableView.TableViewSelectionUnit
+  langs:
+  - csharp
+  - vb
+  name: Cell
+  nameWithType: TableViewSelectionUnit.Cell
+  fullName: WinUI.TableView.TableViewSelectionUnit.Cell
+  type: Field
+  source:
+    id: Cell
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewSelectionUnit.cs
+    startLine: 20
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Selection is limited to cells.
+  example: []
+  syntax:
+    content: Cell = 2
+    return:
+      type: WinUI.TableView.TableViewSelectionUnit
+- uid: WinUI.TableView.TableViewSelectionUnit.Row
+  commentId: F:WinUI.TableView.TableViewSelectionUnit.Row
+  id: Row
+  parent: WinUI.TableView.TableViewSelectionUnit
+  langs:
+  - csharp
+  - vb
+  name: Row
+  nameWithType: TableViewSelectionUnit.Row
+  fullName: WinUI.TableView.TableViewSelectionUnit.Row
+  type: Field
+  source:
+    id: Row
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewSelectionUnit.cs
+    startLine: 25
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Selection is limited to rows.
+  example: []
+  syntax:
+    content: Row = 3
+    return:
+      type: WinUI.TableView.TableViewSelectionUnit
+references:
+- uid: WinUI.TableView
+  commentId: N:WinUI.TableView
+  href: WinUI.html
+  name: WinUI.TableView
+  nameWithType: WinUI.TableView
+  fullName: WinUI.TableView
+  spec.csharp:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+  spec.vb:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+- uid: WinUI.TableView.TableViewSelectionUnit
+  commentId: T:WinUI.TableView.TableViewSelectionUnit
+  parent: WinUI.TableView
+  href: WinUI.TableView.TableViewSelectionUnit.html
+  name: TableViewSelectionUnit
+  nameWithType: TableViewSelectionUnit
+  fullName: WinUI.TableView.TableViewSelectionUnit

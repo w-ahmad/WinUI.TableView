@@ -1,0 +1,156 @@
+### YamlMime:ManagedReference
+items:
+- uid: WinUI.TableView.TableViewGridLinesVisibility
+  commentId: T:WinUI.TableView.TableViewGridLinesVisibility
+  id: TableViewGridLinesVisibility
+  parent: WinUI.TableView
+  children:
+  - WinUI.TableView.TableViewGridLinesVisibility.All
+  - WinUI.TableView.TableViewGridLinesVisibility.Horizontal
+  - WinUI.TableView.TableViewGridLinesVisibility.None
+  - WinUI.TableView.TableViewGridLinesVisibility.Vertical
+  langs:
+  - csharp
+  - vb
+  name: TableViewGridLinesVisibility
+  nameWithType: TableViewGridLinesVisibility
+  fullName: WinUI.TableView.TableViewGridLinesVisibility
+  type: Enum
+  source:
+    id: TableViewGridLinesVisibility
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewGridLinesVisibility.cs
+    startLine: 5
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Specifies the visibility of grid lines in a TableView.
+  example: []
+  syntax:
+    content: public enum TableViewGridLinesVisibility
+    content.vb: Public Enum TableViewGridLinesVisibility
+- uid: WinUI.TableView.TableViewGridLinesVisibility.All
+  commentId: F:WinUI.TableView.TableViewGridLinesVisibility.All
+  id: All
+  parent: WinUI.TableView.TableViewGridLinesVisibility
+  langs:
+  - csharp
+  - vb
+  name: All
+  nameWithType: TableViewGridLinesVisibility.All
+  fullName: WinUI.TableView.TableViewGridLinesVisibility.All
+  type: Field
+  source:
+    id: All
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewGridLinesVisibility.cs
+    startLine: 10
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Both horizontal and vertical grid lines are visible.
+  example: []
+  syntax:
+    content: All = 0
+    return:
+      type: WinUI.TableView.TableViewGridLinesVisibility
+- uid: WinUI.TableView.TableViewGridLinesVisibility.Horizontal
+  commentId: F:WinUI.TableView.TableViewGridLinesVisibility.Horizontal
+  id: Horizontal
+  parent: WinUI.TableView.TableViewGridLinesVisibility
+  langs:
+  - csharp
+  - vb
+  name: Horizontal
+  nameWithType: TableViewGridLinesVisibility.Horizontal
+  fullName: WinUI.TableView.TableViewGridLinesVisibility.Horizontal
+  type: Field
+  source:
+    id: Horizontal
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewGridLinesVisibility.cs
+    startLine: 15
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Only horizontal grid lines are visible.
+  example: []
+  syntax:
+    content: Horizontal = 1
+    return:
+      type: WinUI.TableView.TableViewGridLinesVisibility
+- uid: WinUI.TableView.TableViewGridLinesVisibility.None
+  commentId: F:WinUI.TableView.TableViewGridLinesVisibility.None
+  id: None
+  parent: WinUI.TableView.TableViewGridLinesVisibility
+  langs:
+  - csharp
+  - vb
+  name: None
+  nameWithType: TableViewGridLinesVisibility.None
+  fullName: WinUI.TableView.TableViewGridLinesVisibility.None
+  type: Field
+  source:
+    id: None
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewGridLinesVisibility.cs
+    startLine: 20
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: No grid lines are visible.
+  example: []
+  syntax:
+    content: None = 2
+    return:
+      type: WinUI.TableView.TableViewGridLinesVisibility
+- uid: WinUI.TableView.TableViewGridLinesVisibility.Vertical
+  commentId: F:WinUI.TableView.TableViewGridLinesVisibility.Vertical
+  id: Vertical
+  parent: WinUI.TableView.TableViewGridLinesVisibility
+  langs:
+  - csharp
+  - vb
+  name: Vertical
+  nameWithType: TableViewGridLinesVisibility.Vertical
+  fullName: WinUI.TableView.TableViewGridLinesVisibility.Vertical
+  type: Field
+  source:
+    id: Vertical
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewGridLinesVisibility.cs
+    startLine: 25
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Only vertical grid lines are visible.
+  example: []
+  syntax:
+    content: Vertical = 3
+    return:
+      type: WinUI.TableView.TableViewGridLinesVisibility
+references:
+- uid: WinUI.TableView
+  commentId: N:WinUI.TableView
+  href: WinUI.html
+  name: WinUI.TableView
+  nameWithType: WinUI.TableView
+  fullName: WinUI.TableView
+  spec.csharp:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+  spec.vb:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+- uid: WinUI.TableView.TableViewGridLinesVisibility
+  commentId: T:WinUI.TableView.TableViewGridLinesVisibility
+  parent: WinUI.TableView
+  href: WinUI.TableView.TableViewGridLinesVisibility.html
+  name: TableViewGridLinesVisibility
+  nameWithType: TableViewGridLinesVisibility
+  fullName: WinUI.TableView.TableViewGridLinesVisibility

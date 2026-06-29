@@ -1,0 +1,791 @@
+### YamlMime:ManagedReference
+items:
+- uid: WinUI.TableView.TableViewColumnsCollection
+  commentId: T:WinUI.TableView.TableViewColumnsCollection
+  id: TableViewColumnsCollection
+  parent: WinUI.TableView
+  children:
+  - WinUI.TableView.TableViewColumnsCollection.#ctor(WinUI.TableView.TableView)
+  - WinUI.TableView.TableViewColumnsCollection.CollectionChanged
+  - WinUI.TableView.TableViewColumnsCollection.ColumnPropertyChanged
+  - WinUI.TableView.TableViewColumnsCollection.Move(System.Int32,System.Int32)
+  - WinUI.TableView.TableViewColumnsCollection.TableView
+  - WinUI.TableView.TableViewColumnsCollection.VisibleColumns
+  langs:
+  - csharp
+  - vb
+  name: TableViewColumnsCollection
+  nameWithType: TableViewColumnsCollection
+  fullName: WinUI.TableView.TableViewColumnsCollection
+  type: Class
+  source:
+    id: TableViewColumnsCollection
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\obj\Release\net8.0-windows10.0.19041.0\WinRT.SourceGenerator\Generator.WinRTAotSourceGenerator\WinUI.TableView.TableViewColumnsCollection.WinRTVtable.g.cs
+    startLine: 2
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Represents a collection of <xref href="WinUI.TableView.TableViewColumn" data-throw-if-not-resolved="false"></xref> objects used in a <xref href="WinUI.TableView.TableView" data-throw-if-not-resolved="false"></xref>.
+  remarks: >-
+    This collection provides functionality for managing columns in a <xref href="WinUI.TableView.TableView" data-throw-if-not-resolved="false"></xref>, including adding,
+        removing,  and tracking changes to column properties. It supports notifications for collection changes and column 
+        property changes, enabling dynamic updates to the <xref href="WinUI.TableView.TableView" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: >-
+      [WinRTRuntimeClassName("Windows.Foundation.Collections.IObservableVector`1<Microsoft.UI.Xaml.DependencyObject>")]
+
+      [WinRTExposedType(typeof(WinUI_TableView_TableViewColumnsCollectionWinRTTypeDetails))]
+
+      public class TableViewColumnsCollection : DependencyObjectCollection, IObservableVector<DependencyObject>, IWinRTObject, ITableViewColumnsCollection
+    content.vb: >-
+      <WinRTRuntimeClassName("Windows.Foundation.Collections.IObservableVector`1<Microsoft.UI.Xaml.DependencyObject>")>
+
+      <WinRTExposedType(GetType(WinUI_TableView_TableViewColumnsCollectionWinRTTypeDetails))>
+
+      Public Class TableViewColumnsCollection Inherits DependencyObjectCollection Implements IObservableVector(Of DependencyObject), IWinRTObject, ITableViewColumnsCollection
+  inheritance:
+  - System.Object
+  - Microsoft.UI.Xaml.DependencyObject
+  - Microsoft.UI.Xaml.DependencyObjectCollection
+  implements:
+  - Windows.Foundation.Collections.IObservableVector{Microsoft.UI.Xaml.DependencyObject}
+  - WinRT.IWinRTObject
+  - WinUI.TableView.ITableViewColumnsCollection
+  attributes:
+  - type: WinRT.WinRTRuntimeClassNameAttribute
+    ctor: WinRT.WinRTRuntimeClassNameAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: Windows.Foundation.Collections.IObservableVector`1<Microsoft.UI.Xaml.DependencyObject>
+- uid: WinUI.TableView.TableViewColumnsCollection.ColumnPropertyChanged
+  commentId: E:WinUI.TableView.TableViewColumnsCollection.ColumnPropertyChanged
+  id: ColumnPropertyChanged
+  parent: WinUI.TableView.TableViewColumnsCollection
+  langs:
+  - csharp
+  - vb
+  name: ColumnPropertyChanged
+  nameWithType: TableViewColumnsCollection.ColumnPropertyChanged
+  fullName: WinUI.TableView.TableViewColumnsCollection.ColumnPropertyChanged
+  type: Event
+  source:
+    id: ColumnPropertyChanged
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewColumnsCollection.cs
+    startLine: 21
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Occurs when a property of a column changes.
+  remarks: >-
+    This event is triggered to notify subscribers about changes to column properties, such as width, visibility, or other attributes.
+
+    Handlers can use the <xref href="WinUI.TableView.TableViewColumnPropertyChangedEventArgs" data-throw-if-not-resolved="false"></xref> parameter to access details about the specific property that changed.
+  example: []
+  syntax:
+    content: public event EventHandler<TableViewColumnPropertyChangedEventArgs>? ColumnPropertyChanged
+    return:
+      type: System.EventHandler{WinUI.TableView.TableViewColumnPropertyChangedEventArgs}
+    content.vb: Public Event ColumnPropertyChanged As EventHandler(Of TableViewColumnPropertyChangedEventArgs)
+  implements:
+  - WinUI.TableView.ITableViewColumnsCollection.ColumnPropertyChanged
+- uid: WinUI.TableView.TableViewColumnsCollection.CollectionChanged
+  commentId: E:WinUI.TableView.TableViewColumnsCollection.CollectionChanged
+  id: CollectionChanged
+  parent: WinUI.TableView.TableViewColumnsCollection
+  langs:
+  - csharp
+  - vb
+  name: CollectionChanged
+  nameWithType: TableViewColumnsCollection.CollectionChanged
+  fullName: WinUI.TableView.TableViewColumnsCollection.CollectionChanged
+  type: Event
+  source:
+    id: CollectionChanged
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewColumnsCollection.cs
+    startLine: 23
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Occurs when the collection changes.
+  example: []
+  syntax:
+    content: public event NotifyCollectionChangedEventHandler? CollectionChanged
+    return:
+      type: System.Collections.Specialized.NotifyCollectionChangedEventHandler
+    content.vb: Public Event CollectionChanged As NotifyCollectionChangedEventHandler
+- uid: WinUI.TableView.TableViewColumnsCollection.#ctor(WinUI.TableView.TableView)
+  commentId: M:WinUI.TableView.TableViewColumnsCollection.#ctor(WinUI.TableView.TableView)
+  id: '#ctor(WinUI.TableView.TableView)'
+  parent: WinUI.TableView.TableViewColumnsCollection
+  langs:
+  - csharp
+  - vb
+  name: TableViewColumnsCollection(TableView)
+  nameWithType: TableViewColumnsCollection.TableViewColumnsCollection(TableView)
+  fullName: WinUI.TableView.TableViewColumnsCollection.TableViewColumnsCollection(WinUI.TableView.TableView)
+  type: Constructor
+  source:
+    id: .ctor
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewColumnsCollection.cs
+    startLine: 31
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: The constructor for the <xref href="WinUI.TableView.TableViewColumnsCollection" data-throw-if-not-resolved="false"></xref> class.
+  example: []
+  syntax:
+    content: public TableViewColumnsCollection(TableView tableView)
+    parameters:
+    - id: tableView
+      type: WinUI.TableView.TableView
+      description: The <xref href="WinUI.TableView.TableView" data-throw-if-not-resolved="false"></xref> that owns this collection.
+    content.vb: Public Sub New(tableView As TableView)
+  overload: WinUI.TableView.TableViewColumnsCollection.#ctor*
+  nameWithType.vb: TableViewColumnsCollection.New(TableView)
+  fullName.vb: WinUI.TableView.TableViewColumnsCollection.New(WinUI.TableView.TableView)
+  name.vb: New(TableView)
+- uid: WinUI.TableView.TableViewColumnsCollection.TableView
+  commentId: P:WinUI.TableView.TableViewColumnsCollection.TableView
+  id: TableView
+  parent: WinUI.TableView.TableViewColumnsCollection
+  langs:
+  - csharp
+  - vb
+  name: TableView
+  nameWithType: TableViewColumnsCollection.TableView
+  fullName: WinUI.TableView.TableViewColumnsCollection.TableView
+  type: Property
+  source:
+    id: TableView
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewColumnsCollection.cs
+    startLine: 103
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Gets or sets the <xref href="WinUI.TableView.TableView" data-throw-if-not-resolved="false"></xref> associated with the collection.
+  remarks: This property allows access to the <xref href="WinUI.TableView.TableView" data-throw-if-not-resolved="false"></xref> that owns this collection of columns.
+  example: []
+  syntax:
+    content: public TableView? TableView { get; }
+    parameters: []
+    return:
+      type: WinUI.TableView.TableView
+    content.vb: Public ReadOnly Property TableView As TableView
+  overload: WinUI.TableView.TableViewColumnsCollection.TableView*
+  implements:
+  - WinUI.TableView.ITableViewColumnsCollection.TableView
+- uid: WinUI.TableView.TableViewColumnsCollection.VisibleColumns
+  commentId: P:WinUI.TableView.TableViewColumnsCollection.VisibleColumns
+  id: VisibleColumns
+  parent: WinUI.TableView.TableViewColumnsCollection
+  langs:
+  - csharp
+  - vb
+  name: VisibleColumns
+  nameWithType: TableViewColumnsCollection.VisibleColumns
+  fullName: WinUI.TableView.TableViewColumnsCollection.VisibleColumns
+  type: Property
+  source:
+    id: VisibleColumns
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewColumnsCollection.cs
+    startLine: 106
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Gets the list of visible <xref href="WinUI.TableView.TableViewColumn" data-throw-if-not-resolved="false"></xref>s.
+  remarks: >-
+    The result is a list of columns that are currently visible in the table view, meaning their <xref href="WinUI.TableView.TableViewColumn.Visibility" data-throw-if-not-resolved="false"></xref> is set to <xref href="Microsoft.UI.Xaml.Visibility.Visible" data-throw-if-not-resolved="false"></xref>.
+
+    The result is also ordered by the <xref href="WinUI.TableView.TableViewColumn.Order" data-throw-if-not-resolved="false"></xref> property, allowing for a consistent display order of the columns.
+  example: []
+  syntax:
+    content: public IList<TableViewColumn> VisibleColumns { get; }
+    parameters: []
+    return:
+      type: System.Collections.Generic.IList{WinUI.TableView.TableViewColumn}
+    content.vb: Public ReadOnly Property VisibleColumns As IList(Of TableViewColumn)
+  overload: WinUI.TableView.TableViewColumnsCollection.VisibleColumns*
+  implements:
+  - WinUI.TableView.ITableViewColumnsCollection.VisibleColumns
+- uid: WinUI.TableView.TableViewColumnsCollection.Move(System.Int32,System.Int32)
+  commentId: M:WinUI.TableView.TableViewColumnsCollection.Move(System.Int32,System.Int32)
+  id: Move(System.Int32,System.Int32)
+  parent: WinUI.TableView.TableViewColumnsCollection
+  langs:
+  - csharp
+  - vb
+  name: Move(int, int)
+  nameWithType: TableViewColumnsCollection.Move(int, int)
+  fullName: WinUI.TableView.TableViewColumnsCollection.Move(int, int)
+  type: Method
+  source:
+    id: Move
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewColumnsCollection.cs
+    startLine: 177
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Moves a column from one index to another within the collection.
+  example: []
+  syntax:
+    content: public void Move(int oldIndex, int newIndex)
+    parameters:
+    - id: oldIndex
+      type: System.Int32
+      description: The zero-based index of the column to move.
+    - id: newIndex
+      type: System.Int32
+      description: The zero-based index to move the column to.
+    content.vb: Public Sub Move(oldIndex As Integer, newIndex As Integer)
+  overload: WinUI.TableView.TableViewColumnsCollection.Move*
+  implements:
+  - WinUI.TableView.ITableViewColumnsCollection.Move(System.Int32,System.Int32)
+  nameWithType.vb: TableViewColumnsCollection.Move(Integer, Integer)
+  fullName.vb: WinUI.TableView.TableViewColumnsCollection.Move(Integer, Integer)
+  name.vb: Move(Integer, Integer)
+references:
+- uid: WinUI.TableView.TableViewColumn
+  commentId: T:WinUI.TableView.TableViewColumn
+  parent: WinUI.TableView
+  href: WinUI.TableView.TableViewColumn.html
+  name: TableViewColumn
+  nameWithType: TableViewColumn
+  fullName: WinUI.TableView.TableViewColumn
+- uid: WinUI.TableView.TableView
+  commentId: T:WinUI.TableView.TableView
+  parent: WinUI.TableView
+  href: WinUI.TableView.TableView.html
+  name: TableView
+  nameWithType: TableView
+  fullName: WinUI.TableView.TableView
+- uid: WinUI.TableView
+  commentId: N:WinUI.TableView
+  href: WinUI.html
+  name: WinUI.TableView
+  nameWithType: WinUI.TableView
+  fullName: WinUI.TableView
+  spec.csharp:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+  spec.vb:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: Microsoft.UI.Xaml.DependencyObject
+  commentId: T:Microsoft.UI.Xaml.DependencyObject
+  parent: Microsoft.UI.Xaml
+  isExternal: true
+  name: DependencyObject
+  nameWithType: DependencyObject
+  fullName: Microsoft.UI.Xaml.DependencyObject
+- uid: Microsoft.UI.Xaml.DependencyObjectCollection
+  commentId: T:Microsoft.UI.Xaml.DependencyObjectCollection
+  parent: Microsoft.UI.Xaml
+  isExternal: true
+  name: DependencyObjectCollection
+  nameWithType: DependencyObjectCollection
+  fullName: Microsoft.UI.Xaml.DependencyObjectCollection
+- uid: Windows.Foundation.Collections.IObservableVector{Microsoft.UI.Xaml.DependencyObject}
+  commentId: T:Windows.Foundation.Collections.IObservableVector{Microsoft.UI.Xaml.DependencyObject}
+  parent: Windows.Foundation.Collections
+  definition: Windows.Foundation.Collections.IObservableVector`1
+  href: https://learn.microsoft.com/uwp/api/windows.foundation.collections.iobservablevector-1
+  name: IObservableVector<DependencyObject>
+  nameWithType: IObservableVector<DependencyObject>
+  fullName: Windows.Foundation.Collections.IObservableVector<Microsoft.UI.Xaml.DependencyObject>
+  nameWithType.vb: IObservableVector(Of DependencyObject)
+  fullName.vb: Windows.Foundation.Collections.IObservableVector(Of Microsoft.UI.Xaml.DependencyObject)
+  name.vb: IObservableVector(Of DependencyObject)
+  spec.csharp:
+  - uid: Windows.Foundation.Collections.IObservableVector`1
+    name: IObservableVector
+    isExternal: true
+    href: https://learn.microsoft.com/uwp/api/windows.foundation.collections.iobservablevector-1
+  - name: <
+  - uid: Microsoft.UI.Xaml.DependencyObject
+    name: DependencyObject
+    isExternal: true
+  - name: '>'
+  spec.vb:
+  - uid: Windows.Foundation.Collections.IObservableVector`1
+    name: IObservableVector
+    isExternal: true
+    href: https://learn.microsoft.com/uwp/api/windows.foundation.collections.iobservablevector-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: Microsoft.UI.Xaml.DependencyObject
+    name: DependencyObject
+    isExternal: true
+  - name: )
+- uid: WinRT.IWinRTObject
+  commentId: T:WinRT.IWinRTObject
+  parent: WinRT
+  isExternal: true
+  name: IWinRTObject
+  nameWithType: IWinRTObject
+  fullName: WinRT.IWinRTObject
+- uid: WinUI.TableView.ITableViewColumnsCollection
+  commentId: T:WinUI.TableView.ITableViewColumnsCollection
+  parent: WinUI.TableView
+  href: WinUI.TableView.ITableViewColumnsCollection.html
+  name: ITableViewColumnsCollection
+  nameWithType: ITableViewColumnsCollection
+  fullName: WinUI.TableView.ITableViewColumnsCollection
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: Microsoft.UI.Xaml
+  commentId: N:Microsoft.UI.Xaml
+  isExternal: true
+  href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  name: Microsoft.UI.Xaml
+  nameWithType: Microsoft.UI.Xaml
+  fullName: Microsoft.UI.Xaml
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  - name: .
+  - uid: Microsoft.UI
+    name: UI
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui
+  - name: .
+  - uid: Microsoft.UI.Xaml
+    name: Xaml
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  - name: .
+  - uid: Microsoft.UI
+    name: UI
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui
+  - name: .
+  - uid: Microsoft.UI.Xaml
+    name: Xaml
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml
+- uid: Windows.Foundation.Collections.IObservableVector`1
+  commentId: T:Windows.Foundation.Collections.IObservableVector`1
+  isExternal: true
+  href: https://learn.microsoft.com/uwp/api/windows.foundation.collections.iobservablevector-1
+  name: IObservableVector<T>
+  nameWithType: IObservableVector<T>
+  fullName: Windows.Foundation.Collections.IObservableVector<T>
+  nameWithType.vb: IObservableVector(Of T)
+  fullName.vb: Windows.Foundation.Collections.IObservableVector(Of T)
+  name.vb: IObservableVector(Of T)
+  spec.csharp:
+  - uid: Windows.Foundation.Collections.IObservableVector`1
+    name: IObservableVector
+    isExternal: true
+    href: https://learn.microsoft.com/uwp/api/windows.foundation.collections.iobservablevector-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: Windows.Foundation.Collections.IObservableVector`1
+    name: IObservableVector
+    isExternal: true
+    href: https://learn.microsoft.com/uwp/api/windows.foundation.collections.iobservablevector-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: Windows.Foundation.Collections
+  commentId: N:Windows.Foundation.Collections
+  isExternal: true
+  href: https://learn.microsoft.com/uwp/api/windows
+  name: Windows.Foundation.Collections
+  nameWithType: Windows.Foundation.Collections
+  fullName: Windows.Foundation.Collections
+  spec.csharp:
+  - uid: Windows
+    name: Windows
+    isExternal: true
+    href: https://learn.microsoft.com/uwp/api/windows
+  - name: .
+  - uid: Windows.Foundation
+    name: Foundation
+    isExternal: true
+    href: https://learn.microsoft.com/uwp/api/windows.foundation
+  - name: .
+  - uid: Windows.Foundation.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/uwp/api/windows.foundation.collections
+  spec.vb:
+  - uid: Windows
+    name: Windows
+    isExternal: true
+    href: https://learn.microsoft.com/uwp/api/windows
+  - name: .
+  - uid: Windows.Foundation
+    name: Foundation
+    isExternal: true
+    href: https://learn.microsoft.com/uwp/api/windows.foundation
+  - name: .
+  - uid: Windows.Foundation.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/uwp/api/windows.foundation.collections
+- uid: WinRT
+  commentId: N:WinRT
+  isExternal: true
+  name: WinRT
+  nameWithType: WinRT
+  fullName: WinRT
+- uid: WinUI.TableView.TableViewColumnPropertyChangedEventArgs
+  commentId: T:WinUI.TableView.TableViewColumnPropertyChangedEventArgs
+  href: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.html
+  name: TableViewColumnPropertyChangedEventArgs
+  nameWithType: TableViewColumnPropertyChangedEventArgs
+  fullName: WinUI.TableView.TableViewColumnPropertyChangedEventArgs
+- uid: WinUI.TableView.ITableViewColumnsCollection.ColumnPropertyChanged
+  commentId: E:WinUI.TableView.ITableViewColumnsCollection.ColumnPropertyChanged
+  parent: WinUI.TableView.ITableViewColumnsCollection
+  href: WinUI.TableView.ITableViewColumnsCollection.html#WinUI_TableView_ITableViewColumnsCollection_ColumnPropertyChanged
+  name: ColumnPropertyChanged
+  nameWithType: ITableViewColumnsCollection.ColumnPropertyChanged
+  fullName: WinUI.TableView.ITableViewColumnsCollection.ColumnPropertyChanged
+- uid: System.EventHandler{WinUI.TableView.TableViewColumnPropertyChangedEventArgs}
+  commentId: T:System.EventHandler{WinUI.TableView.TableViewColumnPropertyChangedEventArgs}
+  parent: System
+  definition: System.EventHandler`1
+  href: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.html
+  name: EventHandler<TableViewColumnPropertyChangedEventArgs>
+  nameWithType: EventHandler<TableViewColumnPropertyChangedEventArgs>
+  fullName: System.EventHandler<WinUI.TableView.TableViewColumnPropertyChangedEventArgs>
+  nameWithType.vb: EventHandler(Of TableViewColumnPropertyChangedEventArgs)
+  fullName.vb: System.EventHandler(Of WinUI.TableView.TableViewColumnPropertyChangedEventArgs)
+  name.vb: EventHandler(Of TableViewColumnPropertyChangedEventArgs)
+  spec.csharp:
+  - uid: System.EventHandler`1
+    name: EventHandler
+    isExternal: true
+  - name: <
+  - uid: WinUI.TableView.TableViewColumnPropertyChangedEventArgs
+    name: TableViewColumnPropertyChangedEventArgs
+    href: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.html
+  - name: '>'
+  spec.vb:
+  - uid: System.EventHandler`1
+    name: EventHandler
+    isExternal: true
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: WinUI.TableView.TableViewColumnPropertyChangedEventArgs
+    name: TableViewColumnPropertyChangedEventArgs
+    href: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.html
+  - name: )
+- uid: System.EventHandler`1
+  commentId: T:System.EventHandler`1
+  isExternal: true
+  name: EventHandler<TEventArgs>
+  nameWithType: EventHandler<TEventArgs>
+  fullName: System.EventHandler<TEventArgs>
+  nameWithType.vb: EventHandler(Of TEventArgs)
+  fullName.vb: System.EventHandler(Of TEventArgs)
+  name.vb: EventHandler(Of TEventArgs)
+  spec.csharp:
+  - uid: System.EventHandler`1
+    name: EventHandler
+    isExternal: true
+  - name: <
+  - name: TEventArgs
+  - name: '>'
+  spec.vb:
+  - uid: System.EventHandler`1
+    name: EventHandler
+    isExternal: true
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TEventArgs
+  - name: )
+- uid: System.Collections.Specialized.NotifyCollectionChangedEventHandler
+  commentId: T:System.Collections.Specialized.NotifyCollectionChangedEventHandler
+  parent: System.Collections.Specialized
+  isExternal: true
+  name: NotifyCollectionChangedEventHandler
+  nameWithType: NotifyCollectionChangedEventHandler
+  fullName: System.Collections.Specialized.NotifyCollectionChangedEventHandler
+- uid: System.Collections.Specialized
+  commentId: N:System.Collections.Specialized
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Collections.Specialized
+  nameWithType: System.Collections.Specialized
+  fullName: System.Collections.Specialized
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Specialized
+    name: Specialized
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.specialized
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Specialized
+    name: Specialized
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.specialized
+- uid: WinUI.TableView.TableViewColumnsCollection
+  commentId: T:WinUI.TableView.TableViewColumnsCollection
+  href: WinUI.TableView.TableViewColumnsCollection.html
+  name: TableViewColumnsCollection
+  nameWithType: TableViewColumnsCollection
+  fullName: WinUI.TableView.TableViewColumnsCollection
+- uid: WinUI.TableView.TableViewColumnsCollection.#ctor*
+  commentId: Overload:WinUI.TableView.TableViewColumnsCollection.#ctor
+  href: WinUI.TableView.TableViewColumnsCollection.html#WinUI_TableView_TableViewColumnsCollection__ctor_WinUI_TableView_TableView_
+  name: TableViewColumnsCollection
+  nameWithType: TableViewColumnsCollection.TableViewColumnsCollection
+  fullName: WinUI.TableView.TableViewColumnsCollection.TableViewColumnsCollection
+  nameWithType.vb: TableViewColumnsCollection.New
+  fullName.vb: WinUI.TableView.TableViewColumnsCollection.New
+  name.vb: New
+- uid: WinUI.TableView.TableViewColumnsCollection.TableView*
+  commentId: Overload:WinUI.TableView.TableViewColumnsCollection.TableView
+  href: WinUI.TableView.TableViewColumnsCollection.html#WinUI_TableView_TableViewColumnsCollection_TableView
+  name: TableView
+  nameWithType: TableViewColumnsCollection.TableView
+  fullName: WinUI.TableView.TableViewColumnsCollection.TableView
+- uid: WinUI.TableView.ITableViewColumnsCollection.TableView
+  commentId: P:WinUI.TableView.ITableViewColumnsCollection.TableView
+  parent: WinUI.TableView.ITableViewColumnsCollection
+  href: WinUI.TableView.ITableViewColumnsCollection.html#WinUI_TableView_ITableViewColumnsCollection_TableView
+  name: TableView
+  nameWithType: ITableViewColumnsCollection.TableView
+  fullName: WinUI.TableView.ITableViewColumnsCollection.TableView
+- uid: WinUI.TableView.TableViewColumn.Visibility
+  commentId: P:WinUI.TableView.TableViewColumn.Visibility
+  parent: WinUI.TableView.TableViewColumn
+  href: WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_Visibility
+  name: Visibility
+  nameWithType: TableViewColumn.Visibility
+  fullName: WinUI.TableView.TableViewColumn.Visibility
+- uid: Microsoft.UI.Xaml.Visibility.Visible
+  commentId: F:Microsoft.UI.Xaml.Visibility.Visible
+  isExternal: true
+  name: Visible
+  nameWithType: Visibility.Visible
+  fullName: Microsoft.UI.Xaml.Visibility.Visible
+- uid: WinUI.TableView.TableViewColumn.Order
+  commentId: P:WinUI.TableView.TableViewColumn.Order
+  parent: WinUI.TableView.TableViewColumn
+  href: WinUI.TableView.TableViewColumn.html#WinUI_TableView_TableViewColumn_Order
+  name: Order
+  nameWithType: TableViewColumn.Order
+  fullName: WinUI.TableView.TableViewColumn.Order
+- uid: WinUI.TableView.TableViewColumnsCollection.VisibleColumns*
+  commentId: Overload:WinUI.TableView.TableViewColumnsCollection.VisibleColumns
+  href: WinUI.TableView.TableViewColumnsCollection.html#WinUI_TableView_TableViewColumnsCollection_VisibleColumns
+  name: VisibleColumns
+  nameWithType: TableViewColumnsCollection.VisibleColumns
+  fullName: WinUI.TableView.TableViewColumnsCollection.VisibleColumns
+- uid: WinUI.TableView.ITableViewColumnsCollection.VisibleColumns
+  commentId: P:WinUI.TableView.ITableViewColumnsCollection.VisibleColumns
+  parent: WinUI.TableView.ITableViewColumnsCollection
+  href: WinUI.TableView.ITableViewColumnsCollection.html#WinUI_TableView_ITableViewColumnsCollection_VisibleColumns
+  name: VisibleColumns
+  nameWithType: ITableViewColumnsCollection.VisibleColumns
+  fullName: WinUI.TableView.ITableViewColumnsCollection.VisibleColumns
+- uid: System.Collections.Generic.IList{WinUI.TableView.TableViewColumn}
+  commentId: T:System.Collections.Generic.IList{WinUI.TableView.TableViewColumn}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IList`1
+  href: WinUI.TableView.TableViewColumn.html
+  name: IList<TableViewColumn>
+  nameWithType: IList<TableViewColumn>
+  fullName: System.Collections.Generic.IList<WinUI.TableView.TableViewColumn>
+  nameWithType.vb: IList(Of TableViewColumn)
+  fullName.vb: System.Collections.Generic.IList(Of WinUI.TableView.TableViewColumn)
+  name.vb: IList(Of TableViewColumn)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+  - name: <
+  - uid: WinUI.TableView.TableViewColumn
+    name: TableViewColumn
+    href: WinUI.TableView.TableViewColumn.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: WinUI.TableView.TableViewColumn
+    name: TableViewColumn
+    href: WinUI.TableView.TableViewColumn.html
+  - name: )
+- uid: System.Collections.Generic.IList`1
+  commentId: T:System.Collections.Generic.IList`1
+  isExternal: true
+  name: IList<T>
+  nameWithType: IList<T>
+  fullName: System.Collections.Generic.IList<T>
+  nameWithType.vb: IList(Of T)
+  fullName.vb: System.Collections.Generic.IList(Of T)
+  name.vb: IList(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic
+  commentId: N:System.Collections.Generic
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Collections.Generic
+  nameWithType: System.Collections.Generic
+  fullName: System.Collections.Generic
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+- uid: WinUI.TableView.TableViewColumnsCollection.Move*
+  commentId: Overload:WinUI.TableView.TableViewColumnsCollection.Move
+  href: WinUI.TableView.TableViewColumnsCollection.html#WinUI_TableView_TableViewColumnsCollection_Move_System_Int32_System_Int32_
+  name: Move
+  nameWithType: TableViewColumnsCollection.Move
+  fullName: WinUI.TableView.TableViewColumnsCollection.Move
+- uid: WinUI.TableView.ITableViewColumnsCollection.Move(System.Int32,System.Int32)
+  commentId: M:WinUI.TableView.ITableViewColumnsCollection.Move(System.Int32,System.Int32)
+  parent: WinUI.TableView.ITableViewColumnsCollection
+  isExternal: true
+  href: WinUI.TableView.ITableViewColumnsCollection.html#WinUI_TableView_ITableViewColumnsCollection_Move_System_Int32_System_Int32_
+  name: Move(int, int)
+  nameWithType: ITableViewColumnsCollection.Move(int, int)
+  fullName: WinUI.TableView.ITableViewColumnsCollection.Move(int, int)
+  nameWithType.vb: ITableViewColumnsCollection.Move(Integer, Integer)
+  fullName.vb: WinUI.TableView.ITableViewColumnsCollection.Move(Integer, Integer)
+  name.vb: Move(Integer, Integer)
+  spec.csharp:
+  - uid: WinUI.TableView.ITableViewColumnsCollection.Move(System.Int32,System.Int32)
+    name: Move
+    href: WinUI.TableView.ITableViewColumnsCollection.html#WinUI_TableView_ITableViewColumnsCollection_Move_System_Int32_System_Int32_
+  - name: (
+  - uid: System.Int32
+    name: int
+    isExternal: true
+  - name: ','
+  - name: " "
+  - uid: System.Int32
+    name: int
+    isExternal: true
+  - name: )
+  spec.vb:
+  - uid: WinUI.TableView.ITableViewColumnsCollection.Move(System.Int32,System.Int32)
+    name: Move
+    href: WinUI.TableView.ITableViewColumnsCollection.html#WinUI_TableView_ITableViewColumnsCollection_Move_System_Int32_System_Int32_
+  - name: (
+  - uid: System.Int32
+    name: Integer
+    isExternal: true
+  - name: ','
+  - name: " "
+  - uid: System.Int32
+    name: Integer
+    isExternal: true
+  - name: )
+- uid: System.Int32
+  commentId: T:System.Int32
+  parent: System
+  isExternal: true
+  name: int
+  nameWithType: int
+  fullName: int
+  nameWithType.vb: Integer
+  fullName.vb: Integer
+  name.vb: Integer

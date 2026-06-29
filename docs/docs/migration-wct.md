@@ -1,6 +1,6 @@
 ﻿# Migrating from WCT DataGrid
 
-The Windows Community Toolkit (WCT) DataGrid (`CommunityToolkit.WinUI.UI.Controls.DataGrid`) was available for UWP and early Uno Platform apps but is now archived and no longer maintained. WinUI.TableView is a community-maintained replacement that targets WinUI 3 and the Uno Platform.
+The Windows Community Toolkit (WCT) DataGrid (`CommunityToolkit.WinUI.UI.Controls.DataGrid`) was available for UWP and early WinUI apps but is now archived and no longer maintained. WinUI.TableView is a community-maintained replacement and recommended alternative that targets WinUI and the Uno Platform.
 
 This guide helps developers moving from the WCT DataGrid to WinUI.TableView.
 
@@ -129,9 +129,6 @@ WCT DataGrid does not support cell selection — only row selection. WinUI.Table
 | WCT DataGrid feature | Status in WinUI.TableView |
 |---|---|
 | Row grouping | ❌ Not supported |
-| Add new row | ❌ Not supported |
-| Delete row | ❌ Not supported — implement via context flyout |
-| Row resize | ❌ Not supported |
 | Accessible / Narrator support | ❌ Not verified in WinUI.TableView |
 
 ## References

@@ -1,7 +1,5 @@
 - name: Introduction
   href: ../index.md
-- name: Feature Index
-  href: feature-index.md
 - name: Getting Started
   items:
   - name: Installation and Quick Start

@@ -1,0 +1,363 @@
+### YamlMime:ManagedReference
+items:
+- uid: WinUI.TableView.TableViewBeginningEditEventArgs
+  commentId: T:WinUI.TableView.TableViewBeginningEditEventArgs
+  id: TableViewBeginningEditEventArgs
+  parent: WinUI.TableView
+  children:
+  - WinUI.TableView.TableViewBeginningEditEventArgs.#ctor(WinUI.TableView.TableViewCell,System.Object,WinUI.TableView.TableViewColumn,Microsoft.UI.Xaml.RoutedEventArgs)
+  - WinUI.TableView.TableViewBeginningEditEventArgs.Cell
+  - WinUI.TableView.TableViewBeginningEditEventArgs.Column
+  - WinUI.TableView.TableViewBeginningEditEventArgs.DataItem
+  - WinUI.TableView.TableViewBeginningEditEventArgs.EditingArgs
+  langs:
+  - csharp
+  - vb
+  name: TableViewBeginningEditEventArgs
+  nameWithType: TableViewBeginningEditEventArgs
+  fullName: WinUI.TableView.TableViewBeginningEditEventArgs
+  type: Class
+  source:
+    id: TableViewBeginningEditEventArgs
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewBeginningEditEventArgs.cs
+    startLine: 15
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Provides data for the <xref href="WinUI.TableView.TableView.BeginningEdit" data-throw-if-not-resolved="false"></xref> event.
+  remarks: Initializes a new instance of the TableViewBeginningEditEventArgs class.
+  example: []
+  syntax:
+    content: 'public class TableViewBeginningEditEventArgs : CancelEventArgs'
+    content.vb: Public Class TableViewBeginningEditEventArgs Inherits CancelEventArgs
+  inheritance:
+  - System.Object
+  - System.EventArgs
+  - System.ComponentModel.CancelEventArgs
+- uid: WinUI.TableView.TableViewBeginningEditEventArgs.#ctor(WinUI.TableView.TableViewCell,System.Object,WinUI.TableView.TableViewColumn,Microsoft.UI.Xaml.RoutedEventArgs)
+  commentId: M:WinUI.TableView.TableViewBeginningEditEventArgs.#ctor(WinUI.TableView.TableViewCell,System.Object,WinUI.TableView.TableViewColumn,Microsoft.UI.Xaml.RoutedEventArgs)
+  id: '#ctor(WinUI.TableView.TableViewCell,System.Object,WinUI.TableView.TableViewColumn,Microsoft.UI.Xaml.RoutedEventArgs)'
+  parent: WinUI.TableView.TableViewBeginningEditEventArgs
+  langs:
+  - csharp
+  - vb
+  name: TableViewBeginningEditEventArgs(TableViewCell, object?, TableViewColumn, RoutedEventArgs)
+  nameWithType: TableViewBeginningEditEventArgs.TableViewBeginningEditEventArgs(TableViewCell, object?, TableViewColumn, RoutedEventArgs)
+  fullName: WinUI.TableView.TableViewBeginningEditEventArgs.TableViewBeginningEditEventArgs(WinUI.TableView.TableViewCell, object?, WinUI.TableView.TableViewColumn, Microsoft.UI.Xaml.RoutedEventArgs)
+  type: Constructor
+  source:
+    id: .ctor
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewBeginningEditEventArgs.cs
+    startLine: 15
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Provides data for the <xref href="WinUI.TableView.TableView.BeginningEdit" data-throw-if-not-resolved="false"></xref> event.
+  remarks: Initializes a new instance of the TableViewBeginningEditEventArgs class.
+  example: []
+  syntax:
+    content: public TableViewBeginningEditEventArgs(TableViewCell cell, object? dataItem, TableViewColumn column, RoutedEventArgs editingArgs)
+    parameters:
+    - id: cell
+      type: WinUI.TableView.TableViewCell
+      description: The cell being edited.
+    - id: dataItem
+      type: System.Object
+      description: The data item associated with the cell.
+    - id: column
+      type: WinUI.TableView.TableViewColumn
+      description: The column containing the cell.
+    - id: editingArgs
+      type: Microsoft.UI.Xaml.RoutedEventArgs
+      description: The event args for the editing event.
+    content.vb: Public Sub New(cell As TableViewCell, dataItem As Object, column As TableViewColumn, editingArgs As RoutedEventArgs)
+  overload: WinUI.TableView.TableViewBeginningEditEventArgs.#ctor*
+  nameWithType.vb: TableViewBeginningEditEventArgs.New(TableViewCell, Object, TableViewColumn, RoutedEventArgs)
+  fullName.vb: WinUI.TableView.TableViewBeginningEditEventArgs.New(WinUI.TableView.TableViewCell, Object, WinUI.TableView.TableViewColumn, Microsoft.UI.Xaml.RoutedEventArgs)
+  name.vb: New(TableViewCell, Object, TableViewColumn, RoutedEventArgs)
+- uid: WinUI.TableView.TableViewBeginningEditEventArgs.Cell
+  commentId: P:WinUI.TableView.TableViewBeginningEditEventArgs.Cell
+  id: Cell
+  parent: WinUI.TableView.TableViewBeginningEditEventArgs
+  langs:
+  - csharp
+  - vb
+  name: Cell
+  nameWithType: TableViewBeginningEditEventArgs.Cell
+  fullName: WinUI.TableView.TableViewBeginningEditEventArgs.Cell
+  type: Property
+  source:
+    id: Cell
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewBeginningEditEventArgs.cs
+    startLine: 24
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Gets the cell that is entering edit mode.
+  example: []
+  syntax:
+    content: public TableViewCell Cell { get; }
+    parameters: []
+    return:
+      type: WinUI.TableView.TableViewCell
+    content.vb: Public ReadOnly Property Cell As TableViewCell
+  overload: WinUI.TableView.TableViewBeginningEditEventArgs.Cell*
+- uid: WinUI.TableView.TableViewBeginningEditEventArgs.DataItem
+  commentId: P:WinUI.TableView.TableViewBeginningEditEventArgs.DataItem
+  id: DataItem
+  parent: WinUI.TableView.TableViewBeginningEditEventArgs
+  langs:
+  - csharp
+  - vb
+  name: DataItem
+  nameWithType: TableViewBeginningEditEventArgs.DataItem
+  fullName: WinUI.TableView.TableViewBeginningEditEventArgs.DataItem
+  type: Property
+  source:
+    id: DataItem
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewBeginningEditEventArgs.cs
+    startLine: 29
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Gets the data item associated with the cell being edited.
+  example: []
+  syntax:
+    content: public object? DataItem { get; }
+    parameters: []
+    return:
+      type: System.Object
+    content.vb: Public ReadOnly Property DataItem As Object
+  overload: WinUI.TableView.TableViewBeginningEditEventArgs.DataItem*
+- uid: WinUI.TableView.TableViewBeginningEditEventArgs.Column
+  commentId: P:WinUI.TableView.TableViewBeginningEditEventArgs.Column
+  id: Column
+  parent: WinUI.TableView.TableViewBeginningEditEventArgs
+  langs:
+  - csharp
+  - vb
+  name: Column
+  nameWithType: TableViewBeginningEditEventArgs.Column
+  fullName: WinUI.TableView.TableViewBeginningEditEventArgs.Column
+  type: Property
+  source:
+    id: Column
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewBeginningEditEventArgs.cs
+    startLine: 34
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Gets the column that contains the cell being edited, if available.
+  example: []
+  syntax:
+    content: public TableViewColumn Column { get; }
+    parameters: []
+    return:
+      type: WinUI.TableView.TableViewColumn
+    content.vb: Public ReadOnly Property Column As TableViewColumn
+  overload: WinUI.TableView.TableViewBeginningEditEventArgs.Column*
+- uid: WinUI.TableView.TableViewBeginningEditEventArgs.EditingArgs
+  commentId: P:WinUI.TableView.TableViewBeginningEditEventArgs.EditingArgs
+  id: EditingArgs
+  parent: WinUI.TableView.TableViewBeginningEditEventArgs
+  langs:
+  - csharp
+  - vb
+  name: EditingArgs
+  nameWithType: TableViewBeginningEditEventArgs.EditingArgs
+  fullName: WinUI.TableView.TableViewBeginningEditEventArgs.EditingArgs
+  type: Property
+  source:
+    id: EditingArgs
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewBeginningEditEventArgs.cs
+    startLine: 39
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Gets the input event args that triggered the edit (e.g. double-tap).
+  example: []
+  syntax:
+    content: public RoutedEventArgs EditingArgs { get; }
+    parameters: []
+    return:
+      type: Microsoft.UI.Xaml.RoutedEventArgs
+    content.vb: Public ReadOnly Property EditingArgs As RoutedEventArgs
+  overload: WinUI.TableView.TableViewBeginningEditEventArgs.EditingArgs*
+references:
+- uid: WinUI.TableView.TableView.BeginningEdit
+  commentId: E:WinUI.TableView.TableView.BeginningEdit
+  href: WinUI.TableView.TableView.html#WinUI_TableView_TableView_BeginningEdit
+  name: BeginningEdit
+  nameWithType: TableView.BeginningEdit
+  fullName: WinUI.TableView.TableView.BeginningEdit
+- uid: WinUI.TableView
+  commentId: N:WinUI.TableView
+  href: WinUI.html
+  name: WinUI.TableView
+  nameWithType: WinUI.TableView
+  fullName: WinUI.TableView
+  spec.csharp:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+  spec.vb:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.EventArgs
+  commentId: T:System.EventArgs
+  parent: System
+  isExternal: true
+  name: EventArgs
+  nameWithType: EventArgs
+  fullName: System.EventArgs
+- uid: System.ComponentModel.CancelEventArgs
+  commentId: T:System.ComponentModel.CancelEventArgs
+  parent: System.ComponentModel
+  isExternal: true
+  name: CancelEventArgs
+  nameWithType: CancelEventArgs
+  fullName: System.ComponentModel.CancelEventArgs
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: System.ComponentModel
+  commentId: N:System.ComponentModel
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.ComponentModel
+  nameWithType: System.ComponentModel
+  fullName: System.ComponentModel
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.ComponentModel
+    name: ComponentModel
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.componentmodel
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.ComponentModel
+    name: ComponentModel
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.componentmodel
+- uid: WinUI.TableView.TableViewBeginningEditEventArgs.#ctor*
+  commentId: Overload:WinUI.TableView.TableViewBeginningEditEventArgs.#ctor
+  href: WinUI.TableView.TableViewBeginningEditEventArgs.html#WinUI_TableView_TableViewBeginningEditEventArgs__ctor_WinUI_TableView_TableViewCell_System_Object_WinUI_TableView_TableViewColumn_Microsoft_UI_Xaml_RoutedEventArgs_
+  name: TableViewBeginningEditEventArgs
+  nameWithType: TableViewBeginningEditEventArgs.TableViewBeginningEditEventArgs
+  fullName: WinUI.TableView.TableViewBeginningEditEventArgs.TableViewBeginningEditEventArgs
+  nameWithType.vb: TableViewBeginningEditEventArgs.New
+  fullName.vb: WinUI.TableView.TableViewBeginningEditEventArgs.New
+  name.vb: New
+- uid: WinUI.TableView.TableViewCell
+  commentId: T:WinUI.TableView.TableViewCell
+  parent: WinUI.TableView
+  href: WinUI.TableView.TableViewCell.html
+  name: TableViewCell
+  nameWithType: TableViewCell
+  fullName: WinUI.TableView.TableViewCell
+- uid: WinUI.TableView.TableViewColumn
+  commentId: T:WinUI.TableView.TableViewColumn
+  parent: WinUI.TableView
+  href: WinUI.TableView.TableViewColumn.html
+  name: TableViewColumn
+  nameWithType: TableViewColumn
+  fullName: WinUI.TableView.TableViewColumn
+- uid: Microsoft.UI.Xaml.RoutedEventArgs
+  commentId: T:Microsoft.UI.Xaml.RoutedEventArgs
+  parent: Microsoft.UI.Xaml
+  isExternal: true
+  name: RoutedEventArgs
+  nameWithType: RoutedEventArgs
+  fullName: Microsoft.UI.Xaml.RoutedEventArgs
+- uid: Microsoft.UI.Xaml
+  commentId: N:Microsoft.UI.Xaml
+  isExternal: true
+  href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  name: Microsoft.UI.Xaml
+  nameWithType: Microsoft.UI.Xaml
+  fullName: Microsoft.UI.Xaml
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  - name: .
+  - uid: Microsoft.UI
+    name: UI
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui
+  - name: .
+  - uid: Microsoft.UI.Xaml
+    name: Xaml
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  - name: .
+  - uid: Microsoft.UI
+    name: UI
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui
+  - name: .
+  - uid: Microsoft.UI.Xaml
+    name: Xaml
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml
+- uid: WinUI.TableView.TableViewBeginningEditEventArgs.Cell*
+  commentId: Overload:WinUI.TableView.TableViewBeginningEditEventArgs.Cell
+  href: WinUI.TableView.TableViewBeginningEditEventArgs.html#WinUI_TableView_TableViewBeginningEditEventArgs_Cell
+  name: Cell
+  nameWithType: TableViewBeginningEditEventArgs.Cell
+  fullName: WinUI.TableView.TableViewBeginningEditEventArgs.Cell
+- uid: WinUI.TableView.TableViewBeginningEditEventArgs.DataItem*
+  commentId: Overload:WinUI.TableView.TableViewBeginningEditEventArgs.DataItem
+  href: WinUI.TableView.TableViewBeginningEditEventArgs.html#WinUI_TableView_TableViewBeginningEditEventArgs_DataItem
+  name: DataItem
+  nameWithType: TableViewBeginningEditEventArgs.DataItem
+  fullName: WinUI.TableView.TableViewBeginningEditEventArgs.DataItem
+- uid: WinUI.TableView.TableViewBeginningEditEventArgs.Column*
+  commentId: Overload:WinUI.TableView.TableViewBeginningEditEventArgs.Column
+  href: WinUI.TableView.TableViewBeginningEditEventArgs.html#WinUI_TableView_TableViewBeginningEditEventArgs_Column
+  name: Column
+  nameWithType: TableViewBeginningEditEventArgs.Column
+  fullName: WinUI.TableView.TableViewBeginningEditEventArgs.Column
+- uid: WinUI.TableView.TableViewBeginningEditEventArgs.EditingArgs*
+  commentId: Overload:WinUI.TableView.TableViewBeginningEditEventArgs.EditingArgs
+  href: WinUI.TableView.TableViewBeginningEditEventArgs.html#WinUI_TableView_TableViewBeginningEditEventArgs_EditingArgs
+  name: EditingArgs
+  nameWithType: TableViewBeginningEditEventArgs.EditingArgs
+  fullName: WinUI.TableView.TableViewBeginningEditEventArgs.EditingArgs

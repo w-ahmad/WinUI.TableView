@@ -1,0 +1,409 @@
+### YamlMime:ManagedReference
+items:
+- uid: WinUI.TableView.Controls.TableViewFilterItemsControl
+  commentId: T:WinUI.TableView.Controls.TableViewFilterItemsControl
+  id: TableViewFilterItemsControl
+  parent: WinUI.TableView.Controls
+  children:
+  - WinUI.TableView.Controls.TableViewFilterItemsControl.#ctor
+  - WinUI.TableView.Controls.TableViewFilterItemsControl.ColumnHeader
+  - WinUI.TableView.Controls.TableViewFilterItemsControl.InitializeComponent
+  - WinUI.TableView.Controls.TableViewFilterItemsControl.TableView
+  langs:
+  - csharp
+  - vb
+  name: TableViewFilterItemsControl
+  nameWithType: TableViewFilterItemsControl
+  fullName: WinUI.TableView.Controls.TableViewFilterItemsControl
+  type: Class
+  source:
+    id: TableViewFilterItemsControl
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\obj\Release\net8.0-windows10.0.19041.0\WinRT.SourceGenerator\Generator.WinRTAotSourceGenerator\WinUI.TableView.Controls.TableViewFilterItemsControl.WinRTVtable.g.cs
+    startLine: 2
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView.Controls
+  summary: Represents the control that displays filter items in the filter flyout of a TableViewColumnHeader.
+  example: []
+  syntax:
+    content: >-
+      [WinRTRuntimeClassName("Microsoft.UI.Xaml.IUIElementOverrides")]
+
+      [WinRTExposedType(typeof(WinUI_TableView_Controls_TableViewFilterItemsControlWinRTTypeDetails))]
+
+      public class TableViewFilterItemsControl : UserControl, IWinRTObject
+    content.vb: >-
+      <WinRTRuntimeClassName("Microsoft.UI.Xaml.IUIElementOverrides")>
+
+      <WinRTExposedType(GetType(WinUI_TableView_Controls_TableViewFilterItemsControlWinRTTypeDetails))>
+
+      Public Class TableViewFilterItemsControl Inherits UserControl Implements IWinRTObject
+  inheritance:
+  - System.Object
+  - Microsoft.UI.Xaml.DependencyObject
+  - Microsoft.UI.Xaml.UIElement
+  - Microsoft.UI.Xaml.FrameworkElement
+  - Microsoft.UI.Xaml.Controls.Control
+  - Microsoft.UI.Xaml.Controls.UserControl
+  implements:
+  - WinRT.IWinRTObject
+  attributes:
+  - type: WinRT.WinRTRuntimeClassNameAttribute
+    ctor: WinRT.WinRTRuntimeClassNameAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: Microsoft.UI.Xaml.IUIElementOverrides
+- uid: WinUI.TableView.Controls.TableViewFilterItemsControl.#ctor
+  commentId: M:WinUI.TableView.Controls.TableViewFilterItemsControl.#ctor
+  id: '#ctor'
+  parent: WinUI.TableView.Controls.TableViewFilterItemsControl
+  langs:
+  - csharp
+  - vb
+  name: TableViewFilterItemsControl()
+  nameWithType: TableViewFilterItemsControl.TableViewFilterItemsControl()
+  fullName: WinUI.TableView.Controls.TableViewFilterItemsControl.TableViewFilterItemsControl()
+  type: Constructor
+  source:
+    id: .ctor
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\Controls\TableViewFilterItemsControl.xaml.cs
+    startLine: 22
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView.Controls
+  summary: Initializes a new instance of the <xref href="WinUI.TableView.Controls.TableViewFilterItemsControl" data-throw-if-not-resolved="false"></xref> class.
+  example: []
+  syntax:
+    content: public TableViewFilterItemsControl()
+    content.vb: Public Sub New()
+  overload: WinUI.TableView.Controls.TableViewFilterItemsControl.#ctor*
+  nameWithType.vb: TableViewFilterItemsControl.New()
+  fullName.vb: WinUI.TableView.Controls.TableViewFilterItemsControl.New()
+  name.vb: New()
+- uid: WinUI.TableView.Controls.TableViewFilterItemsControl.ColumnHeader
+  commentId: P:WinUI.TableView.Controls.TableViewFilterItemsControl.ColumnHeader
+  id: ColumnHeader
+  parent: WinUI.TableView.Controls.TableViewFilterItemsControl
+  langs:
+  - csharp
+  - vb
+  name: ColumnHeader
+  nameWithType: TableViewFilterItemsControl.ColumnHeader
+  fullName: WinUI.TableView.Controls.TableViewFilterItemsControl.ColumnHeader
+  type: Property
+  source:
+    id: ColumnHeader
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\Controls\TableViewFilterItemsControl.xaml.cs
+    startLine: 175
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView.Controls
+  summary: Gets or sets the column header associated with the filter items control.
+  example: []
+  syntax:
+    content: public TableViewColumnHeader? ColumnHeader { get; set; }
+    parameters: []
+    return:
+      type: WinUI.TableView.TableViewColumnHeader
+    content.vb: Public Property ColumnHeader As TableViewColumnHeader
+  overload: WinUI.TableView.Controls.TableViewFilterItemsControl.ColumnHeader*
+- uid: WinUI.TableView.Controls.TableViewFilterItemsControl.TableView
+  commentId: P:WinUI.TableView.Controls.TableViewFilterItemsControl.TableView
+  id: TableView
+  parent: WinUI.TableView.Controls.TableViewFilterItemsControl
+  langs:
+  - csharp
+  - vb
+  name: TableView
+  nameWithType: TableViewFilterItemsControl.TableView
+  fullName: WinUI.TableView.Controls.TableViewFilterItemsControl.TableView
+  type: Property
+  source:
+    id: TableView
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\Controls\TableViewFilterItemsControl.xaml.cs
+    startLine: 192
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView.Controls
+  summary: Gets or sets the TableView associated with the filter items control.
+  example: []
+  syntax:
+    content: public TableView? TableView { get; }
+    parameters: []
+    return:
+      type: WinUI.TableView.TableView
+    content.vb: Public Property TableView As TableView
+  overload: WinUI.TableView.Controls.TableViewFilterItemsControl.TableView*
+- uid: WinUI.TableView.Controls.TableViewFilterItemsControl.InitializeComponent
+  commentId: M:WinUI.TableView.Controls.TableViewFilterItemsControl.InitializeComponent
+  id: InitializeComponent
+  parent: WinUI.TableView.Controls.TableViewFilterItemsControl
+  langs:
+  - csharp
+  - vb
+  name: InitializeComponent()
+  nameWithType: TableViewFilterItemsControl.InitializeComponent()
+  fullName: WinUI.TableView.Controls.TableViewFilterItemsControl.InitializeComponent()
+  type: Method
+  source:
+    id: InitializeComponent
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\obj\Release\net8.0-windows10.0.19041.0\Controls\TableViewFilterItemsControl.g.i.cs
+    startLine: 32
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView.Controls
+  summary: InitializeComponent()
+  example: []
+  syntax:
+    content: public void InitializeComponent()
+    content.vb: Public Sub InitializeComponent()
+  overload: WinUI.TableView.Controls.TableViewFilterItemsControl.InitializeComponent*
+references:
+- uid: WinUI.TableView.Controls
+  commentId: N:WinUI.TableView.Controls
+  href: WinUI.html
+  name: WinUI.TableView.Controls
+  nameWithType: WinUI.TableView.Controls
+  fullName: WinUI.TableView.Controls
+  spec.csharp:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+  - name: .
+  - uid: WinUI.TableView.Controls
+    name: Controls
+    href: WinUI.TableView.Controls.html
+  spec.vb:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+  - name: .
+  - uid: WinUI.TableView.Controls
+    name: Controls
+    href: WinUI.TableView.Controls.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: Microsoft.UI.Xaml.DependencyObject
+  commentId: T:Microsoft.UI.Xaml.DependencyObject
+  parent: Microsoft.UI.Xaml
+  isExternal: true
+  name: DependencyObject
+  nameWithType: DependencyObject
+  fullName: Microsoft.UI.Xaml.DependencyObject
+- uid: Microsoft.UI.Xaml.UIElement
+  commentId: T:Microsoft.UI.Xaml.UIElement
+  parent: Microsoft.UI.Xaml
+  isExternal: true
+  name: UIElement
+  nameWithType: UIElement
+  fullName: Microsoft.UI.Xaml.UIElement
+- uid: Microsoft.UI.Xaml.FrameworkElement
+  commentId: T:Microsoft.UI.Xaml.FrameworkElement
+  parent: Microsoft.UI.Xaml
+  isExternal: true
+  name: FrameworkElement
+  nameWithType: FrameworkElement
+  fullName: Microsoft.UI.Xaml.FrameworkElement
+- uid: Microsoft.UI.Xaml.Controls.Control
+  commentId: T:Microsoft.UI.Xaml.Controls.Control
+  parent: Microsoft.UI.Xaml.Controls
+  isExternal: true
+  name: Control
+  nameWithType: Control
+  fullName: Microsoft.UI.Xaml.Controls.Control
+- uid: Microsoft.UI.Xaml.Controls.UserControl
+  commentId: T:Microsoft.UI.Xaml.Controls.UserControl
+  parent: Microsoft.UI.Xaml.Controls
+  isExternal: true
+  name: UserControl
+  nameWithType: UserControl
+  fullName: Microsoft.UI.Xaml.Controls.UserControl
+- uid: WinRT.IWinRTObject
+  commentId: T:WinRT.IWinRTObject
+  parent: WinRT
+  isExternal: true
+  name: IWinRTObject
+  nameWithType: IWinRTObject
+  fullName: WinRT.IWinRTObject
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: Microsoft.UI.Xaml
+  commentId: N:Microsoft.UI.Xaml
+  isExternal: true
+  href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  name: Microsoft.UI.Xaml
+  nameWithType: Microsoft.UI.Xaml
+  fullName: Microsoft.UI.Xaml
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  - name: .
+  - uid: Microsoft.UI
+    name: UI
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui
+  - name: .
+  - uid: Microsoft.UI.Xaml
+    name: Xaml
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  - name: .
+  - uid: Microsoft.UI
+    name: UI
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui
+  - name: .
+  - uid: Microsoft.UI.Xaml
+    name: Xaml
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml
+- uid: Microsoft.UI.Xaml.Controls
+  commentId: N:Microsoft.UI.Xaml.Controls
+  isExternal: true
+  href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  name: Microsoft.UI.Xaml.Controls
+  nameWithType: Microsoft.UI.Xaml.Controls
+  fullName: Microsoft.UI.Xaml.Controls
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  - name: .
+  - uid: Microsoft.UI
+    name: UI
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui
+  - name: .
+  - uid: Microsoft.UI.Xaml
+    name: Xaml
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml
+  - name: .
+  - uid: Microsoft.UI.Xaml.Controls
+    name: Controls
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.controls
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  - name: .
+  - uid: Microsoft.UI
+    name: UI
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui
+  - name: .
+  - uid: Microsoft.UI.Xaml
+    name: Xaml
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml
+  - name: .
+  - uid: Microsoft.UI.Xaml.Controls
+    name: Controls
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.controls
+- uid: WinRT
+  commentId: N:WinRT
+  isExternal: true
+  name: WinRT
+  nameWithType: WinRT
+  fullName: WinRT
+- uid: WinUI.TableView.Controls.TableViewFilterItemsControl
+  commentId: T:WinUI.TableView.Controls.TableViewFilterItemsControl
+  href: WinUI.TableView.Controls.TableViewFilterItemsControl.html
+  name: TableViewFilterItemsControl
+  nameWithType: TableViewFilterItemsControl
+  fullName: WinUI.TableView.Controls.TableViewFilterItemsControl
+- uid: WinUI.TableView.Controls.TableViewFilterItemsControl.#ctor*
+  commentId: Overload:WinUI.TableView.Controls.TableViewFilterItemsControl.#ctor
+  href: WinUI.TableView.Controls.TableViewFilterItemsControl.html#WinUI_TableView_Controls_TableViewFilterItemsControl__ctor
+  name: TableViewFilterItemsControl
+  nameWithType: TableViewFilterItemsControl.TableViewFilterItemsControl
+  fullName: WinUI.TableView.Controls.TableViewFilterItemsControl.TableViewFilterItemsControl
+  nameWithType.vb: TableViewFilterItemsControl.New
+  fullName.vb: WinUI.TableView.Controls.TableViewFilterItemsControl.New
+  name.vb: New
+- uid: WinUI.TableView.Controls.TableViewFilterItemsControl.ColumnHeader*
+  commentId: Overload:WinUI.TableView.Controls.TableViewFilterItemsControl.ColumnHeader
+  href: WinUI.TableView.Controls.TableViewFilterItemsControl.html#WinUI_TableView_Controls_TableViewFilterItemsControl_ColumnHeader
+  name: ColumnHeader
+  nameWithType: TableViewFilterItemsControl.ColumnHeader
+  fullName: WinUI.TableView.Controls.TableViewFilterItemsControl.ColumnHeader
+- uid: WinUI.TableView.TableViewColumnHeader
+  commentId: T:WinUI.TableView.TableViewColumnHeader
+  parent: WinUI.TableView
+  href: WinUI.TableView.TableViewColumnHeader.html
+  name: TableViewColumnHeader
+  nameWithType: TableViewColumnHeader
+  fullName: WinUI.TableView.TableViewColumnHeader
+- uid: WinUI.TableView
+  commentId: N:WinUI.TableView
+  href: WinUI.html
+  name: WinUI.TableView
+  nameWithType: WinUI.TableView
+  fullName: WinUI.TableView
+  spec.csharp:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+  spec.vb:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+- uid: WinUI.TableView.Controls.TableViewFilterItemsControl.TableView*
+  commentId: Overload:WinUI.TableView.Controls.TableViewFilterItemsControl.TableView
+  href: WinUI.TableView.Controls.TableViewFilterItemsControl.html#WinUI_TableView_Controls_TableViewFilterItemsControl_TableView
+  name: TableView
+  nameWithType: TableViewFilterItemsControl.TableView
+  fullName: WinUI.TableView.Controls.TableViewFilterItemsControl.TableView
+- uid: WinUI.TableView.TableView
+  commentId: T:WinUI.TableView.TableView
+  parent: WinUI.TableView
+  href: WinUI.TableView.TableView.html
+  name: TableView
+  nameWithType: TableView
+  fullName: WinUI.TableView.TableView
+- uid: WinUI.TableView.Controls.TableViewFilterItemsControl.InitializeComponent*
+  commentId: Overload:WinUI.TableView.Controls.TableViewFilterItemsControl.InitializeComponent
+  href: WinUI.TableView.Controls.TableViewFilterItemsControl.html#WinUI_TableView_Controls_TableViewFilterItemsControl_InitializeComponent
+  name: InitializeComponent
+  nameWithType: TableViewFilterItemsControl.InitializeComponent
+  fullName: WinUI.TableView.Controls.TableViewFilterItemsControl.InitializeComponent

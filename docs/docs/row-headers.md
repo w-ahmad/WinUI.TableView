@@ -12,10 +12,10 @@ Use [`HeadersVisibility`](xref:WinUI.TableView.TableView.HeadersVisibility) to c
 
 | Value | Description |
 |---|---|
-| `All` (default) | Both row headers and column headers are visible |
-| [`Columns`](xref:WinUI.TableView.TableView.Columns) | Only column headers are visible |
-| `Rows` | Only row headers are visible |
-| `None` | No headers are visible |
+| [`All`](xref:WinUI.TableView.TableViewHeadersVisibility.All) (default) | Both row headers and column headers are visible |
+| [`Columns`](xref:WinUI.TableView.TableViewHeadersVisibility.Columns) | Only column headers are visible |
+| [`Rows`](xref:WinUI.TableView.TableViewHeadersVisibility.Rows) | Only row headers are visible |
+| [`None`](xref:WinUI.TableView.TableViewHeadersVisibility.None) | No headers are visible |
 
 ```xml
 <!-- Show only column headers, no row headers -->

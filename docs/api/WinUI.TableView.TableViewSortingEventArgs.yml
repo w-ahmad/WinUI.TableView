@@ -1,0 +1,200 @@
+### YamlMime:ManagedReference
+items:
+- uid: WinUI.TableView.TableViewSortingEventArgs
+  commentId: T:WinUI.TableView.TableViewSortingEventArgs
+  id: TableViewSortingEventArgs
+  parent: WinUI.TableView
+  children:
+  - WinUI.TableView.TableViewSortingEventArgs.#ctor(WinUI.TableView.TableViewColumn)
+  - WinUI.TableView.TableViewSortingEventArgs.Column
+  langs:
+  - csharp
+  - vb
+  name: TableViewSortingEventArgs
+  nameWithType: TableViewSortingEventArgs
+  fullName: WinUI.TableView.TableViewSortingEventArgs
+  type: Class
+  source:
+    id: TableViewSortingEventArgs
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewSortingEventArgs.cs
+    startLine: 7
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Provides data for the event that is raised when a column is being sorted in a TableView.
+  example: []
+  syntax:
+    content: 'public class TableViewSortingEventArgs : HandledEventArgs'
+    content.vb: Public Class TableViewSortingEventArgs Inherits HandledEventArgs
+  inheritance:
+  - System.Object
+  - System.EventArgs
+  - System.ComponentModel.HandledEventArgs
+- uid: WinUI.TableView.TableViewSortingEventArgs.#ctor(WinUI.TableView.TableViewColumn)
+  commentId: M:WinUI.TableView.TableViewSortingEventArgs.#ctor(WinUI.TableView.TableViewColumn)
+  id: '#ctor(WinUI.TableView.TableViewColumn)'
+  parent: WinUI.TableView.TableViewSortingEventArgs
+  langs:
+  - csharp
+  - vb
+  name: TableViewSortingEventArgs(TableViewColumn)
+  nameWithType: TableViewSortingEventArgs.TableViewSortingEventArgs(TableViewColumn)
+  fullName: WinUI.TableView.TableViewSortingEventArgs.TableViewSortingEventArgs(WinUI.TableView.TableViewColumn)
+  type: Constructor
+  source:
+    id: .ctor
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewSortingEventArgs.cs
+    startLine: 13
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Initializes a new instance of the <xref href="WinUI.TableView.TableViewSortingEventArgs" data-throw-if-not-resolved="false"></xref> class.
+  example: []
+  syntax:
+    content: public TableViewSortingEventArgs(TableViewColumn column)
+    parameters:
+    - id: column
+      type: WinUI.TableView.TableViewColumn
+      description: The column that is being sorted.
+    content.vb: Public Sub New(column As TableViewColumn)
+  overload: WinUI.TableView.TableViewSortingEventArgs.#ctor*
+  nameWithType.vb: TableViewSortingEventArgs.New(TableViewColumn)
+  fullName.vb: WinUI.TableView.TableViewSortingEventArgs.New(WinUI.TableView.TableViewColumn)
+  name.vb: New(TableViewColumn)
+- uid: WinUI.TableView.TableViewSortingEventArgs.Column
+  commentId: P:WinUI.TableView.TableViewSortingEventArgs.Column
+  id: Column
+  parent: WinUI.TableView.TableViewSortingEventArgs
+  langs:
+  - csharp
+  - vb
+  name: Column
+  nameWithType: TableViewSortingEventArgs.Column
+  fullName: WinUI.TableView.TableViewSortingEventArgs.Column
+  type: Property
+  source:
+    id: Column
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewSortingEventArgs.cs
+    startLine: 21
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Gets the column that is being sorted.
+  example: []
+  syntax:
+    content: public TableViewColumn Column { get; }
+    parameters: []
+    return:
+      type: WinUI.TableView.TableViewColumn
+    content.vb: Public ReadOnly Property Column As TableViewColumn
+  overload: WinUI.TableView.TableViewSortingEventArgs.Column*
+references:
+- uid: WinUI.TableView
+  commentId: N:WinUI.TableView
+  href: WinUI.html
+  name: WinUI.TableView
+  nameWithType: WinUI.TableView
+  fullName: WinUI.TableView
+  spec.csharp:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+  spec.vb:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.EventArgs
+  commentId: T:System.EventArgs
+  parent: System
+  isExternal: true
+  name: EventArgs
+  nameWithType: EventArgs
+  fullName: System.EventArgs
+- uid: System.ComponentModel.HandledEventArgs
+  commentId: T:System.ComponentModel.HandledEventArgs
+  parent: System.ComponentModel
+  isExternal: true
+  name: HandledEventArgs
+  nameWithType: HandledEventArgs
+  fullName: System.ComponentModel.HandledEventArgs
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: System.ComponentModel
+  commentId: N:System.ComponentModel
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.ComponentModel
+  nameWithType: System.ComponentModel
+  fullName: System.ComponentModel
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.ComponentModel
+    name: ComponentModel
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.componentmodel
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.ComponentModel
+    name: ComponentModel
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.componentmodel
+- uid: WinUI.TableView.TableViewSortingEventArgs
+  commentId: T:WinUI.TableView.TableViewSortingEventArgs
+  parent: WinUI.TableView
+  href: WinUI.TableView.TableViewSortingEventArgs.html
+  name: TableViewSortingEventArgs
+  nameWithType: TableViewSortingEventArgs
+  fullName: WinUI.TableView.TableViewSortingEventArgs
+- uid: WinUI.TableView.TableViewSortingEventArgs.#ctor*
+  commentId: Overload:WinUI.TableView.TableViewSortingEventArgs.#ctor
+  href: WinUI.TableView.TableViewSortingEventArgs.html#WinUI_TableView_TableViewSortingEventArgs__ctor_WinUI_TableView_TableViewColumn_
+  name: TableViewSortingEventArgs
+  nameWithType: TableViewSortingEventArgs.TableViewSortingEventArgs
+  fullName: WinUI.TableView.TableViewSortingEventArgs.TableViewSortingEventArgs
+  nameWithType.vb: TableViewSortingEventArgs.New
+  fullName.vb: WinUI.TableView.TableViewSortingEventArgs.New
+  name.vb: New
+- uid: WinUI.TableView.TableViewColumn
+  commentId: T:WinUI.TableView.TableViewColumn
+  parent: WinUI.TableView
+  href: WinUI.TableView.TableViewColumn.html
+  name: TableViewColumn
+  nameWithType: TableViewColumn
+  fullName: WinUI.TableView.TableViewColumn
+- uid: WinUI.TableView.TableViewSortingEventArgs.Column*
+  commentId: Overload:WinUI.TableView.TableViewSortingEventArgs.Column
+  href: WinUI.TableView.TableViewSortingEventArgs.html#WinUI_TableView_TableViewSortingEventArgs_Column
+  name: Column
+  nameWithType: TableViewSortingEventArgs.Column
+  fullName: WinUI.TableView.TableViewSortingEventArgs.Column

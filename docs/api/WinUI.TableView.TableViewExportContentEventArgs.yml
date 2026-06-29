@@ -1,0 +1,111 @@
+### YamlMime:ManagedReference
+items:
+- uid: WinUI.TableView.TableViewExportContentEventArgs
+  commentId: T:WinUI.TableView.TableViewExportContentEventArgs
+  id: TableViewExportContentEventArgs
+  parent: WinUI.TableView
+  children: []
+  langs:
+  - csharp
+  - vb
+  name: TableViewExportContentEventArgs
+  nameWithType: TableViewExportContentEventArgs
+  fullName: WinUI.TableView.TableViewExportContentEventArgs
+  type: Class
+  source:
+    id: TableViewExportContentEventArgs
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewExportContentEventArgs.cs
+    startLine: 7
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Provides data for the ExportContent event.
+  example: []
+  syntax:
+    content: 'public class TableViewExportContentEventArgs : HandledEventArgs'
+    content.vb: Public Class TableViewExportContentEventArgs Inherits HandledEventArgs
+  inheritance:
+  - System.Object
+  - System.EventArgs
+  - System.ComponentModel.HandledEventArgs
+references:
+- uid: WinUI.TableView
+  commentId: N:WinUI.TableView
+  href: WinUI.html
+  name: WinUI.TableView
+  nameWithType: WinUI.TableView
+  fullName: WinUI.TableView
+  spec.csharp:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+  spec.vb:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.EventArgs
+  commentId: T:System.EventArgs
+  parent: System
+  isExternal: true
+  name: EventArgs
+  nameWithType: EventArgs
+  fullName: System.EventArgs
+- uid: System.ComponentModel.HandledEventArgs
+  commentId: T:System.ComponentModel.HandledEventArgs
+  parent: System.ComponentModel
+  isExternal: true
+  name: HandledEventArgs
+  nameWithType: HandledEventArgs
+  fullName: System.ComponentModel.HandledEventArgs
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: System.ComponentModel
+  commentId: N:System.ComponentModel
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.ComponentModel
+  nameWithType: System.ComponentModel
+  fullName: System.ComponentModel
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.ComponentModel
+    name: ComponentModel
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.componentmodel
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.ComponentModel
+    name: ComponentModel
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.componentmodel

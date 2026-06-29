@@ -1,0 +1,156 @@
+### YamlMime:ManagedReference
+items:
+- uid: WinUI.TableView.TableViewHeadersVisibility
+  commentId: T:WinUI.TableView.TableViewHeadersVisibility
+  id: TableViewHeadersVisibility
+  parent: WinUI.TableView
+  children:
+  - WinUI.TableView.TableViewHeadersVisibility.All
+  - WinUI.TableView.TableViewHeadersVisibility.Columns
+  - WinUI.TableView.TableViewHeadersVisibility.None
+  - WinUI.TableView.TableViewHeadersVisibility.Rows
+  langs:
+  - csharp
+  - vb
+  name: TableViewHeadersVisibility
+  nameWithType: TableViewHeadersVisibility
+  fullName: WinUI.TableView.TableViewHeadersVisibility
+  type: Enum
+  source:
+    id: TableViewHeadersVisibility
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewHeadersVisibility.cs
+    startLine: 5
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Specifies the visibility of the row or column headers in TableView.
+  example: []
+  syntax:
+    content: public enum TableViewHeadersVisibility
+    content.vb: Public Enum TableViewHeadersVisibility
+- uid: WinUI.TableView.TableViewHeadersVisibility.All
+  commentId: F:WinUI.TableView.TableViewHeadersVisibility.All
+  id: All
+  parent: WinUI.TableView.TableViewHeadersVisibility
+  langs:
+  - csharp
+  - vb
+  name: All
+  nameWithType: TableViewHeadersVisibility.All
+  fullName: WinUI.TableView.TableViewHeadersVisibility.All
+  type: Field
+  source:
+    id: All
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewHeadersVisibility.cs
+    startLine: 10
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Both row and column headers are visible.
+  example: []
+  syntax:
+    content: All = 0
+    return:
+      type: WinUI.TableView.TableViewHeadersVisibility
+- uid: WinUI.TableView.TableViewHeadersVisibility.Columns
+  commentId: F:WinUI.TableView.TableViewHeadersVisibility.Columns
+  id: Columns
+  parent: WinUI.TableView.TableViewHeadersVisibility
+  langs:
+  - csharp
+  - vb
+  name: Columns
+  nameWithType: TableViewHeadersVisibility.Columns
+  fullName: WinUI.TableView.TableViewHeadersVisibility.Columns
+  type: Field
+  source:
+    id: Columns
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewHeadersVisibility.cs
+    startLine: 15
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Only column headers are visible.
+  example: []
+  syntax:
+    content: Columns = 1
+    return:
+      type: WinUI.TableView.TableViewHeadersVisibility
+- uid: WinUI.TableView.TableViewHeadersVisibility.Rows
+  commentId: F:WinUI.TableView.TableViewHeadersVisibility.Rows
+  id: Rows
+  parent: WinUI.TableView.TableViewHeadersVisibility
+  langs:
+  - csharp
+  - vb
+  name: Rows
+  nameWithType: TableViewHeadersVisibility.Rows
+  fullName: WinUI.TableView.TableViewHeadersVisibility.Rows
+  type: Field
+  source:
+    id: Rows
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewHeadersVisibility.cs
+    startLine: 20
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Only row headers are visible.
+  example: []
+  syntax:
+    content: Rows = 2
+    return:
+      type: WinUI.TableView.TableViewHeadersVisibility
+- uid: WinUI.TableView.TableViewHeadersVisibility.None
+  commentId: F:WinUI.TableView.TableViewHeadersVisibility.None
+  id: None
+  parent: WinUI.TableView.TableViewHeadersVisibility
+  langs:
+  - csharp
+  - vb
+  name: None
+  nameWithType: TableViewHeadersVisibility.None
+  fullName: WinUI.TableView.TableViewHeadersVisibility.None
+  type: Field
+  source:
+    id: None
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewHeadersVisibility.cs
+    startLine: 25
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: No headers are visible.
+  example: []
+  syntax:
+    content: None = 3
+    return:
+      type: WinUI.TableView.TableViewHeadersVisibility
+references:
+- uid: WinUI.TableView
+  commentId: N:WinUI.TableView
+  href: WinUI.html
+  name: WinUI.TableView
+  nameWithType: WinUI.TableView
+  fullName: WinUI.TableView
+  spec.csharp:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+  spec.vb:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+- uid: WinUI.TableView.TableViewHeadersVisibility
+  commentId: T:WinUI.TableView.TableViewHeadersVisibility
+  parent: WinUI.TableView
+  href: WinUI.TableView.TableViewHeadersVisibility.html
+  name: TableViewHeadersVisibility
+  nameWithType: TableViewHeadersVisibility
+  fullName: WinUI.TableView.TableViewHeadersVisibility

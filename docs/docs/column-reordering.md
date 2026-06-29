@@ -51,7 +51,7 @@ tableView.ColumnReordering += (s, e) =>
 
 | Property | Description |
 |---|---|
-| `Column` | The column being moved |
+| [`Column`](xref:WinUI.TableView.TableViewColumnReorderingEventArgs.Column) | The column being moved |
 | `Cancel` | Set `true` to prevent the reorder |
 
 ### ColumnReordered
@@ -69,9 +69,8 @@ tableView.ColumnReordered += (s, e) =>
 
 | Property | Description |
 |---|---|
-| `Column` | The column that was moved |
-| `OldIndex` | The column's previous index in the collection |
-| `NewIndex` | The column's new index in the collection |
+| [`Column`](xref:WinUI.TableView.TableViewColumnReorderedEventArgs.Column) | The column that was reordered. |
+| [`Index`](xref:WinUI.TableView.TableViewColumnReorderedEventArgs.Index) | The column's new index in the collection |
 
 ## Setting column order programmatically
 
@@ -95,8 +94,8 @@ tableView.Columns.Move(3, 0); // Move column at index 3 to index 0
 | Property / Event | Description |
 |---|---|
 | [`CanReorderColumns`](xref:WinUI.TableView.TableView.CanReorderColumns) | Enables or disables drag reordering for all columns |
-| [`CanReorder`](xref:WinUI.TableView.TableViewColumn.CanReorder) | Per-column drag reorder toggle |
-| [`Order`](xref:WinUI.TableView.TableViewColumn.Order) | Explicit display order index |
+| [`TableViewColumn.CanReorder`](xref:WinUI.TableView.TableViewColumn.CanReorder) | Per-column drag reorder toggle |
+| [`TableViewColumn.Order`](xref:WinUI.TableView.TableViewColumn.Order) | Explicit display order index |
 | [`ColumnReordering`](xref:WinUI.TableView.TableView.ColumnReordering) | Fires before a column is moved; can be cancelled |
 | [`ColumnReordered`](xref:WinUI.TableView.TableView.ColumnReordered) | Fires after a column is successfully moved |
 

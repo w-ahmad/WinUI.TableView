@@ -53,7 +53,7 @@ tableView.CopyToClipboard += (s, e) =>
 
 | Property | Description |
 |---|---|
-| `IncludeHeaders` | `true` when the user chose **Copy with Headers** from the context menu or pressed **Ctrl+Shift+C** |
+| [`IncludeHeaders`](xref:WinUI.TableView.TableViewCopyToClipboardEventArgs.IncludeHeaders) | `true` when the user chose **Copy with Headers** from the context menu or pressed **Ctrl+Shift+C** |
 | `Handled` | Set `true` to suppress the default clipboard write |
 
 ## PasteFromClipboard event

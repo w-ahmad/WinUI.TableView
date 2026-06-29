@@ -36,10 +36,10 @@ Provide a [`RowDetailsTemplate`](xref:WinUI.TableView.TableView.RowDetailsTempla
 
 | Value | Description |
 |---|---|
-| `Collapsed` | Details pane is never shown |
-| `Visible` | Details pane is always shown for every row |
-| `VisibleWhenSelected` | Details pane is shown for the currently selected row(s) |
-| `VisibleWhenExpanded` (default) | Details pane is shown when the user expands a row using the toggle button in the row header |
+| [`Collapsed`](xref:WinUI.TableView.TableViewRowDetailsVisibilityMode.Collapsed) | Details pane is never shown |
+| [`Visible`](xref:WinUI.TableView.TableViewRowDetailsVisibilityMode.Visible) | Details pane is always shown for every row |
+| [`VisibleWhenSelected`](xref:WinUI.TableView.TableViewRowDetailsVisibilityMode.VisibleWhenSelected) | Details pane is shown for the currently selected row(s) |
+| [`VisibleWhenExpanded`](xref:WinUI.TableView.TableViewRowDetailsVisibilityMode.VisibleWhenExpanded) (default) | Details pane is shown when the user expands a row using the toggle button in the row header |
 
 ```xml
 <!-- Always visible -->

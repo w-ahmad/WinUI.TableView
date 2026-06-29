@@ -1,0 +1,284 @@
+### YamlMime:ManagedReference
+items:
+- uid: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs
+  commentId: T:WinUI.TableView.TableViewAutoGeneratingColumnEventArgs
+  id: TableViewAutoGeneratingColumnEventArgs
+  parent: WinUI.TableView
+  children:
+  - WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.#ctor(System.String,System.Type,WinUI.TableView.TableViewColumn)
+  - WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.Column
+  - WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.PropertyName
+  - WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.PropertyType
+  langs:
+  - csharp
+  - vb
+  name: TableViewAutoGeneratingColumnEventArgs
+  nameWithType: TableViewAutoGeneratingColumnEventArgs
+  fullName: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs
+  type: Class
+  source:
+    id: TableViewAutoGeneratingColumnEventArgs
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewAutoGeneratingColumnEventArgs.cs
+    startLine: 8
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Provides data for the AutoGeneratingColumn event.
+  example: []
+  syntax:
+    content: 'public class TableViewAutoGeneratingColumnEventArgs : CancelEventArgs'
+    content.vb: Public Class TableViewAutoGeneratingColumnEventArgs Inherits CancelEventArgs
+  inheritance:
+  - System.Object
+  - System.EventArgs
+  - System.ComponentModel.CancelEventArgs
+- uid: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.#ctor(System.String,System.Type,WinUI.TableView.TableViewColumn)
+  commentId: M:WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.#ctor(System.String,System.Type,WinUI.TableView.TableViewColumn)
+  id: '#ctor(System.String,System.Type,WinUI.TableView.TableViewColumn)'
+  parent: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs
+  langs:
+  - csharp
+  - vb
+  name: TableViewAutoGeneratingColumnEventArgs(string, Type?, TableViewColumn)
+  nameWithType: TableViewAutoGeneratingColumnEventArgs.TableViewAutoGeneratingColumnEventArgs(string, Type?, TableViewColumn)
+  fullName: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.TableViewAutoGeneratingColumnEventArgs(string, System.Type?, WinUI.TableView.TableViewColumn)
+  type: Constructor
+  source:
+    id: .ctor
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewAutoGeneratingColumnEventArgs.cs
+    startLine: 16
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Initializes a new instance of the TableViewAutoGeneratingColumnEventArgs class.
+  example: []
+  syntax:
+    content: public TableViewAutoGeneratingColumnEventArgs(string propertyName, Type? propertyType, TableViewColumn column)
+    parameters:
+    - id: propertyName
+      type: System.String
+      description: The name of the property for which the column is being generated.
+    - id: propertyType
+      type: System.Type
+      description: The type of the property for which the column is being generated.
+    - id: column
+      type: WinUI.TableView.TableViewColumn
+      description: The column that is being generated.
+    content.vb: Public Sub New(propertyName As String, propertyType As Type, column As TableViewColumn)
+  overload: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.#ctor*
+  nameWithType.vb: TableViewAutoGeneratingColumnEventArgs.New(String, Type, TableViewColumn)
+  fullName.vb: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.New(String, System.Type, WinUI.TableView.TableViewColumn)
+  name.vb: New(String, Type, TableViewColumn)
+- uid: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.PropertyName
+  commentId: P:WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.PropertyName
+  id: PropertyName
+  parent: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs
+  langs:
+  - csharp
+  - vb
+  name: PropertyName
+  nameWithType: TableViewAutoGeneratingColumnEventArgs.PropertyName
+  fullName: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.PropertyName
+  type: Property
+  source:
+    id: PropertyName
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewAutoGeneratingColumnEventArgs.cs
+    startLine: 26
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Gets the name of the property for which the column is being generated.
+  example: []
+  syntax:
+    content: public string PropertyName { get; }
+    parameters: []
+    return:
+      type: System.String
+    content.vb: Public ReadOnly Property PropertyName As String
+  overload: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.PropertyName*
+- uid: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.PropertyType
+  commentId: P:WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.PropertyType
+  id: PropertyType
+  parent: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs
+  langs:
+  - csharp
+  - vb
+  name: PropertyType
+  nameWithType: TableViewAutoGeneratingColumnEventArgs.PropertyType
+  fullName: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.PropertyType
+  type: Property
+  source:
+    id: PropertyType
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewAutoGeneratingColumnEventArgs.cs
+    startLine: 31
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Gets the type of the property for which the column is being generated.
+  example: []
+  syntax:
+    content: public Type? PropertyType { get; }
+    parameters: []
+    return:
+      type: System.Type
+    content.vb: Public ReadOnly Property PropertyType As Type
+  overload: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.PropertyType*
+- uid: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.Column
+  commentId: P:WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.Column
+  id: Column
+  parent: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs
+  langs:
+  - csharp
+  - vb
+  name: Column
+  nameWithType: TableViewAutoGeneratingColumnEventArgs.Column
+  fullName: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.Column
+  type: Property
+  source:
+    id: Column
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewAutoGeneratingColumnEventArgs.cs
+    startLine: 36
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Gets or sets the column that is being generated.
+  example: []
+  syntax:
+    content: public TableViewColumn Column { get; set; }
+    parameters: []
+    return:
+      type: WinUI.TableView.TableViewColumn
+    content.vb: Public Property Column As TableViewColumn
+  overload: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.Column*
+references:
+- uid: WinUI.TableView
+  commentId: N:WinUI.TableView
+  href: WinUI.html
+  name: WinUI.TableView
+  nameWithType: WinUI.TableView
+  fullName: WinUI.TableView
+  spec.csharp:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+  spec.vb:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.EventArgs
+  commentId: T:System.EventArgs
+  parent: System
+  isExternal: true
+  name: EventArgs
+  nameWithType: EventArgs
+  fullName: System.EventArgs
+- uid: System.ComponentModel.CancelEventArgs
+  commentId: T:System.ComponentModel.CancelEventArgs
+  parent: System.ComponentModel
+  isExternal: true
+  name: CancelEventArgs
+  nameWithType: CancelEventArgs
+  fullName: System.ComponentModel.CancelEventArgs
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: System.ComponentModel
+  commentId: N:System.ComponentModel
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.ComponentModel
+  nameWithType: System.ComponentModel
+  fullName: System.ComponentModel
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.ComponentModel
+    name: ComponentModel
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.componentmodel
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.ComponentModel
+    name: ComponentModel
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.componentmodel
+- uid: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.#ctor*
+  commentId: Overload:WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.#ctor
+  href: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.html#WinUI_TableView_TableViewAutoGeneratingColumnEventArgs__ctor_System_String_System_Type_WinUI_TableView_TableViewColumn_
+  name: TableViewAutoGeneratingColumnEventArgs
+  nameWithType: TableViewAutoGeneratingColumnEventArgs.TableViewAutoGeneratingColumnEventArgs
+  fullName: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.TableViewAutoGeneratingColumnEventArgs
+  nameWithType.vb: TableViewAutoGeneratingColumnEventArgs.New
+  fullName.vb: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.New
+  name.vb: New
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: System.Type
+  commentId: T:System.Type
+  parent: System
+  isExternal: true
+  name: Type
+  nameWithType: Type
+  fullName: System.Type
+- uid: WinUI.TableView.TableViewColumn
+  commentId: T:WinUI.TableView.TableViewColumn
+  parent: WinUI.TableView
+  href: WinUI.TableView.TableViewColumn.html
+  name: TableViewColumn
+  nameWithType: TableViewColumn
+  fullName: WinUI.TableView.TableViewColumn
+- uid: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.PropertyName*
+  commentId: Overload:WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.PropertyName
+  href: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.html#WinUI_TableView_TableViewAutoGeneratingColumnEventArgs_PropertyName
+  name: PropertyName
+  nameWithType: TableViewAutoGeneratingColumnEventArgs.PropertyName
+  fullName: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.PropertyName
+- uid: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.PropertyType*
+  commentId: Overload:WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.PropertyType
+  href: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.html#WinUI_TableView_TableViewAutoGeneratingColumnEventArgs_PropertyType
+  name: PropertyType
+  nameWithType: TableViewAutoGeneratingColumnEventArgs.PropertyType
+  fullName: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.PropertyType
+- uid: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.Column*
+  commentId: Overload:WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.Column
+  href: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.html#WinUI_TableView_TableViewAutoGeneratingColumnEventArgs_Column
+  name: Column
+  nameWithType: TableViewAutoGeneratingColumnEventArgs.Column
+  fullName: WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.Column

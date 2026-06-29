@@ -1,0 +1,335 @@
+### YamlMime:ManagedReference
+items:
+- uid: WinUI.TableView.Controls.TableViewDatePicker
+  commentId: T:WinUI.TableView.Controls.TableViewDatePicker
+  id: TableViewDatePicker
+  parent: WinUI.TableView.Controls
+  children:
+  - WinUI.TableView.Controls.TableViewDatePicker.#ctor
+  - WinUI.TableView.Controls.TableViewDatePicker.SelectedDate
+  - WinUI.TableView.Controls.TableViewDatePicker.SelectedDateProperty
+  langs:
+  - csharp
+  - vb
+  name: TableViewDatePicker
+  nameWithType: TableViewDatePicker
+  fullName: WinUI.TableView.Controls.TableViewDatePicker
+  type: Class
+  source:
+    id: TableViewDatePicker
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\obj\Release\net8.0-windows10.0.19041.0\WinRT.SourceGenerator\Generator.WinRTAotSourceGenerator\WinUI.TableView.Controls.TableViewDatePicker.WinRTVtable.g.cs
+    startLine: 2
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView.Controls
+  summary: Represents a date editing element for the TableViewDateColumn.
+  example: []
+  syntax:
+    content: >-
+      [WinRTRuntimeClassName("Microsoft.UI.Xaml.IUIElementOverrides")]
+
+      [WinRTExposedType(typeof(WinUI_TableView_Controls_TableViewFilterItemsControlWinRTTypeDetails))]
+
+      public class TableViewDatePicker : CalendarDatePicker, IWinRTObject
+    content.vb: >-
+      <WinRTRuntimeClassName("Microsoft.UI.Xaml.IUIElementOverrides")>
+
+      <WinRTExposedType(GetType(WinUI_TableView_Controls_TableViewFilterItemsControlWinRTTypeDetails))>
+
+      Public Class TableViewDatePicker Inherits CalendarDatePicker Implements IWinRTObject
+  inheritance:
+  - System.Object
+  - Microsoft.UI.Xaml.DependencyObject
+  - Microsoft.UI.Xaml.UIElement
+  - Microsoft.UI.Xaml.FrameworkElement
+  - Microsoft.UI.Xaml.Controls.Control
+  - Microsoft.UI.Xaml.Controls.CalendarDatePicker
+  implements:
+  - WinRT.IWinRTObject
+  attributes:
+  - type: WinRT.WinRTRuntimeClassNameAttribute
+    ctor: WinRT.WinRTRuntimeClassNameAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: Microsoft.UI.Xaml.IUIElementOverrides
+- uid: WinUI.TableView.Controls.TableViewDatePicker.#ctor
+  commentId: M:WinUI.TableView.Controls.TableViewDatePicker.#ctor
+  id: '#ctor'
+  parent: WinUI.TableView.Controls.TableViewDatePicker
+  langs:
+  - csharp
+  - vb
+  name: TableViewDatePicker()
+  nameWithType: TableViewDatePicker.TableViewDatePicker()
+  fullName: WinUI.TableView.Controls.TableViewDatePicker.TableViewDatePicker()
+  type: Constructor
+  source:
+    id: .ctor
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\Controls\TableViewDatePicker.cs
+    startLine: 17
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView.Controls
+  summary: Initializes a new instance of the TableViewDatePicker class.
+  example: []
+  syntax:
+    content: public TableViewDatePicker()
+    content.vb: Public Sub New()
+  overload: WinUI.TableView.Controls.TableViewDatePicker.#ctor*
+  nameWithType.vb: TableViewDatePicker.New()
+  fullName.vb: WinUI.TableView.Controls.TableViewDatePicker.New()
+  name.vb: New()
+- uid: WinUI.TableView.Controls.TableViewDatePicker.SelectedDate
+  commentId: P:WinUI.TableView.Controls.TableViewDatePicker.SelectedDate
+  id: SelectedDate
+  parent: WinUI.TableView.Controls.TableViewDatePicker
+  langs:
+  - csharp
+  - vb
+  name: SelectedDate
+  nameWithType: TableViewDatePicker.SelectedDate
+  fullName: WinUI.TableView.Controls.TableViewDatePicker.SelectedDate
+  type: Property
+  source:
+    id: SelectedDate
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\Controls\TableViewDatePicker.cs
+    startLine: 86
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView.Controls
+  summary: Gets or sets the selected date.
+  example: []
+  syntax:
+    content: public object? SelectedDate { get; set; }
+    parameters: []
+    return:
+      type: System.Object
+    content.vb: Public Property SelectedDate As Object
+  overload: WinUI.TableView.Controls.TableViewDatePicker.SelectedDate*
+- uid: WinUI.TableView.Controls.TableViewDatePicker.SelectedDateProperty
+  commentId: F:WinUI.TableView.Controls.TableViewDatePicker.SelectedDateProperty
+  id: SelectedDateProperty
+  parent: WinUI.TableView.Controls.TableViewDatePicker
+  langs:
+  - csharp
+  - vb
+  name: SelectedDateProperty
+  nameWithType: TableViewDatePicker.SelectedDateProperty
+  fullName: WinUI.TableView.Controls.TableViewDatePicker.SelectedDateProperty
+  type: Field
+  source:
+    id: SelectedDateProperty
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\Controls\TableViewDatePicker.cs
+    startLine: 95
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView.Controls
+  summary: Identifies the SelectedDate dependency property.
+  example: []
+  syntax:
+    content: public static readonly DependencyProperty SelectedDateProperty
+    return:
+      type: Microsoft.UI.Xaml.DependencyProperty
+    content.vb: Public Shared ReadOnly SelectedDateProperty As DependencyProperty
+references:
+- uid: WinUI.TableView.Controls
+  commentId: N:WinUI.TableView.Controls
+  href: WinUI.html
+  name: WinUI.TableView.Controls
+  nameWithType: WinUI.TableView.Controls
+  fullName: WinUI.TableView.Controls
+  spec.csharp:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+  - name: .
+  - uid: WinUI.TableView.Controls
+    name: Controls
+    href: WinUI.TableView.Controls.html
+  spec.vb:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+  - name: .
+  - uid: WinUI.TableView.Controls
+    name: Controls
+    href: WinUI.TableView.Controls.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: Microsoft.UI.Xaml.DependencyObject
+  commentId: T:Microsoft.UI.Xaml.DependencyObject
+  parent: Microsoft.UI.Xaml
+  isExternal: true
+  name: DependencyObject
+  nameWithType: DependencyObject
+  fullName: Microsoft.UI.Xaml.DependencyObject
+- uid: Microsoft.UI.Xaml.UIElement
+  commentId: T:Microsoft.UI.Xaml.UIElement
+  parent: Microsoft.UI.Xaml
+  isExternal: true
+  name: UIElement
+  nameWithType: UIElement
+  fullName: Microsoft.UI.Xaml.UIElement
+- uid: Microsoft.UI.Xaml.FrameworkElement
+  commentId: T:Microsoft.UI.Xaml.FrameworkElement
+  parent: Microsoft.UI.Xaml
+  isExternal: true
+  name: FrameworkElement
+  nameWithType: FrameworkElement
+  fullName: Microsoft.UI.Xaml.FrameworkElement
+- uid: Microsoft.UI.Xaml.Controls.Control
+  commentId: T:Microsoft.UI.Xaml.Controls.Control
+  parent: Microsoft.UI.Xaml.Controls
+  isExternal: true
+  name: Control
+  nameWithType: Control
+  fullName: Microsoft.UI.Xaml.Controls.Control
+- uid: Microsoft.UI.Xaml.Controls.CalendarDatePicker
+  commentId: T:Microsoft.UI.Xaml.Controls.CalendarDatePicker
+  parent: Microsoft.UI.Xaml.Controls
+  isExternal: true
+  name: CalendarDatePicker
+  nameWithType: CalendarDatePicker
+  fullName: Microsoft.UI.Xaml.Controls.CalendarDatePicker
+- uid: WinRT.IWinRTObject
+  commentId: T:WinRT.IWinRTObject
+  parent: WinRT
+  isExternal: true
+  name: IWinRTObject
+  nameWithType: IWinRTObject
+  fullName: WinRT.IWinRTObject
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: Microsoft.UI.Xaml
+  commentId: N:Microsoft.UI.Xaml
+  isExternal: true
+  href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  name: Microsoft.UI.Xaml
+  nameWithType: Microsoft.UI.Xaml
+  fullName: Microsoft.UI.Xaml
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  - name: .
+  - uid: Microsoft.UI
+    name: UI
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui
+  - name: .
+  - uid: Microsoft.UI.Xaml
+    name: Xaml
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  - name: .
+  - uid: Microsoft.UI
+    name: UI
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui
+  - name: .
+  - uid: Microsoft.UI.Xaml
+    name: Xaml
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml
+- uid: Microsoft.UI.Xaml.Controls
+  commentId: N:Microsoft.UI.Xaml.Controls
+  isExternal: true
+  href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  name: Microsoft.UI.Xaml.Controls
+  nameWithType: Microsoft.UI.Xaml.Controls
+  fullName: Microsoft.UI.Xaml.Controls
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  - name: .
+  - uid: Microsoft.UI
+    name: UI
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui
+  - name: .
+  - uid: Microsoft.UI.Xaml
+    name: Xaml
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml
+  - name: .
+  - uid: Microsoft.UI.Xaml.Controls
+    name: Controls
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.controls
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  - name: .
+  - uid: Microsoft.UI
+    name: UI
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui
+  - name: .
+  - uid: Microsoft.UI.Xaml
+    name: Xaml
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml
+  - name: .
+  - uid: Microsoft.UI.Xaml.Controls
+    name: Controls
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.controls
+- uid: WinRT
+  commentId: N:WinRT
+  isExternal: true
+  name: WinRT
+  nameWithType: WinRT
+  fullName: WinRT
+- uid: WinUI.TableView.Controls.TableViewDatePicker.#ctor*
+  commentId: Overload:WinUI.TableView.Controls.TableViewDatePicker.#ctor
+  href: WinUI.TableView.Controls.TableViewDatePicker.html#WinUI_TableView_Controls_TableViewDatePicker__ctor
+  name: TableViewDatePicker
+  nameWithType: TableViewDatePicker.TableViewDatePicker
+  fullName: WinUI.TableView.Controls.TableViewDatePicker.TableViewDatePicker
+  nameWithType.vb: TableViewDatePicker.New
+  fullName.vb: WinUI.TableView.Controls.TableViewDatePicker.New
+  name.vb: New
+- uid: WinUI.TableView.Controls.TableViewDatePicker.SelectedDate*
+  commentId: Overload:WinUI.TableView.Controls.TableViewDatePicker.SelectedDate
+  href: WinUI.TableView.Controls.TableViewDatePicker.html#WinUI_TableView_Controls_TableViewDatePicker_SelectedDate
+  name: SelectedDate
+  nameWithType: TableViewDatePicker.SelectedDate
+  fullName: WinUI.TableView.Controls.TableViewDatePicker.SelectedDate
+- uid: Microsoft.UI.Xaml.DependencyProperty
+  commentId: T:Microsoft.UI.Xaml.DependencyProperty
+  parent: Microsoft.UI.Xaml
+  isExternal: true
+  name: DependencyProperty
+  nameWithType: DependencyProperty
+  fullName: Microsoft.UI.Xaml.DependencyProperty

@@ -81,8 +81,8 @@ The predicate receives a [`TableViewConditionalCellStyleContext`](xref:WinUI.Tab
 
 | Property | Type | Description |
 |---|---|---|
-| `Column` | [`TableViewColumn`](xref:WinUI.TableView.TableViewColumn) | The column of the cell being evaluated |
-| `DataItem` | `object?` | The data item for the row |
+| [`Column`](xref:WinUI.TableView.TableViewConditionalCellStyleContext.Column) | [`TableViewColumn`](xref:WinUI.TableView.TableViewColumn) | The column of the cell being evaluated |
+| [`DataItem`](xref:WinUI.TableView.TableViewConditionalCellStyleContext.DataItem) | `object?` | The data item for the row |
 
 ## Multiple conditional styles
 

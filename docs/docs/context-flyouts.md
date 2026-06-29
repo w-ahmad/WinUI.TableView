@@ -70,10 +70,10 @@ private void OnRowContextFlyoutOpening(object sender, TableViewRowContextFlyoutE
 
 | Property | Description |
 |---|---|
-| `Index` | Zero-based index of the row |
-| `Row` | The [`TableViewRow`](xref:WinUI.TableView.TableViewRow) control |
-| `Item` | The data item for the row |
-| `Flyout` | The flyout that will be shown |
+| [`Index`](xref:WinUI.TableView.TableViewRowContextFlyoutEventArgs.Index) | Zero-based index of the row |
+| [`Row`](xref:WinUI.TableView.TableViewRowContextFlyoutEventArgs.Row) | The [`TableViewRow`](xref:WinUI.TableView.TableViewRow) control |
+| [`Item`](xref:WinUI.TableView.TableViewRowContextFlyoutEventArgs.Item) | The data item for the row |
+| [`Flyout`](xref:WinUI.TableView.TableViewRowContextFlyoutEventArgs.Flyout) | The flyout that will be shown |
 | `Handled` | Set `true` to suppress the flyout |
 
 ### CellContextFlyoutOpening event args
@@ -82,11 +82,11 @@ private void OnRowContextFlyoutOpening(object sender, TableViewRowContextFlyoutE
 
 | Property | Description |
 |---|---|
-| `Cell` | The [`TableViewCell`](xref:WinUI.TableView.TableViewCell) control |
-| `DataItem` | The data item for the row |
-| `Column` | The column of the cell |
-| `Flyout` | The flyout that will be shown |
-| `Handled` | Set `true` to suppress the flyout |
+| [`Slot`](xref:WinUI.TableView.TableViewCellContextFlyoutEventArgs.Slot) | The cell slot (row and column indices) |
+| [`Cell`](xref:WinUI.TableView.TableViewCellContextFlyoutEventArgs.Cell) | The [`TableViewCell`](xref:WinUI.TableView.TableViewCell) control |
+| [`Item`](xref:WinUI.TableView.TableViewCellContextFlyoutEventArgs.Item) | The data item for the row |
+| [`Flyout`](xref:WinUI.TableView.TableViewCellContextFlyoutEventArgs.Flyout) | The flyout that will be shown |
+| `Handled`| Set `true` to suppress the flyout |
 
 ## Suppressing the flyout conditionally
 

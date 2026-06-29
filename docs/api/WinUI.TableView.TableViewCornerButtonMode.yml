@@ -1,0 +1,131 @@
+### YamlMime:ManagedReference
+items:
+- uid: WinUI.TableView.TableViewCornerButtonMode
+  commentId: T:WinUI.TableView.TableViewCornerButtonMode
+  id: TableViewCornerButtonMode
+  parent: WinUI.TableView
+  children:
+  - WinUI.TableView.TableViewCornerButtonMode.None
+  - WinUI.TableView.TableViewCornerButtonMode.Options
+  - WinUI.TableView.TableViewCornerButtonMode.SelectAll
+  langs:
+  - csharp
+  - vb
+  name: TableViewCornerButtonMode
+  nameWithType: TableViewCornerButtonMode
+  fullName: WinUI.TableView.TableViewCornerButtonMode
+  type: Enum
+  source:
+    id: TableViewCornerButtonMode
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewCornerButtonMode.cs
+    startLine: 5
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Specifies the mode of the corner button in a TableView.
+  example: []
+  syntax:
+    content: public enum TableViewCornerButtonMode
+    content.vb: Public Enum TableViewCornerButtonMode
+- uid: WinUI.TableView.TableViewCornerButtonMode.None
+  commentId: F:WinUI.TableView.TableViewCornerButtonMode.None
+  id: None
+  parent: WinUI.TableView.TableViewCornerButtonMode
+  langs:
+  - csharp
+  - vb
+  name: None
+  nameWithType: TableViewCornerButtonMode.None
+  fullName: WinUI.TableView.TableViewCornerButtonMode.None
+  type: Field
+  source:
+    id: None
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewCornerButtonMode.cs
+    startLine: 10
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: No button.
+  example: []
+  syntax:
+    content: None = 0
+    return:
+      type: WinUI.TableView.TableViewCornerButtonMode
+- uid: WinUI.TableView.TableViewCornerButtonMode.SelectAll
+  commentId: F:WinUI.TableView.TableViewCornerButtonMode.SelectAll
+  id: SelectAll
+  parent: WinUI.TableView.TableViewCornerButtonMode
+  langs:
+  - csharp
+  - vb
+  name: SelectAll
+  nameWithType: TableViewCornerButtonMode.SelectAll
+  fullName: WinUI.TableView.TableViewCornerButtonMode.SelectAll
+  type: Field
+  source:
+    id: SelectAll
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewCornerButtonMode.cs
+    startLine: 15
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Show Select All button.
+  example: []
+  syntax:
+    content: SelectAll = 1
+    return:
+      type: WinUI.TableView.TableViewCornerButtonMode
+- uid: WinUI.TableView.TableViewCornerButtonMode.Options
+  commentId: F:WinUI.TableView.TableViewCornerButtonMode.Options
+  id: Options
+  parent: WinUI.TableView.TableViewCornerButtonMode
+  langs:
+  - csharp
+  - vb
+  name: Options
+  nameWithType: TableViewCornerButtonMode.Options
+  fullName: WinUI.TableView.TableViewCornerButtonMode.Options
+  type: Field
+  source:
+    id: Options
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewCornerButtonMode.cs
+    startLine: 20
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Show Options button.
+  example: []
+  syntax:
+    content: Options = 2
+    return:
+      type: WinUI.TableView.TableViewCornerButtonMode
+references:
+- uid: WinUI.TableView
+  commentId: N:WinUI.TableView
+  href: WinUI.html
+  name: WinUI.TableView
+  nameWithType: WinUI.TableView
+  fullName: WinUI.TableView
+  spec.csharp:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+  spec.vb:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+- uid: WinUI.TableView.TableViewCornerButtonMode
+  commentId: T:WinUI.TableView.TableViewCornerButtonMode
+  parent: WinUI.TableView
+  href: WinUI.TableView.TableViewCornerButtonMode.html
+  name: TableViewCornerButtonMode
+  nameWithType: TableViewCornerButtonMode
+  fullName: WinUI.TableView.TableViewCornerButtonMode

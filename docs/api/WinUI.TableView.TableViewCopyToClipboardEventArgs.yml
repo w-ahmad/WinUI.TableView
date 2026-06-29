@@ -1,0 +1,196 @@
+### YamlMime:ManagedReference
+items:
+- uid: WinUI.TableView.TableViewCopyToClipboardEventArgs
+  commentId: T:WinUI.TableView.TableViewCopyToClipboardEventArgs
+  id: TableViewCopyToClipboardEventArgs
+  parent: WinUI.TableView
+  children:
+  - WinUI.TableView.TableViewCopyToClipboardEventArgs.#ctor(System.Boolean)
+  - WinUI.TableView.TableViewCopyToClipboardEventArgs.IncludeHeaders
+  langs:
+  - csharp
+  - vb
+  name: TableViewCopyToClipboardEventArgs
+  nameWithType: TableViewCopyToClipboardEventArgs
+  fullName: WinUI.TableView.TableViewCopyToClipboardEventArgs
+  type: Class
+  source:
+    id: TableViewCopyToClipboardEventArgs
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewCopyToClipboardEventArgs.cs
+    startLine: 7
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Provides data for the CopyToClipboard event.
+  example: []
+  syntax:
+    content: 'public class TableViewCopyToClipboardEventArgs : HandledEventArgs'
+    content.vb: Public Class TableViewCopyToClipboardEventArgs Inherits HandledEventArgs
+  inheritance:
+  - System.Object
+  - System.EventArgs
+  - System.ComponentModel.HandledEventArgs
+- uid: WinUI.TableView.TableViewCopyToClipboardEventArgs.#ctor(System.Boolean)
+  commentId: M:WinUI.TableView.TableViewCopyToClipboardEventArgs.#ctor(System.Boolean)
+  id: '#ctor(System.Boolean)'
+  parent: WinUI.TableView.TableViewCopyToClipboardEventArgs
+  langs:
+  - csharp
+  - vb
+  name: TableViewCopyToClipboardEventArgs(bool)
+  nameWithType: TableViewCopyToClipboardEventArgs.TableViewCopyToClipboardEventArgs(bool)
+  fullName: WinUI.TableView.TableViewCopyToClipboardEventArgs.TableViewCopyToClipboardEventArgs(bool)
+  type: Constructor
+  source:
+    id: .ctor
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewCopyToClipboardEventArgs.cs
+    startLine: 13
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Initializes a new instance of the TableViewCopyToClipboardEventArgs class.
+  example: []
+  syntax:
+    content: public TableViewCopyToClipboardEventArgs(bool includeHeaders)
+    parameters:
+    - id: includeHeaders
+      type: System.Boolean
+      description: A value indicating whether to include headers in the copied content.
+    content.vb: Public Sub New(includeHeaders As Boolean)
+  overload: WinUI.TableView.TableViewCopyToClipboardEventArgs.#ctor*
+  nameWithType.vb: TableViewCopyToClipboardEventArgs.New(Boolean)
+  fullName.vb: WinUI.TableView.TableViewCopyToClipboardEventArgs.New(Boolean)
+  name.vb: New(Boolean)
+- uid: WinUI.TableView.TableViewCopyToClipboardEventArgs.IncludeHeaders
+  commentId: P:WinUI.TableView.TableViewCopyToClipboardEventArgs.IncludeHeaders
+  id: IncludeHeaders
+  parent: WinUI.TableView.TableViewCopyToClipboardEventArgs
+  langs:
+  - csharp
+  - vb
+  name: IncludeHeaders
+  nameWithType: TableViewCopyToClipboardEventArgs.IncludeHeaders
+  fullName: WinUI.TableView.TableViewCopyToClipboardEventArgs.IncludeHeaders
+  type: Property
+  source:
+    id: IncludeHeaders
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewCopyToClipboardEventArgs.cs
+    startLine: 21
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Gets a value indicating whether to include headers in the copied content.
+  example: []
+  syntax:
+    content: public bool IncludeHeaders { get; }
+    parameters: []
+    return:
+      type: System.Boolean
+    content.vb: Public ReadOnly Property IncludeHeaders As Boolean
+  overload: WinUI.TableView.TableViewCopyToClipboardEventArgs.IncludeHeaders*
+references:
+- uid: WinUI.TableView
+  commentId: N:WinUI.TableView
+  href: WinUI.html
+  name: WinUI.TableView
+  nameWithType: WinUI.TableView
+  fullName: WinUI.TableView
+  spec.csharp:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+  spec.vb:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.EventArgs
+  commentId: T:System.EventArgs
+  parent: System
+  isExternal: true
+  name: EventArgs
+  nameWithType: EventArgs
+  fullName: System.EventArgs
+- uid: System.ComponentModel.HandledEventArgs
+  commentId: T:System.ComponentModel.HandledEventArgs
+  parent: System.ComponentModel
+  isExternal: true
+  name: HandledEventArgs
+  nameWithType: HandledEventArgs
+  fullName: System.ComponentModel.HandledEventArgs
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: System.ComponentModel
+  commentId: N:System.ComponentModel
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.ComponentModel
+  nameWithType: System.ComponentModel
+  fullName: System.ComponentModel
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.ComponentModel
+    name: ComponentModel
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.componentmodel
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.ComponentModel
+    name: ComponentModel
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.componentmodel
+- uid: WinUI.TableView.TableViewCopyToClipboardEventArgs.#ctor*
+  commentId: Overload:WinUI.TableView.TableViewCopyToClipboardEventArgs.#ctor
+  href: WinUI.TableView.TableViewCopyToClipboardEventArgs.html#WinUI_TableView_TableViewCopyToClipboardEventArgs__ctor_System_Boolean_
+  name: TableViewCopyToClipboardEventArgs
+  nameWithType: TableViewCopyToClipboardEventArgs.TableViewCopyToClipboardEventArgs
+  fullName: WinUI.TableView.TableViewCopyToClipboardEventArgs.TableViewCopyToClipboardEventArgs
+  nameWithType.vb: TableViewCopyToClipboardEventArgs.New
+  fullName.vb: WinUI.TableView.TableViewCopyToClipboardEventArgs.New
+  name.vb: New
+- uid: System.Boolean
+  commentId: T:System.Boolean
+  parent: System
+  isExternal: true
+  name: bool
+  nameWithType: bool
+  fullName: bool
+  nameWithType.vb: Boolean
+  fullName.vb: Boolean
+  name.vb: Boolean
+- uid: WinUI.TableView.TableViewCopyToClipboardEventArgs.IncludeHeaders*
+  commentId: Overload:WinUI.TableView.TableViewCopyToClipboardEventArgs.IncludeHeaders
+  href: WinUI.TableView.TableViewCopyToClipboardEventArgs.html#WinUI_TableView_TableViewCopyToClipboardEventArgs_IncludeHeaders
+  name: IncludeHeaders
+  nameWithType: TableViewCopyToClipboardEventArgs.IncludeHeaders
+  fullName: WinUI.TableView.TableViewCopyToClipboardEventArgs.IncludeHeaders

@@ -1,0 +1,106 @@
+### YamlMime:ManagedReference
+items:
+- uid: WinUI.TableView.TableViewEditAction
+  commentId: T:WinUI.TableView.TableViewEditAction
+  id: TableViewEditAction
+  parent: WinUI.TableView
+  children:
+  - WinUI.TableView.TableViewEditAction.Cancel
+  - WinUI.TableView.TableViewEditAction.Commit
+  langs:
+  - csharp
+  - vb
+  name: TableViewEditAction
+  nameWithType: TableViewEditAction
+  fullName: WinUI.TableView.TableViewEditAction
+  type: Enum
+  source:
+    id: TableViewEditAction
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewEditAction.cs
+    startLine: 5
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Specifies the action to take when editing a cell in TableView.
+  example: []
+  syntax:
+    content: public enum TableViewEditAction
+    content.vb: Public Enum TableViewEditAction
+- uid: WinUI.TableView.TableViewEditAction.Cancel
+  commentId: F:WinUI.TableView.TableViewEditAction.Cancel
+  id: Cancel
+  parent: WinUI.TableView.TableViewEditAction
+  langs:
+  - csharp
+  - vb
+  name: Cancel
+  nameWithType: TableViewEditAction.Cancel
+  fullName: WinUI.TableView.TableViewEditAction.Cancel
+  type: Field
+  source:
+    id: Cancel
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewEditAction.cs
+    startLine: 10
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Cancel editing and revert to the original value.
+  example: []
+  syntax:
+    content: Cancel = 0
+    return:
+      type: WinUI.TableView.TableViewEditAction
+- uid: WinUI.TableView.TableViewEditAction.Commit
+  commentId: F:WinUI.TableView.TableViewEditAction.Commit
+  id: Commit
+  parent: WinUI.TableView.TableViewEditAction
+  langs:
+  - csharp
+  - vb
+  name: Commit
+  nameWithType: TableViewEditAction.Commit
+  fullName: WinUI.TableView.TableViewEditAction.Commit
+  type: Field
+  source:
+    id: Commit
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewEditAction.cs
+    startLine: 15
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Commit the edit and save the new value.
+  example: []
+  syntax:
+    content: Commit = 1
+    return:
+      type: WinUI.TableView.TableViewEditAction
+references:
+- uid: WinUI.TableView
+  commentId: N:WinUI.TableView
+  href: WinUI.html
+  name: WinUI.TableView
+  nameWithType: WinUI.TableView
+  fullName: WinUI.TableView
+  spec.csharp:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+  spec.vb:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+- uid: WinUI.TableView.TableViewEditAction
+  commentId: T:WinUI.TableView.TableViewEditAction
+  parent: WinUI.TableView
+  href: WinUI.TableView.TableViewEditAction.html
+  name: TableViewEditAction
+  nameWithType: TableViewEditAction
+  fullName: WinUI.TableView.TableViewEditAction

@@ -29,10 +29,10 @@
 
 | Value | Description |
 |---|---|
-| `CellOrRow` (default) | Clicking a cell selects that cell; clicking a row header selects the row. Cell selection and row selection are independent. |
-| `CellWithRow` | Clicking a cell selects the cell and also selects the owning row. |
-| `Cell` | Only cells can be selected; row headers do not select rows. |
-| `Row` | Only rows can be selected; clicking a cell selects the row. |
+| [`CellOrRow`](xref:WinUI.TableView.TableViewSelectionUnit.CellOrRow) (default) | Clicking a cell selects that cell; clicking a row header selects the row. Cell selection and row selection are independent. |
+| [`CellWithRow`](xref:WinUI.TableView.TableViewSelectionUnit.CellWithRow) | Clicking a cell selects the cell and also selects the owning row. |
+| [`Cell`](xref:WinUI.TableView.TableViewSelectionUnit.Cell) | Only cells can be selected; row headers do not select rows. |
+| [`Row`](xref:WinUI.TableView.TableViewSelectionUnit.Row) | Only rows can be selected; clicking a cell selects the row. |
 
 ```xml
 <tv:TableView SelectionUnit="Row" SelectionMode="Single" />
@@ -118,9 +118,9 @@ The corner button appears in the top-left cell above the row headers. Its behavi
 
 | Value | Description |
 |---|---|
-| `None` | No corner button is shown |
-| `SelectAll` | Shows a **Select All** checkbox/button that selects all rows |
-| `Options` (default) | Shows a table-level options menu (flyout) |
+| [`None`](xref:WinUI.TableView.TableViewCornerButtonMode.None) | No corner button is shown |
+| [`SelectAll`](xref:WinUI.TableView.TableViewCornerButtonMode.SelectAll) | Shows a **Select All** checkbox/button that selects all rows |
+| [`Options`](xref:WinUI.TableView.TableViewCornerButtonMode.Options) (default) | Shows a table-level options menu (flyout) |
 
 ### Options flyout
 
@@ -173,7 +173,7 @@ tableView.CellSelectionChanged += (s, e) =>
 
 - When [`SelectionUnit`](xref:WinUI.TableView.TableView.SelectionUnit) is `Row`, the `SelectedCells` collection and [`CellSelectionChanged`](xref:WinUI.TableView.TableView.CellSelectionChanged) are not used.
 - Drag selection is supported for cell selection. The selection rectangle is shown by default; disable it with `ShowDragRectangle = false`.
-- In `CellOrRow` mode, row and cell selections are tracked independently. A selected row does not mean its cells are in `SelectedCells`.
+- In [`CellOrRow`](xref:WinUI.TableView.TableViewSelectionUnit.CellOrRow) mode, row and cell selections are tracked independently. A selected row does not mean its cells are in `SelectedCells`.
 
 ## Related articles
 

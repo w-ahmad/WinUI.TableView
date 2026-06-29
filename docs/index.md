@@ -42,7 +42,7 @@ public ObservableCollection<Product> Products { get; } = new()
 };
 ```
 
-## [Samples App](https://github.com/w-ahmad/WinUI.TableView.SampleApp)
+## [Samples App](https://github.com/w-ahmad/WinUI.TableView/tree/main/samples/WinUI.TableView.SampleApp)
 
 Explore interactive samples with code snippets in the Samples App on Microsoft Store or Uno Platform WASM:
 
@@ -62,11 +62,9 @@ Explore interactive samples with code snippets in the Samples App on Microsoft S
 
 ## Key features
 
-See the [Feature Index](docs/feature-index.md) for a full list of features and quick links to each topic.
-
 | Feature | Description |
 |---|---|
-| [Auto-generating columns](docs/binding-data.md) | Automatically generate columns based on the data source properties |
+| [Auto-generating columns](docs/defining-columns.md) | Automatically generate columns based on the data source properties |
 | [Column types](docs/column-types.md) | Text, Number, CheckBox, ComboBox, ToggleSwitch, Date, Time, Hyperlink, Template |
 | [Sorting](docs/sorting.md) | Built-in column sorting with sort direction indicators |
 | [Filtering](docs/filtering.md) | Excel-like column filter flyout |

@@ -1,0 +1,362 @@
+### YamlMime:ManagedReference
+items:
+- uid: WinUI.TableView.TableViewConditionalCellStyle
+  commentId: T:WinUI.TableView.TableViewConditionalCellStyle
+  id: TableViewConditionalCellStyle
+  parent: WinUI.TableView
+  children:
+  - WinUI.TableView.TableViewConditionalCellStyle.Predicate
+  - WinUI.TableView.TableViewConditionalCellStyle.PredicateProperty
+  - WinUI.TableView.TableViewConditionalCellStyle.Style
+  - WinUI.TableView.TableViewConditionalCellStyle.StyleProperty
+  langs:
+  - csharp
+  - vb
+  name: TableViewConditionalCellStyle
+  nameWithType: TableViewConditionalCellStyle
+  fullName: WinUI.TableView.TableViewConditionalCellStyle
+  type: Class
+  source:
+    id: TableViewConditionalCellStyle
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewConditionalCellStyle.cs
+    startLine: 27
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Represents a conditional style for a table view cell that is applied when a specified predicate evaluates to true.
+  remarks: >-
+    Use this class to define styles that are conditionally applied to cells in a table view based on
+        custom logic. The style is only applied to cells for which the predicate returns <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a>. Multiple
+        conditional styles can be used to support complex styling scenarios.
+  example: []
+  syntax:
+    content: >-
+      [ContentProperty(Name = "Style")]
+
+      [StyleTypedProperty(Property = "Style", StyleTargetType = typeof(TableViewCell))]
+
+      public class TableViewConditionalCellStyle : DependencyObject, IWinRTObject
+    content.vb: >-
+      <ContentProperty(Name:="Style")>
+
+      <StyleTypedProperty(Property:="Style", StyleTargetType:=GetType(TableViewCell))>
+
+      Public Class TableViewConditionalCellStyle Inherits DependencyObject Implements IWinRTObject
+  inheritance:
+  - System.Object
+  - Microsoft.UI.Xaml.DependencyObject
+  implements:
+  - WinRT.IWinRTObject
+  attributes:
+  - type: Microsoft.UI.Xaml.Markup.ContentPropertyAttribute
+    ctor: Microsoft.UI.Xaml.Markup.ContentPropertyAttribute.#ctor
+    arguments: []
+    namedArguments:
+    - name: Name
+      type: System.String
+      value: Style
+  - type: Microsoft.UI.Xaml.StyleTypedPropertyAttribute
+    ctor: Microsoft.UI.Xaml.StyleTypedPropertyAttribute.#ctor
+    arguments: []
+    namedArguments:
+    - name: Property
+      type: System.String
+      value: Style
+    - name: StyleTargetType
+      type: System.Type
+      value: WinUI.TableView.TableViewCell
+- uid: WinUI.TableView.TableViewConditionalCellStyle.Style
+  commentId: P:WinUI.TableView.TableViewConditionalCellStyle.Style
+  id: Style
+  parent: WinUI.TableView.TableViewConditionalCellStyle
+  langs:
+  - csharp
+  - vb
+  name: Style
+  nameWithType: TableViewConditionalCellStyle.Style
+  fullName: WinUI.TableView.TableViewConditionalCellStyle.Style
+  type: Property
+  source:
+    id: Style
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewConditionalCellStyle.cs
+    startLine: 34
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Gets or sets the style to be applied to the table view cell when the predicate evaluates to true.
+  example: []
+  syntax:
+    content: public Style? Style { get; set; }
+    parameters: []
+    return:
+      type: Microsoft.UI.Xaml.Style
+    content.vb: Public Property Style As Style
+  overload: WinUI.TableView.TableViewConditionalCellStyle.Style*
+- uid: WinUI.TableView.TableViewConditionalCellStyle.Predicate
+  commentId: P:WinUI.TableView.TableViewConditionalCellStyle.Predicate
+  id: Predicate
+  parent: WinUI.TableView.TableViewConditionalCellStyle
+  langs:
+  - csharp
+  - vb
+  name: Predicate
+  nameWithType: TableViewConditionalCellStyle.Predicate
+  fullName: WinUI.TableView.TableViewConditionalCellStyle.Predicate
+  type: Property
+  source:
+    id: Predicate
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewConditionalCellStyle.cs
+    startLine: 43
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Gets or sets the predicate that determines whether the style should be applied to a given cell.
+  example: []
+  syntax:
+    content: public Predicate<TableViewConditionalCellStyleContext>? Predicate { get; set; }
+    parameters: []
+    return:
+      type: System.Predicate{WinUI.TableView.TableViewConditionalCellStyleContext}
+    content.vb: Public Property Predicate As Predicate(Of TableViewConditionalCellStyleContext)
+  overload: WinUI.TableView.TableViewConditionalCellStyle.Predicate*
+- uid: WinUI.TableView.TableViewConditionalCellStyle.StyleProperty
+  commentId: F:WinUI.TableView.TableViewConditionalCellStyle.StyleProperty
+  id: StyleProperty
+  parent: WinUI.TableView.TableViewConditionalCellStyle
+  langs:
+  - csharp
+  - vb
+  name: StyleProperty
+  nameWithType: TableViewConditionalCellStyle.StyleProperty
+  fullName: WinUI.TableView.TableViewConditionalCellStyle.StyleProperty
+  type: Field
+  source:
+    id: StyleProperty
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewConditionalCellStyle.cs
+    startLine: 52
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Identifies the <xref href="WinUI.TableView.TableViewConditionalCellStyle.Style" data-throw-if-not-resolved="false"></xref> dependency property.
+  example: []
+  syntax:
+    content: public static readonly DependencyProperty StyleProperty
+    return:
+      type: Microsoft.UI.Xaml.DependencyProperty
+    content.vb: Public Shared ReadOnly StyleProperty As DependencyProperty
+- uid: WinUI.TableView.TableViewConditionalCellStyle.PredicateProperty
+  commentId: F:WinUI.TableView.TableViewConditionalCellStyle.PredicateProperty
+  id: PredicateProperty
+  parent: WinUI.TableView.TableViewConditionalCellStyle
+  langs:
+  - csharp
+  - vb
+  name: PredicateProperty
+  nameWithType: TableViewConditionalCellStyle.PredicateProperty
+  fullName: WinUI.TableView.TableViewConditionalCellStyle.PredicateProperty
+  type: Field
+  source:
+    id: PredicateProperty
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\TableViewConditionalCellStyle.cs
+    startLine: 57
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Identifies the <xref href="WinUI.TableView.TableViewConditionalCellStyle.Predicate" data-throw-if-not-resolved="false"></xref> dependency property.
+  example: []
+  syntax:
+    content: public static readonly DependencyProperty PredicateProperty
+    return:
+      type: Microsoft.UI.Xaml.DependencyProperty
+    content.vb: Public Shared ReadOnly PredicateProperty As DependencyProperty
+references:
+- uid: WinUI.TableView
+  commentId: N:WinUI.TableView
+  href: WinUI.html
+  name: WinUI.TableView
+  nameWithType: WinUI.TableView
+  fullName: WinUI.TableView
+  spec.csharp:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+  spec.vb:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: Microsoft.UI.Xaml.DependencyObject
+  commentId: T:Microsoft.UI.Xaml.DependencyObject
+  parent: Microsoft.UI.Xaml
+  isExternal: true
+  name: DependencyObject
+  nameWithType: DependencyObject
+  fullName: Microsoft.UI.Xaml.DependencyObject
+- uid: WinRT.IWinRTObject
+  commentId: T:WinRT.IWinRTObject
+  parent: WinRT
+  isExternal: true
+  name: IWinRTObject
+  nameWithType: IWinRTObject
+  fullName: WinRT.IWinRTObject
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: Microsoft.UI.Xaml
+  commentId: N:Microsoft.UI.Xaml
+  isExternal: true
+  href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  name: Microsoft.UI.Xaml
+  nameWithType: Microsoft.UI.Xaml
+  fullName: Microsoft.UI.Xaml
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  - name: .
+  - uid: Microsoft.UI
+    name: UI
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui
+  - name: .
+  - uid: Microsoft.UI.Xaml
+    name: Xaml
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft
+  - name: .
+  - uid: Microsoft.UI
+    name: UI
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui
+  - name: .
+  - uid: Microsoft.UI.Xaml
+    name: Xaml
+    isExternal: true
+    href: https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml
+- uid: WinRT
+  commentId: N:WinRT
+  isExternal: true
+  name: WinRT
+  nameWithType: WinRT
+  fullName: WinRT
+- uid: WinUI.TableView.TableViewConditionalCellStyle.Style*
+  commentId: Overload:WinUI.TableView.TableViewConditionalCellStyle.Style
+  href: WinUI.TableView.TableViewConditionalCellStyle.html#WinUI_TableView_TableViewConditionalCellStyle_Style
+  name: Style
+  nameWithType: TableViewConditionalCellStyle.Style
+  fullName: WinUI.TableView.TableViewConditionalCellStyle.Style
+- uid: Microsoft.UI.Xaml.Style
+  commentId: T:Microsoft.UI.Xaml.Style
+  parent: Microsoft.UI.Xaml
+  isExternal: true
+  name: Style
+  nameWithType: Style
+  fullName: Microsoft.UI.Xaml.Style
+- uid: WinUI.TableView.TableViewConditionalCellStyle.Predicate*
+  commentId: Overload:WinUI.TableView.TableViewConditionalCellStyle.Predicate
+  href: WinUI.TableView.TableViewConditionalCellStyle.html#WinUI_TableView_TableViewConditionalCellStyle_Predicate
+  name: Predicate
+  nameWithType: TableViewConditionalCellStyle.Predicate
+  fullName: WinUI.TableView.TableViewConditionalCellStyle.Predicate
+- uid: System.Predicate{WinUI.TableView.TableViewConditionalCellStyleContext}
+  commentId: T:System.Predicate{WinUI.TableView.TableViewConditionalCellStyleContext}
+  parent: System
+  definition: System.Predicate`1
+  href: WinUI.TableView.TableViewConditionalCellStyleContext.html
+  name: Predicate<TableViewConditionalCellStyleContext>
+  nameWithType: Predicate<TableViewConditionalCellStyleContext>
+  fullName: System.Predicate<WinUI.TableView.TableViewConditionalCellStyleContext>
+  nameWithType.vb: Predicate(Of TableViewConditionalCellStyleContext)
+  fullName.vb: System.Predicate(Of WinUI.TableView.TableViewConditionalCellStyleContext)
+  name.vb: Predicate(Of TableViewConditionalCellStyleContext)
+  spec.csharp:
+  - uid: System.Predicate`1
+    name: Predicate
+    isExternal: true
+  - name: <
+  - uid: WinUI.TableView.TableViewConditionalCellStyleContext
+    name: TableViewConditionalCellStyleContext
+    href: WinUI.TableView.TableViewConditionalCellStyleContext.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Predicate`1
+    name: Predicate
+    isExternal: true
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: WinUI.TableView.TableViewConditionalCellStyleContext
+    name: TableViewConditionalCellStyleContext
+    href: WinUI.TableView.TableViewConditionalCellStyleContext.html
+  - name: )
+- uid: System.Predicate`1
+  commentId: T:System.Predicate`1
+  isExternal: true
+  name: Predicate<T>
+  nameWithType: Predicate<T>
+  fullName: System.Predicate<T>
+  nameWithType.vb: Predicate(Of T)
+  fullName.vb: System.Predicate(Of T)
+  name.vb: Predicate(Of T)
+  spec.csharp:
+  - uid: System.Predicate`1
+    name: Predicate
+    isExternal: true
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Predicate`1
+    name: Predicate
+    isExternal: true
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: WinUI.TableView.TableViewConditionalCellStyle.Style
+  commentId: P:WinUI.TableView.TableViewConditionalCellStyle.Style
+  href: WinUI.TableView.TableViewConditionalCellStyle.html#WinUI_TableView_TableViewConditionalCellStyle_Style
+  name: Style
+  nameWithType: TableViewConditionalCellStyle.Style
+  fullName: WinUI.TableView.TableViewConditionalCellStyle.Style
+- uid: Microsoft.UI.Xaml.DependencyProperty
+  commentId: T:Microsoft.UI.Xaml.DependencyProperty
+  parent: Microsoft.UI.Xaml
+  isExternal: true
+  name: DependencyProperty
+  nameWithType: DependencyProperty
+  fullName: Microsoft.UI.Xaml.DependencyProperty
+- uid: WinUI.TableView.TableViewConditionalCellStyle.Predicate
+  commentId: P:WinUI.TableView.TableViewConditionalCellStyle.Predicate
+  href: WinUI.TableView.TableViewConditionalCellStyle.html#WinUI_TableView_TableViewConditionalCellStyle_Predicate
+  name: Predicate
+  nameWithType: TableViewConditionalCellStyle.Predicate
+  fullName: WinUI.TableView.TableViewConditionalCellStyle.Predicate

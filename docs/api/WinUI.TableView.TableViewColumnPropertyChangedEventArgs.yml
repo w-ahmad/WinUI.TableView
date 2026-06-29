@@ -1,0 +1,252 @@
+### YamlMime:ManagedReference
+items:
+- uid: WinUI.TableView.TableViewColumnPropertyChangedEventArgs
+  commentId: T:WinUI.TableView.TableViewColumnPropertyChangedEventArgs
+  id: TableViewColumnPropertyChangedEventArgs
+  parent: WinUI.TableView
+  children:
+  - WinUI.TableView.TableViewColumnPropertyChangedEventArgs.#ctor(WinUI.TableView.TableViewColumn,System.String,System.Int32)
+  - WinUI.TableView.TableViewColumnPropertyChangedEventArgs.Column
+  - WinUI.TableView.TableViewColumnPropertyChangedEventArgs.Index
+  - WinUI.TableView.TableViewColumnPropertyChangedEventArgs.PropertyName
+  langs:
+  - csharp
+  - vb
+  name: TableViewColumnPropertyChangedEventArgs
+  nameWithType: TableViewColumnPropertyChangedEventArgs
+  fullName: WinUI.TableView.TableViewColumnPropertyChangedEventArgs
+  type: Class
+  source:
+    id: TableViewColumnPropertyChangedEventArgs
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewColumnPropertyChangedEventArgs.cs
+    startLine: 7
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Provides data for the ColumnPropertyChanged event.
+  example: []
+  syntax:
+    content: 'public class TableViewColumnPropertyChangedEventArgs : EventArgs'
+    content.vb: Public Class TableViewColumnPropertyChangedEventArgs Inherits EventArgs
+  inheritance:
+  - System.Object
+  - System.EventArgs
+- uid: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.#ctor(WinUI.TableView.TableViewColumn,System.String,System.Int32)
+  commentId: M:WinUI.TableView.TableViewColumnPropertyChangedEventArgs.#ctor(WinUI.TableView.TableViewColumn,System.String,System.Int32)
+  id: '#ctor(WinUI.TableView.TableViewColumn,System.String,System.Int32)'
+  parent: WinUI.TableView.TableViewColumnPropertyChangedEventArgs
+  langs:
+  - csharp
+  - vb
+  name: TableViewColumnPropertyChangedEventArgs(TableViewColumn, string, int)
+  nameWithType: TableViewColumnPropertyChangedEventArgs.TableViewColumnPropertyChangedEventArgs(TableViewColumn, string, int)
+  fullName: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.TableViewColumnPropertyChangedEventArgs(WinUI.TableView.TableViewColumn, string, int)
+  type: Constructor
+  source:
+    id: .ctor
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewColumnPropertyChangedEventArgs.cs
+    startLine: 15
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Initializes a new instance of the TableViewColumnPropertyChanged class.
+  example: []
+  syntax:
+    content: public TableViewColumnPropertyChangedEventArgs(TableViewColumn column, string propertyName, int index)
+    parameters:
+    - id: column
+      type: WinUI.TableView.TableViewColumn
+      description: The column that changed.
+    - id: propertyName
+      type: System.String
+      description: The name of the property that changed.
+    - id: index
+      type: System.Int32
+      description: The index of the column in the collection.
+    content.vb: Public Sub New(column As TableViewColumn, propertyName As String, index As Integer)
+  overload: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.#ctor*
+  nameWithType.vb: TableViewColumnPropertyChangedEventArgs.New(TableViewColumn, String, Integer)
+  fullName.vb: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.New(WinUI.TableView.TableViewColumn, String, Integer)
+  name.vb: New(TableViewColumn, String, Integer)
+- uid: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.Column
+  commentId: P:WinUI.TableView.TableViewColumnPropertyChangedEventArgs.Column
+  id: Column
+  parent: WinUI.TableView.TableViewColumnPropertyChangedEventArgs
+  langs:
+  - csharp
+  - vb
+  name: Column
+  nameWithType: TableViewColumnPropertyChangedEventArgs.Column
+  fullName: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.Column
+  type: Property
+  source:
+    id: Column
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewColumnPropertyChangedEventArgs.cs
+    startLine: 25
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Gets the column that changed.
+  example: []
+  syntax:
+    content: public TableViewColumn Column { get; }
+    parameters: []
+    return:
+      type: WinUI.TableView.TableViewColumn
+    content.vb: Public ReadOnly Property Column As TableViewColumn
+  overload: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.Column*
+- uid: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.PropertyName
+  commentId: P:WinUI.TableView.TableViewColumnPropertyChangedEventArgs.PropertyName
+  id: PropertyName
+  parent: WinUI.TableView.TableViewColumnPropertyChangedEventArgs
+  langs:
+  - csharp
+  - vb
+  name: PropertyName
+  nameWithType: TableViewColumnPropertyChangedEventArgs.PropertyName
+  fullName: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.PropertyName
+  type: Property
+  source:
+    id: PropertyName
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewColumnPropertyChangedEventArgs.cs
+    startLine: 30
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Gets the name of the property that changed.
+  example: []
+  syntax:
+    content: public string PropertyName { get; }
+    parameters: []
+    return:
+      type: System.String
+    content.vb: Public ReadOnly Property PropertyName As String
+  overload: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.PropertyName*
+- uid: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.Index
+  commentId: P:WinUI.TableView.TableViewColumnPropertyChangedEventArgs.Index
+  id: Index
+  parent: WinUI.TableView.TableViewColumnPropertyChangedEventArgs
+  langs:
+  - csharp
+  - vb
+  name: Index
+  nameWithType: TableViewColumnPropertyChangedEventArgs.Index
+  fullName: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.Index
+  type: Property
+  source:
+    id: Index
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\EventArgs\TableViewColumnPropertyChangedEventArgs.cs
+    startLine: 35
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Gets the index of the column in the collection.
+  example: []
+  syntax:
+    content: public int Index { get; }
+    parameters: []
+    return:
+      type: System.Int32
+    content.vb: Public ReadOnly Property Index As Integer
+  overload: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.Index*
+references:
+- uid: WinUI.TableView
+  commentId: N:WinUI.TableView
+  href: WinUI.html
+  name: WinUI.TableView
+  nameWithType: WinUI.TableView
+  fullName: WinUI.TableView
+  spec.csharp:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+  spec.vb:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.EventArgs
+  commentId: T:System.EventArgs
+  parent: System
+  isExternal: true
+  name: EventArgs
+  nameWithType: EventArgs
+  fullName: System.EventArgs
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.#ctor*
+  commentId: Overload:WinUI.TableView.TableViewColumnPropertyChangedEventArgs.#ctor
+  href: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.html#WinUI_TableView_TableViewColumnPropertyChangedEventArgs__ctor_WinUI_TableView_TableViewColumn_System_String_System_Int32_
+  name: TableViewColumnPropertyChangedEventArgs
+  nameWithType: TableViewColumnPropertyChangedEventArgs.TableViewColumnPropertyChangedEventArgs
+  fullName: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.TableViewColumnPropertyChangedEventArgs
+  nameWithType.vb: TableViewColumnPropertyChangedEventArgs.New
+  fullName.vb: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.New
+  name.vb: New
+- uid: WinUI.TableView.TableViewColumn
+  commentId: T:WinUI.TableView.TableViewColumn
+  parent: WinUI.TableView
+  href: WinUI.TableView.TableViewColumn.html
+  name: TableViewColumn
+  nameWithType: TableViewColumn
+  fullName: WinUI.TableView.TableViewColumn
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: System.Int32
+  commentId: T:System.Int32
+  parent: System
+  isExternal: true
+  name: int
+  nameWithType: int
+  fullName: int
+  nameWithType.vb: Integer
+  fullName.vb: Integer
+  name.vb: Integer
+- uid: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.Column*
+  commentId: Overload:WinUI.TableView.TableViewColumnPropertyChangedEventArgs.Column
+  href: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.html#WinUI_TableView_TableViewColumnPropertyChangedEventArgs_Column
+  name: Column
+  nameWithType: TableViewColumnPropertyChangedEventArgs.Column
+  fullName: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.Column
+- uid: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.PropertyName*
+  commentId: Overload:WinUI.TableView.TableViewColumnPropertyChangedEventArgs.PropertyName
+  href: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.html#WinUI_TableView_TableViewColumnPropertyChangedEventArgs_PropertyName
+  name: PropertyName
+  nameWithType: TableViewColumnPropertyChangedEventArgs.PropertyName
+  fullName: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.PropertyName
+- uid: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.Index*
+  commentId: Overload:WinUI.TableView.TableViewColumnPropertyChangedEventArgs.Index
+  href: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.html#WinUI_TableView_TableViewColumnPropertyChangedEventArgs_Index
+  name: Index
+  nameWithType: TableViewColumnPropertyChangedEventArgs.Index
+  fullName: WinUI.TableView.TableViewColumnPropertyChangedEventArgs.Index

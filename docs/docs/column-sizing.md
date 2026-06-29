@@ -38,9 +38,9 @@ When `Width="Auto"`, the [`ColumnAutoWidthMode`](xref:WinUI.TableView.TableView.
 
 | Value | Description |
 |---|---|
-| `Both` (default) | Width is the maximum of the header width and the widest cell content |
-| `Cells` | Width is determined by the widest cell content only |
-| [`Header`](xref:WinUI.TableView.TableViewColumn.Header) | Width is determined by the header content only |
+| [`Both`](xref:WinUI.TableView.TableViewColumnAutoWidthMode.Both) (default) | Width is the maximum of the header width and the widest cell content |
+| [`Cells`](xref:WinUI.TableView.TableViewColumnAutoWidthMode.Cells) | Width is determined by the widest cell content only |
+| [`Header`](xref:WinUI.TableView.TableViewColumnAutoWidthMode.Header) | Width is determined by the header content only |
 
 Set a default for all auto columns at the table level, and override it per column:
 

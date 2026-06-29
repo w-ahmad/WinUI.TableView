@@ -1,0 +1,667 @@
+### YamlMime:ManagedReference
+items:
+- uid: WinUI.TableView.ColumnFilterHandler
+  commentId: T:WinUI.TableView.ColumnFilterHandler
+  id: ColumnFilterHandler
+  parent: WinUI.TableView
+  children:
+  - WinUI.TableView.ColumnFilterHandler.#ctor(WinUI.TableView.TableView)
+  - WinUI.TableView.ColumnFilterHandler.ApplyFilter(WinUI.TableView.TableViewColumn)
+  - WinUI.TableView.ColumnFilterHandler.ClearFilter(WinUI.TableView.TableViewColumn)
+  - WinUI.TableView.ColumnFilterHandler.Filter(WinUI.TableView.TableViewColumn,System.Object)
+  - WinUI.TableView.ColumnFilterHandler.GetFilterItems(WinUI.TableView.TableViewColumn,System.String)
+  - WinUI.TableView.ColumnFilterHandler.SelectedValues
+  langs:
+  - csharp
+  - vb
+  name: ColumnFilterHandler
+  nameWithType: ColumnFilterHandler
+  fullName: WinUI.TableView.ColumnFilterHandler
+  type: Class
+  source:
+    id: ColumnFilterHandler
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\ColumnFilterHandler.cs
+    startLine: 12
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Default implementation of the IColumnFilterHandler interface.
+  example: []
+  syntax:
+    content: 'public class ColumnFilterHandler : IColumnFilterHandler'
+    content.vb: Public Class ColumnFilterHandler Implements IColumnFilterHandler
+  inheritance:
+  - System.Object
+  implements:
+  - WinUI.TableView.IColumnFilterHandler
+- uid: WinUI.TableView.ColumnFilterHandler.#ctor(WinUI.TableView.TableView)
+  commentId: M:WinUI.TableView.ColumnFilterHandler.#ctor(WinUI.TableView.TableView)
+  id: '#ctor(WinUI.TableView.TableView)'
+  parent: WinUI.TableView.ColumnFilterHandler
+  langs:
+  - csharp
+  - vb
+  name: ColumnFilterHandler(TableView)
+  nameWithType: ColumnFilterHandler.ColumnFilterHandler(TableView)
+  fullName: WinUI.TableView.ColumnFilterHandler.ColumnFilterHandler(WinUI.TableView.TableView)
+  type: Constructor
+  source:
+    id: .ctor
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\ColumnFilterHandler.cs
+    startLine: 19
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Initializes a new instance of the ColumnFilterHandler class.
+  example: []
+  syntax:
+    content: public ColumnFilterHandler(TableView tableView)
+    parameters:
+    - id: tableView
+      type: WinUI.TableView.TableView
+    content.vb: Public Sub New(tableView As TableView)
+  overload: WinUI.TableView.ColumnFilterHandler.#ctor*
+  nameWithType.vb: ColumnFilterHandler.New(TableView)
+  fullName.vb: WinUI.TableView.ColumnFilterHandler.New(WinUI.TableView.TableView)
+  name.vb: New(TableView)
+- uid: WinUI.TableView.ColumnFilterHandler.GetFilterItems(WinUI.TableView.TableViewColumn,System.String)
+  commentId: M:WinUI.TableView.ColumnFilterHandler.GetFilterItems(WinUI.TableView.TableViewColumn,System.String)
+  id: GetFilterItems(WinUI.TableView.TableViewColumn,System.String)
+  parent: WinUI.TableView.ColumnFilterHandler
+  langs:
+  - csharp
+  - vb
+  name: GetFilterItems(TableViewColumn, string?)
+  nameWithType: ColumnFilterHandler.GetFilterItems(TableViewColumn, string?)
+  fullName: WinUI.TableView.ColumnFilterHandler.GetFilterItems(WinUI.TableView.TableViewColumn, string?)
+  type: Method
+  source:
+    id: GetFilterItems
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\ColumnFilterHandler.cs
+    startLine: 25
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Get the filter items for the specified column.
+  example: []
+  syntax:
+    content: public virtual IList<TableViewFilterItem> GetFilterItems(TableViewColumn column, string? searchText = null)
+    parameters:
+    - id: column
+      type: WinUI.TableView.TableViewColumn
+      description: The column for which to prepare filter items.
+    - id: searchText
+      type: System.String
+      description: The search text to filter the items.
+    return:
+      type: System.Collections.Generic.IList{WinUI.TableView.TableViewFilterItem}
+    content.vb: Public Overridable Function GetFilterItems(column As TableViewColumn, searchText As String = Nothing) As IList(Of TableViewFilterItem)
+  overload: WinUI.TableView.ColumnFilterHandler.GetFilterItems*
+  implements:
+  - WinUI.TableView.IColumnFilterHandler.GetFilterItems(WinUI.TableView.TableViewColumn,System.String)
+  nameWithType.vb: ColumnFilterHandler.GetFilterItems(TableViewColumn, String)
+  fullName.vb: WinUI.TableView.ColumnFilterHandler.GetFilterItems(WinUI.TableView.TableViewColumn, String)
+  name.vb: GetFilterItems(TableViewColumn, String)
+- uid: WinUI.TableView.ColumnFilterHandler.ApplyFilter(WinUI.TableView.TableViewColumn)
+  commentId: M:WinUI.TableView.ColumnFilterHandler.ApplyFilter(WinUI.TableView.TableViewColumn)
+  id: ApplyFilter(WinUI.TableView.TableViewColumn)
+  parent: WinUI.TableView.ColumnFilterHandler
+  langs:
+  - csharp
+  - vb
+  name: ApplyFilter(TableViewColumn)
+  nameWithType: ColumnFilterHandler.ApplyFilter(TableViewColumn)
+  fullName: WinUI.TableView.ColumnFilterHandler.ApplyFilter(WinUI.TableView.TableViewColumn)
+  type: Method
+  source:
+    id: ApplyFilter
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\ColumnFilterHandler.cs
+    startLine: 109
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Applies the filter to the specified column.
+  example: []
+  syntax:
+    content: public virtual void ApplyFilter(TableViewColumn column)
+    parameters:
+    - id: column
+      type: WinUI.TableView.TableViewColumn
+      description: The column to which the filter is applied.
+    content.vb: Public Overridable Sub ApplyFilter(column As TableViewColumn)
+  overload: WinUI.TableView.ColumnFilterHandler.ApplyFilter*
+  implements:
+  - WinUI.TableView.IColumnFilterHandler.ApplyFilter(WinUI.TableView.TableViewColumn)
+- uid: WinUI.TableView.ColumnFilterHandler.ClearFilter(WinUI.TableView.TableViewColumn)
+  commentId: M:WinUI.TableView.ColumnFilterHandler.ClearFilter(WinUI.TableView.TableViewColumn)
+  id: ClearFilter(WinUI.TableView.TableViewColumn)
+  parent: WinUI.TableView.ColumnFilterHandler
+  langs:
+  - csharp
+  - vb
+  name: ClearFilter(TableViewColumn?)
+  nameWithType: ColumnFilterHandler.ClearFilter(TableViewColumn?)
+  fullName: WinUI.TableView.ColumnFilterHandler.ClearFilter(WinUI.TableView.TableViewColumn?)
+  type: Method
+  source:
+    id: ClearFilter
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\ColumnFilterHandler.cs
+    startLine: 130
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Clears the filter from the specified column.
+  example: []
+  syntax:
+    content: public virtual void ClearFilter(TableViewColumn? column)
+    parameters:
+    - id: column
+      type: WinUI.TableView.TableViewColumn
+      description: The column from which the filter is cleared.
+    content.vb: Public Overridable Sub ClearFilter(column As TableViewColumn)
+  overload: WinUI.TableView.ColumnFilterHandler.ClearFilter*
+  implements:
+  - WinUI.TableView.IColumnFilterHandler.ClearFilter(WinUI.TableView.TableViewColumn)
+  nameWithType.vb: ColumnFilterHandler.ClearFilter(TableViewColumn)
+  fullName.vb: WinUI.TableView.ColumnFilterHandler.ClearFilter(WinUI.TableView.TableViewColumn)
+  name.vb: ClearFilter(TableViewColumn)
+- uid: WinUI.TableView.ColumnFilterHandler.Filter(WinUI.TableView.TableViewColumn,System.Object)
+  commentId: M:WinUI.TableView.ColumnFilterHandler.Filter(WinUI.TableView.TableViewColumn,System.Object)
+  id: Filter(WinUI.TableView.TableViewColumn,System.Object)
+  parent: WinUI.TableView.ColumnFilterHandler
+  langs:
+  - csharp
+  - vb
+  name: Filter(TableViewColumn, object?)
+  nameWithType: ColumnFilterHandler.Filter(TableViewColumn, object?)
+  fullName: WinUI.TableView.ColumnFilterHandler.Filter(WinUI.TableView.TableViewColumn, object?)
+  type: Method
+  source:
+    id: Filter
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\ColumnFilterHandler.cs
+    startLine: 152
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Determines whether the specified item passes the filter for the specified column.
+  example: []
+  syntax:
+    content: public virtual bool Filter(TableViewColumn column, object? item)
+    parameters:
+    - id: column
+      type: WinUI.TableView.TableViewColumn
+      description: The column for which the filter is applied.
+    - id: item
+      type: System.Object
+      description: The item to check.
+    return:
+      type: System.Boolean
+      description: True if the item passes the filter; otherwise, false.
+    content.vb: Public Overridable Function Filter(column As TableViewColumn, item As Object) As Boolean
+  overload: WinUI.TableView.ColumnFilterHandler.Filter*
+  implements:
+  - WinUI.TableView.IColumnFilterHandler.Filter(WinUI.TableView.TableViewColumn,System.Object)
+  nameWithType.vb: ColumnFilterHandler.Filter(TableViewColumn, Object)
+  fullName.vb: WinUI.TableView.ColumnFilterHandler.Filter(WinUI.TableView.TableViewColumn, Object)
+  name.vb: Filter(TableViewColumn, Object)
+- uid: WinUI.TableView.ColumnFilterHandler.SelectedValues
+  commentId: P:WinUI.TableView.ColumnFilterHandler.SelectedValues
+  id: SelectedValues
+  parent: WinUI.TableView.ColumnFilterHandler
+  langs:
+  - csharp
+  - vb
+  name: SelectedValues
+  nameWithType: ColumnFilterHandler.SelectedValues
+  fullName: WinUI.TableView.ColumnFilterHandler.SelectedValues
+  type: Property
+  source:
+    id: SelectedValues
+    path: E:\copilot-worktrees\WinUI.TableView\w-ahmad-curly-disco\src\ColumnFilterHandler.cs
+    startLine: 160
+  assemblies:
+  - WinUI.TableView
+  namespace: WinUI.TableView
+  summary: Gets or sets the selected values for the filter per column.
+  example: []
+  syntax:
+    content: public IDictionary<TableViewColumn, ICollection<object?>> SelectedValues { get; }
+    parameters: []
+    return:
+      type: System.Collections.Generic.IDictionary{WinUI.TableView.TableViewColumn,System.Collections.Generic.ICollection{System.Object}}
+    content.vb: Public ReadOnly Property SelectedValues As IDictionary(Of TableViewColumn, ICollection(Of Object))
+  overload: WinUI.TableView.ColumnFilterHandler.SelectedValues*
+  implements:
+  - WinUI.TableView.IColumnFilterHandler.SelectedValues
+references:
+- uid: WinUI.TableView
+  commentId: N:WinUI.TableView
+  href: WinUI.html
+  name: WinUI.TableView
+  nameWithType: WinUI.TableView
+  fullName: WinUI.TableView
+  spec.csharp:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+  spec.vb:
+  - uid: WinUI
+    name: WinUI
+    href: WinUI.html
+  - name: .
+  - uid: WinUI.TableView
+    name: TableView
+    href: WinUI.TableView.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: WinUI.TableView.IColumnFilterHandler
+  commentId: T:WinUI.TableView.IColumnFilterHandler
+  parent: WinUI.TableView
+  href: WinUI.TableView.IColumnFilterHandler.html
+  name: IColumnFilterHandler
+  nameWithType: IColumnFilterHandler
+  fullName: WinUI.TableView.IColumnFilterHandler
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: WinUI.TableView.ColumnFilterHandler.#ctor*
+  commentId: Overload:WinUI.TableView.ColumnFilterHandler.#ctor
+  href: WinUI.TableView.ColumnFilterHandler.html#WinUI_TableView_ColumnFilterHandler__ctor_WinUI_TableView_TableView_
+  name: ColumnFilterHandler
+  nameWithType: ColumnFilterHandler.ColumnFilterHandler
+  fullName: WinUI.TableView.ColumnFilterHandler.ColumnFilterHandler
+  nameWithType.vb: ColumnFilterHandler.New
+  fullName.vb: WinUI.TableView.ColumnFilterHandler.New
+  name.vb: New
+- uid: WinUI.TableView.TableView
+  commentId: T:WinUI.TableView.TableView
+  parent: WinUI.TableView
+  href: WinUI.TableView.TableView.html
+  name: TableView
+  nameWithType: TableView
+  fullName: WinUI.TableView.TableView
+- uid: WinUI.TableView.ColumnFilterHandler.GetFilterItems*
+  commentId: Overload:WinUI.TableView.ColumnFilterHandler.GetFilterItems
+  href: WinUI.TableView.ColumnFilterHandler.html#WinUI_TableView_ColumnFilterHandler_GetFilterItems_WinUI_TableView_TableViewColumn_System_String_
+  name: GetFilterItems
+  nameWithType: ColumnFilterHandler.GetFilterItems
+  fullName: WinUI.TableView.ColumnFilterHandler.GetFilterItems
+- uid: WinUI.TableView.IColumnFilterHandler.GetFilterItems(WinUI.TableView.TableViewColumn,System.String)
+  commentId: M:WinUI.TableView.IColumnFilterHandler.GetFilterItems(WinUI.TableView.TableViewColumn,System.String)
+  parent: WinUI.TableView.IColumnFilterHandler
+  isExternal: true
+  href: WinUI.TableView.IColumnFilterHandler.html#WinUI_TableView_IColumnFilterHandler_GetFilterItems_WinUI_TableView_TableViewColumn_System_String_
+  name: GetFilterItems(TableViewColumn, string)
+  nameWithType: IColumnFilterHandler.GetFilterItems(TableViewColumn, string)
+  fullName: WinUI.TableView.IColumnFilterHandler.GetFilterItems(WinUI.TableView.TableViewColumn, string)
+  nameWithType.vb: IColumnFilterHandler.GetFilterItems(TableViewColumn, String)
+  fullName.vb: WinUI.TableView.IColumnFilterHandler.GetFilterItems(WinUI.TableView.TableViewColumn, String)
+  name.vb: GetFilterItems(TableViewColumn, String)
+  spec.csharp:
+  - uid: WinUI.TableView.IColumnFilterHandler.GetFilterItems(WinUI.TableView.TableViewColumn,System.String)
+    name: GetFilterItems
+    href: WinUI.TableView.IColumnFilterHandler.html#WinUI_TableView_IColumnFilterHandler_GetFilterItems_WinUI_TableView_TableViewColumn_System_String_
+  - name: (
+  - uid: WinUI.TableView.TableViewColumn
+    name: TableViewColumn
+    href: WinUI.TableView.TableViewColumn.html
+  - name: ','
+  - name: " "
+  - uid: System.String
+    name: string
+    isExternal: true
+  - name: )
+  spec.vb:
+  - uid: WinUI.TableView.IColumnFilterHandler.GetFilterItems(WinUI.TableView.TableViewColumn,System.String)
+    name: GetFilterItems
+    href: WinUI.TableView.IColumnFilterHandler.html#WinUI_TableView_IColumnFilterHandler_GetFilterItems_WinUI_TableView_TableViewColumn_System_String_
+  - name: (
+  - uid: WinUI.TableView.TableViewColumn
+    name: TableViewColumn
+    href: WinUI.TableView.TableViewColumn.html
+  - name: ','
+  - name: " "
+  - uid: System.String
+    name: String
+    isExternal: true
+  - name: )
+- uid: WinUI.TableView.TableViewColumn
+  commentId: T:WinUI.TableView.TableViewColumn
+  parent: WinUI.TableView
+  href: WinUI.TableView.TableViewColumn.html
+  name: TableViewColumn
+  nameWithType: TableViewColumn
+  fullName: WinUI.TableView.TableViewColumn
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: System.Collections.Generic.IList{WinUI.TableView.TableViewFilterItem}
+  commentId: T:System.Collections.Generic.IList{WinUI.TableView.TableViewFilterItem}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IList`1
+  href: WinUI.TableView.TableViewFilterItem.html
+  name: IList<TableViewFilterItem>
+  nameWithType: IList<TableViewFilterItem>
+  fullName: System.Collections.Generic.IList<WinUI.TableView.TableViewFilterItem>
+  nameWithType.vb: IList(Of TableViewFilterItem)
+  fullName.vb: System.Collections.Generic.IList(Of WinUI.TableView.TableViewFilterItem)
+  name.vb: IList(Of TableViewFilterItem)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+  - name: <
+  - uid: WinUI.TableView.TableViewFilterItem
+    name: TableViewFilterItem
+    href: WinUI.TableView.TableViewFilterItem.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: WinUI.TableView.TableViewFilterItem
+    name: TableViewFilterItem
+    href: WinUI.TableView.TableViewFilterItem.html
+  - name: )
+- uid: System.Collections.Generic.IList`1
+  commentId: T:System.Collections.Generic.IList`1
+  isExternal: true
+  name: IList<T>
+  nameWithType: IList<T>
+  fullName: System.Collections.Generic.IList<T>
+  nameWithType.vb: IList(Of T)
+  fullName.vb: System.Collections.Generic.IList(Of T)
+  name.vb: IList(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic
+  commentId: N:System.Collections.Generic
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Collections.Generic
+  nameWithType: System.Collections.Generic
+  fullName: System.Collections.Generic
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+- uid: WinUI.TableView.ColumnFilterHandler.ApplyFilter*
+  commentId: Overload:WinUI.TableView.ColumnFilterHandler.ApplyFilter
+  href: WinUI.TableView.ColumnFilterHandler.html#WinUI_TableView_ColumnFilterHandler_ApplyFilter_WinUI_TableView_TableViewColumn_
+  name: ApplyFilter
+  nameWithType: ColumnFilterHandler.ApplyFilter
+  fullName: WinUI.TableView.ColumnFilterHandler.ApplyFilter
+- uid: WinUI.TableView.IColumnFilterHandler.ApplyFilter(WinUI.TableView.TableViewColumn)
+  commentId: M:WinUI.TableView.IColumnFilterHandler.ApplyFilter(WinUI.TableView.TableViewColumn)
+  parent: WinUI.TableView.IColumnFilterHandler
+  href: WinUI.TableView.IColumnFilterHandler.html#WinUI_TableView_IColumnFilterHandler_ApplyFilter_WinUI_TableView_TableViewColumn_
+  name: ApplyFilter(TableViewColumn)
+  nameWithType: IColumnFilterHandler.ApplyFilter(TableViewColumn)
+  fullName: WinUI.TableView.IColumnFilterHandler.ApplyFilter(WinUI.TableView.TableViewColumn)
+  spec.csharp:
+  - uid: WinUI.TableView.IColumnFilterHandler.ApplyFilter(WinUI.TableView.TableViewColumn)
+    name: ApplyFilter
+    href: WinUI.TableView.IColumnFilterHandler.html#WinUI_TableView_IColumnFilterHandler_ApplyFilter_WinUI_TableView_TableViewColumn_
+  - name: (
+  - uid: WinUI.TableView.TableViewColumn
+    name: TableViewColumn
+    href: WinUI.TableView.TableViewColumn.html
+  - name: )
+  spec.vb:
+  - uid: WinUI.TableView.IColumnFilterHandler.ApplyFilter(WinUI.TableView.TableViewColumn)
+    name: ApplyFilter
+    href: WinUI.TableView.IColumnFilterHandler.html#WinUI_TableView_IColumnFilterHandler_ApplyFilter_WinUI_TableView_TableViewColumn_
+  - name: (
+  - uid: WinUI.TableView.TableViewColumn
+    name: TableViewColumn
+    href: WinUI.TableView.TableViewColumn.html
+  - name: )
+- uid: WinUI.TableView.ColumnFilterHandler.ClearFilter*
+  commentId: Overload:WinUI.TableView.ColumnFilterHandler.ClearFilter
+  href: WinUI.TableView.ColumnFilterHandler.html#WinUI_TableView_ColumnFilterHandler_ClearFilter_WinUI_TableView_TableViewColumn_
+  name: ClearFilter
+  nameWithType: ColumnFilterHandler.ClearFilter
+  fullName: WinUI.TableView.ColumnFilterHandler.ClearFilter
+- uid: WinUI.TableView.IColumnFilterHandler.ClearFilter(WinUI.TableView.TableViewColumn)
+  commentId: M:WinUI.TableView.IColumnFilterHandler.ClearFilter(WinUI.TableView.TableViewColumn)
+  parent: WinUI.TableView.IColumnFilterHandler
+  href: WinUI.TableView.IColumnFilterHandler.html#WinUI_TableView_IColumnFilterHandler_ClearFilter_WinUI_TableView_TableViewColumn_
+  name: ClearFilter(TableViewColumn)
+  nameWithType: IColumnFilterHandler.ClearFilter(TableViewColumn)
+  fullName: WinUI.TableView.IColumnFilterHandler.ClearFilter(WinUI.TableView.TableViewColumn)
+  spec.csharp:
+  - uid: WinUI.TableView.IColumnFilterHandler.ClearFilter(WinUI.TableView.TableViewColumn)
+    name: ClearFilter
+    href: WinUI.TableView.IColumnFilterHandler.html#WinUI_TableView_IColumnFilterHandler_ClearFilter_WinUI_TableView_TableViewColumn_
+  - name: (
+  - uid: WinUI.TableView.TableViewColumn
+    name: TableViewColumn
+    href: WinUI.TableView.TableViewColumn.html
+  - name: )
+  spec.vb:
+  - uid: WinUI.TableView.IColumnFilterHandler.ClearFilter(WinUI.TableView.TableViewColumn)
+    name: ClearFilter
+    href: WinUI.TableView.IColumnFilterHandler.html#WinUI_TableView_IColumnFilterHandler_ClearFilter_WinUI_TableView_TableViewColumn_
+  - name: (
+  - uid: WinUI.TableView.TableViewColumn
+    name: TableViewColumn
+    href: WinUI.TableView.TableViewColumn.html
+  - name: )
+- uid: WinUI.TableView.ColumnFilterHandler.Filter*
+  commentId: Overload:WinUI.TableView.ColumnFilterHandler.Filter
+  href: WinUI.TableView.ColumnFilterHandler.html#WinUI_TableView_ColumnFilterHandler_Filter_WinUI_TableView_TableViewColumn_System_Object_
+  name: Filter
+  nameWithType: ColumnFilterHandler.Filter
+  fullName: WinUI.TableView.ColumnFilterHandler.Filter
+- uid: WinUI.TableView.IColumnFilterHandler.Filter(WinUI.TableView.TableViewColumn,System.Object)
+  commentId: M:WinUI.TableView.IColumnFilterHandler.Filter(WinUI.TableView.TableViewColumn,System.Object)
+  parent: WinUI.TableView.IColumnFilterHandler
+  isExternal: true
+  href: WinUI.TableView.IColumnFilterHandler.html#WinUI_TableView_IColumnFilterHandler_Filter_WinUI_TableView_TableViewColumn_System_Object_
+  name: Filter(TableViewColumn, object)
+  nameWithType: IColumnFilterHandler.Filter(TableViewColumn, object)
+  fullName: WinUI.TableView.IColumnFilterHandler.Filter(WinUI.TableView.TableViewColumn, object)
+  nameWithType.vb: IColumnFilterHandler.Filter(TableViewColumn, Object)
+  fullName.vb: WinUI.TableView.IColumnFilterHandler.Filter(WinUI.TableView.TableViewColumn, Object)
+  name.vb: Filter(TableViewColumn, Object)
+  spec.csharp:
+  - uid: WinUI.TableView.IColumnFilterHandler.Filter(WinUI.TableView.TableViewColumn,System.Object)
+    name: Filter
+    href: WinUI.TableView.IColumnFilterHandler.html#WinUI_TableView_IColumnFilterHandler_Filter_WinUI_TableView_TableViewColumn_System_Object_
+  - name: (
+  - uid: WinUI.TableView.TableViewColumn
+    name: TableViewColumn
+    href: WinUI.TableView.TableViewColumn.html
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+  - name: )
+  spec.vb:
+  - uid: WinUI.TableView.IColumnFilterHandler.Filter(WinUI.TableView.TableViewColumn,System.Object)
+    name: Filter
+    href: WinUI.TableView.IColumnFilterHandler.html#WinUI_TableView_IColumnFilterHandler_Filter_WinUI_TableView_TableViewColumn_System_Object_
+  - name: (
+  - uid: WinUI.TableView.TableViewColumn
+    name: TableViewColumn
+    href: WinUI.TableView.TableViewColumn.html
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+  - name: )
+- uid: System.Boolean
+  commentId: T:System.Boolean
+  parent: System
+  isExternal: true
+  name: bool
+  nameWithType: bool
+  fullName: bool
+  nameWithType.vb: Boolean
+  fullName.vb: Boolean
+  name.vb: Boolean
+- uid: WinUI.TableView.ColumnFilterHandler.SelectedValues*
+  commentId: Overload:WinUI.TableView.ColumnFilterHandler.SelectedValues
+  href: WinUI.TableView.ColumnFilterHandler.html#WinUI_TableView_ColumnFilterHandler_SelectedValues
+  name: SelectedValues
+  nameWithType: ColumnFilterHandler.SelectedValues
+  fullName: WinUI.TableView.ColumnFilterHandler.SelectedValues
+- uid: WinUI.TableView.IColumnFilterHandler.SelectedValues
+  commentId: P:WinUI.TableView.IColumnFilterHandler.SelectedValues
+  parent: WinUI.TableView.IColumnFilterHandler
+  href: WinUI.TableView.IColumnFilterHandler.html#WinUI_TableView_IColumnFilterHandler_SelectedValues
+  name: SelectedValues
+  nameWithType: IColumnFilterHandler.SelectedValues
+  fullName: WinUI.TableView.IColumnFilterHandler.SelectedValues
+- uid: System.Collections.Generic.IDictionary{WinUI.TableView.TableViewColumn,System.Collections.Generic.ICollection{System.Object}}
+  commentId: T:System.Collections.Generic.IDictionary{WinUI.TableView.TableViewColumn,System.Collections.Generic.ICollection{System.Object}}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IDictionary`2
+  href: WinUI.TableView.TableViewColumn.html
+  name: IDictionary<TableViewColumn, ICollection<object>>
+  nameWithType: IDictionary<TableViewColumn, ICollection<object>>
+  fullName: System.Collections.Generic.IDictionary<WinUI.TableView.TableViewColumn, System.Collections.Generic.ICollection<object>>
+  nameWithType.vb: IDictionary(Of TableViewColumn, ICollection(Of Object))
+  fullName.vb: System.Collections.Generic.IDictionary(Of WinUI.TableView.TableViewColumn, System.Collections.Generic.ICollection(Of Object))
+  name.vb: IDictionary(Of TableViewColumn, ICollection(Of Object))
+  spec.csharp:
+  - uid: System.Collections.Generic.IDictionary`2
+    name: IDictionary
+    isExternal: true
+  - name: <
+  - uid: WinUI.TableView.TableViewColumn
+    name: TableViewColumn
+    href: WinUI.TableView.TableViewColumn.html
+  - name: ','
+  - name: " "
+  - uid: System.Collections.Generic.ICollection`1
+    name: ICollection
+    isExternal: true
+  - name: <
+  - uid: System.Object
+    name: object
+    isExternal: true
+  - name: '>'
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IDictionary`2
+    name: IDictionary
+    isExternal: true
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: WinUI.TableView.TableViewColumn
+    name: TableViewColumn
+    href: WinUI.TableView.TableViewColumn.html
+  - name: ','
+  - name: " "
+  - uid: System.Collections.Generic.ICollection`1
+    name: ICollection
+    isExternal: true
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+  - name: )
+  - name: )
+- uid: System.Collections.Generic.IDictionary`2
+  commentId: T:System.Collections.Generic.IDictionary`2
+  isExternal: true
+  name: IDictionary<TKey, TValue>
+  nameWithType: IDictionary<TKey, TValue>
+  fullName: System.Collections.Generic.IDictionary<TKey, TValue>
+  nameWithType.vb: IDictionary(Of TKey, TValue)
+  fullName.vb: System.Collections.Generic.IDictionary(Of TKey, TValue)
+  name.vb: IDictionary(Of TKey, TValue)
+  spec.csharp:
+  - uid: System.Collections.Generic.IDictionary`2
+    name: IDictionary
+    isExternal: true
+  - name: <
+  - name: TKey
+  - name: ','
+  - name: " "
+  - name: TValue
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IDictionary`2
+    name: IDictionary
+    isExternal: true
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TKey
+  - name: ','
+  - name: " "
+  - name: TValue
+  - name: )

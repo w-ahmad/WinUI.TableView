@@ -51,9 +51,9 @@ tableView.AutoGeneratingColumn += (s, e) =>
 
 | Property | Description |
 |---|---|
-| `PropertyName` | Name of the data property |
-| `PropertyType` | Runtime type of the property |
-| `Column` | The column being generated; you can replace it with a different column instance |
+| [`PropertyName`](xref:WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.PropertyName) | Name of the data property |
+| [`PropertyType`](xref:WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.PropertyType) | Runtime type of the property |
+| [`Column`](xref:WinUI.TableView.TableViewAutoGeneratingColumnEventArgs.Column) | The column being generated; you can replace it with a different column instance |
 | `Cancel` | Set `true` to skip this column |
 
 ## Explicit columns

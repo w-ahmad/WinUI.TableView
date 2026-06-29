@@ -91,7 +91,7 @@ tableView.Sorting += (s, e) =>
 
 | Property | Description |
 |---|---|
-| `Column` | The column being sorted |
+| [`Column`](xref:WinUI.TableView.TableViewSortingEventArgs.Column) | The column being sorted |
 | `Handled` | Set `true` to suppress default sort behavior |
 
 ## The ClearSorting event
@@ -109,7 +109,7 @@ tableView.ClearSorting += (s, e) =>
 
 | Property | Description |
 |---|---|
-| `Column` | The column whose sort was cleared |
+| [`Column`](xref:WinUI.TableView.TableViewClearSortingEventArgs.Column) | The column whose sort was cleared |
 
 ## Multi-column sort
 
