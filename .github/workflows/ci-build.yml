@@ -8,9 +8,6 @@ on:
       - 'samples/**'
   pull_request:
     branches: main
-    paths-ignore:
-      - 'docs/**'
-      - 'samples/**'
 
 jobs:
   build:
