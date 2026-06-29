@@ -117,7 +117,7 @@ public partial class TableViewCell : ContentControl
     /// <inheritdoc/>
     protected override Size MeasureOverride(Size availableSize)
     {
-        if (Column is not null && Row is not null && _contentPresenter is not null && Content is FrameworkElement element)
+        if (TableView is not null && Column is not null && Row is not null && _contentPresenter is not null && Content is FrameworkElement element)
         {
             if (Column is TableViewTemplateColumn)
             {
@@ -138,16 +138,20 @@ public partial class TableViewCell : ContentControl
 
             element.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
 
-            var desiredWidth = element.DesiredSize.Width;
-            desiredWidth += Padding.Left;
-            desiredWidth += Padding.Right;
-            desiredWidth += BorderThickness.Left;
-            desiredWidth += BorderThickness.Right;
-            desiredWidth += _selectionBorder?.BorderThickness.Right ?? 0;
-            desiredWidth += _selectionBorder?.BorderThickness.Left ?? 0;
-            desiredWidth += _v_gridLine?.ActualWidth ?? 0d;
+            var autoSizeMode = Column.ColumnAutoWidthMode ?? TableView.ColumnAutoWidthMode;
+            if (autoSizeMode is TableViewColumnAutoWidthMode.Cells or TableViewColumnAutoWidthMode.Both)
+            {
+                var desiredWidth = element.DesiredSize.Width;
+                desiredWidth += Padding.Left;
+                desiredWidth += Padding.Right;
+                desiredWidth += BorderThickness.Left;
+                desiredWidth += BorderThickness.Right;
+                desiredWidth += _selectionBorder?.BorderThickness.Right ?? 0;
+                desiredWidth += _selectionBorder?.BorderThickness.Left ?? 0;
+                desiredWidth += _v_gridLine?.ActualWidth ?? 0d;
 
-            Column.DesiredWidth = Math.Max(Column.DesiredWidth, desiredWidth);
+                Column.DesiredWidth = Math.Max(Column.DesiredWidth, desiredWidth);
+            }
 
             #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860
             var contentWidth = Column.ActualWidth;
