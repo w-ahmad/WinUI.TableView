@@ -1037,7 +1037,7 @@ public partial class TableView
     {
         if (d is TableView tableView)
         {
-            if (tableView.SelectionUnit is TableViewSelectionUnit.Row)
+            if (tableView.SelectionUnit is TableViewSelectionUnit.Row or TableViewSelectionUnit.CellWithRow)
             {
                 tableView.SelectedCellRanges.Clear();
                 tableView.OnCellSelectionChanged();
