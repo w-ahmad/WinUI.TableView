@@ -30,7 +30,40 @@ Disable sorting for a specific column:
 <tv:TableViewNumberColumn Header="Price" Binding="{Binding Price}" CanSort="False" />
 ```
 
-## Sorting programmatically
+## Sorting by a different property (SortMemberPath)
+
+By default, clicking a column header sorts by the column's bound property path. Use [`SortMemberPath`](xref:WinUI.TableView.TableViewColumn.SortMemberPath) to sort by a **different** property than the one displayed in the cell.
+
+This is essential when:
+- The displayed value is a formatted string or computed property, but you want to sort by the raw underlying value.
+- You have a [`TableViewTemplateColumn`](xref:WinUI.TableView.TableViewTemplateColumn) with no `Binding`, but you still want sort to work on a specific property.
+
+```xml
+<!-- Display a formatted status string, but sort by the numeric StatusCode -->
+<tv:TableViewTextColumn Header="Status"
+                        Binding="{Binding StatusLabel}"
+                        SortMemberPath="StatusCode" />
+```
+
+```xml
+<!-- Template column with no Binding — sort by the Name property -->
+<tv:TableViewTemplateColumn Header="Employee"
+                             SortMemberPath="Name"
+                             CanSort="True">
+    <tv:TableViewTemplateColumn.CellTemplate>
+        <DataTemplate>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Image Source="{Binding AvatarUrl}" Width="24" Height="24" />
+                <TextBlock Text="{Binding Name}" />
+            </StackPanel>
+        </DataTemplate>
+    </tv:TableViewTemplateColumn.CellTemplate>
+</tv:TableViewTemplateColumn>
+```
+
+When `SortMemberPath` is set, sorting uses **reflection** on the named property. When it is not set, the column falls back to the bound property path (for bound columns) or the cell's displayed content (for template columns).
+
+
 
 Add sort descriptions to `TableView.SortDescriptions`:
 
@@ -128,6 +161,7 @@ var descriptions = tableView.SortDescriptions; // the active SortDescription lis
 |---|---|
 | [`CanSortColumns`](xref:WinUI.TableView.TableView.CanSortColumns) | Enables or disables sorting for all columns |
 | [`CanSort`](xref:WinUI.TableView.TableViewColumn.CanSort) | Per-column sort toggle |
+| [`SortMemberPath`](xref:WinUI.TableView.TableViewColumn.SortMemberPath) | Property path used for sorting, overriding the display binding |
 | [`SortDirection`](xref:WinUI.TableView.TableViewColumn.SortDirection) | Current sort direction (`Ascending`, `Descending`, or `null`) |
 | [`SortDescriptions`](xref:WinUI.TableView.TableView.SortDescriptions) | Collection of active sort descriptions |
 | [`IsSorted`](xref:WinUI.TableView.TableView.IsSorted) | `true` if any sort is applied |
@@ -138,7 +172,7 @@ var descriptions = tableView.SortDescriptions; // the active SortDescription lis
 
 ## Notes and limitations
 
-- [`TableViewTemplateColumn`](xref:WinUI.TableView.TableViewTemplateColumn) has `CanSort = false` by default because there is no bound property path. Set [`OperationContentBinding`](xref:WinUI.TableView.TableViewColumn.OperationContentBinding) to enable sorting on template columns.
+- [`TableViewTemplateColumn`](xref:WinUI.TableView.TableViewTemplateColumn) has `CanSort = false` by default because there is no bound property path. Set [`SortMemberPath`](xref:WinUI.TableView.TableViewColumn.SortMemberPath) (and `CanSort="True"`) to enable sorting on template columns, or set [`OperationContentBinding`](xref:WinUI.TableView.TableViewColumn.OperationContentBinding) as an alternative.
 - Sorting is applied to the internal `AdvancedCollectionView`. It does not mutate the original collection.
 
 ## Related articles
