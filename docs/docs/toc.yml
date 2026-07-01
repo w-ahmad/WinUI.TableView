@@ -1,10 +1,68 @@
 - name: Introduction
   href: ../index.md
 - name: Getting Started
-  href: getting-started.md
-- name: Getting Started with Uno
-  href: getting-started-with-uno.md
-- name: Feature Comparison with DataGrid
-  href: datagrid-feature-comparison.md
-- name: Customization
-  href: customization.md
+  items:
+  - name: Installation and Quick Start
+    href: getting-started.md
+  - name: Getting Started with Uno Platform
+    href: getting-started-with-uno.md
+  - name: Overview and Concepts
+    href: overview.md
+- name: Data
+  items:
+  - name: Binding Data
+    href: binding-data.md
+  - name: Defining Columns
+    href: defining-columns.md
+  - name: Column Types
+    href: column-types.md
+  - name: Column Sizing
+    href: column-sizing.md
+- name: Interaction
+  items:
+  - name: Sorting
+    href: sorting.md
+  - name: Filtering
+    href: filtering.md
+  - name: Editing
+    href: editing.md
+  - name: Selection
+    href: selection.md
+- name: Layout
+  items:
+  - name: Row Headers
+    href: row-headers.md
+  - name: Row Details
+    href: row-details.md
+  - name: Frozen Columns
+    href: frozen-columns.md
+  - name: Column Reordering
+    href: column-reordering.md
+- name: Data Operations
+  items:
+  - name: Clipboard and Copy/Paste
+    href: clipboard.md
+  - name: Export to CSV
+    href: export.md
+- name: Appearance
+  items:
+  - name: Styling Rows, Cells, and Headers
+    href: styling.md
+  - name: Conditional Cell Styling
+    href: conditional-styling.md
+  - name: Context Flyouts
+    href: context-flyouts.md
+- name: Reference
+  items:
+  - name: Events and Commands Reference
+    href: commands-events.md
+  - name: Performance Guidance
+    href: performance.md
+- name: Migration
+  items:
+  - name: Migrating from WPF DataGrid
+    href: migration-wpf.md
+  - name: Migrating from WCT DataGrid
+    href: migration-wct.md
+  - name: Feature Comparison
+    href: datagrid-feature-comparison.md

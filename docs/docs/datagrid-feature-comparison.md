@@ -32,7 +32,7 @@ WinUI.TableView is actively maintained and continues to add new features based o
 ## Feature comparison
 
 | Feature | WPF DataGrid | WCT DataGrid | WinUI.TableView | Notes |
-|---|---:|---:|---:|---|
+|---|---|---|---|---|
 | Auto-generate columns | ✅ | ✅ | ✅ | |
 | Text column | ✅ | ✅ | ✅ |  |
 | CheckBox column | ✅ | ✅ | ✅ |  |
