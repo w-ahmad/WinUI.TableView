@@ -2,6 +2,21 @@
 
 WinUI.TableView provides a set of built-in column types to handle the most common data types. All column types inherit from [`TableViewColumn`](xref:WinUI.TableView.TableViewColumn). Columns that bind to a data property inherit from [`TableViewBoundColumn`](xref:WinUI.TableView.TableViewBoundColumn), which adds the [`Binding`](xref:WinUI.TableView.TableViewBoundColumn.Binding), [`ElementStyle`](xref:WinUI.TableView.TableViewBoundColumn.ElementStyle), and [`EditingElementStyle`](xref:WinUI.TableView.TableViewBoundColumn.EditingElementStyle) properties.
 
+## Choosing a column type
+
+| Need | Recommended column type |
+|---|---|
+| Display and edit text | [`TableViewTextColumn`](xref:WinUI.TableView.TableViewTextColumn) |
+| Display and edit numbers | [`TableViewNumberColumn`](xref:WinUI.TableView.TableViewNumberColumn) |
+| Display and toggle a boolean value | [`TableViewCheckBoxColumn`](xref:WinUI.TableView.TableViewCheckBoxColumn) |
+| Display and toggle a boolean with on/off labels | [`TableViewToggleSwitchColumn`](xref:WinUI.TableView.TableViewToggleSwitchColumn) |
+| Select from a list of options | [`TableViewComboBoxColumn`](xref:WinUI.TableView.TableViewComboBoxColumn) |
+| Display and edit a date | [`TableViewDateColumn`](xref:WinUI.TableView.TableViewDateColumn) |
+| Display and edit a time | [`TableViewTimeColumn`](xref:WinUI.TableView.TableViewTimeColumn) |
+| Show a clickable hyperlink | [`TableViewHyperlinkColumn`](xref:WinUI.TableView.TableViewHyperlinkColumn) |
+| Use a completely custom cell UI | [`TableViewTemplateColumn`](xref:WinUI.TableView.TableViewTemplateColumn) |
+| Custom UI with sort, filter, and export support | [`TableViewTemplateColumn`](xref:WinUI.TableView.TableViewTemplateColumn) with [`OperationContentBinding`](xref:WinUI.TableView.TableViewColumn.OperationContentBinding) |
+
 ## TableViewTextColumn
 
 Displays a `TextBlock` and edits with a `TextBox`.

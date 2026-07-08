@@ -65,7 +65,7 @@ This is essential when:
 
 When `SortMemberPath` is set, sorting uses **reflection** on the named property. When it is not set, the column falls back to the bound property path (for bound columns) or the cell's displayed content (for template columns).
 
-
+## Sorting programmatically
 
 Add sort descriptions to `TableView.SortDescriptions`:
 
@@ -79,7 +79,7 @@ tableView.SortDescriptions.Add(new SortDescription("Name", SortDirection.Ascendi
 tableView.SortDescriptions.Add(new SortDescription("Price", SortDirection.Ascending));
 ```
 
-The [`SortDescriptions`](xref:WinUI.TableView.TableView.SortDescriptions) collection comes from the internal `AdvancedCollectionView`. Changes take effect immediately.
+The [`SortDescriptions`](xref:WinUI.TableView.TableView.SortDescriptions) collection is backed by the internal collection view. Changes take effect immediately.
 
 Clear all sorting using the dedicated method:
 
@@ -175,7 +175,7 @@ var descriptions = tableView.SortDescriptions; // the active SortDescription lis
 ## Notes and limitations
 
 - [`TableViewTemplateColumn`](xref:WinUI.TableView.TableViewTemplateColumn) has `CanSort = false` by default because there is no bound property path. Set [`SortMemberPath`](xref:WinUI.TableView.TableViewColumn.SortMemberPath) (and `CanSort="True"`) to enable sorting on template columns, or set [`OperationContentBinding`](xref:WinUI.TableView.TableViewColumn.OperationContentBinding) as an alternative.
-- Sorting is applied to the internal `AdvancedCollectionView`. It does not mutate the original collection.
+- Sorting is applied to the internal collection view. It does not mutate the original collection.
 
 ## Related articles
 

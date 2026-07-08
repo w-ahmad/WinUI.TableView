@@ -1,6 +1,6 @@
 ﻿# Overview
 
-WinUI.TableView is a data grid control for WinUI 3 and Uno Platform applications. It provides a familiar, Excel-like tabular UI for displaying, sorting, filtering, and editing structured data.
+WinUI.TableView is a data grid control for WinUI and Uno Platform applications. It provides a familiar, Excel-like tabular UI for displaying, sorting, filtering, and editing structured data.
 
 ## Architecture
 
@@ -32,7 +32,7 @@ See [Column types](column-types.md) and [Defining columns](defining-columns.md).
 
 ### Items source
 
-`TableView.ItemsSource` accepts any `IEnumerable`. Internally the control wraps the source in an `AdvancedCollectionView` (from the CommunityToolkit) that supports sorting and filtering without mutating the original collection.
+`TableView.ItemsSource` accepts any `IEnumerable`. Internally the control wraps the source in its own collection view that supports sorting, filtering, and live shaping without mutating the original collection.
 
 See [Binding data](binding-data.md).
 
@@ -67,7 +67,7 @@ All types are in the `WinUI.TableView` namespace.
 
 ## Uno Platform
 
-On Uno Platform targets some behaviors differ slightly from the Windows (WinUI 3) target, particularly around data binding and focus management. See [Getting started with Uno](getting-started-with-uno.md) for platform-specific notes.
+On Uno Platform targets some behaviors differ slightly from the Windows target, particularly around data binding and focus management. See [Getting started with Uno](getting-started-with-uno.md) for platform-specific notes.
 
 ## Related articles
 

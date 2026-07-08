@@ -61,7 +61,7 @@ ctx.DataItem is Product p && p.Tags.Any(t => t.StartsWith("clearance"))
 
 ## Filtering and sorting
 
-Filtering and sorting operate on the internal `AdvancedCollectionView`. These run on the UI thread. For very large collections (100,000+ items), consider pre-filtering in your ViewModel before setting [`ItemsSource`](xref:WinUI.TableView.TableView.ItemsSource).
+Filtering and sorting operate on the internal collection view. These run on the UI thread. For very large collections (100,000+ items), consider pre-filtering in your ViewModel before setting [`ItemsSource`](xref:WinUI.TableView.TableView.ItemsSource).
 
 ## Refreshing the view after bulk data changes
 
@@ -96,7 +96,7 @@ Unlike rows, columns are not virtualized — all column headers are instantiated
 
 ## Uno Platform
 
-On Uno Platform targets, data binding and layout passes may have slightly different performance characteristics than on the Windows WinUI 3 target. Test performance on each target platform before shipping.
+On Uno Platform targets, data binding and layout passes may have slightly different performance characteristics than on the Windows target. Test performance on each target platform before shipping.
 
 ## Notes
 

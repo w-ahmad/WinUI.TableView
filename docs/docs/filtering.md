@@ -48,11 +48,9 @@ Show how many rows match each filter value:
 
 ## Filtering programmatically
 
-Add filter descriptions to `TableView.FilterDescriptions`. This uses the `AdvancedCollectionView` from the CommunityToolkit:
+Add filter descriptions to `TableView.FilterDescriptions`:
 
 ```csharp
-using CommunityToolkit.WinUI.Collections;
-
 // Show only in-stock items
 tableView.FilterDescriptions.Add(
     new FilterDescription("InStock", new PredicateFilter(v => v is true)));
@@ -113,7 +111,7 @@ bool isFiltered = tableView.IsFiltered;
 
 ## Notes and limitations
 
-- Filtering is applied to the internal `AdvancedCollectionView`. It does not mutate the original collection.
+- Filtering is applied to the internal collection view. It does not mutate the original collection.
 - [`TableViewTemplateColumn`](xref:WinUI.TableView.TableViewTemplateColumn) has `CanFilter = false` by default. Set [`OperationContentBinding`](xref:WinUI.TableView.TableViewColumn.OperationContentBinding) to enable filtering on template columns.
 - When a filter is active, new items added to the source collection may not appear in the view until the filter is re-evaluated or live shaping is enabled (`AllowLiveShaping = true`).
 

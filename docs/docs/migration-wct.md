@@ -87,7 +87,7 @@ xmlns:tv="using:WinUI.TableView"
 
 ## Sorting
 
-A key difference: the WCT DataGrid fires sorting events but does **not** apply sorting itself — your code must sort the source collection. WinUI.TableView applies sorting automatically via the internal `AdvancedCollectionView`.
+A key difference: the WCT DataGrid fires sorting events but does **not** apply sorting itself — your code must sort the source collection. WinUI.TableView applies sorting automatically via its internal collection view.
 
 **WCT DataGrid pattern (manual sort):**
 ```csharp

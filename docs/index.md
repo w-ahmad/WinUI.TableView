@@ -1,8 +1,8 @@
 # WinUI.TableView
 
-**WinUI.TableView** is a lightweight and fast data grid control for [WinUI 3](https://learn.microsoft.com/en-us/windows/apps/winui/winui3) apps with support for the [Uno Platform](https://platform.uno/). It is derived from `ListView`, giving it a Fluent Design look and feel, and is designed to handle large datasets efficiently.
+**WinUI.TableView** is a lightweight and fast data grid control for [WinUI](https://learn.microsoft.com/en-us/windows/apps/winui/winui3) apps with support for the [Uno Platform](https://platform.uno/). It is derived from `ListView`, giving it a Fluent Design look and feel, and is designed to handle large datasets efficiently.
 
-Use WinUI.TableView when you need a tabular data display with sorting, filtering, editing, row details, and clipboard support in a WinUI 3 or Uno Platform application.
+Use WinUI.TableView when you need a tabular data display with sorting, filtering, editing, row details, and clipboard support in a WinUI or Uno Platform application.
 
 ![WinUI.TableView overview](images/tableview-overview.png)
 
