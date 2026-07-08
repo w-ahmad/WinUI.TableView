@@ -1,18 +1,18 @@
-# Getting Started
+# Getting Started with Uno Platform
 
-This guide will walk you through the process of setting up and using WinUI.TableView in your Uno Platform application. Follow the steps below to quickly integrate a powerful and flexible DataGrid into your project.
+This guide walks you through setting up and using `WinUI.TableView` in your Uno Platform application. Follow the steps below to quickly integrate a powerful and flexible data grid into your project.
 
-### 1. Create a New Uno Project
+### 1. Create a new Uno project
 
-If you don't already have a Uno project, create one in Visual Studio.
+If you don't already have an Uno project, create one in Visual Studio.
 
-### 2. Install NuGet Package
+### 2. Install the NuGet package
 Install [WinUI.TableView](https://www.nuget.org/packages/WinUI.TableView) NuGet package to your app with your preferred method. Here is the one using NuGet Package Manager:
 
 ```bash
 Install-Package WinUI.TableView
 ```
-### 3. Add `WinUI.TableView` to Your XAML
+### 3. Add `TableView` to your XAML
 
 In your `MainPage.xaml`, add the `WinUI.TableView` control:
 
@@ -36,9 +36,9 @@ In your `MainPage.xaml`, add the `WinUI.TableView` control:
 </Page>
 ```
 
-### 4. Bind Data to `TableView`
+### 4. Bind data to `TableView`
 
-Create a simple Model class with properties to represent in TableView cells:
+Create a simple model class with properties to represent in `TableView` cells:
 
 ```csharp
 public class Item : INotifyPropertyChanged
@@ -121,8 +121,51 @@ public sealed partial class MainPage : Page
 }
 ```
 
-### 5. Run Your Application
+### 5. Run your application
 
-Build and run your application. You should see the `WinUI.TableView` populated with the rows and cells from your `Items` collection. Here is the result by running the app on Desktop platform.
+Build and run your application. You should see `WinUI.TableView` populated with the rows and cells from your `Items` collection. Here is the result running on the Desktop platform.
 
 ![Desktop](https://github.com/user-attachments/assets/9b338487-702c-4812-a8ec-29d49e54549c)
+
+## Uno Platform notes
+
+`WinUI.TableView` targets all Uno Platform heads. The core feature set works on all supported targets, but there are some behavioral differences to be aware of.
+
+### WebAssembly (WASM)
+
+- **Binding**: `{Binding}` (runtime binding) and `{x:Bind}` (compiled binding) are both supported. Prefer `{x:Bind}` where possible for better performance and Native AOT compatibility.
+- **Keyboard navigation**: Most keyboard shortcuts work, but browser focus management may intercept some key events (for example, **Tab** may navigate out of the page in some configurations). Test keyboard behavior in your target browser.
+- **Accessibility**: The WASM target exposes accessibility information via ARIA attributes managed by Uno Platform. The full UIA automation tree available on Windows is not present on WASM.
+- **Performance**: Rendering performance for large datasets in WASM depends on the browser and Skia rendering mode used. For very large tables, limit the visible row count and prefer explicit columns over `AutoGenerateColumns`.
+
+### Desktop (Skia/GTK, Skia/WPF, Skia/X11)
+
+- The control behaves similarly to the WinUI target. Keyboard navigation and mouse interaction are fully functional.
+- Focus management follows the native platform conventions for the Skia host in use.
+- Theming follows the Uno fluent theme. If your app uses a custom WinUI theme, verify it renders correctly on Skia targets.
+
+### Android and iOS
+
+- Touch/pointer interactions are supported. Tap to select, double-tap to edit.
+- Keyboard editing works when a hardware keyboard or on-screen keyboard is active.
+- Some `TableViewDateColumn` and `TableViewTimeColumn` picker controls may have platform-specific rendering differences. Verify on device or emulator.
+- For best performance on mobile, keep the column count and row count reasonable. Prefer explicit columns (`AutoGenerateColumns="False"`).
+
+### General binding notes
+
+- On non-Windows targets, `{Binding}` path resolution may behave slightly differently for complex nested paths. Prefer `{x:Bind}` with an explicit `x:DataType` for compiled, type-safe bindings.
+- When using `SortMemberPath` or `OperationContentBinding`, the string-based property access relies on reflection. This works on all targets, but on WASM/AOT consider using `{x:Bind}`-based template columns instead.
+
+### Known limitations on Uno targets
+
+- `AutoGenerateColumns="True"` uses reflection to discover model properties. This works on all Uno targets but is slower than explicit column definitions on first load.
+- The filter flyout UI renders using the same XAML as the Windows target. On small-screen targets (phone), the flyout may extend beyond the visible area. Consider disabling the filter flyout (`CanFilterColumns="False"`) on those form factors.
+- Row details expand/collapse animation may not be as smooth on Skia targets compared to Windows.
+
+## Related articles
+
+- [Installation and quick start](getting-started.md)
+- [Overview and concepts](overview.md)
+- [Performance guidance](performance.md)
+- [Accessibility](accessibility.md)
+- [Native AOT compatibility](aot-compatibility.md)

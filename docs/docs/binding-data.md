@@ -71,7 +71,7 @@ public class Product : INotifyPropertyChanged
 
 ## Using CollectionView
 
-`TableView` wraps your source in an internal `AdvancedCollectionView`. You can access it through `TableView.CollectionView` to apply programmatic sort and filter descriptions.
+`TableView` wraps your source in its own internal collection view. You can access it through `TableView.CollectionView` to apply programmatic sort and filter descriptions.
 
 ```csharp
 // Sort by price descending

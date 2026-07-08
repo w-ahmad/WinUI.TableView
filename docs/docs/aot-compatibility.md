@@ -153,7 +153,7 @@ Enable AOT and set the CsWinRT warning level to catch any remaining issues at bu
 
 ## Notes and limitations
 
-- Only WinUI 3 (Windows) targets support Native AOT. Uno Platform targets have their own AOT characteristics — consult the [Uno Platform documentation](https://platform.uno/docs/articles/uno-development/aot-compilation.html) for those targets.
+- Only WinUI (Windows App SDK) targets support Native AOT publishing. Uno Platform targets have their own AOT characteristics — consult the [Uno Platform documentation](https://platform.uno/docs/articles/uno-development/aot-compilation.html) for those targets.
 - `AutoGenerateColumns="True"` uses reflection to discover properties. This works with the attribute in place, but for maximum AOT compatibility prefer explicit columns (`AutoGenerateColumns="False"`).
 - `SortMemberPath` uses reflection-based property access when set. Ensure the model has the attribute when using `SortMemberPath`.
 
