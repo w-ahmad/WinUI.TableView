@@ -56,8 +56,6 @@
   items:
   - name: Events and Commands Reference
     href: commands-events.md
-  - name: Common Recipes
-    href: recipes.md
   - name: Performance Guidance
     href: performance.md
   - name: Native AOT Compatibility
