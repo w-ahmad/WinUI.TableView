@@ -7,10 +7,6 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.System;
 using Windows.UI.Core;
@@ -47,7 +43,7 @@ public partial class TableViewColumnHeader : ContentControl
     private bool _resizePreviousStarted;
     private double _reorderStartingPosition;
     private bool _reorderStarted;
-    private RenderTargetBitmap? _dragVisuals;    
+    private RenderTargetBitmap? _dragVisuals;
 
     /// <summary>
     /// Initializes a new instance of the TableViewColumnHeader class.
@@ -458,15 +454,10 @@ public partial class TableViewColumnHeader : ContentControl
     protected override void OnManipulationCompleted(ManipulationCompletedRoutedEventArgs e)
     {
         base.OnManipulationCompleted(e);
-
-        if (_reorderStarted && Column is not null)
-        {
-            _headerRow?.ColumnDropCompleted(Column);
-        }
+        CompleteColumnDrop(true);
 
         _resizeStarted = false;
         _resizePreviousStarted = false;
-        _reorderStarted = false;
     }
 
     /// <inheritdoc/>
@@ -477,6 +468,23 @@ public partial class TableViewColumnHeader : ContentControl
 
         _resizeStarted = false;
         _resizePreviousStarted = false;
+        _reorderStarted = false;
+    }
+
+    /// <inheritdoc/>
+    protected override void OnPointerCaptureLost(PointerRoutedEventArgs e)
+    {
+        base.OnPointerCaptureLost(e);
+        CompleteColumnDrop(false);
+    }
+
+    private void CompleteColumnDrop(bool applyDrop)
+    {
+        if (_reorderStarted && Column is not null)
+        {
+            _headerRow?.ColumnDropCompleted(Column, applyDrop);
+        }
+
         _reorderStarted = false;
     }
 

@@ -12,7 +12,6 @@ using System.Collections.Specialized;
 using System.Linq;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
-using WinUI.TableView.Converters;
 using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView;
@@ -592,7 +591,7 @@ public partial class TableViewHeaderRow : Control
         }
     }
 
-    internal void ColumnDropCompleted(TableViewColumn column)
+    internal void ColumnDropCompleted(TableViewColumn column, bool applyDrop)
     {
         if (TableView is not null && _columnDropIndicator is not null)
         {
@@ -600,7 +599,7 @@ public partial class TableViewHeaderRow : Control
             var isValidDropTarget = _isValidDropTarget;
             _isValidDropTarget = false;
 
-            if (!isValidDropTarget)
+            if (!isValidDropTarget || !applyDrop)
             {
                 return;
             }
