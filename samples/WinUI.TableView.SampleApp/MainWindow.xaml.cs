@@ -61,6 +61,7 @@ public sealed partial class MainWindow : Window
                 "Context Flyouts" => typeof(ContextFlyoutsPage),
                 "Row Reorder" => typeof(ReorderRowsPage),
                 "Pagination" => typeof(PaginationPage),
+                "Incremental Loading" => typeof(IncrementalLoadingPage),
                 "Filtering" => typeof(FilteringPage),
                 "Customize Filter Flyout" => typeof(CustomizeFilterPage),
                 "External Filtering" => typeof(ExternalFilteringPage),

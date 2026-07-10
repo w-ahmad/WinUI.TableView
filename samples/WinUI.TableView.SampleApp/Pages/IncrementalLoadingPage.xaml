@@ -1,0 +1,99 @@
+<Page x:Class="WinUI.TableView.SampleApp.Pages.IncrementalLoadingPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:tv="using:WinUI.TableView"
+      xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
+      mc:Ignorable="d">
+
+    <Grid>
+        <controls:SamplePresenter Header="Incremental Loading"
+                                  Description="TableView supports incremental loading when the items source implements ISupportIncrementalLoading. More items are fetched automatically as the user scrolls toward the end of the list.">
+            <controls:SamplePresenter.Example>
+                <tv:TableView x:Name="tableView"
+                              IsReadOnly="True"
+                              IncrementalLoadingTrigger="Edge"
+                              IncrementalLoadingThreshold="2"
+                              DataFetchSize="3" />
+            </controls:SamplePresenter.Example>
+
+            <controls:SamplePresenter.Options>
+                <StackPanel Spacing="16">
+                    <ProgressBar x:Name="loadingBar"
+                                 IsIndeterminate="True"
+                                 Visibility="Collapsed" />
+                    <TextBlock>
+                        <Run Text="Loaded items:" />
+                        <Run x:Name="loadedCountRun"
+                             Text="0" />
+                    </TextBlock>
+                    <TextBlock>
+                        <Run Text="Has more items:" />
+                        <Run x:Name="hasMoreItemsRun"
+                             Text="True" />
+                    </TextBlock>
+                </StackPanel>
+            </controls:SamplePresenter.Options>
+
+            <controls:SamplePresenter.Xaml>
+                <x:String xml:space="preserve">
+&lt;tv:TableView x:Name="tableView"
+    IsReadOnly="True"
+    IncrementalLoadingTrigger="Edge"
+    IncrementalLoadingThreshold="2"
+    DataFetchSize="3">
+    &lt;tv:TableView.Columns>
+    ............
+    &lt;/tv:TableView.Columns>
+&lt;/tv:TableView>
+                </x:String>
+            </controls:SamplePresenter.Xaml>
+
+            <controls:SamplePresenter.CSharp>
+                <x:String xml:space="preserve">
+public partial class IncrementalLoadingSource : ObservableCollection&lt;ExampleModel>, ISupportIncrementalLoading
+{
+    private const uint PageSize = 50;
+    private const uint MaxItemsCount = 10_000;
+    private const int SimulatedDelayMs = 750;
+    private int _nextId = 1;
+    
+    public event EventHandler&lt;bool>? LoadingStateChanged;
+    
+    public bool HasMoreItems => Count &lt; MaxItemsCount;
+    
+    public IAsyncOperation&lt;LoadMoreItemsResult> LoadMoreItemsAsync(uint count)
+    {
+        return AsyncInfo.Run(async cancellationToken =>
+        {
+            LoadingStateChanged?.Invoke(this, true);
+    
+            try
+            {
+                // Simulate fetching a page of data from a remote service.
+                await Task.Delay(SimulatedDelayMs, cancellationToken);
+    
+                for (var i = 0; i &lt; PageSize; i++)
+                {
+                    Add(CreateItem());
+                }
+    
+                return new LoadMoreItemsResult { Count = PageSize };
+            }
+            finally
+            {
+                LoadingStateChanged?.Invoke(this, false);
+            }
+        });
+    }
+}
+
+// Set the items source
+tableView.ItemsSource = new IncrementalLoadingSource();
+                </x:String>
+            </controls:SamplePresenter.CSharp>
+        </controls:SamplePresenter>
+    </Grid>
+</Page>

@@ -84,6 +84,11 @@
                         <FontIcon Glyph="&#xE89A;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
+                <NavigationViewItem Content="Incremental Loading">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE896;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
                 <NavigationViewItem Content="Editing">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE70F;" />
