@@ -12,6 +12,8 @@
   items:
   - name: Binding Data
     href: binding-data.md
+  - name: Incremental Loading
+    href: incremental-loading.md
   - name: Defining Columns
     href: defining-columns.md
   - name: Column Types

@@ -100,7 +100,7 @@ On Uno Platform targets, data binding and layout passes may have slightly differ
 
 ## Notes
 
-- `TableView` does not support incremental loading (i.e., `ISupportIncrementalLoading`) directly. Load pages of data manually and add them to your `ObservableCollection`.
+- `TableView` supports incremental loading when the items source implements `ISupportIncrementalLoading`. See [Incremental loading](incremental-loading.md).
 - The `CellsHorizontalOffset` property (default `16`) adds padding to the left of the cells area. This is separate from column widths.
 
 ## Related articles
