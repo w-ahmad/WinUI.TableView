@@ -16,9 +16,10 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-
+#if WINDOWS
         ExtendsContentIntoTitleBar = true;
-        SetTitleBar(AppTitleBar);
+        SetTitleBar(AppTitleBar);  
+#endif
         AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Tall;
         AppWindow.SetIcon("Assets/TableView.ico");
     }

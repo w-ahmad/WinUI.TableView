@@ -6,32 +6,36 @@
         xmlns:local="using:WinUI.TableView.SampleApp"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         Title="WinUI.TableView.SampleApp"
-        mc:Ignorable="d">
-    <Window.SystemBackdrop>
+        xmlns:win="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:not_win="http://uno.ui/not_win"
+        mc:Ignorable="d not_win">
+    <win:Window.SystemBackdrop>
         <MicaBackdrop />
-    </Window.SystemBackdrop>
+    </win:Window.SystemBackdrop>
 
-    <Grid Loaded="RootGridLoaded">
-        <Grid.RowDefinitions>
+    <Grid Loaded="RootGridLoaded" 
+          not_win:Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <win:Grid.RowDefinitions>
             <RowDefinition Height="48" />
             <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+        </win:Grid.RowDefinitions>
 
-        <TitleBar x:Name="AppTitleBar"
+        <win:TitleBar x:Name="AppTitleBar"
                   Title="WinUI.TableView.SampleApp"
                   BackRequested="OnBackRequested"
                   IsBackButtonVisible="{x:Bind rootFrame.CanGoBack, Mode=OneWay}"
                   IsPaneToggleButtonVisible="True"
                   PaneToggleRequested="TitleBar_PaneToggleRequested">
-            <TitleBar.IconSource>
+            <win:TitleBar.IconSource>
                 <ImageIconSource ImageSource="Assets/TableView.ico" />
-            </TitleBar.IconSource>
-        </TitleBar>
+            </win:TitleBar.IconSource>
+        </win:TitleBar>
 
         <NavigationView x:Name="navigationView"
                         Grid.Row="1"
                         IsBackButtonVisible="Collapsed"
-                        IsPaneToggleButtonVisible="False"
+                        win:IsPaneToggleButtonVisible="False"
+                        not_win:PaneDisplayMode="Auto"
                         SelectionChanged="OnNavigationSelectionChanged"
                         IsEnabled="{Binding Visibility, ElementName=loadingIndicator, Converter={StaticResource VisibilityToBool}}">
             <NavigationView.MenuItems>
