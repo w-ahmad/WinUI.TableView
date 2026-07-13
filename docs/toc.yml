@@ -1,7 +1,7 @@
 - name: Docs
   href: docs/
 - name: Release Notes
-  href: docs/release-notes/
+  href: release-notes/
 - name: API Reference
   href: api/
 - name: Sponsor this Project
