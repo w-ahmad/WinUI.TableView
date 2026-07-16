@@ -51,8 +51,13 @@
       "_appTitle": "WinUI.TableView",
       "_enableSearch": true,
       "_disableNextArticle": true,
-      "pdf": false
+      "pdf": true
     },
+    "sitemap": {
+      "baseUrl": "https://w-ahmad.dev/WinUI.TableView",
+      "priority": 0.1,
+      "changefreq": "monthly"
+    }
     "postProcessors": [
       "ExtractSearchIndex"
     ],
