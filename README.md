@@ -7,6 +7,7 @@
 [![cd-build](https://github.com/w-ahmad/WinUI.TableView/actions/workflows/cd-build.yml/badge.svg)](https://github.com/w-ahmad/WinUI.TableView/actions/workflows/cd-build.yml)
 [![nuget](https://img.shields.io/nuget/v/WinUI.TableView)](https://www.nuget.org/packages/WinUI.TableView/)
 [![nuget](https://img.shields.io/nuget/dt/WinUI.TableView)](https://www.nuget.org/packages/WinUI.TableView/)
+[![docs](https://img.shields.io/badge/docs-available-blue)](https://w-ahmad.dev/WinUI.TableView/)
 
 ### [Samples App](https://github.com/w-ahmad/WinUI.TableView/tree/main/samples/WinUI.TableView.SampleApp)
 
@@ -22,7 +23,7 @@ Explore the interactive `WinUI.TableView` samples with code snippets in a Sample
    <img align=center width="18%" src="https://raw.githubusercontent.com/unoplatform/styleguide/master/logo/uno-platform-logo-with-text.png" />
 </a>
 
-####
+<br><br>
 
 ![WinUI TableView SampleApp](https://raw.githubusercontent.com/w-ahmad/WinUI.TableView/main/samples/WinUI.TableView%20SampleApp.gif)
 
@@ -31,36 +32,43 @@ Explore the interactive `WinUI.TableView` samples with code snippets in a Sample
 - **Auto-generating Columns**: Automatically generate columns based on the data source.
 - **Individual cell selection**: You can select any cell for the ease of access and better editing experience.
 - **Copy row or cell content**: TableView allows you to copy rows or cells content, with the option to include or exclude column headers.
-- **Editing**: Modify cell content directly within the TableView by double tapping on a cell.
-- **Sorting**: Offers built in column sorting.
-- **Excel-like Column Filter**: TableView allows you to filter data within columns with an excel like flyout to enhance data exploration and analysis.
-- **Export functionality**: Built-in export functionality to export data to CSV format. This feature can be enabled by setting the `ShowExportOptions = true`.
+- **Editing**: Modify cell content directly within the TableView by double tapping on a cell. [Learn more →](https://w-ahmad.dev/WinUI.TableView/docs/editing.html)
+- **Sorting**: Offers built in column sorting. [Learn more →](https://w-ahmad.dev/WinUI.TableView/docs/sorting.html)
+- **Excel-like Column Filter**: TableView allows you to filter data within columns with an excel like flyout to enhance data exploration and analysis. [Learn more →](https://w-ahmad.dev/WinUI.TableView/docs/filtering.html)
+- **Export functionality**: Built-in export functionality to export data to CSV format. This feature can be enabled by setting the `ShowExportOptions = true`. [Learn more →](https://w-ahmad.dev/WinUI.TableView/docs/export.html)
 - **Grid Lines**: Display grid lines to improve data visibility and organization.
 - **Localization**: Support for multiple languages to enhance usability for global audiences.
 - **Alternate Row Colors**: Apply alternate row coloring for better readability and aesthetics.
-- **Cell & Row Context Flyout**: Provides context flyouts for cells and rows to allow quick actions.
-- **Row Detail Template**: Displays expandable additional content for each row using `RowDetailsTemplate`.
-- **Row Headers**: Adds header for each rows to display custom content using `RowHeaderTemplate`.
-- **Editing Events**: Provides events to control and respond to cell edit lifecycle actions.
-- **Column Clipboard Binding**: Enables custom clipboard copy behavior by binding column values for copy operations.
-- **Column Reordering**: Allows users to drag and rearrange columns at runtime.
-- **Frozen Columns**: Keeps specified number of columns fixed in place while horizontally scrolling.
+- **Cell & Row Context Flyout**: Provides context flyouts for cells and rows to allow quick actions. [Learn more →](https://w-ahmad.dev/WinUI.TableView/docs/context-flyouts.html)
+- **Row Detail Template**: Displays expandable additional content for each row using `RowDetailsTemplate`. [Learn more →](https://w-ahmad.dev/WinUI.TableView/docs/row-details.html)
+- **Row Headers**: Adds header for each rows to display custom content using `RowHeaderTemplate`. [Learn more →](https://w-ahmad.dev/WinUI.TableView/docs/row-headers.html)
+- **Editing Events**: Provides events to control and respond to cell edit lifecycle actions. [Learn more →](https://w-ahmad.dev/WinUI.TableView/docs/commands-events.html)
+- **Column Clipboard Binding**: Enables custom clipboard copy behavior by binding column values for copy operations. [Learn more →](https://w-ahmad.dev/WinUI.TableView/docs/clipboard.html)
+- **Column Reordering**: Allows users to drag and rearrange columns at runtime. [Learn more →](https://w-ahmad.dev/WinUI.TableView/docs/column-reordering.html)
+- **Frozen Columns**: Keeps specified number of columns fixed in place while horizontally scrolling. [Learn more →](https://w-ahmad.dev/WinUI.TableView/docs/frozen-columns.html)
 - **Compact Mode Support**: Reduces row height and padding for higher data density layouts. [Fluent Compact sizing](https://learn.microsoft.com/en-us/windows/apps/design/style/spacing#fluent-compact-sizing)
-- **Conditional Cell Styling**: Applies dynamic styles to rows or cells based on data-driven conditions.
+- **Conditional Cell Styling**: Applies dynamic styles to rows or cells based on data-driven conditions. [Learn more →](https://w-ahmad.dev/WinUI.TableView/docs/conditional-styling.html)
+
+> 📖 Browse the full documentation at [**w-ahmad.dev/WinUI.TableView**](https://w-ahmad.dev/WinUI.TableView/)
 
 ## Uno Platform Support
 
 `WinUI.TableView` is compatible with the Uno Platform, enabling you to use the control across multiple platforms.
 Try the [Uno WASM Sample App](https://github.com/w-ahmad/WinUI.TableView/tree/main/samples/WinUI.TableView.SampleApp.Uno) here 👉 https://tableview.samples.w-ahmad.dev/
 
+See the [Uno Platform getting started guide](https://w-ahmad.dev/WinUI.TableView/docs/getting-started-with-uno.html) for setup instructions.
+
 ## Getting Started
 
-### 1. Create a New WinUI3 or Uno Project
+For a complete walkthrough, see the [**Getting Started guide**](https://w-ahmad.dev/WinUI.TableView/docs/getting-started.html) in the documentation.
 
-If you don't already have a WinUI 3 project or Uno prject, create one in Visual Studio.
+### 1. Create a New WinUI 3 or Uno Project
 
-### 2: Install NuGet Package
-Inatall `WinUI.TableView` NuGet package to your app with your preferred method. Here is the one using NuGet Package Manager:
+If you don't already have a WinUI 3 project or Uno project, create one in Visual Studio.
+
+### 2. Install NuGet Package
+
+Install `WinUI.TableView` NuGet package to your app with your preferred method. Here is the one using NuGet Package Manager:
 
 ```bash
 Install-Package WinUI.TableView
@@ -122,46 +130,11 @@ public class MainViewModel
     }
 }
 
-public class Item : INotifyPropertyChanged
+public class Item 
 {
-    private string _name;
-    private double _price;
-    private int _quantity;
-
-    public string Name
-    {
-        get => _name;
-        set
-        {
-            _name = value;
-            OnPropertyChanged(nameof(Name));
-        }
-    }
-    public double Price
-    {
-        get => _price;
-        set
-        {
-            _price = value;
-            OnPropertyChanged(nameof(Price));
-        }
-    }
-    public int Quantity
-    {
-        get => _quantity;
-        set
-        {
-            _quantity = value;
-            OnPropertyChanged(nameof(Quantity));
-        }
-    }
-
-    private void OnPropertyChanged(string propertyName)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-
-    public event PropertyChangedEventHandler PropertyChanged;
+    public string Name { get; set; }
+    public double Price { get; set; }
+    public int Quantity { get; set; }
 }
 ```
 
@@ -174,6 +147,7 @@ Build and run your application. You should see the `TableView` populated with th
 TableView relies heavily on runtime bindings and dynamic value resolution, which are not fully compatible with IL trimming and Native AOT by default.
 
 To use TableView in Native AOT applications, bound types should be decorated with the `WinRT.GeneratedBindableCustomProperty` attribute to preserve the required binding metadata.
+
 ```cs
 [WinRT.GeneratedBindableCustomProperty]
 public partial class Person
@@ -184,6 +158,8 @@ public partial class Person
 }
 ```
 
+See the [AOT compatibility docs](https://w-ahmad.dev/WinUI.TableView/docs/aot-compatibility.html) for more details.
+
 ## Customization
 
 You can customize the appearance and behavior of the `TableView` by modifying its properties, templates, and styles. For example:
@@ -192,9 +168,9 @@ You can customize the appearance and behavior of the `TableView` by modifying it
 - **Is ReadOnly**: You can make any column or the TableView itself read only.
 - **Sorting and Filtering**: Enable sorting and filtering on specific columns or for the all columns.
 - **Corner Button Mode**: Use the `CornerButtonMode` property to configure the corner button's behavior. You can select from:
-  - `None`: No corner button.
-  - `SelectAll`: Displays a "Select All" button.
-  - `Options`: Displays an options menu.
+    - `None`: No corner button.
+    - `SelectAll`: Displays a "Select All" button.
+    - `Options`: Displays an options menu.
 - **Column Header and Cell Styles**: Customize the styles for column headers and cells to match your application's theme or specific design requirements.
 
 ```xml
@@ -222,6 +198,9 @@ You can customize the appearance and behavior of the `TableView` by modifying it
 ```
 
 ### Available Column Types
+
+For full details on each column type, see the [Column Types documentation](https://w-ahmad.dev/WinUI.TableView/docs/column-types.html).
+
 1. TableViewTextColumn
 2. TableViewCheckBoxColumn
 3. TableViewComboBoxColumn
@@ -232,6 +211,23 @@ You can customize the appearance and behavior of the `TableView` by modifying it
 8. TableViewDateColumn
 9. TableViewHyperlinkColumn
 
+## Documentation
+
+Full documentation is available at **[w-ahmad.dev/WinUI.TableView](https://w-ahmad.dev/WinUI.TableView/)**, including:
+
+- [Getting Started](https://w-ahmad.dev/WinUI.TableView/docs/getting-started.html)
+- [Getting Started with Uno Platform](https://w-ahmad.dev/WinUI.TableView/docs/getting-started-with-uno.html)
+- [Defining Columns](https://w-ahmad.dev/WinUI.TableView/docs/defining-columns.html)
+- [Column Types](https://w-ahmad.dev/WinUI.TableView/docs/column-types.html)
+- [Binding Data](https://w-ahmad.dev/WinUI.TableView/docs/binding-data.html)
+- [Editing](https://w-ahmad.dev/WinUI.TableView/docs/editing.html)
+- [Sorting](https://w-ahmad.dev/WinUI.TableView/docs/sorting.html)
+- [Filtering](https://w-ahmad.dev/WinUI.TableView/docs/filtering.html)
+- [Selection](https://w-ahmad.dev/WinUI.TableView/docs/selection.html)
+- [Styling & Theming](https://w-ahmad.dev/WinUI.TableView/docs/styling.html)
+- [Performance](https://w-ahmad.dev/WinUI.TableView/docs/performance.html)
+- [API Reference](https://w-ahmad.dev/WinUI.TableView/api/)
+
 ## Contributing
 
 Contributions are welcome from the community! If you find any issues or have suggestions for improvements, please submit them through the GitHub issue tracker or consider making a pull request.
@@ -239,15 +235,6 @@ Contributions are welcome from the community! If you find any issues or have sug
 #### Contributors
 [![ci-build](https://contrib.rocks/image?repo=w-ahmad/WinUI.TableView)](https://github.com/w-ahmad/WinUI.TableView/graphs/contributors)
 
-## Support WinUI.TableView
-
-If this project saves you time or adds value to your work, please consider supporting its continued development.
-
-Your sponsorship helps cover development time, testing, and future improvements.
-
-👉 [Become a supporter on Patreon](https://patreon.com/wahmad) 
-
-Every contribution makes a difference — thank you!
 ## License
 
 This project is licensed under the [MIT License](https://github.com/w-ahmad/WinUI.TableView?tab=MIT-1-ov-file).
