@@ -57,7 +57,7 @@
       "baseUrl": "https://w-ahmad.dev/WinUI.TableView",
       "priority": 0.1,
       "changefreq": "monthly"
-    }
+    },
     "postProcessors": [
       "ExtractSearchIndex"
     ],
