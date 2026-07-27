@@ -3,18 +3,11 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
 using Windows.Storage;
@@ -22,6 +15,7 @@ using Windows.Storage.Pickers;
 using Windows.System;
 using WinUI.TableView.Extensions;
 using WinUI.TableView.Helpers;
+using Pointer = Microsoft.UI.Xaml.Input.Pointer;
 
 namespace WinUI.TableView;
 
@@ -42,7 +36,6 @@ public partial class TableView : ListView
     private readonly CollectionView _collectionView = [];
     private Border? _dragRectangle;
     private Point? _dragStartPoint;
-    private bool _cellSelectionDirty;
     private bool _suppressSelectionChangedCellClear;
     private Point? _lastDragCanvasPoint;
     private DispatcherTimer? _autoScrollTimer;
@@ -50,6 +43,12 @@ public partial class TableView : ListView
     private double _autoScrollHorizontalDelta;
     private double _dragStartVerticalOffset;
     private double _dragStartHorizontalOffset;
+    private Pointer? _tableViewDragPointer;
+    private UIElement? _pointerCaptureElement;
+    private TableViewCellSlotRange? _lastDragSelectionCellRange;
+    private ItemIndexRange? _lastDragSelectionRowRange;
+    private bool _cellStateDispatchPending;
+    private readonly HashSet<int> _pendingCellStateRows = [];
 
     /// <summary>
     /// Initializes a new instance of the TableView class.
@@ -72,6 +71,8 @@ public partial class TableView : ListView
         Unloaded += OnUnloaded;
         SelectionChanged += TableView_SelectionChanged;
         _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
+        AddHandler(PointerPressedEvent, new PointerEventHandler(OnAnyPointerPressed), handledEventsToo: true);
+        AddHandler(PointerReleasedEvent, new PointerEventHandler(OnAnyPointerReleased), handledEventsToo: true);
     }
 
     /// <summary>
@@ -79,6 +80,8 @@ public partial class TableView : ListView
     /// </summary>
     private void TableView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        TableViewTrace.Write($"TableViewSelectionChanged: AddedItems={e.AddedItems.Count}, RemovedItems={e.RemovedItems.Count}");
+
         if (_suppressSelectionChangedCellClear)
         {
             _suppressSelectionChangedCellClear = false;
@@ -91,11 +94,13 @@ public partial class TableView : ListView
             }
             else
             {
-                SelectedCellRanges.RemoveWhere(slots =>
+                var addedIndexes = e.AddedItems.Select(item => Items.IndexOf(item));
+
+                foreach (var range in IndexRangeHelper.GetRanges(addedIndexes))
                 {
-                    slots.RemoveWhere(slot => SelectedRanges.Any(range => range.IsInRange(slot.Row)));
-                    return slots.Count == 0;
-                });
+                    var slotRange = TableViewCellSlotRange.FromCoordinates(range.FirstIndex, 0, range.LastIndex, Columns.VisibleColumns.Count - 1);
+                    SubtractCellRangeFromSelection(slotRange);
+                }
             }
 
             CurrentCellSlot = null;
@@ -105,6 +110,23 @@ public partial class TableView : ListView
         if (SelectedItems?.Count == 1)
         {
             DispatcherQueue.TryEnqueue(async () => await ScrollRowIntoView(SelectedIndex));
+        }
+    }
+
+    /// <summary>
+    /// Subtracts a specified cell range from the current selection.
+    /// </summary>
+    /// <param name="slotRange">The cell range to subtract from the current selection.</param>
+    private void SubtractCellRangeFromSelection(TableViewCellSlotRange slotRange)
+    {
+        while (SelectedCellRanges.FirstOrDefault(r => r.IntersectsWith(slotRange)) is { } intersectingRange)
+        {
+            foreach (var slicedRange in intersectingRange.Subtract(slotRange))
+            {
+                SelectedCellRanges.Add(slicedRange);
+            }
+
+            SelectedCellRanges.Remove(intersectingRange);
         }
     }
 
@@ -183,6 +205,214 @@ public partial class TableView : ListView
         }
 
         HandleNavigations(e, shiftKey, ctrlKey);
+    }
+
+    /// <summary>
+    /// Handles pointer-pressed for all cases, including when elements sets <c>e.Handled = true</c>.
+    /// </summary>
+    private void OnAnyPointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        var pointerPoint = e.GetCurrentPoint(this);
+        var position = pointerPoint.Position;
+        var canvasPoint = GetCanvasPoint(position);
+        var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
+        var isShiftkey = KeyboardHelper.IsShiftKeyDown();
+        var orignalSoruce = e.OriginalSource as FrameworkElement;
+
+        if (SelectionMode is ListViewSelectionMode.None         // Skip selection when SelectionMode is None
+            || IsDragSelecting                                  // Skip selection when a drag is already in progress
+            || orignalSoruce is ScrollBar                       // Skip selection when the pointer is over the ScrollBar
+            || orignalSoruce?.FindAscendant<ScrollBar>() is { } // Skip selection when the pointer is within a ScrollBar
+            || !pointerPoint.Properties.IsLeftButtonPressed     // Skip selection when the left mouse button is not pressed
+            || canvasPoint is null                              // Skip selection when canvasPoint is null (e.g., pointer is outside the scroll canvas)
+            || canvasPoint.Value.Y < 0                          // Skip selection when the pointer is in the column header area (above the scroll canvas)  
+            || canvasPoint.Value.X < CellsHorizontalOffset      // Skip selection when the pointer is in the row header area (to the left of the scroll canvas)
+            || isShiftkey)                                      // Skip selection when the Shift key is held
+        {
+            return;
+        }
+
+        _lastDragCanvasPoint = null;
+        CurrentCellSlot = null;
+        SelectionStartCellSlot = null;
+        SelectionStartRowIndex = null;
+        _lastDragSelectionRowRange = null;
+        _lastDragSelectionCellRange = null;
+        LastSelectionUnit = TableViewSelectionUnit.Row;
+
+        if (!ctrlKey && SelectionMode is not ListViewSelectionMode.Multiple)
+            DeselectAll();
+
+        if (e.OriginalSource is UIElement element)
+        {
+            UIElement? clickedElement = element.FindAscendant<TableViewCell>(); // Check if the pointer is over a TableViewCell
+            clickedElement ??= element.FindAscendant<TableViewRow>(); // If not, check if the pointer is over a TableViewRow
+            clickedElement ??= this; // If not, default to the TableView itself
+
+            SelectionStartCellSlot = (clickedElement as TableViewCell)?.Slot;
+            SelectionStartRowIndex = (clickedElement as TableViewRow)?.Index;
+
+            LastSelectionUnit = SelectionUnit switch
+            {
+                TableViewSelectionUnit.Cell => TableViewSelectionUnit.Cell,
+                TableViewSelectionUnit.Row => TableViewSelectionUnit.Row,
+                _ => clickedElement is TableViewCell
+                    ? TableViewSelectionUnit.Cell
+                    : TableViewSelectionUnit.Row
+            };
+
+#if WINDOWS
+            _pointerCaptureElement = clickedElement;
+#else
+            _pointerCaptureElement = this;
+#endif
+
+            _pointerCaptureElement.CapturePointer(e.Pointer);
+            _tableViewDragPointer = e.Pointer;
+            StartDragSelection(canvasPoint.Value);
+            MakeSelectionInDragRect();
+        }
+    }
+
+    /// <inheritdoc/>
+    protected override void OnPointerMoved(PointerRoutedEventArgs e)
+    {
+        base.OnPointerMoved(e);
+
+        if (!IsDragSelecting)
+        {
+            return;
+        }
+
+        var canvasPoint = GetCanvasPoint(e.GetCurrentPoint(this).Position);
+        if (canvasPoint is null)
+        {
+            return;
+        }
+
+        // Drive the rect visual for all drag sources (cell-initiated drags bubble pointer events here).
+        UpdateDragRectangleVisual(canvasPoint.Value);
+
+        // Selection-by-hit-test is only needed for TableView-initiated drags; cell-initiated
+        // drags perform selection in the cell's OnManipulationDelta via FindCell.
+        if (_tableViewDragPointer is not null)
+        {
+            MakeSelectionInDragRect();
+        }
+    }
+
+    /// <summary>
+    /// Makes selection based on the current drag rectangle, selecting either rows or cells depending on the last selection unit.
+    /// </summary>
+    private void MakeSelectionInDragRect()
+    {
+        if (_lastDragCanvasPoint is null) return;
+
+        if (LastSelectionUnit is not TableViewSelectionUnit.Cell && GetRowIndexAtCanvasPoint(_lastDragCanvasPoint.Value) is int row)
+        {
+            SelectionStartRowIndex ??= row;
+            var minRow = Math.Min(SelectionStartRowIndex.Value, row);
+            var maxRow = Math.Max(SelectionStartRowIndex.Value, row);
+            var rows = new ItemIndexRange(minRow, (uint)(maxRow - minRow + 1));
+
+            SelectRowsInDragRect(rows);
+        }
+        else if (LastSelectionUnit is not TableViewSelectionUnit.Row && GetSlotAtCanvasPoint(_lastDragCanvasPoint.Value) is { } slot)
+        {
+            if (SelectionStartCellSlot is null)
+            {
+                var startColumn = slot.Column;
+
+                if (_dragStartPoint is not null)
+                {
+                    var horizontalScrollDelta = HorizontalOffset - _dragStartHorizontalOffset;
+                    var startX = _dragStartPoint.Value.X - horizontalScrollDelta;
+                    startColumn = GetColumnIndexAtCanvasX(startX)
+                        ?? (startX < CellsHorizontalOffset - HorizontalOffset ? 0 : Columns.VisibleColumns.Count - 1);
+                }
+
+                SelectionStartCellSlot = new(SelectionStartRowIndex ?? slot.Row, startColumn);
+            }
+
+            var startRow = Math.Min(SelectionStartCellSlot.Value.Row, slot.Row);
+            var endRow = Math.Max(SelectionStartCellSlot.Value.Row, slot.Row);
+            var startCol = Math.Min(SelectionStartCellSlot.Value.Column, slot.Column);
+            var endCol = Math.Max(SelectionStartCellSlot.Value.Column, slot.Column);
+            var cells = TableViewCellSlotRange.FromCoordinates(startRow, startCol, endRow, endCol);
+
+            SelectCellsInDragRect(cells);
+        }
+        else if (LastSelectionUnit is not TableViewSelectionUnit.Cell && _lastDragSelectionRowRange?.Length > 0)
+        {
+            DeselectRange(_lastDragSelectionRowRange);
+
+            _lastDragSelectionRowRange = null;
+            SelectionStartRowIndex = null;
+        }
+        else if (LastSelectionUnit is not TableViewSelectionUnit.Row && _lastDragSelectionCellRange?.Length > 0)
+        {
+            DeselectCellRange(_lastDragSelectionCellRange);
+
+            _lastDragSelectionCellRange = null;
+            SelectionStartCellSlot = null;
+        }
+    }
+
+    /// <summary>
+    /// Selects rows that intersect with the current drag rectangle, updating the selection state accordingly.
+    /// </summary>
+    private void SelectRowsInDragRect(ItemIndexRange rows)
+    {
+        if (_lastDragSelectionRowRange?.FirstIndex == rows?.FirstIndex && _lastDragSelectionRowRange?.LastIndex == rows?.LastIndex) return;
+
+        if (_lastDragSelectionRowRange is not null && rows is not null && _lastDragSelectionRowRange.Contains(rows))
+        {
+            foreach (var slicedRange in _lastDragSelectionRowRange.Subtract(rows))
+            {
+                DeselectRange(slicedRange);
+            }
+        }
+        else if (rows?.Length > 0)
+        {
+            SelectRange(rows);
+        }
+
+        _lastDragSelectionRowRange = rows;
+    }
+
+    /// <summary>
+    /// Selects cells that intersect with the current drag rectangle, updating the selection state accordingly.
+    /// </summary>
+    private void SelectCellsInDragRect(TableViewCellSlotRange cells)
+    {
+        if (_lastDragSelectionCellRange == cells) return;
+
+        if (_lastDragSelectionCellRange is not null && cells is not null)
+        {
+            foreach (var range in _lastDragSelectionCellRange.Subtract(cells))
+            {
+                SubtractCellRangeFromSelection(range);
+            }
+        }
+
+        if (SelectedCellRanges.Any(r => r == cells))
+        {
+            OnCellSelectionChanged();
+        }
+        else if (cells?.Length > 0)
+        {
+            SelectCellRange(cells);
+        }
+
+        _lastDragSelectionCellRange = cells;
+    }
+
+    /// <summary>
+    /// Handles pointer-released for all cases, including when elements sets <c>e.Handled = true</c>.
+    /// </summary>
+    private void OnAnyPointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        EndDragSelection();
     }
 
     /// <summary>
@@ -313,6 +543,9 @@ public partial class TableView : ListView
         return (int)Math.Floor(availableHeight / rowHeight);
     }
 
+    /// <summary>
+    /// Ends the editing of a cell, committing or canceling the edit based on the specified action.
+    /// </summary>
     internal bool EndCellEditing(TableViewEditAction editAction, TableViewCell cell)
     {
         var editingElement = cell.Content as FrameworkElement;
@@ -573,8 +806,7 @@ public partial class TableView : ListView
         {
             // Clipboard failures are normal on Windows (e.g., CLIPBRD_E_CANT_OPEN).
             // Swallow to avoid crashing the application.
-            Debug.WriteLine(
-                $"TableView: Clipboard.SetContent failed: {ex}");
+            TableViewTrace.Write($"TableView: Clipboard.SetContent failed: {ex}");
         }
     }
 
@@ -1053,7 +1285,7 @@ public partial class TableView : ListView
                 if (Items.Count > 0 && Columns.VisibleColumns.Count > 0)
                 {
                     SelectedCellRanges.Clear();
-                    SelectedCellRanges.Add([new TableViewCellSlot(0, 0)]);
+                    SelectedCellRanges.Add(TableViewCellSlotRange.FromSlots(new(0, 0)));
                 }
                 break;
             case ListViewSelectionMode.Multiple:
@@ -1145,7 +1377,7 @@ public partial class TableView : ListView
             else
             {
                 if (SelectionUnit is TableViewSelectionUnit.CellWithRow)
-                {                    
+                {
                     SelectRows(slot, shiftKey, ctrlKey);
                 }
                 else if (!ctrlKey)
@@ -1246,17 +1478,15 @@ public partial class TableView : ListView
             }
         }
 
-        var selectionRange = (SelectionStartCellSlot is null ? null : SelectedCellRanges.LastOrDefault(x => SelectionStartCellSlot.HasValue && x.Contains(SelectionStartCellSlot.Value))) ?? [];
+        var selectionRange = (SelectionStartCellSlot is null ? null : SelectedCellRanges.LastOrDefault(x => SelectionStartCellSlot.HasValue && x.Contains(SelectionStartCellSlot.Value.Row, SelectionStartCellSlot.Value.Column)));
 
         if (ctrlKey && SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended)
         {
-            selectionRange = SelectedCellRanges.SelectMany(x => x).ToHashSet();
-            SelectedCellRanges.Clear();
+            // Keep existing ranges; the new slot/range will be added alongside them.
         }
         else
         {
-            SelectedCellRanges.Remove(selectionRange);
-            selectionRange.Clear();
+            SelectedCellRanges.Remove(selectionRange!);
         }
 
         SelectionStartCellSlot ??= CurrentCellSlot;
@@ -1264,36 +1494,14 @@ public partial class TableView : ListView
 
         if (shiftKey && SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended)
         {
-            var currentSlot = SelectionStartCellSlot.Value;
-            var startRow = Math.Min(slot.Row, currentSlot.Row);
-            var endRow = Math.Max(slot.Row, currentSlot.Row);
-            var startCol = Math.Min(slot.Column, currentSlot.Column);
-            var endCol = Math.Max(slot.Column, currentSlot.Column);
-            for (var row = startRow; row <= endRow; row++)
-            {
-                for (var column = startCol; column <= endCol; column++)
-                {
-                    var nextSlot = new TableViewCellSlot(row, column);
-                    selectionRange.Add(nextSlot);
-                    if (SelectedCellRanges.LastOrDefault(x => x.Contains(nextSlot)) is { } range)
-                    {
-                        range.Remove(nextSlot);
-                    }
-                }
-            }
+            var newRange = TableViewCellSlotRange.FromSlots(SelectionStartCellSlot.Value, slot);
+            SelectedCellRanges.Add(newRange);
         }
         else
         {
             SelectionStartCellSlot = slot;
-            selectionRange.Add(slot);
-
-            if (SelectedCellRanges.LastOrDefault(x => x.Contains(slot)) is { } range)
-            {
-                range.Remove(slot);
-            }
+            SelectedCellRanges.Add(TableViewCellSlotRange.FromSlots(slot));
         }
-
-        SelectedCellRanges.Add(selectionRange);
         OnCellSelectionChanged();
         CurrentCellSlot = slot;
     }
@@ -1303,15 +1511,56 @@ public partial class TableView : ListView
     /// </summary>
     internal void DeselectCell(TableViewCellSlot slot)
     {
-        var selectionRange = SelectedCellRanges.LastOrDefault(x => x.Contains(slot));
-        selectionRange?.Remove(slot);
-
-        if (selectionRange?.Count == 0)
+        var selectionRange = SelectedCellRanges.LastOrDefault(x => x.Contains(slot.Row, slot.Column));
+        if (selectionRange is not null)
         {
             SelectedCellRanges.Remove(selectionRange);
         }
 
         CurrentCellSlot = slot;
+        OnCellSelectionChanged();
+    }
+
+    /// <summary>
+    /// Selects all the cells within the specified range, raising the <see cref="CellSelectionChanged"/> event only once.
+    /// </summary>
+    /// <param name="range">The range of cell slots to select.</param>
+    public void SelectCellRange(TableViewCellSlotRange? range)
+    {
+        if (range is null || range.Length <= 0
+            || !range.IsValid(this)
+            || SelectionMode is ListViewSelectionMode.None
+            || SelectionUnit is TableViewSelectionUnit.Row)
+        {
+            return;
+        }
+
+        if (SelectedCellRanges.Any(x => x == range)) return;
+
+        if (SelectionUnit is TableViewSelectionUnit.CellWithRow)
+        {
+            _suppressSelectionChangedCellClear = true;
+            var rowRange = new ItemIndexRange(range.FirstRow, (uint)range.Rows);
+            SelectRange(rowRange);
+        }
+
+        SubtractCellRangeFromSelection(range);
+        SelectedCellRanges.Add(range);
+        OnCellSelectionChanged();
+    }
+
+    /// <summary>
+    /// Deselects all the cells within the specified range, raising the <see cref="CellSelectionChanged"/> event only once.
+    /// </summary>
+    /// <param name="range">The range of cell slots to deselect.</param>
+    public void DeselectCellRange(TableViewCellSlotRange? range)
+    {
+        if (range is null || range.Length <= 0 || SelectedCellRanges.Count is 0)
+        {
+            return;
+        }
+
+        SubtractCellRangeFromSelection(range);
         OnCellSelectionChanged();
     }
 
@@ -1353,43 +1602,38 @@ public partial class TableView : ListView
     /// </summary>
     private void OnCellSelectionChanged()
     {
-        if (_cellSelectionDirty) return;
-        _cellSelectionDirty = true;
+        var newSelection = SelectedCellRanges.SelectMany(x => x.GetSlots()).ToHashSet();
+        var removedCells = SelectedCells.Where(s => !newSelection.Contains(s)).ToList();
+        var addedCells = newSelection.Where(s => !SelectedCells.Contains(s)).ToList();
 
-        if (!DispatcherQueue.TryEnqueue(() =>
+        if (removedCells.Count is 0 && addedCells.Count is 0) return;
+
+        foreach (var slot in removedCells) SelectedCells.Remove(slot);
+        foreach (var slot in addedCells) SelectedCells.Add(slot);
+
+        OnCellSelectionChanged(new TableViewCellSelectionChangedEventArgs(removedCells, addedCells));
+
+        foreach (var slot in removedCells.Concat(addedCells))
+            _pendingCellStateRows.Add(slot.Row);
+
+        if (!_cellStateDispatchPending)
         {
-            _cellSelectionDirty = false;
-
-            var oldSelection = SelectedCells;
-            SelectedCells = [.. SelectedCellRanges.SelectMany(x => x)];
-
-            var rowIndexes = oldSelection.Select(x => x.Row).Concat(SelectedCells.Select(x => x.Row)).Distinct();
-
-            foreach (var rowIndex in rowIndexes)
-            {
-                var row = _rows.FirstOrDefault(x => x.Index == rowIndex);
-                row?.ApplyCellsSelectionState();
-            }
-
-            InvokeCellSelectionChangedEvent(oldSelection);
-        }))
-        {
-            _cellSelectionDirty = false;
+            _cellStateDispatchPending = true;
+            DispatcherQueue.TryEnqueue(ApplyPendingCellStates);
         }
     }
 
-    /// <summary>
-    /// Invokes the <see cref="CellSelectionChanged"/> event to notify subscribers of changes in the selected cells.
-    /// </summary>
-    private void InvokeCellSelectionChangedEvent(HashSet<TableViewCellSlot> oldSelection)
+    private void ApplyPendingCellStates()
     {
-        var removedCells = oldSelection.Except(SelectedCells).ToList();
-        var addedCells = SelectedCells.Except(oldSelection).ToList();
+        _cellStateDispatchPending = false;
+        if (_pendingCellStateRows.Count is 0) return;
 
-        if (removedCells.Count > 0 || addedCells.Count > 0)
+        foreach (var row in _rows)
         {
-            OnCellSelectionChanged(new TableViewCellSelectionChangedEventArgs(removedCells, addedCells));
+            if (_pendingCellStateRows.Contains(row.Index))
+                row.ApplyCellsSelectionState();
         }
+        _pendingCellStateRows.Clear();
     }
 
     /// <summary>
@@ -1414,10 +1658,7 @@ public partial class TableView : ListView
         _dragStartVerticalOffset = _scrollViewer?.VerticalOffset ?? 0;
         _dragStartHorizontalOffset = HorizontalOffset;
 
-        if (_scrollViewer is not null)
-        {
-            _scrollViewer.ViewChanged += OnScrollViewerViewChangedDuringDrag;
-        }
+        _scrollViewer?.ViewChanged += OnScrollViewerViewChangedDuringDrag;
 
         // Show the drag rectangle visual if enabled and template parts are available
         if (ShowDragRectangle && DragRectangleCanvas is not null && _dragRectangle is not null)
@@ -1453,6 +1694,26 @@ public partial class TableView : ListView
         }
 
         UpdateAutoScroll(currentPoint);
+    }
+
+    /// <summary>
+    /// Transforms a point relative to this <see cref="TableView"/> into coordinates relative to the <see cref="DragRectangleCanvas"/>.
+    /// Returns <c>null</c> when the canvas is unavailable or the transform cannot be computed.
+    /// A negative Y value indicates the point is above the scroll area (column header territory).
+    /// </summary>
+    /// <param name="position">The position relative to this TableView.</param>
+    /// <returns>The canvas-relative point, or <c>null</c> if unavailable.</returns>
+    private Point? GetCanvasPoint(Point position)
+    {
+        if (DragRectangleCanvas is null) return null;
+        try
+        {
+            return TransformToVisual(DragRectangleCanvas).TransformPoint(position);
+        }
+        catch (ArgumentException)
+        {
+            return null;
+        }
     }
 
     /// <summary>
@@ -1597,8 +1858,6 @@ public partial class TableView : ListView
             {
                 PositionDragRectangle(_lastDragCanvasPoint.Value);
             }
-
-            SelectCellAtDragPoint();
         }
     }
 
@@ -1627,54 +1886,6 @@ public partial class TableView : ListView
         {
             PositionDragRectangle(_lastDragCanvasPoint.Value);
         }
-
-        // Update selection for newly visible rows during auto-scroll
-        SelectCellAtDragPoint();
-    }
-
-    /// <summary>
-    /// Selects the cell at the last known drag pointer position.
-    /// Used during auto-scroll to select newly visible cells when the pointer isn't moving.
-    /// </summary>
-    private void SelectCellAtDragPoint()
-    {
-        if (_scrollViewer is null || _lastDragCanvasPoint is null || DragRectangleCanvas is null)
-        {
-            return;
-        }
-
-        // Clamp to the cell area within the viewport.
-        // CellsHorizontalOffset accounts for row headers so we don't hit-test on header area.
-        var canvasPoint = _lastDragCanvasPoint.Value;
-        var minX = CellsHorizontalOffset + 1;
-        var clampedPoint = new Point(
-            Math.Clamp(canvasPoint.X, minX, Math.Max(minX, _scrollViewer.ViewportWidth - 1)),
-            Math.Clamp(canvasPoint.Y, 1, Math.Max(1, _scrollViewer.ViewportHeight - 1)));
-
-        try
-        {
-            var screenPoint = DragRectangleCanvas.TransformToVisual(null).TransformPoint(clampedPoint);
-#if WINDOWS
-            var cell = VisualTreeHelper.FindElementsInHostCoordinates(screenPoint, _scrollViewer)
-#else
-            var cell = VisualTreeHelper.FindElementsInHostCoordinates(screenPoint, _scrollViewer, true)
-                                       .OfType<ContentPresenter>()
-                                       .Where(x => x.Name is "Content")
-                                       .Select(x => x.FindAscendant<TableViewCell>() is { } c ? c : default)
-#endif
-                                       .OfType<TableViewCell>()
-                                       .FirstOrDefault();
-
-            if (cell is not null && cell.Slot != CurrentCellSlot)
-            {
-                var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
-                MakeSelection(cell.Slot, true, ctrlKey);
-            }
-        }
-        catch (ArgumentException)
-        {
-            // Element not in visual tree during container recycling
-        }
     }
 
     /// <summary>
@@ -1686,32 +1897,45 @@ public partial class TableView : ListView
 
         StopAutoScroll();
 
-        if (_scrollViewer is not null)
+        _pointerCaptureElement?.ReleasePointerCaptures();
+        _tableViewDragPointer = null;
+
+        _scrollViewer?.ViewChanged -= OnScrollViewerViewChangedDuringDrag;
+        _dragRectangle?.Visibility = Visibility.Collapsed;
+
+        // Determine the corner of the selection nearest the pointer before clearing drag state.
+        TableViewCellSlot? endSlot = null;
+        if (_lastDragSelectionCellRange is { Length: > 0 } endRange && _dragStartPoint is not null && _lastDragCanvasPoint is not null)
         {
-            _scrollViewer.ViewChanged -= OnScrollViewerViewChangedDuringDrag;
+            var verticalScrollDelta = (_scrollViewer?.VerticalOffset ?? 0) - _dragStartVerticalOffset;
+            var horizontalScrollDelta = HorizontalOffset - _dragStartHorizontalOffset;
+            var rowsTopToBottom = _dragStartPoint.Value.Y - verticalScrollDelta <= _lastDragCanvasPoint.Value.Y;
+            var colsLeftToRight = _dragStartPoint.Value.X - horizontalScrollDelta <= _lastDragCanvasPoint.Value.X;
+            endSlot = new TableViewCellSlot(
+                rowsTopToBottom ? endRange.LastRow : endRange.FirstRow,
+                colsLeftToRight ? endRange.LastColumn : endRange.FirstColumn);
         }
 
-        if (_dragRectangle is not null)
+        // Clean up any pointer capture the TableView itself held (empty-space drag path).
+        if (_tableViewDragPointer is not null)
         {
-            _dragRectangle.Visibility = Visibility.Collapsed;
+            _tableViewDragPointer = null;
+            ReleasePointerCaptures();
         }
 
         IsDragSelecting = false;
         _dragStartPoint = null;
         _lastDragCanvasPoint = null;
+        SelectionStartCellSlot = null;
 
         // Restore focus and scroll to the current cell now that dragging has ended
-        try
+        if (endSlot?.IsValid(this) == true)
         {
-            if (CurrentCellSlot.HasValue)
-            {
-                var cell = await ScrollCellIntoView(CurrentCellSlot.Value);
-                cell?.ApplyCurrentCellState();
-            }
+            CurrentCellSlot = endSlot.Value;
         }
-        catch (Exception)
+        else if (_lastDragSelectionCellRange?.Length > 0 && _lastDragSelectionCellRange.LastSlot.IsValid(this))
         {
-            // Focus restoration is best-effort after drag ends
+            CurrentCellSlot = _lastDragSelectionCellRange.LastSlot;
         }
     }
 
@@ -1826,6 +2050,112 @@ public partial class TableView : ListView
     internal TableViewCell? GetCellFromSlot(TableViewCellSlot slot)
     {
         return slot.IsValid(this) && ContainerFromIndex(slot.Row) is TableViewRow row ? row.Cells[slot.Column] : default;
+    }
+
+    /// <summary>
+    /// Returns the index of the row that contains <paramref name="canvasPoint"/>, or the nearest row
+    /// within the vertical span between the drag start point and <paramref name="canvasPoint"/> when
+    /// the point falls in empty space. Returns <c>null</c> when no realized row falls in that span.
+    /// </summary>
+    private int? GetRowIndexAtCanvasPoint(Point canvasPoint)
+    {
+        if (DragRectangleCanvas is null) return null;
+
+        // Compute the vertical span of the drag so we can snap to the nearest in-span row when the
+        // pointer is in empty space. If there is no drag start (called outside a drag), minY == maxY
+        // == canvasPoint.Y, which collapses back to the original exact hit-test behaviour.
+        var verticalScrollDelta = (_scrollViewer?.VerticalOffset ?? 0) - _dragStartVerticalOffset;
+        var adjustedStartY = _dragStartPoint is not null
+            ? _dragStartPoint.Value.Y - verticalScrollDelta
+            : canvasPoint.Y;
+
+        var minY = Math.Min(adjustedStartY, canvasPoint.Y);
+        var maxY = Math.Max(adjustedStartY, canvasPoint.Y);
+
+        TableViewRow? nearestRow = null;
+        var nearestDistance = double.MaxValue;
+
+        foreach (var row in _rows)
+        {
+            Point rowOrigin;
+            try { rowOrigin = row.TransformToVisual(DragRectangleCanvas).TransformPoint(default); }
+            catch (ArgumentException) { continue; }
+
+            var rowTop = rowOrigin.Y;
+            var rowBottom = rowTop + row.ActualHeight;
+
+            if (rowBottom <= minY || rowTop >= maxY) continue;
+
+            var distance = Math.Max(0d, Math.Max(rowTop - canvasPoint.Y, canvasPoint.Y - rowBottom));
+            if (distance < nearestDistance)
+            {
+                nearestDistance = distance;
+                nearestRow = row;
+            }
+        }
+
+        return nearestRow?.Index;
+    }
+
+    /// <summary>
+    /// Returns the index of the visible column whose bounds contain the given canvas X coordinate.
+    /// Returns <c>null</c> when x falls outside the column area or there are no visible columns.
+    /// </summary>
+    private int? GetColumnIndexAtCanvasX(double x)
+    {
+        var columnLeft = CellsHorizontalOffset - HorizontalOffset;
+        for (var i = 0; i < Columns.VisibleColumns.Count; i++)
+        {
+            var columnRight = columnLeft + Columns.VisibleColumns[i].ActualWidth;
+            if (x >= columnLeft && x < columnRight)
+                return i;
+            columnLeft = columnRight;
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Resolves the cell slot at <paramref name="canvasPoint"/>, snapping to the nearest row and
+    /// column within the horizontal and vertical span of the current drag when the point falls in
+    /// empty space. Returns <c>null</c> when no realized row or visible column falls in that span.
+    /// </summary>
+    private TableViewCellSlot? GetSlotAtCanvasPoint(Point canvasPoint)
+    {
+        if (DragRectangleCanvas is null) return null;
+
+        if (GetRowIndexAtCanvasPoint(canvasPoint) is not int rowIndex) return null;
+
+        // Mirror the row snapping: find the nearest column within the horizontal drag span.
+        var horizontalScrollDelta = HorizontalOffset - _dragStartHorizontalOffset;
+        var adjustedStartX = _dragStartPoint is not null
+            ? _dragStartPoint.Value.X - horizontalScrollDelta
+            : canvasPoint.X;
+
+        var minX = Math.Min(adjustedStartX, canvasPoint.X);
+        var maxX = Math.Max(adjustedStartX, canvasPoint.X);
+
+        var nearestColIndex = -1;
+        var nearestDistance = double.MaxValue;
+        var columnLeft = CellsHorizontalOffset - HorizontalOffset;
+
+        for (var i = 0; i < Columns.VisibleColumns.Count; i++)
+        {
+            var columnRight = columnLeft + Columns.VisibleColumns[i].ActualWidth;
+
+            if (columnRight > minX && columnLeft < maxX)
+            {
+                var distance = Math.Max(0d, Math.Max(columnLeft - canvasPoint.X, canvasPoint.X - columnRight));
+                if (distance < nearestDistance)
+                {
+                    nearestDistance = distance;
+                    nearestColIndex = i;
+                }
+            }
+
+            columnLeft = columnRight;
+        }
+
+        return nearestColIndex == -1 ? null : new TableViewCellSlot(rowIndex, nearestColIndex);
     }
 
     /// <summary>

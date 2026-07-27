@@ -157,44 +157,6 @@ public partial class TableViewRow : ListViewItem
     }
 
     /// <inheritdoc/>
-    protected override void OnPointerPressed(PointerRoutedEventArgs e)
-    {
-        if (TableView is { IsEditing: false })
-        {
-            base.OnPointerPressed(e);
-        }
-
-        if (!KeyboardHelper.IsShiftKeyDown() && TableView is not null)
-        {
-            TableView.SelectionStartRowIndex = Index;
-        }
-    }
-
-    /// <inheritdoc/>
-    protected override void OnPointerReleased(PointerRoutedEventArgs e)
-    {
-        base.OnPointerReleased(e);
-
-        if (!KeyboardHelper.IsShiftKeyDown() && TableView is not null)
-        {
-            TableView.SelectionStartCellSlot = null;
-            TableView.SelectionStartRowIndex = Index;
-        }
-    }
-
-    /// <inheritdoc/>
-    protected override void OnTapped(TappedRoutedEventArgs e)
-    {
-        base.OnTapped(e);
-
-        if (TableView?.SelectionUnit is TableViewSelectionUnit.Row or TableViewSelectionUnit.CellOrRow or TableViewSelectionUnit.CellWithRow)
-        {
-            TableView.CurrentRowIndex = Index;
-            TableView.LastSelectionUnit = TableViewSelectionUnit.Row;
-        }
-    }
-
-    /// <inheritdoc/>
     protected override void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
     {
         var eventArgs = new TableViewRowDoubleTappedEventArgs(Index, this, Content);
