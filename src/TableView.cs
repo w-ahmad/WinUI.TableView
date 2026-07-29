@@ -247,6 +247,10 @@ public partial class TableView : ListView
         {
             UIElement? clickedElement = element.FindAscendant<TableViewCell>(); // Check if the pointer is over a TableViewCell
             clickedElement ??= element.FindAscendant<TableViewRow>(); // If not, check if the pointer is over a TableViewRow
+
+            // Skip selection when the pointer is not over a Cell or Row, and ShowDragRectangle is false.
+            if (clickedElement == null && !ShowDragRectangle) return;
+
             clickedElement ??= this; // If not, default to the TableView itself
 
             SelectionStartCellSlot = (clickedElement as TableViewCell)?.Slot;
@@ -1661,7 +1665,7 @@ public partial class TableView : ListView
         _scrollViewer?.ViewChanged += OnScrollViewerViewChangedDuringDrag;
 
         // Show the drag rectangle visual if enabled and template parts are available
-        if (ShowDragRectangle && DragRectangleCanvas is not null && _dragRectangle is not null)
+        if (DragRectangleCanvas is not null && _dragRectangle is not null)
         {
             _dragStartPoint = startPoint;
 
@@ -1670,7 +1674,7 @@ public partial class TableView : ListView
             _dragRectangle.Width = 0;
             _dragRectangle.Height = 0;
 
-            _dragRectangle.Visibility = Visibility.Visible;
+            _dragRectangle.Visibility = ShowDragRectangle ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 
