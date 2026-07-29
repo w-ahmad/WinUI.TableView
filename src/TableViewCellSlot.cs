@@ -5,6 +5,7 @@
 /// </summary>
 public readonly record struct TableViewCellSlot(int Row, int Column)
 {
+    /// <inheritdoc />
     public override string ToString()
     {
         return $"Row: {Row}, Col: {Column}";
