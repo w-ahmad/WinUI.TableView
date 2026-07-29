@@ -371,9 +371,9 @@ public partial class TableView : ListView
     {
         if (_lastDragSelectionRowRange?.FirstIndex == rows.FirstIndex && _lastDragSelectionRowRange?.LastIndex == rows.LastIndex) return;
 
-        if (_lastDragSelectionRowRange is not null && _lastDragSelectionRowRange.Value.Contains(rows))
+        if (_lastDragSelectionRowRange is not null && _lastDragSelectionRowRange.Contains(rows))
         {
-            foreach (var slicedRange in _lastDragSelectionRowRange.Value.Subtract(rows))
+            foreach (var slicedRange in _lastDragSelectionRowRange.Subtract(rows))
             {
                 DeselectRange(slicedRange);
             }
