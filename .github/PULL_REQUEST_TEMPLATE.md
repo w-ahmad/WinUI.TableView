@@ -18,7 +18,7 @@ Closes #
 ## Checklist
 
 - [ ] This PR is **not** from my `main` branch
-- [ ] Tested with **WinUI 3** target
+- [ ] Tested with **WinUI** target
 - [ ] Tested with **Uno Platform** target
 - [ ] Unit / integration tests added or updated
 - [ ] Documentation updated to reflect changes
