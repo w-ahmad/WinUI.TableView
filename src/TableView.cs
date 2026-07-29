@@ -96,6 +96,8 @@ public partial class TableView : ListView
             {
                 var addedIndexes = e.AddedItems.Select(item => Items.IndexOf(item));
 
+                if (Columns.VisibleColumns.Count == 0) return;
+
                 foreach (var range in IndexRangeHelper.GetRanges(addedIndexes))
                 {
                     var slotRange = TableViewCellSlotRange.FromCoordinates(range.FirstIndex, 0, range.LastIndex, Columns.VisibleColumns.Count - 1);
@@ -367,16 +369,16 @@ public partial class TableView : ListView
     /// </summary>
     private void SelectRowsInDragRect(ItemIndexRange rows)
     {
-        if (_lastDragSelectionRowRange?.FirstIndex == rows?.FirstIndex && _lastDragSelectionRowRange?.LastIndex == rows?.LastIndex) return;
+        if (_lastDragSelectionRowRange?.FirstIndex == rows.FirstIndex && _lastDragSelectionRowRange?.LastIndex == rows.LastIndex) return;
 
-        if (_lastDragSelectionRowRange is not null && rows is not null && _lastDragSelectionRowRange.Contains(rows))
+        if (_lastDragSelectionRowRange is not null && _lastDragSelectionRowRange.Value.Contains(rows))
         {
-            foreach (var slicedRange in _lastDragSelectionRowRange.Subtract(rows))
+            foreach (var slicedRange in _lastDragSelectionRowRange.Value.Subtract(rows))
             {
                 DeselectRange(slicedRange);
             }
         }
-        else if (rows?.Length > 0)
+        else if (rows.Length > 0)
         {
             SelectRange(rows);
         }
@@ -1515,10 +1517,16 @@ public partial class TableView : ListView
     /// </summary>
     internal void DeselectCell(TableViewCellSlot slot)
     {
-        var selectionRange = SelectedCellRanges.LastOrDefault(x => x.Contains(slot.Row, slot.Column));
-        if (selectionRange is not null)
+        var singleCellRange = TableViewCellSlotRange.FromSlots(slot);
+        var containingRanges = SelectedCellRanges.Where(x => x.Contains(slot.Row, slot.Column)).ToList();
+
+        foreach (var range in containingRanges)
         {
-            SelectedCellRanges.Remove(selectionRange);
+            SelectedCellRanges.Remove(range);
+            foreach (var remaining in range.Subtract(singleCellRange))
+            {
+                SelectedCellRanges.Add(remaining);
+            }
         }
 
         CurrentCellSlot = slot;
@@ -1902,6 +1910,7 @@ public partial class TableView : ListView
         StopAutoScroll();
 
         _pointerCaptureElement?.ReleasePointerCaptures();
+        _pointerCaptureElement = null;
         _tableViewDragPointer = null;
 
         _scrollViewer?.ViewChanged -= OnScrollViewerViewChangedDuringDrag;
@@ -1918,13 +1927,6 @@ public partial class TableView : ListView
             endSlot = new TableViewCellSlot(
                 rowsTopToBottom ? endRange.LastRow : endRange.FirstRow,
                 colsLeftToRight ? endRange.LastColumn : endRange.FirstColumn);
-        }
-
-        // Clean up any pointer capture the TableView itself held (empty-space drag path).
-        if (_tableViewDragPointer is not null)
-        {
-            _tableViewDragPointer = null;
-            ReleasePointerCaptures();
         }
 
         IsDragSelecting = false;

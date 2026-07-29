@@ -77,10 +77,12 @@ public class TableViewCellSlotRange
     /// </summary>
     public static TableViewCellSlotRange FromCoordinates(int startRow, int startCol, int endRow, int endCol)
     {
+        var firstRow = Math.Min(startRow, endRow);
+        var firstCol = Math.Min(startCol, endCol);
         var rowCount = Math.Abs(endRow - startRow) + 1;
         var colCount = Math.Abs(endCol - startCol) + 1;
 
-        return new TableViewCellSlotRange(startRow, startCol, rowCount, colCount);
+        return new TableViewCellSlotRange(firstRow, firstCol, rowCount, colCount);
     }
 
     /// <summary>
