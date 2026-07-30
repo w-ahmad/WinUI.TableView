@@ -1,6 +1,8 @@
 ﻿using Microsoft.UI.Xaml;
 using System;
+using System.Collections.Specialized;
 using System.ComponentModel;
+using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
 
@@ -77,6 +79,39 @@ partial class TableView
     protected virtual void OnPasteFromClipboard(TableViewPasteFromClipboardEventArgs args)
     {
         PasteFromClipboard?.Invoke(this, args);
+    }
+
+    /// <summary>
+    /// Occurs when the sort order, active filters, or column layout (width, visibility, or order)
+    /// of the table view changes due to a user action.
+    /// Consumers can handle this event to persist and (later) restore the state via <see cref="TableView.State"/> 
+    /// </summary>
+    public event EventHandler<TableViewStateChangedEventArgs>? StateChanged;
+    
+    private void RaiseStateChanged(TableViewStateChangedKind kind)
+    {
+        StateChanged?.Invoke(this, new TableViewStateChangedEventArgs(kind));
+    }
+
+    private void OnColumnsPropertyChangedForState(object? sender, TableViewColumnPropertyChangedEventArgs e)
+    {
+        // Width and Visibility are user-driven layout choices that should be persisted.
+        // Other property changes (ActualWidth, CellStyle, IsFrozen, etc.) are rendering or
+        // code-controlled concerns and do not represent a user state change.
+        if (e.PropertyName is nameof(TableViewColumn.Width) or nameof(TableViewColumn.Visibility))
+        {
+            RaiseStateChanged(TableViewStateChangedKind.Column);
+        }
+    }
+
+    private void OnColumnsCollectionChangedForState(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        // Only column reorder (Move) is treated as a state change; Add and Remove are
+        // structural setup actions driven by code, not user-driven layout adjustments.
+        if (e.Action == NotifyCollectionChangedAction.Move)
+        {
+            RaiseStateChanged(TableViewStateChangedKind.Column);
+        }
     }
 
     /// <summary>

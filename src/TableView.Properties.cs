@@ -344,6 +344,16 @@ public partial class TableView
     }
 
     /// <summary>
+    /// Gets or sets the current (run-time) state of the TableView, which includes sort, filter, and column layout
+    /// into a single serializable object of type <see cref="TableViewState"/>. This can be used for persisting and restoring the state of the TableView.
+    /// </summary>
+    public TableViewState State
+    {
+        get => TableViewStateHelper.Capture(this);
+        set => TableViewStateHelper.Apply(this, value);
+    }
+
+    /// <summary>
     /// Gets or sets the last selection unit used.
     /// </summary>
     internal TableViewSelectionUnit LastSelectionUnit { get; set; }
