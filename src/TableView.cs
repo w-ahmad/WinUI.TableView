@@ -94,7 +94,9 @@ public partial class TableView : ListView
             }
             else
             {
-                var addedIndexes = e.AddedItems.Select(item => Items.IndexOf(item));
+                var addedIndexes = e.AddedItems
+                    .Select(item => Items.IndexOf(item))
+                    .Where(i => i >= 0);
 
                 if (Columns.VisibleColumns.Count == 0) return;
 
@@ -276,6 +278,15 @@ public partial class TableView : ListView
             _pointerCaptureElement.CapturePointer(e.Pointer);
             _tableViewDragPointer = e.Pointer;
             StartDragSelection(canvasPoint.Value);
+
+            if (!IsDragSelecting)
+            {
+                _pointerCaptureElement?.ReleasePointerCaptures();
+                _pointerCaptureElement = null;
+                _tableViewDragPointer = null;
+                return;
+            }
+
             MakeSelectionInDragRect();
         }
     }
