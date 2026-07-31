@@ -71,6 +71,7 @@ public partial class TableView : ListView
         Unloaded += OnUnloaded;
         SelectionChanged += TableView_SelectionChanged;
         _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
+
         AddHandler(PointerPressedEvent, new PointerEventHandler(OnAnyPointerPressed), handledEventsToo: true);
         AddHandler(PointerReleasedEvent, new PointerEventHandler(OnAnyPointerReleased), handledEventsToo: true);
     }
@@ -253,22 +254,22 @@ public partial class TableView : ListView
 
         if (e.OriginalSource is UIElement element)
         {
-            UIElement? clickedElement = element.FindAscendant<TableViewCell>(); // Check if the pointer is over a TableViewCell
-            clickedElement ??= element.FindAscendant<TableViewRow>(); // If not, check if the pointer is over a TableViewRow
+            UIElement? pressedElement = element.FindAscendant<TableViewCell>(); // Check if the pointer is over a TableViewCell
+            pressedElement ??= element.FindAscendant<TableViewRow>(); // If not, check if the pointer is over a TableViewRow
 
             // Skip selection when the pointer is not over a Cell or Row, and ShowDragRectangle is false.
-            if (clickedElement == null && !ShowDragRectangle) return;
+            if (pressedElement == null && !ShowDragRectangle) return;
 
-            clickedElement ??= this; // If not, default to the TableView itself
+            pressedElement ??= this; // If not, default to the TableView itself
 
-            SelectionStartCellSlot = (clickedElement as TableViewCell)?.Slot;
-            SelectionStartRowIndex = (clickedElement as TableViewRow)?.Index;
+            SelectionStartCellSlot = (pressedElement as TableViewCell)?.Slot;
+            SelectionStartRowIndex = (pressedElement as TableViewRow)?.Index;
 
             LastSelectionUnit = SelectionUnit switch
             {
                 TableViewSelectionUnit.Cell => TableViewSelectionUnit.Cell,
                 TableViewSelectionUnit.Row => TableViewSelectionUnit.Row,
-                _ => clickedElement is TableViewCell
+                _ => pressedElement is TableViewCell
                     ? TableViewSelectionUnit.Cell
                     : TableViewSelectionUnit.Row
             };
@@ -282,9 +283,9 @@ public partial class TableView : ListView
                 return;
             }
 
-            clickedElement.Focus(FocusState.Programmatic);
+            pressedElement.Focus(FocusState.Programmatic);
 #if WINDOWS
-            _pointerCaptureElement = clickedElement;
+            _pointerCaptureElement = pressedElement;
 #else
             _pointerCaptureElement = this;
 #endif
