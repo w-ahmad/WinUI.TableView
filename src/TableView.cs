@@ -257,6 +257,11 @@ public partial class TableView : ListView
             UIElement? pressedElement = element.FindAscendant<TableViewCell>(); // Check if the pointer is over a TableViewCell
             pressedElement ??= element.FindAscendant<TableViewRow>(); // If not, check if the pointer is over a TableViewRow
 
+#if !WINDOWS
+            _dragStartCell = pressedElement as TableViewCell;
+            _dragStartRow = element.FindAscendant<TableViewRow>();
+#endif
+
             // Skip selection when the pointer is not over a Cell or Row, and ShowDragRectangle is false.
             if (pressedElement == null && !ShowDragRectangle) return;
 
@@ -1993,7 +1998,32 @@ public partial class TableView : ListView
             if (!(SelectionUnit is TableViewSelectionUnit.Row && IsReadOnly))
             {
                 CurrentCellSlot = endSlot;
+#if !WINDOWS
+                if (_dragStartCell is not null
+                    && _dragStartPoint is not null
+                    && endSlot != _dragStartCell.Slot)
+                {
+                    VisualStates.GoToState(_dragStartCell, false, VisualStates.StateNormal);
+
+                    if (_dragStartCell.IsSelected)
+                    {
+                        VisualStates.GoToState(_dragStartCell, false, VisualStates.StateSelected);
+                    }
+                }
+#endif
             }
+
+#if !WINDOWS
+            if (_dragStartRow is not null && _dragStartRow.Index != endSlot.Row)
+            {
+                VisualStates.GoToState(_dragStartRow, false, VisualStates.StateNormal);
+
+                if (_dragStartRow.IsSelected)
+                {
+                    VisualStates.GoToState(_dragStartRow, false, VisualStates.StateSelected);
+                }
+            }
+#endif
         }
     }
 
