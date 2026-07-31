@@ -175,9 +175,34 @@ public partial class TableViewRow : ListViewItem
         var left = Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft);
 
         _itemPresenter?.Arrange(new Rect(-left, 0, _itemPresenter.ActualWidth + left, _itemPresenter.ActualHeight));
+                
+        UpdatePosition();
 
         return finalSize;
     }
+
+    /// <summary>
+    /// Updates the position of the row relative to the TableView.
+    /// </summary>
+    internal void UpdatePosition()
+    {
+        DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+        {
+            if (TableView is not null)
+            {
+                try
+                {
+                    Position = TransformToVisual(TableView.DragRectangleCanvas).TransformPoint(default).Y;
+                }
+                catch { }
+            }
+        });
+    }
+
+    /// <summary>
+    /// Gets or sets the position of the row relative to the TableView.
+    /// </summary>
+    internal double Position { get; set; }
 
     /// <summary>
     /// Ensures cells are created for the row.

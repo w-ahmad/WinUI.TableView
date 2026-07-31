@@ -160,7 +160,14 @@ public partial class TableView : ListView
 
                 row.TableView = this;
                 row.EnsureCellsStyle(default, item);
-                row.ApplyCellsSelectionState();
+
+                _pendingCellStateRows.Add(row.Index);
+                if (!_cellStateDispatchPending)
+                {
+                    _cellStateDispatchPending = true;
+                    DispatcherQueue.TryEnqueue(ApplyPendingCellStates);
+                }
+
                 row.RowPresenter?.ApplyDetailsPaneState(item);
 
                 if (CurrentCellSlot.HasValue)
@@ -244,9 +251,6 @@ public partial class TableView : ListView
         _lastDragSelectionCellRange = null;
         LastSelectionUnit = TableViewSelectionUnit.Row;
 
-        if (!ctrlKey && SelectionMode is not ListViewSelectionMode.Multiple)
-            DeselectAll();
-
         if (e.OriginalSource is UIElement element)
         {
             UIElement? clickedElement = element.FindAscendant<TableViewCell>(); // Check if the pointer is over a TableViewCell
@@ -277,6 +281,10 @@ public partial class TableView : ListView
 
             _pointerCaptureElement.CapturePointer(e.Pointer);
             _tableViewDragPointer = e.Pointer;
+
+            if (!ctrlKey && SelectionMode is not ListViewSelectionMode.Multiple && LastSelectionUnit is not TableViewSelectionUnit.Cell)
+                DeselectAll();
+
             StartDragSelection(canvasPoint.Value);
 
             if (!IsDragSelecting)
@@ -404,24 +412,34 @@ public partial class TableView : ListView
     {
         if (_lastDragSelectionCellRange == cells) return;
 
-        if (_lastDragSelectionCellRange is not null && cells is not null)
+        DispatcherQueue.TryEnqueue(() =>
         {
-            foreach (var range in _lastDragSelectionCellRange.Subtract(cells))
+            if (_lastDragSelectionCellRange is null
+            && !KeyboardHelper.IsCtrlKeyDown()
+            && SelectionMode is not ListViewSelectionMode.Multiple)
             {
-                SubtractCellRangeFromSelection(range);
+                DeselectAllItems();
+                SelectedCellRanges.Clear();
             }
-        }
+            else if (_lastDragSelectionCellRange is not null && cells is not null)
+            {
+                foreach (var range in _lastDragSelectionCellRange.Subtract(cells))
+                {
+                    SubtractCellRangeFromSelection(range);
+                }
+            }
 
-        if (SelectedCellRanges.Any(r => r == cells))
-        {
-            OnCellSelectionChanged();
-        }
-        else if (cells?.Length > 0)
-        {
-            SelectCellRange(cells);
-        }
+            if (SelectedCellRanges.Any(r => r == cells))
+            {
+                OnCellSelectionChanged();
+            }
+            else if (cells?.Length > 0)
+            {
+                SelectCellRange(cells);
+            }
 
-        _lastDragSelectionCellRange = cells;
+            _lastDragSelectionCellRange = cells;
+        });
     }
 
     /// <summary>
@@ -620,6 +638,7 @@ public partial class TableView : ListView
         DragRectangleCanvas = GetTemplateChild("DragRectangleCanvas") as Canvas;
         _dragRectangle = GetTemplateChild("DragRectangle") as Border;
         _scrollViewer?.Loaded += OnScrollViewerLoaded;
+        _scrollViewer?.ViewChanged += OnScrollViewerViewChanged;
 
         if (IsLoaded)
         {
@@ -629,6 +648,17 @@ public partial class TableView : ListView
         }
 
         SetHeadersVisibility();
+    }
+
+    /// <summary>
+    /// Handles the ViewChanged event of the ScrollViewer control, updating the position of each row when the view changes.
+    /// </summary>
+    private void OnScrollViewerViewChanged(object? sender, ScrollViewerViewChangedEventArgs e)
+    {
+        foreach (var row in _rows)
+        {
+            row.UpdatePosition();
+        }
     }
 
     /// <summary>
@@ -1813,9 +1843,9 @@ public partial class TableView : ListView
             {
                 _autoScrollTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
                 _autoScrollTimer.Tick += OnAutoScrollTimerTick;
+                _autoScrollTimer.Start();
             }
-
-            _autoScrollTimer.Start();
+            // else: timer already running — delta values above are picked up on the next tick
         }
         else
         {
@@ -1872,14 +1902,20 @@ public partial class TableView : ListView
             return;
         }
 
-        // Horizontal scroll via HorizontalOffset DP does not fire ViewChanged,
-        // so reposition rectangle and update selection here.
-        // Vertical scroll fires ViewChanged which handles it via OnScrollViewerViewChangedDuringDrag.
-        if (Math.Abs(_autoScrollHorizontalDelta) > 0.5 && _lastDragCanvasPoint is not null)
+        // Horizontal scroll does not fire ViewChanged, so reposition the rectangle here.
+        // Selection is updated for all scroll directions from the timer tick, not from ViewChanged,
+        // so that MakeSelectionInDragRect runs after ChangeView completes rather than inside the layout pass.
+        if (_lastDragCanvasPoint is not null)
         {
-            if (_dragStartPoint is not null && DragRectangleCanvas is not null && _dragRectangle is not null)
+            if (Math.Abs(_autoScrollHorizontalDelta) > 0.5 &&
+                _dragStartPoint is not null && DragRectangleCanvas is not null && _dragRectangle is not null)
             {
                 PositionDragRectangle(_lastDragCanvasPoint.Value);
+            }
+
+            if (_tableViewDragPointer is not null)
+            {
+                MakeSelectionInDragRect();
             }
         }
     }
@@ -1908,6 +1944,13 @@ public partial class TableView : ListView
         if (_dragStartPoint is not null && DragRectangleCanvas is not null && _dragRectangle is not null)
         {
             PositionDragRectangle(_lastDragCanvasPoint.Value);
+        }
+
+        // During auto-scroll the timer tick owns selection updates to keep MakeSelectionInDragRect
+        // out of the scroll layout pass. Only update here for non-auto-scroll scrolls (e.g. scroll wheel).
+        if (_autoScrollTimer is null && _tableViewDragPointer is not null)
+        {
+            MakeSelectionInDragRect();
         }
     }
 
@@ -2094,11 +2137,7 @@ public partial class TableView : ListView
 
         foreach (var row in _rows)
         {
-            Point rowOrigin;
-            try { rowOrigin = row.TransformToVisual(DragRectangleCanvas).TransformPoint(default); }
-            catch (ArgumentException) { continue; }
-
-            var rowTop = rowOrigin.Y;
+            var rowTop = row.Position;
             var rowBottom = rowTop + row.ActualHeight;
 
             if (rowBottom <= minY || rowTop >= maxY) continue;
@@ -2108,6 +2147,7 @@ public partial class TableView : ListView
             {
                 nearestDistance = distance;
                 nearestRow = row;
+                rowTop += row.ActualHeight;
             }
         }
 
@@ -2144,35 +2184,23 @@ public partial class TableView : ListView
 
         // Mirror the row snapping: find the nearest column within the horizontal drag span.
         var horizontalScrollDelta = HorizontalOffset - _dragStartHorizontalOffset;
-        var adjustedStartX = _dragStartPoint is not null
-            ? _dragStartPoint.Value.X - horizontalScrollDelta
-            : canvasPoint.X;
+        var adjustedPointerX = canvasPoint.X - horizontalScrollDelta;
 
-        var minX = Math.Min(adjustedStartX, canvasPoint.X);
-        var maxX = Math.Max(adjustedStartX, canvasPoint.X);
-
-        var nearestColIndex = -1;
-        var nearestDistance = double.MaxValue;
         var columnLeft = CellsHorizontalOffset - HorizontalOffset;
 
         for (var i = 0; i < Columns.VisibleColumns.Count; i++)
         {
             var columnRight = columnLeft + Columns.VisibleColumns[i].ActualWidth;
 
-            if (columnRight > minX && columnLeft < maxX)
-            {
-                var distance = Math.Max(0d, Math.Max(columnLeft - canvasPoint.X, canvasPoint.X - columnRight));
-                if (distance < nearestDistance)
-                {
-                    nearestDistance = distance;
-                    nearestColIndex = i;
-                }
-            }
+            if (adjustedPointerX <= columnRight)
+                return new TableViewCellSlot(rowIndex, i);
 
             columnLeft = columnRight;
         }
 
-        return nearestColIndex == -1 ? null : new TableViewCellSlot(rowIndex, nearestColIndex);
+        return Columns.VisibleColumns.Count > 0
+            ? new TableViewCellSlot(rowIndex, Columns.VisibleColumns.Count - 1)
+            : null;
     }
 
     /// <summary>
