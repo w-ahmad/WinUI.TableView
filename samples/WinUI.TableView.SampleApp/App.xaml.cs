@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
+using System.Diagnostics;
 
 namespace WinUI.TableView.SampleApp;
 
@@ -25,17 +26,17 @@ public partial class App : Application
 #if DEBUG && WINDOWS
     private void DebugSettings_BindingFailed(object sender, BindingFailedEventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine(e.Message);
+        Debug.WriteLine(e.Message);
     }
 
     private void DebugSettings_XamlResourceReferenceFailed(DebugSettings sender, XamlResourceReferenceFailedEventArgs args)
     {
-        System.Diagnostics.Debug.WriteLine(args.Message);
+        Debug.WriteLine(args.Message);
     }
 
     private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
     {
-        if (System.Diagnostics.Debugger.IsAttached) System.Diagnostics.Debugger.Break();
+        if (Debugger.IsAttached) Debugger.Break();
     }
 #endif
 
@@ -45,21 +46,27 @@ public partial class App : Application
     /// <param name="args">Details about the launch request and process.</param>
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
-#if DEBUG && !WINDOWS
+#if DEBUG
+        if (Debugger.IsAttached)
+        {
+            DebugSettings.EnableFrameRateCounter = true;
+        }
+#if !WINDOWS
         MainWindow.UseStudio();
         MainWindow.SetWindowIcon();
+#endif
 #endif
         MainWindow.Activate();
     }
 
     public static void InitializeLogging()
     {
+
 #if DEBUG
         var factory = LoggerFactory.Create(builder =>
         {
 #if __WASM__
             builder.AddProvider(new global::Uno.Extensions.Logging.WebAssembly.WebAssemblyConsoleLoggerProvider());
-            // Note: DebugSettings.EnableFrameRateCounter requires an Application instance
 #elif !WINDOWS
             builder.AddConsole();
 #else
