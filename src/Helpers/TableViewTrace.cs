@@ -7,6 +7,9 @@ internal static class TableViewTrace
     [Conditional("DEBUG")]
     public static void Write(string message)
     {
-        Debug.WriteLine($"[TableView] {message}");
+        if (Debugger.IsAttached)
+        {
+            Debug.WriteLine($"[TableView] {message}"); 
+        }
     }
 }

@@ -273,6 +273,16 @@ public partial class TableView : ListView
                     : TableViewSelectionUnit.Row
             };
 
+            if (SelectionMode is ListViewSelectionMode.Single)
+            {
+                _lastDragCanvasPoint = canvasPoint;
+                MakeSelectionInDragRect();
+                SetCurrentCellFromCanvasPoint(_lastDragCanvasPoint.Value);
+
+                return;
+            }
+
+            clickedElement.Focus(FocusState.Programmatic);
 #if WINDOWS
             _pointerCaptureElement = clickedElement;
 #else
@@ -390,7 +400,11 @@ public partial class TableView : ListView
     {
         if (_lastDragSelectionRowRange?.FirstIndex == rows.FirstIndex && _lastDragSelectionRowRange?.LastIndex == rows.LastIndex) return;
 
-        if (_lastDragSelectionRowRange is not null && _lastDragSelectionRowRange.Contains(rows))
+        if (SelectionMode is ListViewSelectionMode.Single && rows.Length is 1)
+        {
+            SelectedIndex = rows.FirstIndex;
+        }
+        else if (_lastDragSelectionRowRange is not null && _lastDragSelectionRowRange.Contains(rows))
         {
             foreach (var slicedRange in _lastDragSelectionRowRange.Subtract(rows))
             {
@@ -1635,18 +1649,9 @@ public partial class TableView : ListView
 
         if (newSlot.HasValue)
         {
-            // During drag selection, skip expensive scroll-into-view and focus operations.
-            // The drag rectangle handles visual feedback, and focus is restored when dragging ends.
-            if (IsDragSelecting)
-            {
-                var cell = GetCellFromSlot(newSlot.Value);
-                cell?.ApplyCurrentCellState(skipFocus: true);
-            }
-            else
-            {
-                var cell = await ScrollCellIntoView(newSlot.Value);
-                cell?.ApplyCurrentCellState();
-            }
+            var cell = await ScrollCellIntoView(newSlot.Value);
+            cell?.ApplyCurrentCellState();
+            cell?.Focus(FocusState.Programmatic);
         }
     }
 
@@ -1959,7 +1964,7 @@ public partial class TableView : ListView
     /// </summary>
     internal async void EndDragSelection()
     {
-        if (!IsDragSelecting) return;
+        if (!IsDragSelecting || _lastDragCanvasPoint is null) return;
 
         StopAutoScroll();
 
@@ -1970,32 +1975,24 @@ public partial class TableView : ListView
         _scrollViewer?.ViewChanged -= OnScrollViewerViewChangedDuringDrag;
         _dragRectangle?.Visibility = Visibility.Collapsed;
 
-        // Determine the corner of the selection nearest the pointer before clearing drag state.
-        TableViewCellSlot? endSlot = null;
-        if (_lastDragSelectionCellRange is { Length: > 0 } endRange && _dragStartPoint is not null && _lastDragCanvasPoint is not null)
-        {
-            var verticalScrollDelta = (_scrollViewer?.VerticalOffset ?? 0) - _dragStartVerticalOffset;
-            var horizontalScrollDelta = HorizontalOffset - _dragStartHorizontalOffset;
-            var rowsTopToBottom = _dragStartPoint.Value.Y - verticalScrollDelta <= _lastDragCanvasPoint.Value.Y;
-            var colsLeftToRight = _dragStartPoint.Value.X - horizontalScrollDelta <= _lastDragCanvasPoint.Value.X;
-            endSlot = new TableViewCellSlot(
-                rowsTopToBottom ? endRange.LastRow : endRange.FirstRow,
-                colsLeftToRight ? endRange.LastColumn : endRange.FirstColumn);
-        }
+        SetCurrentCellFromCanvasPoint(_lastDragCanvasPoint.Value);
 
         IsDragSelecting = false;
         _dragStartPoint = null;
         _lastDragCanvasPoint = null;
         SelectionStartCellSlot = null;
+    }
 
-        // Restore focus and scroll to the current cell now that dragging has ended
-        if (endSlot?.IsValid(this) == true)
+    private void SetCurrentCellFromCanvasPoint(Point canvasPoint)
+    {
+        if (GetSlotAtCanvasPoint(canvasPoint, exactMatch: true) is { } endSlot)
         {
-            CurrentCellSlot = endSlot.Value;
-        }
-        else if (_lastDragSelectionCellRange?.Length > 0 && _lastDragSelectionCellRange.LastSlot.IsValid(this))
-        {
-            CurrentCellSlot = _lastDragSelectionCellRange.LastSlot;
+            CurrentRowIndex = endSlot.Row;
+
+            if (!(SelectionUnit is TableViewSelectionUnit.Row && IsReadOnly))
+            {
+                CurrentCellSlot = endSlot;
+            }
         }
     }
 
@@ -2117,9 +2114,25 @@ public partial class TableView : ListView
     /// within the vertical span between the drag start point and <paramref name="canvasPoint"/> when
     /// the point falls in empty space. Returns <c>null</c> when no realized row falls in that span.
     /// </summary>
-    private int? GetRowIndexAtCanvasPoint(Point canvasPoint)
+    private int? GetRowIndexAtCanvasPoint(Point canvasPoint, bool exactMatch = false)
     {
         if (DragRectangleCanvas is null) return null;
+
+        if (exactMatch)
+        {
+            foreach (var row in _rows)
+            {
+                var rowTop = row.Position;
+                var rowBottom = rowTop + row.ActualHeight;
+
+                if (canvasPoint.Y >= rowTop && canvasPoint.Y < rowBottom)
+                {
+                    return row.Index;
+                }
+            }
+
+            return null;
+        }
 
         // Compute the vertical span of the drag so we can snap to the nearest in-span row when the
         // pointer is in empty space. If there is no drag start (called outside a drag), minY == maxY
@@ -2140,14 +2153,14 @@ public partial class TableView : ListView
             var rowTop = row.Position;
             var rowBottom = rowTop + row.ActualHeight;
 
-            if (rowBottom <= minY || rowTop >= maxY) continue;
+            if (rowBottom <= minY || rowTop >= maxY)
+                continue;
 
             var distance = Math.Max(0d, Math.Max(rowTop - canvasPoint.Y, canvasPoint.Y - rowBottom));
             if (distance < nearestDistance)
             {
                 nearestDistance = distance;
                 nearestRow = row;
-                rowTop += row.ActualHeight;
             }
         }
 
@@ -2176,11 +2189,11 @@ public partial class TableView : ListView
     /// column within the horizontal and vertical span of the current drag when the point falls in
     /// empty space. Returns <c>null</c> when no realized row or visible column falls in that span.
     /// </summary>
-    private TableViewCellSlot? GetSlotAtCanvasPoint(Point canvasPoint)
+    private TableViewCellSlot? GetSlotAtCanvasPoint(Point canvasPoint, bool exactMatch = false)
     {
         if (DragRectangleCanvas is null) return null;
 
-        if (GetRowIndexAtCanvasPoint(canvasPoint) is not int rowIndex) return null;
+        if (GetRowIndexAtCanvasPoint(canvasPoint, exactMatch) is not int rowIndex) return null;
 
         // Mirror the row snapping: find the nearest column within the horizontal drag span.
         var horizontalScrollDelta = HorizontalOffset - _dragStartHorizontalOffset;
@@ -2193,14 +2206,20 @@ public partial class TableView : ListView
             var columnRight = columnLeft + Columns.VisibleColumns[i].ActualWidth;
 
             if (adjustedPointerX <= columnRight)
-                return new TableViewCellSlot(rowIndex, i);
+            {
+                // Require the pointer to actually be inside the cell.
+                if (exactMatch && adjustedPointerX < columnLeft)
+                    return null;
+
+                return new(rowIndex, i);
+            }
 
             columnLeft = columnRight;
         }
 
-        return Columns.VisibleColumns.Count > 0
-            ? new TableViewCellSlot(rowIndex, Columns.VisibleColumns.Count - 1)
-            : null;
+        return exactMatch || Columns.VisibleColumns.Count == 0
+            ? null
+            : new(rowIndex, Columns.VisibleColumns.Count - 1);
     }
 
     /// <summary>
