@@ -192,7 +192,7 @@ public partial class TableViewRow : ListViewItem
             {
                 try
                 {
-                    Position = TransformToVisual(TableView.DragRectangleCanvas).TransformPoint(default).Y;
+                    Position = TransformToVisual(TableView.DragRectangleCanvas).TransformPoint(default);
                 }
                 catch { }
             }
@@ -202,7 +202,7 @@ public partial class TableViewRow : ListViewItem
     /// <summary>
     /// Gets or sets the position of the row relative to the TableView.
     /// </summary>
-    internal double Position { get; set; }
+    internal Point Position { get; set; }
 
     /// <summary>
     /// Ensures cells are created for the row.
