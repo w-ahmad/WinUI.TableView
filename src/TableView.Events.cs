@@ -1,6 +1,5 @@
-﻿using Microsoft.UI.Xaml;
-using System;
-using System.ComponentModel;
+using Microsoft.UI.Xaml;
+using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
 
@@ -186,6 +185,7 @@ partial class TableView
     /// </summary>
     protected virtual void OnCellSelectionChanged(TableViewCellSelectionChangedEventArgs args)
     {
+        TableViewTrace.Write($"TableViewCellSelectionChanged: Added={args.AddedCells.Count}, Removed={args.RemovedCells.Count}");
         CellSelectionChanged?.Invoke(this, args);
     }
 

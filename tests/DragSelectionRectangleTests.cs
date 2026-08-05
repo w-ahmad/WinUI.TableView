@@ -192,4 +192,40 @@ public class DragSelectionRectangleTests
 
         Assert.IsFalse(tv.IsDragSelecting);
     }
+
+    [UITestMethod]
+    public async Task SelectCellRange_SelectsTheProvidedRangeAndRaisesOneSelectionChangedEvent()
+    {
+        var tv = await CreateAndLoadTableView();
+        var eventCount = 0;
+        tv.CellSelectionChanged += (_, _) => eventCount++;
+
+        tv.SelectCellRange(TableViewCellSlotRange.FromCoordinates(0, 0, 1, 1));
+
+        Assert.AreEqual(4, tv.SelectedCells.Count);
+        Assert.IsTrue(tv.SelectedCells.Contains(new TableViewCellSlot(0, 0)));
+        Assert.IsTrue(tv.SelectedCells.Contains(new TableViewCellSlot(0, 1)));
+        Assert.IsTrue(tv.SelectedCells.Contains(new TableViewCellSlot(1, 0)));
+        Assert.IsTrue(tv.SelectedCells.Contains(new TableViewCellSlot(1, 1)));
+        Assert.AreEqual(1, eventCount);
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tv);
+    }
+
+    [UITestMethod]
+    public async Task DeselectCellRange_DeselectsTheProvidedRangeAndRaisesOneSelectionChangedEvent()
+    {
+        var tv = await CreateAndLoadTableView();
+        tv.SelectCellRange(TableViewCellSlotRange.FromCoordinates(0, 0, 1, 1));
+
+        var eventCount = 0;
+        tv.CellSelectionChanged += (_, _) => eventCount++;
+
+        tv.DeselectCellRange(TableViewCellSlotRange.FromCoordinates(0, 0, 1, 1));
+
+        Assert.AreEqual(0, tv.SelectedCells.Count);
+        Assert.AreEqual(1, eventCount);
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tv);
+    }
 }

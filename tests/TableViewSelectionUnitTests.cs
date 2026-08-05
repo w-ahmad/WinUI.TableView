@@ -15,10 +15,10 @@ public class TableViewSelectionUnitTests
     {
         var tableView = await CreateTableViewAsync(TableViewSelectionUnit.CellWithRow);
 
-        tableView.MakeSelection(new TableViewCellSlot(1, 0), false, false);
+        tableView.SelectCellRange(TableViewCellSlotRange.FromSlots(new TableViewCellSlot(1, 0), new TableViewCellSlot(1, 0)));
 
         await Task.Yield(); // Allow selection to propagate
-    
+
         Assert.IsTrue(tableView.SelectedCells.Contains(new TableViewCellSlot(1, 0)));
         Assert.AreEqual(1, tableView.SelectedItems.Count);
         Assert.AreSame(tableView.Items[1], tableView.SelectedItem);
@@ -29,7 +29,7 @@ public class TableViewSelectionUnitTests
     {
         var tableView = await CreateTableViewAsync(TableViewSelectionUnit.CellWithRow);
 
-        tableView.MakeSelection(new TableViewCellSlot(1, -1), false, false);
+        tableView.SelectRange(new ItemIndexRange(1, 1));
 
         Assert.AreEqual(0, tableView.SelectedCells.Count);
         Assert.AreEqual(1, tableView.SelectedItems.Count);
@@ -41,11 +41,11 @@ public class TableViewSelectionUnitTests
     {
         var tableView = await CreateTableViewAsync(TableViewSelectionUnit.Cell);
 
-        tableView.MakeSelection(new TableViewCellSlot(0, 0), false, false);
+        tableView.SelectCellRange(TableViewCellSlotRange.FromSlots(new TableViewCellSlot(0, 0), new TableViewCellSlot(0, 0)));
 
         await Task.Yield(); // Allow selection to propagate
 
-        tableView.MakeSelection(new TableViewCellSlot(1, 1), false, true);
+        tableView.SelectCellRange(TableViewCellSlotRange.FromSlots(new TableViewCellSlot(1, 1), new TableViewCellSlot(1, 1)));
 
         await Task.Yield(); // Allow selection to propagate
 
@@ -60,10 +60,10 @@ public class TableViewSelectionUnitTests
     {
         var tableView = await CreateTableViewAsync(TableViewSelectionUnit.CellOrRow);
 
-        tableView.MakeSelection(new TableViewCellSlot(1, 0), false, false);
+        tableView.SelectCellRange(TableViewCellSlotRange.FromSlots(new TableViewCellSlot(1, 0), new TableViewCellSlot(1, 0)));
         Assert.AreEqual(0, tableView.SelectedItems.Count);
 
-        tableView.MakeSelection(new TableViewCellSlot(0, -1), false, false);
+        tableView.SelectRange(new ItemIndexRange(0, 1));
         Assert.AreEqual(1, tableView.SelectedItems.Count);
         Assert.AreEqual(0, tableView.SelectedCells.Count);
     }
@@ -73,11 +73,11 @@ public class TableViewSelectionUnitTests
     {
         var tableView = await CreateTableViewAsync(TableViewSelectionUnit.CellWithRow, ListViewSelectionMode.Multiple);
 
-        tableView.MakeSelection(new TableViewCellSlot(0, 0), false, false);
+        tableView.SelectCellRange(TableViewCellSlotRange.FromSlots(new TableViewCellSlot(0, 0), new TableViewCellSlot(0, 0)));
 
         await Task.Yield(); // Allow selection to propagate
 
-        tableView.MakeSelection(new TableViewCellSlot(1, 1), false, true);
+        tableView.SelectCellRange(TableViewCellSlotRange.FromSlots(new TableViewCellSlot(1, 1), new TableViewCellSlot(1, 1)));
 
         await Task.Delay(200); // Allow selection to propagate
 

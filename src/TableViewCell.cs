@@ -5,10 +5,6 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Windows.Foundation;
 using WinUI.TableView.Extensions;
 using WinUI.TableView.Helpers;
@@ -29,7 +25,6 @@ namespace WinUI.TableView;
 #endif
 public partial class TableViewCell : ContentControl
 {
-    private ScrollViewer? _scrollViewer;
     private ContentPresenter? _contentPresenter;
     private Border? _selectionBorder;
     private Rectangle? _v_gridLine;
@@ -230,12 +225,6 @@ public partial class TableViewCell : ContentControl
             e.Handled = true;
             return;
         }
-
-        if (TableView?.CurrentCellSlot != Slot || TableView?.LastSelectionUnit is TableViewSelectionUnit.Row)
-        {
-            MakeSelection();
-            e.Handled = true;
-        }
     }
 
     /// <inheritdoc/>
@@ -248,76 +237,15 @@ public partial class TableViewCell : ContentControl
             e.Handled = true;
             return;
         }
-
-        if (!KeyboardHelper.IsShiftKeyDown() && TableView is not null)
-        {
-            TableView.SelectionStartCellSlot = TableView.SelectionUnit is not TableViewSelectionUnit.Row || !IsReadOnly ? Slot : default;
-            TableView.SelectionStartRowIndex = Index;
-            CapturePointer(e.Pointer);
-
-            // Start drag selection (auto-scroll + optional rectangle visual)
-            var point = e.GetCurrentPoint(this).Position;
-            var canvasPoint = TransformPointToCanvas(point);
-            if (canvasPoint.HasValue)
-            {
-                TableView.StartDragSelection(canvasPoint.Value);
-            }
-        }
     }
-
     /// <inheritdoc/>
     protected override void OnPointerReleased(PointerRoutedEventArgs e)
     {
         base.OnPointerReleased(e);
 
-        if (!KeyboardHelper.IsShiftKeyDown() && TableView is not null)
+        if(TableView?.SelectionUnit is not TableViewSelectionUnit.Row)
         {
-            var cell = FindCell(e.GetCurrentPoint(this).Position);
-            TableView.SelectionStartCellSlot = TableView.SelectionUnit is not TableViewSelectionUnit.Row || !IsReadOnly ? cell?.Slot : default;
-            TableView.SelectionStartRowIndex = cell?.Slot.Row;
-        }
-
-        TableView?.EndDragSelection();
-        ReleasePointerCaptures();
-
-        e.Handled = true;
-    }
-
-    /// <inheritdoc/>
-    protected override void OnPointerCaptureLost(PointerRoutedEventArgs e)
-    {
-        base.OnPointerCaptureLost(e);
-
-        TableView?.EndDragSelection();
-    }
-
-    /// <inheritdoc/>
-    protected override void OnManipulationDelta(ManipulationDeltaRoutedEventArgs e)
-    {
-        base.OnManipulationDelta(e);
-
-        if (PointerCaptures?.Any() is true)
-        {
-            // Update drag rectangle visual and auto-scroll
-            if (TableView?.IsDragSelecting is true)
-            {
-                var canvasPoint = TransformPointToCanvas(e.Position);
-                if (canvasPoint.HasValue)
-                {
-                    TableView.UpdateDragRectangleVisual(canvasPoint.Value);
-                }
-            }
-
-            // Selection via FindCell — same proven path whether rectangle is on or off.
-            // When the pointer is outside the viewport, FindCell returns null and selection
-            // is updated by the ViewChanged handler on the next auto-scroll tick.
-            var cell = FindCell(e.Position);
-
-            if (cell is not null && cell.Slot != TableView?.CurrentCellSlot)
-            {
-                var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
-                TableView?.MakeSelection(cell.Slot, true, ctrlKey);
-            }
+            e.Handled = true;
         }
     }
 
@@ -350,45 +278,6 @@ public partial class TableViewCell : ContentControl
             ? TableView.HorizontalGridLinesStrokeThickness : 0d;
     }
 
-    /// <summary>
-    /// Finds the cell at the specified position.
-    /// </summary>
-    private TableViewCell? FindCell(Point position)
-    {
-        _scrollViewer ??= TableView?.FindDescendant<ScrollViewer>();
-        if (_scrollViewer is null) return null;
-
-        var transformedPoint = TransformToVisual(null).TransformPoint(position);
-#if WINDOWS
-        return VisualTreeHelper.FindElementsInHostCoordinates(transformedPoint, _scrollViewer)
-#else
-        return VisualTreeHelper.FindElementsInHostCoordinates(transformedPoint, _scrollViewer, true)
-                               .OfType<ContentPresenter>()
-                               .Where(x => x.Name is "Content")
-                               .Select(x => x.FindAscendant<TableViewCell>() is { } header ? header : default)
-#endif
-                               .OfType<TableViewCell>()
-                               .FirstOrDefault();
-    }
-
-    /// <summary>
-    /// Transforms a point relative to this cell to coordinates relative to the drag rectangle canvas.
-    /// </summary>
-    private Point? TransformPointToCanvas(Point position)
-    {
-        if (TableView?.DragRectangleCanvas is null) return null;
-
-        try
-        {
-            var transform = TransformToVisual(TableView.DragRectangleCanvas);
-            return transform.TransformPoint(position);
-        }
-        catch (ArgumentException)
-        {
-            return null;
-        }
-    }
-
     /// <inheritdoc/>
     protected override void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
     {
@@ -400,49 +289,7 @@ public partial class TableViewCell : ContentControl
 
         base.OnDoubleTapped(e);
 
-        if (!IsReadOnly && TableView is not null && !TableView.IsEditing && !Column?.UseSingleElement is true)
-        {
-            e.Handled = BeginCellEditing(e);
-        }
-        else
-        {
-            e.Handled = true;
-        }
-    }
-
-    /// <summary>
-    /// Makes a selection based on the current cell.
-    /// </summary>
-    private void MakeSelection()
-    {
-        var shiftKey = KeyboardHelper.IsShiftKeyDown();
-        var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
-
-        if (TableView is null || Column is null)
-        {
-            return;
-        }
-
-        if ((TableView.IsEditing || Column.UseSingleElement) && IsCurrent)
-        {
-            return;
-        }
-
-        if (IsSelected && (ctrlKey || TableView.SelectionMode is ListViewSelectionMode.Multiple) && !shiftKey)
-        {
-            TableView.DeselectCell(Slot);
-        }
-        else
-        {
-            if (Column.UseSingleElement)
-            {
-                TableView.DeselectCell(Slot);
-            }
-
-            TableView.MakeSelection(Slot, shiftKey, ctrlKey);
-        }
-
-        TableView.SetIsEditing(false);
+        e.Handled = IsReadOnly || TableView is null || TableView.IsEditing || !Column?.UseSingleElement is not true || BeginCellEditing(e);
     }
 
     /// <summary>

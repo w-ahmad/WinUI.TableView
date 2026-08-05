@@ -416,7 +416,7 @@ public partial class TableView
     /// <summary>
     /// Gets the selected cell ranges.
     /// </summary>
-    internal HashSet<HashSet<TableViewCellSlot>> SelectedCellRanges { get; } = [];
+    internal HashSet<TableViewCellSlotRange> SelectedCellRanges { get; } = [];
 
     /// <summary>
     /// Gets or sets a value indicating whether the TableView is in editing mode.
@@ -897,7 +897,7 @@ public partial class TableView
 
                 if (tableView.SelectionMode is ListViewSelectionMode.Single && tableView.CurrentCellSlot.HasValue)
                 {
-                    tableView.SelectedCellRanges.Add([tableView.CurrentCellSlot.Value]);
+                    tableView.SelectedCellRanges.Add(TableViewCellSlotRange.FromSlots(tableView.CurrentCellSlot.Value));
                 }
 
                 tableView.OnCellSelectionChanged();

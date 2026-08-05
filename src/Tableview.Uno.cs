@@ -17,6 +17,8 @@ partial class TableView
     private const BindingFlags BindingAttr = BindingFlags.NonPublic | BindingFlags.Instance;
     private PropertyInfo? _disableRaiseSelectionChangedPropertyInfo;
     private MethodInfo? _invokeSelectionChangedMethodInfo;
+    private TableViewRow? _dragStartRow;
+    private TableViewCell? _dragStartCell;
 
     private void SetDisableRaiseSelectionChanged(bool value)
     {
