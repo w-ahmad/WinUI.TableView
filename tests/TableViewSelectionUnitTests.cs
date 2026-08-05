@@ -4,7 +4,6 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
 using System.Threading.Tasks;
-using Windows.Foundation;
 
 namespace WinUI.TableView.Tests;
 

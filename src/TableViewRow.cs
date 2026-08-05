@@ -186,17 +186,16 @@ public partial class TableViewRow : ListViewItem
     /// </summary>
     internal void UpdatePosition()
     {
-        DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+        if (TableView is null) return;
+
+        try
         {
-            if (TableView is not null)
-            {
-                try
-                {
-                    Position = TransformToVisual(TableView.DragRectangleCanvas).TransformPoint(default);
-                }
-                catch { }
-            }
-        });
+            Position = TransformToVisual(TableView.DragRectangleCanvas).TransformPoint(default);
+        }
+        catch (Exception ex)
+        {
+            TableViewTrace.Write($"UpdatePosition failed: {ex.Message}");
+        }
     }
 
     /// <summary>

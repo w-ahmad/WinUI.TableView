@@ -1,5 +1,3 @@
-﻿using Microsoft.UI.Xaml.Data;
-
 namespace WinUI.TableView.Extensions;
 
 /// <summary>

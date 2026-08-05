@@ -228,7 +228,7 @@ public partial class TableView : ListView
         var position = pointerPoint.Position;
         var canvasPoint = GetCanvasPoint(position);
         var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
-        var isShiftkey = KeyboardHelper.IsShiftKeyDown();
+        var isShiftKey = KeyboardHelper.IsShiftKeyDown();
         var orignalSoruce = e.OriginalSource as FrameworkElement;
         UIElement? pressedElement = orignalSoruce?.FindAscendant<TableViewCell>();      // Check if the pointer is over a cell
         pressedElement ??= orignalSoruce?.FindAscendant<TableViewRow>();                // If not, check if the pointer is over a row
@@ -241,8 +241,8 @@ public partial class TableView : ListView
             || !pointerPoint.Properties.IsLeftButtonPressed                             // Skip selection when the left mouse button is not pressed
             || canvasPoint is null                                                      // Skip selection when canvasPoint is null (e.g., pointer is outside the scroll canvas)
             || canvasPoint.Value.Y < 0                                                  // Skip selection when the pointer is in the column header area (above the scroll canvas)              
-            || (pressedElement != null && canvasPoint.Value.X < CellsHorizontalOffset)  // Skip selection when the pointer is in the row header area (to the left of the scroll canvas)
-            || isShiftkey)                                                              // Skip selection when the Shift key is held
+            || (pressedElement == null && canvasPoint.Value.X < CellsHorizontalOffset)  // Skip selection when the pointer is in the row header area (and not on a row/cell)
+            || isShiftKey)                                                              // Skip selection when the Shift key is held
         {
             return;
         }
@@ -2275,9 +2275,8 @@ public partial class TableView : ListView
     }
 
     /// <summary>
-    /// Returns the index of the row that contains <paramref name="canvasPoint"/>, or the nearest row
-    /// within the vertical span between the drag start point and <paramref name="canvasPoint"/> when
-    /// the point falls in empty space. Returns <c>null</c> when no realized row falls in that span.
+    /// Returns the index of the realized row whose vertical bounds contain <paramref name="canvasPoint"/>.
+    /// Returns <c>null</c> when no realized row contains the point.
     /// </summary>
     private int? GetRowIndexAtCanvasPoint(Point canvasPoint)
     {
@@ -2328,9 +2327,8 @@ public partial class TableView : ListView
     }
 
     /// <summary>
-    /// Resolves the cell slot at <paramref name="canvasPoint"/>, snapping to the nearest row and
-    /// column within the horizontal and vertical span of the current drag when the point falls in
-    /// empty space. Returns <c>null</c> when no realized row or visible column falls in that span.
+    /// Resolves the cell slot at <paramref name="canvasPoint"/>.
+    /// Returns <c>null</c> when no realized row or visible column contains the point.
     /// </summary>
     private TableViewCellSlot? GetSlotAtCanvasPoint(Point canvasPoint)
     {

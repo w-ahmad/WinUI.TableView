@@ -1,5 +1,4 @@
-﻿using Microsoft.UI.Xaml;
-using System.Diagnostics;
+using Microsoft.UI.Xaml;
 using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;

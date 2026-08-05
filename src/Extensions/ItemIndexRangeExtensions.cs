@@ -1,5 +1,4 @@
-﻿using Microsoft.UI.Xaml.Data;
-using System.Runtime.CompilerServices;
+using Microsoft.UI.Xaml.Data;
 
 namespace WinUI.TableView.Extensions;
 
