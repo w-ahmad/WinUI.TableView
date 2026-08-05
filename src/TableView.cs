@@ -254,62 +254,57 @@ public partial class TableView : ListView
         _lastDragSelectionRowRange = null;
         _lastDragSelectionCellRange = null;
         LastSelectionUnit = TableViewSelectionUnit.Row;
-
-        if (e.OriginalSource is UIElement element)
-        {
-
 #if !WINDOWS
-            _dragStartCell = pressedElement as TableViewCell;
-            _dragStartRow = element.FindAscendant<TableViewRow>();
+        _dragStartCell = pressedElement as TableViewCell;
+        _dragStartRow = (pressedElement as TableViewRow) ?? orignalSoruce?.FindAscendant<TableViewRow>();
 #endif
-            pressedElement ??= this; // If not, default to the TableView itself
+        pressedElement ??= this; // If not, default to the TableView itself
 
-            SelectionStartCellSlot = (pressedElement as TableViewCell)?.Slot;
-            SelectionStartRowIndex = (pressedElement as TableViewRow)?.Index;
+        SelectionStartCellSlot = (pressedElement as TableViewCell)?.Slot;
+        SelectionStartRowIndex = (pressedElement as TableViewRow)?.Index;
 
-            LastSelectionUnit = SelectionUnit switch
-            {
-                TableViewSelectionUnit.Cell => TableViewSelectionUnit.Cell,
-                TableViewSelectionUnit.Row => TableViewSelectionUnit.Row,
-                _ => pressedElement is TableViewCell
-                    ? TableViewSelectionUnit.Cell
-                    : TableViewSelectionUnit.Row
-            };
+        LastSelectionUnit = SelectionUnit switch
+        {
+            TableViewSelectionUnit.Cell => TableViewSelectionUnit.Cell,
+            TableViewSelectionUnit.Row => TableViewSelectionUnit.Row,
+            _ => pressedElement is TableViewCell
+                ? TableViewSelectionUnit.Cell
+                : TableViewSelectionUnit.Row
+        };
 
-            if (SelectionMode is ListViewSelectionMode.Single)
-            {
-                _lastDragCanvasPoint = canvasPoint;
-                MakeSelectionInDragRect();
-                SetCurrentCell(GetSlotAtCanvasPoint(_lastDragCanvasPoint.Value));
-
-                return;
-            }
-
-            pressedElement.Focus(FocusState.Programmatic);
-#if WINDOWS
-            _pointerCaptureElement = pressedElement;
-#else
-            _pointerCaptureElement = this;
-#endif
-
-            _pointerCaptureElement.CapturePointer(e.Pointer);
-            _tableViewDragPointer = e.Pointer;
-
-            if (!ctrlKey && SelectionMode is not ListViewSelectionMode.Multiple && LastSelectionUnit is not TableViewSelectionUnit.Cell)
-                DeselectAll();
-
-            StartDragSelection(canvasPoint.Value);
-
-            if (!IsDragSelecting)
-            {
-                _pointerCaptureElement?.ReleasePointerCaptures();
-                _pointerCaptureElement = null;
-                _tableViewDragPointer = null;
-                return;
-            }
-
+        if (SelectionMode is ListViewSelectionMode.Single)
+        {
+            _lastDragCanvasPoint = canvasPoint;
             MakeSelectionInDragRect();
+            SetCurrentCell(GetSlotAtCanvasPoint(_lastDragCanvasPoint.Value));
+
+            return;
         }
+
+        pressedElement.Focus(FocusState.Programmatic);
+#if WINDOWS
+        _pointerCaptureElement = pressedElement;
+#else
+        _pointerCaptureElement = this;
+#endif
+
+        _pointerCaptureElement.CapturePointer(e.Pointer);
+        _tableViewDragPointer = e.Pointer;
+
+        if (!ctrlKey && SelectionMode is not ListViewSelectionMode.Multiple && LastSelectionUnit is not TableViewSelectionUnit.Cell)
+            DeselectAll();
+
+        StartDragSelection(canvasPoint.Value);
+
+        if (!IsDragSelecting)
+        {
+            _pointerCaptureElement?.ReleasePointerCaptures();
+            _pointerCaptureElement = null;
+            _tableViewDragPointer = null;
+            return;
+        }
+
+        MakeSelectionInDragRect();
     }
 
     /// <inheritdoc/>
@@ -2122,12 +2117,35 @@ public partial class TableView : ListView
         _scrollViewer?.ViewChanged -= OnScrollViewerViewChangedDuringDrag;
         _dragRectangle?.Visibility = Visibility.Collapsed;
 
-        SetCurrentCell(GetSlotAtCanvasPoint(_lastDragCanvasPoint.Value));
+        var slot = GetSlotAtCanvasPoint(_lastDragCanvasPoint.Value);
+        SetCurrentCell(slot);
 
         IsDragSelecting = false;
         _dragStartPoint = null;
         _lastDragCanvasPoint = null;
         SelectionStartCellSlot = null;
+
+#if !WINDOWS
+        if (_dragStartCell is not null && slot != _dragStartCell.Slot)
+        {
+            VisualStates.GoToState(_dragStartCell, false, VisualStates.StateNormal);
+
+            if (_dragStartCell.IsSelected)
+            {
+                VisualStates.GoToState(_dragStartCell, false, VisualStates.StateSelected);
+            }
+        }
+
+        if (_dragStartRow is not null && _dragStartRow.Index != slot?.Row)
+        {
+            VisualStates.GoToState(_dragStartRow, false, VisualStates.StateNormal);
+
+            if (_dragStartRow.IsSelected)
+            {
+                VisualStates.GoToState(_dragStartRow, false, VisualStates.StateSelected);
+            }
+        }
+#endif
     }
 
     private void SetCurrentCell(TableViewCellSlot? slot)
@@ -2139,32 +2157,8 @@ public partial class TableView : ListView
         if (!(SelectionUnit is TableViewSelectionUnit.Row && IsReadOnly))
         {
             CurrentCellSlot = slot;
-#if !WINDOWS
-            if (_dragStartCell is not null
-                && _dragStartPoint is not null
-                && slot != _dragStartCell.Slot)
-            {
-                VisualStates.GoToState(_dragStartCell, false, VisualStates.StateNormal);
 
-                if (_dragStartCell.IsSelected)
-                {
-                    VisualStates.GoToState(_dragStartCell, false, VisualStates.StateSelected);
-                }
-            }
-#endif
         }
-
-#if !WINDOWS
-        if (_dragStartRow is not null && _dragStartRow.Index != slot.Value.Row)
-        {
-            VisualStates.GoToState(_dragStartRow, false, VisualStates.StateNormal);
-
-            if (_dragStartRow.IsSelected)
-            {
-                VisualStates.GoToState(_dragStartRow, false, VisualStates.StateSelected);
-            }
-        }
-#endif
     }
 
     /// <summary>
