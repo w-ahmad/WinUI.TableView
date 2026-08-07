@@ -45,6 +45,7 @@ public partial class TableViewColumnHeader : ContentControl
     private bool _resizePreviousStarted;
     private TableViewColumn? _resizingColumn;
     private TableViewColumnHeader? _resizeTargetHeader;
+    private TableViewColumnResizeMode _activeResizeMode;
     private double _reorderStartingPosition;
     private bool _reorderStarted;
     private RenderTargetBitmap? _dragVisuals;
@@ -386,7 +387,15 @@ public partial class TableViewColumnHeader : ContentControl
             // (layout invalidation elsewhere, a hover state change) can reset it mid-drag.
             ProtectedCursor = InputSystemCursor.Create(InputSystemCursorShape.SizeWestEast);
 
-            _tableView.UpdateColumnResizePreview(width);
+            if (_activeResizeMode == TableViewColumnResizeMode.Preview)
+            {
+                _tableView.UpdateColumnResizePreview(width);
+            }
+            else
+            {
+                _tableView.UpdateColumnResizeLive(width);
+            }
+
             return;
         }
 
@@ -435,7 +444,8 @@ public partial class TableViewColumnHeader : ContentControl
             _resizeTargetHeader = this;
             _resizeStartingWidth = ActualWidth;
             _resizeStartPointerX = e.GetCurrentPoint(_headerRow).Position.X;
-            _tableView.BeginColumnResizePreview(Column);
+            _activeResizeMode = _tableView.ColumnResizeMode;
+            BeginResize(Column);
             CapturePointer(e.Pointer);
         }
         else if (IsSizingCursor && IsCursorInLeftResizeArea(e) && _tableView is not null
@@ -446,7 +456,8 @@ public partial class TableViewColumnHeader : ContentControl
             _resizeTargetHeader = header;
             _resizeStartingWidth = header.ActualWidth;
             _resizeStartPointerX = e.GetCurrentPoint(_headerRow).Position.X;
-            _tableView.BeginColumnResizePreview(header.Column);
+            _activeResizeMode = _tableView.ColumnResizeMode;
+            BeginResize(header.Column);
             CapturePointer(e.Pointer);
         }
         else if (_tableView?.CanReorderColumns is true && Column?.CanReorder is true)
@@ -504,9 +515,30 @@ public partial class TableViewColumnHeader : ContentControl
     }
 
     /// <summary>
-    /// Ends an in-progress resize drag, synchronously: ends the live preview (which, if the width
-    /// actually changed, performs the single real width commit) and resets gesture state. Safe to
-    /// call more than once per drag (both <see cref="OnManipulationCompleted"/> and
+    /// Starts a resize-drag on <paramref name="column"/>, using whichever mode was captured into
+    /// <see cref="_activeResizeMode"/> at the start of this gesture.
+    /// </summary>
+    private void BeginResize(TableViewColumn column)
+    {
+        if (_tableView is null)
+        {
+            return;
+        }
+
+        if (_activeResizeMode == TableViewColumnResizeMode.Preview)
+        {
+            _tableView.BeginColumnResizePreview(column);
+        }
+        else
+        {
+            _tableView.BeginColumnResizeLive(column);
+        }
+    }
+
+    /// <summary>
+    /// Ends an in-progress resize drag, synchronously: ends the active resize mode (which, if the
+    /// width actually changed, performs the single real width commit) and resets gesture state. Safe
+    /// to call more than once per drag (both <see cref="OnManipulationCompleted"/> and
     /// <see cref="OnPointerCaptureLost"/> call it, in case a manipulation gesture never started) —
     /// it no-ops if no resize is in progress.
     /// </summary>
@@ -518,7 +550,15 @@ public partial class TableViewColumnHeader : ContentControl
         }
 
         var finalWidth = _resizeWidthChanged ? _resizeTargetHeader?.Width : null;
-        _tableView?.EndColumnResizePreview(finalWidth);
+
+        if (_activeResizeMode == TableViewColumnResizeMode.Preview)
+        {
+            _tableView?.EndColumnResizePreview(finalWidth);
+        }
+        else
+        {
+            _tableView?.EndColumnResizeLive(finalWidth);
+        }
 
         _resizeStarted = false;
         _resizePreviousStarted = false;

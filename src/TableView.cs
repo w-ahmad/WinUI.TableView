@@ -362,6 +362,59 @@ public partial class TableView : ListView
         }
     }
 
+    /// <summary>
+    /// Starts a <see cref="TableViewColumnResizeMode.Live"/> resize drag for <paramref name="column"/>:
+    /// unlike <see cref="BeginColumnResizePreview"/>, no cell state is touched here — every frame's
+    /// width change goes through the normal, real <see cref="TableViewColumn.ActualWidth"/> cascade
+    /// instead (see <see cref="UpdateColumnResizeLive"/>).
+    /// </summary>
+    internal void BeginColumnResizeLive(TableViewColumn column)
+    {
+        _resizingColumn = column;
+        IsColumnResizing = true;
+        column.IsResizing = true;
+    }
+
+    /// <summary>
+    /// Updates a <see cref="TableViewColumnResizeMode.Live"/> resize drag to <paramref name="liveWidth"/>
+    /// by setting <see cref="TableViewColumn.ActualWidth"/> directly — every visible row's cell
+    /// relayouts for real on every call. Deliberately does not touch <see cref="TableViewColumn.Width"/>
+    /// (which would additionally re-run <c>CalculateHeaderWidths</c> for every column on every frame);
+    /// that commit happens once, in <see cref="EndColumnResizeLive"/>.
+    /// </summary>
+    internal void UpdateColumnResizeLive(double liveWidth)
+    {
+        if (_resizingColumn is null)
+        {
+            return;
+        }
+
+        _resizingColumn.ActualWidth = liveWidth;
+    }
+
+    /// <summary>
+    /// Ends a <see cref="TableViewColumnResizeMode.Live"/> resize drag. <see cref="TableViewColumn.ActualWidth"/>
+    /// already reflects the live width from <see cref="UpdateColumnResizeLive"/>, so only the
+    /// <see cref="TableViewColumn.Width"/> GridLength commit is left to do here.
+    /// </summary>
+    internal void EndColumnResizeLive(double? commitWidth)
+    {
+        if (_resizingColumn is null)
+        {
+            return;
+        }
+
+        var column = _resizingColumn;
+        _resizingColumn = null;
+        IsColumnResizing = false;
+        column.IsResizing = false;
+
+        if (commitWidth is double width)
+        {
+            column.Width = new GridLength(width, GridUnitType.Pixel);
+        }
+    }
+
     /// <inheritdoc/>
     protected override void OnKeyDown(KeyRoutedEventArgs e)
     {

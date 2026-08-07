@@ -183,8 +183,14 @@ public partial class TableViewRow : ListViewItem
         var left = Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft);
 
         _itemPresenter?.Arrange(new Rect(-left, 0, _itemPresenter.ActualWidth + left, _itemPresenter.ActualHeight));
-                
-        UpdatePosition();
+
+        // Position feeds drag-selection hit testing only; a column-width change never moves a row
+        // relative to the drag canvas, so recomputing it (a visual-tree transform walk) on every
+        // row on every frame of a resize drag is pure waste.
+        if (TableView?.IsColumnResizing != true)
+        {
+            UpdatePosition();
+        }
 
         return finalSize;
     }

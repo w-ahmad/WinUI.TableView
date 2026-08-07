@@ -213,6 +213,77 @@ public class TableViewColumnResizingTests
         tableView.EndColumnResizePreview(null);
     }
 
+    // ── ColumnResizeMode toggle: Live mode relayouts for real, every frame ──
+
+    [UITestMethod]
+    public async Task ColumnResizeMode_DefaultsToLive()
+    {
+        var tableView = await CreateTableViewAsync();
+        Assert.AreEqual(TableViewColumnResizeMode.Live, tableView.ColumnResizeMode);
+    }
+
+    [UITestMethod]
+    public async Task LiveResize_UpdatesColumnActualWidth_OnEveryFrame()
+    {
+        var tableView = await CreateTableViewAsync();
+        tableView.ColumnResizeMode = TableViewColumnResizeMode.Live;
+        var column = tableView.Columns[0];
+        var originalWidth = column.ActualWidth;
+
+        tableView.BeginColumnResizeLive(column);
+        try
+        {
+            foreach (var w in new[] { originalWidth + 40, originalWidth - 10, originalWidth + 90 })
+            {
+                tableView.UpdateColumnResizeLive(w);
+
+                Assert.AreEqual(w, column.ActualWidth, 0.01,
+                    "Unlike Preview mode, Live mode must update Column.ActualWidth on every frame");
+                Assert.IsTrue(column.Width.IsAuto,
+                    "Live mode must not touch Column.Width (GridLength) until commit");
+            }
+        }
+        finally
+        {
+            tableView.EndColumnResizeLive(null);
+        }
+    }
+
+    [UITestMethod]
+    public async Task LiveResize_Commit_StoresPixelGridLength()
+    {
+        var tableView = await CreateTableViewAsync();
+        tableView.ColumnResizeMode = TableViewColumnResizeMode.Live;
+        var column = tableView.Columns[0];
+        const double finalWidth = 245d;
+
+        tableView.BeginColumnResizeLive(column);
+        tableView.UpdateColumnResizeLive(finalWidth);
+        tableView.EndColumnResizeLive(finalWidth);
+
+        Assert.IsTrue(column.Width.IsAbsolute && column.Width.Value == finalWidth,
+            "Live mode must commit the same Pixel GridLength as Preview mode does");
+        Assert.AreEqual(finalWidth, column.ActualWidth, 0.01);
+        Assert.IsFalse(tableView.IsColumnResizing);
+        Assert.IsFalse(column.IsResizing);
+    }
+
+    [UITestMethod]
+    public async Task LiveResize_Cancel_LeavesColumnWidthUnchanged()
+    {
+        var tableView = await CreateTableViewAsync();
+        tableView.ColumnResizeMode = TableViewColumnResizeMode.Live;
+        var column = tableView.Columns[0];
+        var originalGridLength = column.Width;
+
+        tableView.BeginColumnResizeLive(column);
+        tableView.UpdateColumnResizeLive(column.ActualWidth + 55);
+        tableView.EndColumnResizeLive(null);
+
+        Assert.AreEqual(originalGridLength.GridUnitType, column.Width.GridUnitType,
+            "Cancelling a Live resize must not convert an Auto column to Pixel");
+    }
+
     // ── Resize-drag preview: commit must match a direct (non-drag) resize ───
 
     [UITestMethod]
