@@ -484,6 +484,13 @@ public partial class TableViewRowPresenter : Control
          .. _scrollableCellsPanel?.Children.OfType<TableViewCell>() ?? []];
 
     /// <summary>
+    /// Gets the panel hosting scrollable (non-frozen) cells. Used to shift the whole scrollable
+    /// region in one shot when a frozen column is being resized, instead of shifting every
+    /// scrollable cell individually.
+    /// </summary>
+    internal Panel? ScrollableCellsPanel => _scrollableCellsPanel;
+
+    /// <summary>
     /// Gets or sets the TableViewRow associated with the presenter.
     /// </summary>
     public TableViewRow? TableViewRow { get; private set; }

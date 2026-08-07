@@ -148,6 +148,14 @@ public partial class TableViewRow : ListViewItem
         {
             foreach (var cell in Cells)
             {
+                // Defensively resync width on reuse — a recycled container can otherwise keep a
+                // stale Width if it missed a Column.ActualWidth change while off-screen (e.g. an
+                // auto-width recalculation triggered by a sort), leaving cells misaligned with headers.
+                if (cell.Column is not null)
+                {
+                    cell.Width = cell.Column.ActualWidth;
+                }
+
                 cell.RefreshElement();
             }
         }

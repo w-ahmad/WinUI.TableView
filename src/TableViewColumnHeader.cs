@@ -40,7 +40,11 @@ public partial class TableViewColumnHeader : ContentControl
     private Rectangle? _v_gridLine;
     private bool _resizeStarted;
     private double _resizeStartingWidth;
+    private double _resizeStartPointerX;
+    private bool _resizeWidthChanged;
     private bool _resizePreviousStarted;
+    private TableViewColumn? _resizingColumn;
+    private TableViewColumnHeader? _resizeTargetHeader;
     private double _reorderStartingPosition;
     private bool _reorderStarted;
     private RenderTargetBitmap? _dragVisuals;
@@ -61,7 +65,12 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     private void OnWidthChanged(DependencyObject sender, DependencyProperty dp)
     {
-        if (!double.IsNaN(Width))
+        // While a resize-drag preview is active for this column, Width tracks the pointer live on
+        // just this one header element (cheap), but must NOT cascade into Column.ActualWidth — that
+        // would push a width change into every row's cell on every frame, which is exactly what the
+        // preview mechanism (TableView.Begin/Update/EndColumnResizePreview) exists to avoid. The real
+        // commit happens once, in CommitResize, when the drag ends.
+        if (!double.IsNaN(Width) && Column?.IsResizing != true)
         {
             Column?.ActualWidth = Width;
         }
@@ -319,7 +328,7 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     private bool IsCursorInRightResizeArea(PointerRoutedEventArgs args)
     {
-        var resizeWidth = args.Pointer.PointerDeviceType == PointerDeviceType.Touch ? 8 : 4;
+        var resizeWidth = args.Pointer.PointerDeviceType == PointerDeviceType.Touch ? 8 : 6;
         var point = args.GetCurrentPoint(this);
         var resizeHeight = ActualHeight - (CanFilter ? _optionsButton?.ActualHeight ?? 0 : 0);
         return ActualWidth - point.Position.X <= resizeWidth && point.Position.Y < resizeHeight;
@@ -330,7 +339,7 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     private bool IsCursorInLeftResizeArea(PointerRoutedEventArgs args)
     {
-        var resizeArea = args.Pointer.PointerDeviceType == PointerDeviceType.Touch ? 8 : 4;
+        var resizeArea = args.Pointer.PointerDeviceType == PointerDeviceType.Touch ? 8 : 6;
         var point = args.GetCurrentPoint(this);
         return point.Position.X <= resizeArea && point.Position.Y < ActualHeight;
     }
@@ -362,6 +371,25 @@ public partial class TableViewColumnHeader : ContentControl
     {
         base.OnPointerMoved(e);
 
+        if ((_resizeStarted || _resizePreviousStarted) && _resizingColumn is not null
+            && _resizeTargetHeader is not null && _tableView is not null)
+        {
+            var delta = e.GetCurrentPoint(_headerRow).Position.X - _resizeStartPointerX;
+            var minWidth = _resizingColumn.MinWidth ?? _tableView.MinColumnWidth;
+            var maxWidth = _resizingColumn.MaxWidth ?? _tableView.MaxColumnWidth;
+            var width = ClampWidth(_resizeStartingWidth + delta, minWidth, maxWidth);
+
+            _resizeTargetHeader.Width = width;
+            _resizeWidthChanged = true;
+
+            // Explicitly re-assert the resize cursor on every move — without this, something else
+            // (layout invalidation elsewhere, a hover state change) can reset it mid-drag.
+            ProtectedCursor = InputSystemCursor.Create(InputSystemCursorShape.SizeWestEast);
+
+            _tableView.UpdateColumnResizePreview(width);
+            return;
+        }
+
         if (CanResize && IsCursorInRightResizeArea(e) && !_reorderStarted)
         {
             ProtectedCursor = InputSystemCursor.Create(InputSystemCursorShape.SizeWestEast);
@@ -376,21 +404,49 @@ public partial class TableViewColumnHeader : ContentControl
         }
     }
 
+    /// <summary>
+    /// Clamps a candidate column width to the given bounds. Internal (not private) so it's directly
+    /// unit-testable as a pure function.
+    /// </summary>
+    internal static double ClampWidth(double width, double minWidth, double maxWidth)
+    {
+        if (width < minWidth)
+        {
+            return minWidth;
+        }
+
+        if (width > maxWidth)
+        {
+            return maxWidth;
+        }
+
+        return width;
+    }
+
     /// <inheritdoc/>
     protected override async void OnPointerPressed(PointerRoutedEventArgs e)
     {
         base.OnPointerPressed(e);
 
-        if (IsSizingCursor && CanResize && IsCursorInRightResizeArea(e))
+        if (IsSizingCursor && CanResize && IsCursorInRightResizeArea(e) && Column is not null && _tableView is not null)
         {
             _resizeStarted = true;
+            _resizingColumn = Column;
+            _resizeTargetHeader = this;
             _resizeStartingWidth = ActualWidth;
+            _resizeStartPointerX = e.GetCurrentPoint(_headerRow).Position.X;
+            _tableView.BeginColumnResizePreview(Column);
             CapturePointer(e.Pointer);
         }
-        else if (IsSizingCursor && IsCursorInLeftResizeArea(e) && _headerRow?.GetPreviousHeader(this) is { Column: { } } header)
+        else if (IsSizingCursor && IsCursorInLeftResizeArea(e) && _tableView is not null
+            && _headerRow?.GetPreviousHeader(this) is { Column: { } } header)
         {
             _resizePreviousStarted = true;
+            _resizingColumn = header.Column;
+            _resizeTargetHeader = header;
             _resizeStartingWidth = header.ActualWidth;
+            _resizeStartPointerX = e.GetCurrentPoint(_headerRow).Position.X;
+            _tableView.BeginColumnResizePreview(header.Column);
             CapturePointer(e.Pointer);
         }
         else if (_tableView?.CanReorderColumns is true && Column?.CanReorder is true)
@@ -408,35 +464,7 @@ public partial class TableViewColumnHeader : ContentControl
     {
         base.OnManipulationDelta(e);
 
-        if (Column is null || _tableView is null)
-        {
-            return;
-        }
-
-        if (_resizeStarted)
-        {
-            var width = _resizeStartingWidth + e.Cumulative.Translation.X;
-
-            var minWidth = Column.MinWidth ?? _tableView.MinColumnWidth;
-            var maxWidth = Column.MaxWidth ?? _tableView.MaxColumnWidth;
-
-            width = width < minWidth ? minWidth : width;
-            width = width > maxWidth ? maxWidth : width;
-
-            Column.Width = new GridLength(width, GridUnitType.Pixel);
-        }
-        else if (_resizePreviousStarted && _headerRow?.GetPreviousHeader(this) is { Column: { } } header)
-        {
-            var minWidth = header.Column.MinWidth ?? _tableView.MinColumnWidth;
-            var maxWidth = header.Column.MaxWidth ?? _tableView.MaxColumnWidth;
-            var width = _resizeStartingWidth + e.Cumulative.Translation.X;
-
-            width = width < minWidth ? minWidth : width;
-            width = width > maxWidth ? maxWidth : width;
-
-            header.Column.Width = new GridLength(width, GridUnitType.Pixel);
-        }
-        else if (_reorderStarted && _dragVisuals is not null)
+        if (_reorderStarted && _dragVisuals is not null)
         {
             var position = _reorderStartingPosition + e.Cumulative.Translation.X;
             _headerRow?.ShowColumnDropIndicator(position, _dragVisuals);
@@ -454,10 +482,8 @@ public partial class TableViewColumnHeader : ContentControl
     protected override void OnManipulationCompleted(ManipulationCompletedRoutedEventArgs e)
     {
         base.OnManipulationCompleted(e);
+        CommitResize();
         CompleteColumnDrop(true);
-
-        _resizeStarted = false;
-        _resizePreviousStarted = false;
     }
 
     /// <inheritdoc/>
@@ -466,8 +492,6 @@ public partial class TableViewColumnHeader : ContentControl
         base.OnPointerReleased(e);
         ReleasePointerCaptures();
 
-        _resizeStarted = false;
-        _resizePreviousStarted = false;
         _reorderStarted = false;
     }
 
@@ -475,7 +499,32 @@ public partial class TableViewColumnHeader : ContentControl
     protected override void OnPointerCaptureLost(PointerRoutedEventArgs e)
     {
         base.OnPointerCaptureLost(e);
+        CommitResize();
         CompleteColumnDrop(false);
+    }
+
+    /// <summary>
+    /// Ends an in-progress resize drag, synchronously: ends the live preview (which, if the width
+    /// actually changed, performs the single real width commit) and resets gesture state. Safe to
+    /// call more than once per drag (both <see cref="OnManipulationCompleted"/> and
+    /// <see cref="OnPointerCaptureLost"/> call it, in case a manipulation gesture never started) —
+    /// it no-ops if no resize is in progress.
+    /// </summary>
+    private void CommitResize()
+    {
+        if (!_resizeStarted && !_resizePreviousStarted)
+        {
+            return;
+        }
+
+        var finalWidth = _resizeWidthChanged ? _resizeTargetHeader?.Width : null;
+        _tableView?.EndColumnResizePreview(finalWidth);
+
+        _resizeStarted = false;
+        _resizePreviousStarted = false;
+        _resizeWidthChanged = false;
+        _resizingColumn = null;
+        _resizeTargetHeader = null;
     }
 
     private void CompleteColumnDrop(bool applyDrop)
@@ -491,7 +540,7 @@ public partial class TableViewColumnHeader : ContentControl
     /// <inheritdoc/>
     protected override Size MeasureOverride(Size availableSize)
     {
-        if (Column is not null && _tableView is not null)
+        if (Column is not null && _tableView is not null && !Column.IsResizing)
         {
             var autoWidthMode = Column.ColumnAutoWidthMode ?? _tableView.ColumnAutoWidthMode;
             if (autoWidthMode is TableViewColumnAutoWidthMode.Header or TableViewColumnAutoWidthMode.Both)

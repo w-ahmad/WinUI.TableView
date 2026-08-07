@@ -256,6 +256,12 @@ public abstract partial class TableViewColumn : DependencyObject
     }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the column is currently being resized by the user.
+    /// Used to skip expensive auto-width measurement while a manual pixel resize preview is active.
+    /// </summary>
+    internal bool IsResizing { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether the column is read-only.
     /// </summary>
     public bool IsReadOnly
