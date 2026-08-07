@@ -94,6 +94,21 @@ Disable resizing for a specific column:
 <tv:TableViewTextColumn Header="ID" Binding="{Binding Id}" CanResize="False" />
 ```
 
+### ColumnResizeMode
+
+[`ColumnResizeMode`](xref:WinUI.TableView.TableView.ColumnResizeMode) controls what happens to cells *while* the user is dragging a column divider, as distinct from the final committed width:
+
+| Value | Description |
+|---|---|
+| [`Live`](xref:WinUI.TableView.TableViewColumnResizeMode.Live) (default) | Every visible row's cells resize for real on every pointer-move frame. Fully accurate at all times, but on grids with many visible rows the drag can feel less smooth. |
+| [`Preview`](xref:WinUI.TableView.TableViewColumnResizeMode.Preview) | Cells appear to resize live via a lightweight visual preview; no row layout runs until the drag ends, so the drag stays smooth regardless of row count. The real width is committed in a single layout pass when the pointer is released. |
+
+```xml
+<tv:TableView ColumnResizeMode="Preview" />
+```
+
+Prefer `Preview` if users report a slow or stuttery resize drag on grids with many visible rows; keep the default `Live` if you need cells to reflect the in-progress width at every instant (for example, a template column that reacts to its own width while dragging).
+
 ## Row and header row heights
 
 Control row heights with the following `TableView` properties:
