@@ -329,7 +329,7 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     private bool IsCursorInRightResizeArea(PointerRoutedEventArgs args)
     {
-        var resizeWidth = args.Pointer.PointerDeviceType == PointerDeviceType.Touch ? 8 : 6;
+        var resizeWidth = args.Pointer.PointerDeviceType == PointerDeviceType.Touch ? 8 : 4;
         var point = args.GetCurrentPoint(this);
         var resizeHeight = ActualHeight - (CanFilter ? _optionsButton?.ActualHeight ?? 0 : 0);
         return ActualWidth - point.Position.X <= resizeWidth && point.Position.Y < resizeHeight;
@@ -340,7 +340,7 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     private bool IsCursorInLeftResizeArea(PointerRoutedEventArgs args)
     {
-        var resizeArea = args.Pointer.PointerDeviceType == PointerDeviceType.Touch ? 8 : 6;
+        var resizeArea = args.Pointer.PointerDeviceType == PointerDeviceType.Touch ? 8 : 4;
         var point = args.GetCurrentPoint(this);
         return point.Position.X <= resizeArea && point.Position.Y < ActualHeight;
     }
