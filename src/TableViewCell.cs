@@ -35,6 +35,7 @@ public partial class TableViewCell : ContentControl
     private IList<TableViewConditionalCellStyle>? _cellStyles;
     private bool _resizePreviewActive;
     private double _resizePreviewWidth;
+    private double _resizePreviewMaxWidth;
     private RectangleGeometry? _resizeClipGeometry;
     private TranslateTransform? _gridLineShiftTransform;
     private TranslateTransform? _downstreamShiftTransform;
@@ -222,10 +223,10 @@ public partial class TableViewCell : ContentControl
         // framework gave it" technique already used in TableViewRow.ArrangeOverride for _itemPresenter.
         if (_resizePreviewActive)
         {
-            var wideRect = new Rect(0, 0, _resizePreviewWidth, finalSize.Height);
-            _backgroundBorder?.Arrange(wideRect);
-            _selectionBorder?.Arrange(wideRect);
-            _rootBorder?.Arrange(wideRect);
+            var bordersRect = new Rect(0, 0, _resizePreviewMaxWidth, finalSize.Height);
+            _backgroundBorder?.Arrange(bordersRect);
+            _selectionBorder?.Arrange(bordersRect);
+            _rootBorder?.Arrange(new Rect(0, 0, _resizePreviewWidth, finalSize.Height));
         }
 
         return finalSize;
@@ -280,6 +281,7 @@ public partial class TableViewCell : ContentControl
         }
 
         _resizePreviewActive = true;
+        _resizePreviewMaxWidth = maxPreviewWidth;
 
         _resizeClipGeometry = new RectangleGeometry { Rect = ComputeClipRect(ActualWidth, ActualHeight) };
         Clip = _resizeClipGeometry;
@@ -347,6 +349,7 @@ public partial class TableViewCell : ContentControl
     internal void EndResizePreview()
     {
         _resizePreviewActive = false;
+        _resizePreviewMaxWidth = 0d;
         Clip = null;
         RenderTransform = null;
         _resizeClipGeometry = null;

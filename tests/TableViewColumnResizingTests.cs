@@ -414,9 +414,23 @@ public class TableViewColumnResizingTests
     {
         var tableView = await CreateTableViewAsync();
 
-        var boundColumn = tableView.Columns.OfType<TableViewBoundColumn>().First();
+        // Seed a stale-width state: explicitly set the Name column to a non-auto width so that
+        // containers carry a specific width before recycling happens.
+        var nameColumn = tableView.Columns.OfType<TableViewBoundColumn>()
+            .First(c => c.PropertyPath == nameof(ResizingTestItem.Name));
+        const double seededWidth = 200d;
+        nameColumn.Width = new GridLength(seededWidth, GridUnitType.Pixel);
+
+        // Wait for layout to apply the seeded width to all realized cells.
+        await Task.Delay(200);
+
+        // Sort the Value column (data is seeded 3/1/2, so ascending sort truly reorders rows),
+        // causing the ListView to recycle and rebind containers — this exercises OnContentChanged
+        // width resync in TableViewRow.
+        var valueColumn = tableView.Columns.OfType<TableViewBoundColumn>()
+            .First(c => c.PropertyPath == nameof(ResizingTestItem.Value));
         tableView.SortDescriptions.Add(
-            new ColumnSortDescription(boundColumn, boundColumn.PropertyPath, SortDirection.Ascending));
+            new ColumnSortDescription(valueColumn, valueColumn.PropertyPath, SortDirection.Ascending));
 
         // Wait for the 250ms debounce timer + at least one layout pass to settle. This also exercises
         // the container-recycling width resync (TableViewRow.OnContentChanged) since sorting reorders

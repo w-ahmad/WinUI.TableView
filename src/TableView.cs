@@ -52,7 +52,6 @@ public partial class TableView : ListView
     private readonly HashSet<int> _pendingCellStateRows = [];
     private TableViewColumn? _resizingColumn;
     private double _resizingOriginalWidth;
-    private double _resizingClipHeight;
     private readonly List<TableViewCell> _resizingPreviewCells = [];
     private readonly List<TableViewCell> _resizingDownstreamCells = [];
     private readonly List<(Panel Panel, TranslateTransform Shift)> _resizingScrollableShifts = [];
@@ -245,10 +244,6 @@ public partial class TableView : ListView
             effectiveMax = 4000d;
         }
 
-        var resizedCell = _rows.Select(r => r.Cells.FirstOrDefault(c => c.Column == column))
-                                .FirstOrDefault(c => c is not null);
-        _resizingClipHeight = resizedCell is { ActualHeight: > 0 } realizedCell ? realizedCell.ActualHeight : ActualHeight;
-
         _resizingPreviewCells.Clear();
         _resizingDownstreamCells.Clear();
         _resizingScrollableShifts.Clear();
@@ -301,7 +296,7 @@ public partial class TableView : ListView
 
         foreach (var cell in _resizingPreviewCells)
         {
-            cell.UpdateResizePreviewClip(liveWidth, _resizingClipHeight);
+            cell.UpdateResizePreviewClip(liveWidth, cell.ActualHeight);
             cell.UpdateGridLineShift(delta);
         }
 
@@ -2813,9 +2808,9 @@ public partial class TableView : ListView
     /// </summary>
     internal void UpdateHorizontalScrollBarMargin()
     {
-        var frozenColumns = Columns.VisibleColumns.Where(c => c.IsFrozen);
-        if (_scrollViewer is null || !frozenColumns.Any()) return;
+        if (_scrollViewer is null) return;
 
+        var frozenColumns = Columns.VisibleColumns.Where(c => c.IsFrozen);
         var offset = CellsHorizontalOffset + frozenColumns.Sum(c => c.ActualWidth);
         AttachedPropertiesHelper.SetFrozenColumnScrollBarSpace(_scrollViewer, offset);
     }
