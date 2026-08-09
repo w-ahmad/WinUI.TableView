@@ -112,7 +112,14 @@ public partial class TableViewRowPresenter : Control
     /// <inheritdoc/>
     protected override Size MeasureOverride(Size availableSize)
     {
-        _rowHeader?.InvalidateMeasure(); // The row header does not measure every time.
+        // The row header's size never depends on a data column's width, but this presenter still
+        // measures every visible row every frame during a Live-mode resize drag (a cell's width
+        // really did change), so forcing this remeasure here too is pure per-frame waste during a drag.
+        if (TableView?.IsColumnResizing != true)
+        {
+            _rowHeader?.InvalidateMeasure(); // The row header does not measure every time.
+        }
+
         return base.MeasureOverride(availableSize);
     }
 
@@ -159,7 +166,11 @@ public partial class TableViewRowPresenter : Control
             }
 
 
-            if (_v_gridLine is not null && TableView is not null)
+            // CellsHorizontalOffset is the boundary between the row header and the data cells — it's
+            // positioned purely by HeaderColumn's width (see TableViewRowPresenter.xaml's ColumnDefinitions),
+            // so it never depends on any data column's width and is safe to skip recomputing (via a real
+            // TransformToVisual walk, on every visible row) during a resize drag.
+            if (TableView is not null && !TableView.IsColumnResizing && _v_gridLine is not null)
             {
                 var transform = _v_gridLine.TransformToVisual(this);
                 var relativePosition = transform.TransformPoint(new Point(0, 0));
@@ -482,6 +493,13 @@ public partial class TableViewRowPresenter : Control
     public IReadOnlyList<TableViewCell> Cells =>
         [.. _frozenCellsPanel?.Children.OfType<TableViewCell>() ?? [],
          .. _scrollableCellsPanel?.Children.OfType<TableViewCell>() ?? []];
+
+    /// <summary>
+    /// Gets the panel hosting scrollable (non-frozen) cells. Used to shift the whole scrollable
+    /// region in one shot when a frozen column is being resized, instead of shifting every
+    /// scrollable cell individually.
+    /// </summary>
+    internal Panel? ScrollableCellsPanel => _scrollableCellsPanel;
 
     /// <summary>
     /// Gets or sets the TableViewRow associated with the presenter.

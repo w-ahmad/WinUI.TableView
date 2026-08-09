@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using System.Collections;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -49,6 +50,11 @@ public partial class TableView : ListView
     private ItemIndexRange? _lastDragSelectionRowRange;
     private bool _cellStateDispatchPending;
     private readonly HashSet<int> _pendingCellStateRows = [];
+    private TableViewColumn? _resizingColumn;
+    private double _resizingOriginalWidth;
+    private readonly List<TableViewCell> _resizingPreviewCells = [];
+    private readonly List<TableViewCell> _resizingDownstreamCells = [];
+    private readonly List<(Panel Panel, TranslateTransform Shift)> _resizingScrollableShifts = [];
 
     /// <summary>
     /// Initializes a new instance of the TableView class.
@@ -202,6 +208,206 @@ public partial class TableView : ListView
 
         _rows.Add(row);
         return row;
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether a column is currently being resized by the user via a live
+    /// drag preview (see <see cref="BeginColumnResizePreview"/>).
+    /// </summary>
+    internal bool IsColumnResizing { get; private set; }
+
+    /// <summary>
+    /// Starts a live resize-drag preview for <paramref name="column"/>: generously (re)measures the
+    /// column's currently-realized cells once, and creates the per-cell composition-only clip/shift
+    /// state that <see cref="UpdateColumnResizePreview"/> will mutate on every subsequent pointer-move
+    /// frame. No real layout (Width/ActualWidth) is touched here or during the drag — that only
+    /// happens once, in <see cref="EndColumnResizePreview"/>.
+    /// </summary>
+    internal void BeginColumnResizePreview(TableViewColumn column)
+    {
+        var visibleColumns = Columns.VisibleColumns;
+        var columnIndex = visibleColumns.IndexOf(column);
+
+        if (columnIndex < 0)
+        {
+            return;
+        }
+
+        _resizingColumn = column;
+        _resizingOriginalWidth = column.ActualWidth;
+        IsColumnResizing = true;
+        column.IsResizing = true;
+
+        var effectiveMax = column.MaxWidth ?? MaxColumnWidth;
+        if (double.IsPositiveInfinity(effectiveMax))
+        {
+            effectiveMax = 4000d;
+        }
+
+        _resizingPreviewCells.Clear();
+        _resizingDownstreamCells.Clear();
+        _resizingScrollableShifts.Clear();
+
+        foreach (var row in _rows)
+        {
+            foreach (var cell in row.Cells)
+            {
+                if (cell.Column is null || cell.Column.IsFrozen != column.IsFrozen)
+                {
+                    continue;
+                }
+
+                if (cell.Column == column)
+                {
+                    cell.BeginResizePreview(effectiveMax);
+                    _resizingPreviewCells.Add(cell);
+                }
+                else if (visibleColumns.IndexOf(cell.Column) > columnIndex)
+                {
+                    cell.ApplyDownstreamShift();
+                    _resizingDownstreamCells.Add(cell);
+                }
+            }
+
+            if (column.IsFrozen && row.RowPresenter?.ScrollableCellsPanel is { } scrollablePanel)
+            {
+                var shift = new TranslateTransform();
+                scrollablePanel.RenderTransform = shift;
+                _resizingScrollableShifts.Add((scrollablePanel, shift));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Updates the live resize-drag preview to <paramref name="liveWidth"/>. The only work done per
+    /// pointer-move frame: mutate each touched cell's own (not shared — see
+    /// <see cref="TableViewCell.BeginResizePreview"/>) clip/shift in place. No Measure/Arrange, just
+    /// cheap composition-only property writes, still nowhere near the cost of the real layout cascade
+    /// this preview mechanism replaces.
+    /// </summary>
+    internal void UpdateColumnResizePreview(double liveWidth)
+    {
+        if (_resizingColumn is null)
+        {
+            return;
+        }
+
+        var delta = liveWidth - _resizingOriginalWidth;
+
+        foreach (var cell in _resizingPreviewCells)
+        {
+            cell.UpdateResizePreviewClip(liveWidth, cell.ActualHeight);
+            cell.UpdateGridLineShift(delta);
+        }
+
+        foreach (var cell in _resizingDownstreamCells)
+        {
+            cell.UpdateDownstreamShift(delta);
+        }
+
+        foreach (var (_, shift) in _resizingScrollableShifts)
+        {
+            shift.X = delta;
+        }
+    }
+
+    /// <summary>
+    /// Ends the live resize-drag preview, synchronously: clears every clip/transform the preview
+    /// touched, then — if <paramref name="commitWidth"/> is not null — performs the single real width
+    /// commit (<see cref="TableViewColumn.ActualWidth"/> then <see cref="TableViewColumn.Width"/>),
+    /// cascading into a normal, one-time layout pass. Doing this all in one synchronous call (no
+    /// await/DispatcherQueue in between) means the compositor never presents an intermediate frame —
+    /// the preview's last shown state and the committed real state are numerically identical.
+    /// </summary>
+    internal void EndColumnResizePreview(double? commitWidth)
+    {
+        if (_resizingColumn is null)
+        {
+            return;
+        }
+
+        var column = _resizingColumn;
+        _resizingColumn = null;
+        IsColumnResizing = false;
+        column.IsResizing = false;
+
+        foreach (var cell in _resizingPreviewCells)
+        {
+            cell.EndResizePreview();
+        }
+
+        foreach (var cell in _resizingDownstreamCells)
+        {
+            cell.EndResizePreview();
+        }
+
+        foreach (var (panel, _) in _resizingScrollableShifts)
+        {
+            panel.RenderTransform = null;
+        }
+
+        _resizingPreviewCells.Clear();
+        _resizingDownstreamCells.Clear();
+        _resizingScrollableShifts.Clear();
+
+        if (commitWidth is double width)
+        {
+            column.ActualWidth = width;
+            column.Width = new GridLength(width, GridUnitType.Pixel);
+        }
+    }
+
+    /// <summary>
+    /// Starts a <see cref="TableViewColumnResizeMode.Live"/> resize drag for <paramref name="column"/>:
+    /// unlike <see cref="BeginColumnResizePreview"/>, no cell state is touched here — every frame's
+    /// width change goes through the normal, real <see cref="TableViewColumn.ActualWidth"/> cascade
+    /// instead (see <see cref="UpdateColumnResizeLive"/>).
+    /// </summary>
+    internal void BeginColumnResizeLive(TableViewColumn column)
+    {
+        _resizingColumn = column;
+        IsColumnResizing = true;
+        column.IsResizing = true;
+    }
+
+    /// <summary>
+    /// Updates a <see cref="TableViewColumnResizeMode.Live"/> resize drag to <paramref name="liveWidth"/>
+    /// by setting <see cref="TableViewColumn.ActualWidth"/> directly — every visible row's cell
+    /// relayouts for real on every call. Deliberately does not touch <see cref="TableViewColumn.Width"/>
+    /// (which would additionally re-run <c>CalculateHeaderWidths</c> for every column on every frame);
+    /// that commit happens once, in <see cref="EndColumnResizeLive"/>.
+    /// </summary>
+    internal void UpdateColumnResizeLive(double liveWidth)
+    {
+        if (_resizingColumn is null)
+        {
+            return;
+        }
+
+        _resizingColumn.ActualWidth = liveWidth;
+    }
+
+    /// <summary>
+    /// Ends a <see cref="TableViewColumnResizeMode.Live"/> resize drag. <see cref="TableViewColumn.ActualWidth"/>
+    /// already reflects the live width from <see cref="UpdateColumnResizeLive"/>, so only the
+    /// <see cref="TableViewColumn.Width"/> GridLength commit is left to do here.
+    /// </summary>
+    internal void EndColumnResizeLive(double? commitWidth)
+    {
+        if (_resizingColumn is null)
+        {
+            return;
+        }
+
+        var column = _resizingColumn;
+        _resizingColumn = null;
+        IsColumnResizing = false;
+        column.IsResizing = false;
+
+        if (commitWidth is double width)
+        {
+            column.Width = new GridLength(width, GridUnitType.Pixel);
+        }
     }
 
     /// <inheritdoc/>
@@ -2604,7 +2810,8 @@ public partial class TableView : ListView
     {
         if (_scrollViewer is null) return;
 
-        var offset = CellsHorizontalOffset + Columns.VisibleColumns.Where(c => c.IsFrozen).Sum(c => c.ActualWidth);
+        var frozenColumns = Columns.VisibleColumns.Where(c => c.IsFrozen);
+        var offset = CellsHorizontalOffset + frozenColumns.Sum(c => c.ActualWidth);
         AttachedPropertiesHelper.SetFrozenColumnScrollBarSpace(_scrollViewer, offset);
     }
 }

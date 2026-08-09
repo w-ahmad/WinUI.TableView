@@ -26,17 +26,25 @@
                               Header="Column Auto Width Mode"
                               SelectedItem="{Binding ColumnAutoWidthMode, Mode=TwoWay, ElementName=tableView}"
                               ItemsSource="{ui:EnumValues Type=tv:TableViewColumnAutoWidthMode}" />
+                    <ComboBox x:Name="columnResizeMode"
+                              HorizontalAlignment="Stretch"
+                              Header="Column Resize Mode"
+                              SelectedItem="{Binding ColumnResizeMode, Mode=TwoWay, ElementName=tableView}"
+                              ItemsSource="{ui:EnumValues Type=tv:TableViewColumnResizeMode}" />
                 </StackPanel>
             </controls:SamplePresenter.Options>
             <controls:SamplePresenter.Xaml>
                 <x:String xml:space="preserve">
 &lt;tv:TableView ItemsSource="{Binding Items}"
-    ColumnAutoWidthMode="$(ColumnAutoWidthMode)"/>
+    ColumnAutoWidthMode="$(ColumnAutoWidthMode)"
+    ColumnResizeMode="$(ColumnResizeMode)"/>
                 </x:String>
             </controls:SamplePresenter.Xaml>
             <controls:SamplePresenter.Substitutions>
                 <controls:CodeSubstitution Key="ColumnAutoWidthMode"
                                            Value="{x:Bind columnAutoWidthMode.SelectedItem, Mode=OneWay}" />
+                <controls:CodeSubstitution Key="ColumnResizeMode"
+                                           Value="{x:Bind columnResizeMode.SelectedItem, Mode=OneWay}" />
             </controls:SamplePresenter.Substitutions>
         </controls:SamplePresenter>
     </Grid>

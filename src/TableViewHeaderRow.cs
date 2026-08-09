@@ -282,10 +282,10 @@ public partial class TableViewHeaderRow : Control
             var absoluteColumns = allColumns.Where(x => x.Width.IsAbsolute).ToList();
 
             var availableWidth = TableView.ActualWidth - 32;
-            var starUnitWeight = starColumns.Select(x => x.Width.Value).Sum();
+            var starUnitWeight = starColumns.Sum(x => x.Width.Value);
 
-            var fixedWidth = autoColumns.Select(GetColumnDesiredWidth).Sum();
-            fixedWidth += absoluteColumns.Select(x => x.ActualWidth).Sum();
+            var fixedWidth = autoColumns.Sum(GetColumnDesiredWidth);
+            fixedWidth += absoluteColumns.Sum(x => x.ActualWidth);
 
             availableWidth -= fixedWidth;
             var starUnitWidth = starUnitWeight > 0 ? availableWidth / starUnitWeight : 0;
@@ -337,11 +337,6 @@ public partial class TableViewHeaderRow : Control
                     width = width < minWidth ? minWidth : width;
                     width = width > maxWidth ? maxWidth : width;
                     header.Width = width;
-
-                    DispatcherQueue.TryEnqueue(() =>
-                        header.Measure(
-                            new Size(header.Width,
-                            _scrollableHeadersPanel?.ActualHeight ?? ActualHeight)));
                 }
             }
 
@@ -354,16 +349,20 @@ public partial class TableViewHeaderRow : Control
     /// <summary>
     /// Gets the desired width of a column based on its header and cells.
     /// </summary>
-    private double GetColumnDesiredWidth(TableViewColumn column)
+    internal double GetColumnDesiredWidth(TableViewColumn column)
     {
         var autoWidthMode = column.ColumnAutoWidthMode ?? TableView?.ColumnAutoWidthMode;
         var width = column.DesiredWidth;
 
         if (column.HeaderControl is { } header && autoWidthMode is not TableViewColumnAutoWidthMode.Cells)
         {
-            header.Width = double.NaN;
-            header.Measure(new Size(double.PositiveInfinity, ActualHeight));
-            width = Math.Max(width, header.DesiredSize.Width);
+            if (header.CachedDesiredWidth is null)
+            {
+                header.Width = double.NaN;
+                header.Measure(new Size(double.PositiveInfinity, ActualHeight));
+            }
+
+            width = Math.Max(width, header.CachedDesiredWidth ?? 0d);
         }
 
         return width;

@@ -227,6 +227,11 @@ public partial class TableView
     public static readonly DependencyProperty ColumnAutoWidthModeProperty = DependencyProperty.Register(nameof(ColumnAutoWidthMode), typeof(TableViewColumnAutoWidthMode), typeof(TableView), new PropertyMetadata(TableViewColumnAutoWidthMode.Both, OnColumnAutoWidthModeChanged));
 
     /// <summary>
+    /// Identifies the ColumnResizeMode dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ColumnResizeModeProperty = DependencyProperty.Register(nameof(ColumnResizeMode), typeof(TableViewColumnResizeMode), typeof(TableView), new PropertyMetadata(TableViewColumnResizeMode.Live));
+
+    /// <summary>
     /// Identifies the FrozenColumnCount dependency property.
     /// </summary>
     public static readonly DependencyProperty FrozenColumnCountProperty = DependencyProperty.Register(nameof(FrozenColumnCount), typeof(int), typeof(TableView), new PropertyMetadata(0, OnFrozenColumnCountChanged));
@@ -804,6 +809,16 @@ public partial class TableView
     {
         get => (TableViewColumnAutoWidthMode)GetValue(ColumnAutoWidthModeProperty);
         set => SetValue(ColumnAutoWidthModeProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets how a column behaves while the user drags to resize it — a real-time resize where
+    /// every visible row's cell relayouts every frame (default), or a fast composition-only preview.
+    /// </summary>
+    public TableViewColumnResizeMode ColumnResizeMode
+    {
+        get => (TableViewColumnResizeMode)GetValue(ColumnResizeModeProperty);
+        set => SetValue(ColumnResizeModeProperty, value);
     }
 
     /// <summary>
