@@ -586,6 +586,7 @@ public partial class TableViewColumnHeader : ContentControl
             if (autoWidthMode is TableViewColumnAutoWidthMode.Header or TableViewColumnAutoWidthMode.Both)
             {
                 var desiredHeaderSize = base.MeasureOverride(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                CachedDesiredWidth = desiredHeaderSize.Width;
                 Column.DesiredWidth = Math.Max(Column.DesiredWidth, desiredHeaderSize.Width);
             }
         }
@@ -608,6 +609,12 @@ public partial class TableViewColumnHeader : ContentControl
                                      ? Visibility.Visible : Visibility.Collapsed;
         }
     }
+
+    /// <summary>
+    /// Caches this header's own natural (unconstrained) desired width, last computed in
+    /// <see cref="MeasureOverride"/>.
+    /// </summary>
+    internal double? CachedDesiredWidth { get; private set; }
 
     /// <summary>
     /// Gets or sets the column associated with the header.

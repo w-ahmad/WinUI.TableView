@@ -376,6 +376,40 @@ public class TableViewColumnResizingTests
     }
 
     [UITestMethod]
+    public async Task ColumnHeader_CachesDesiredWidth_AfterMeasure()
+    {
+        var tableView = await CreateTableViewAsync();
+        var column = tableView.Columns[0];
+        var header = column.HeaderControl!;
+
+        Assert.IsTrue(column.Width.IsAuto, "Precondition: column starts with Auto width");
+        Assert.IsNotNull(header.CachedDesiredWidth,
+            "A header that's been through at least one layout pass must have a cached desired width " +
+            "(set in TableViewColumnHeader.MeasureOverride) — this is what lets GetColumnDesiredWidth " +
+            "skip a redundant remeasure.");
+        Assert.IsTrue(header.CachedDesiredWidth > 0,
+            "The cached desired width should reflect real header content, not a default/zero value");
+    }
+
+    [UITestMethod]
+    public async Task GetColumnDesiredWidth_UsesCachedHeaderWidth()
+    {
+        var tableView = await CreateTableViewAsync();
+        var headerRow = tableView.FindDescendant<TableViewHeaderRow>();
+        var column = tableView.Columns[0];
+        var header = column.HeaderControl!;
+
+        Assert.IsNotNull(headerRow, "TableViewHeaderRow must be present in the visual tree");
+        Assert.IsNotNull(header.CachedDesiredWidth, "Precondition: header has already been measured once");
+
+        var desiredWidth = headerRow.GetColumnDesiredWidth(column);
+
+        Assert.AreEqual(Math.Max(column.DesiredWidth, header.CachedDesiredWidth.Value), desiredWidth, 0.01,
+            "GetColumnDesiredWidth must resolve to the max of Column.DesiredWidth and the header's " +
+            "cached desired width — proving it consulted the cache rather than only column.DesiredWidth");
+    }
+
+    [UITestMethod]
     public async Task AfterSort_CellWidths_MatchColumnActualWidths()
     {
         var tableView = await CreateTableViewAsync();

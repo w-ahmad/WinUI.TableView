@@ -2813,9 +2813,10 @@ public partial class TableView : ListView
     /// </summary>
     internal void UpdateHorizontalScrollBarMargin()
     {
-        if (_scrollViewer is null) return;
+        var frozenColumns = Columns.VisibleColumns.Where(c => c.IsFrozen);
+        if (_scrollViewer is null || !frozenColumns.Any()) return;
 
-        var offset = CellsHorizontalOffset + Columns.VisibleColumns.Where(c => c.IsFrozen).Sum(c => c.ActualWidth);
+        var offset = CellsHorizontalOffset + frozenColumns.Sum(c => c.ActualWidth);
         AttachedPropertiesHelper.SetFrozenColumnScrollBarSpace(_scrollViewer, offset);
     }
 }
