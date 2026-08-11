@@ -195,6 +195,22 @@ public partial class TableViewRow : ListViewItem
         return finalSize;
     }
 
+    /// <inheritdoc/>
+    protected override void OnPointerPressed(PointerRoutedEventArgs e)
+    {
+        base.OnPointerPressed(e);
+
+        TableView?.OnAnyPointerPressed(this, e);
+    }
+
+    /// <inheritdoc/>
+    protected override void OnPointerReleased(PointerRoutedEventArgs e)
+    {
+        base.OnPointerReleased(e);
+
+        TableView?.EndDragSelection();
+    }
+
     /// <summary>
     /// Updates the position of the row relative to the TableView.
     /// </summary>

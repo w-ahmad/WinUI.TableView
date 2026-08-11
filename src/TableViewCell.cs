@@ -422,7 +422,10 @@ public partial class TableViewCell : ContentControl
             e.Handled = true;
             return;
         }
+
+        TableView?.OnAnyPointerPressed(this, e);
     }
+
     /// <inheritdoc/>
     protected override void OnPointerReleased(PointerRoutedEventArgs e)
     {
@@ -432,6 +435,8 @@ public partial class TableViewCell : ContentControl
         {
             e.Handled = true;
         }
+
+        TableView?.EndDragSelection();
     }
 
     /// <summary>

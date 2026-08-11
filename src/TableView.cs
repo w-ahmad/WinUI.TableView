@@ -77,9 +77,6 @@ public partial class TableView : ListView
         Unloaded += OnUnloaded;
         SelectionChanged += TableView_SelectionChanged;
         _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
-
-        AddHandler(PointerPressedEvent, new PointerEventHandler(OnAnyPointerPressed), handledEventsToo: true);
-        AddHandler(PointerReleasedEvent, new PointerEventHandler(OnAnyPointerReleased), handledEventsToo: true);
     }
 
     /// <summary>
@@ -425,29 +422,49 @@ public partial class TableView : ListView
         HandleNavigations(e, shiftKey, ctrlKey);
     }
 
+    /// <inheritdoc/>
+    protected override void OnPointerPressed(PointerRoutedEventArgs e)
+    {
+        base.OnPointerPressed(e);
+
+        var originalSource = e.OriginalSource as FrameworkElement;
+
+        if (originalSource?.FindAscendant<ScrollBar>() is not null          // Skip if the pointer is over a ScrollBar.
+            || originalSource?.FindAscendant<TableViewCell>() is not null   // Skip if the pointer is over a TableViewCell.
+            || originalSource?.FindAscendant<TableViewRow>() is not null)   // Skip if the pointer is over a TableViewRow.
+        {
+            return; 
+        }
+
+        OnAnyPointerPressed(this, e);
+    }
+
+    /// <inheritdoc/>
+    protected override void OnPointerReleased(PointerRoutedEventArgs e)
+    {
+        base.OnPointerReleased(e);
+
+        EndDragSelection();
+    }
+
     /// <summary>
     /// Handles pointer-pressed for all cases, including when elements sets <c>e.Handled = true</c>.
     /// </summary>
-    private void OnAnyPointerPressed(object sender, PointerRoutedEventArgs e)
+    internal void OnAnyPointerPressed(UIElement pressedElement, PointerRoutedEventArgs e)
     {
         var pointerPoint = e.GetCurrentPoint(this);
         var position = pointerPoint.Position;
         var canvasPoint = GetCanvasPoint(position);
         var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
         var isShiftKey = KeyboardHelper.IsShiftKeyDown();
-        var orignalSoruce = e.OriginalSource as FrameworkElement;
-        UIElement? pressedElement = orignalSoruce?.FindAscendant<TableViewCell>();      // Check if the pointer is over a cell
-        pressedElement ??= orignalSoruce?.FindAscendant<TableViewRow>();                // If not, check if the pointer is over a row
 
         if (SelectionMode is ListViewSelectionMode.None                                 // Skip selection when SelectionMode is None
             || IsDragSelecting                                                          // Skip selection when a drag is already in progress
-            || orignalSoruce is ScrollBar                                               // Skip selection when the pointer is over the ScrollBar
-            || orignalSoruce?.FindAscendant<ScrollBar>() is { }                         // Skip selection when the pointer is within a ScrollBar
-            || (pressedElement == null && !ShowDragRectangle)                           // Skip selection when the pointer is not over a Cell or Row, and ShowDragRectangle is false.
-            || !pointerPoint.Properties.IsLeftButtonPressed                             // Skip selection when the left mouse button is not pressed
             || canvasPoint is null                                                      // Skip selection when canvasPoint is null (e.g., pointer is outside the scroll canvas)
-            || canvasPoint.Value.Y < 0                                                  // Skip selection when the pointer is in the column header area (above the scroll canvas)              
-            || (pressedElement == null && canvasPoint.Value.X < CellsHorizontalOffset)  // Skip selection when the pointer is in the row header area (and not on a row/cell)
+            || canvasPoint.Value.Y < 0                                                  // Skip selection when the pointer is in the column header area (above the scroll canvas)
+            || !pointerPoint.Properties.IsLeftButtonPressed                             // Skip selection when the left mouse button is not pressed
+            || (pressedElement == this && !ShowDragRectangle)                           // Skip selection when the pointer is not over a Cell or Row, and ShowDragRectangle is false.
+            || (pressedElement != this && canvasPoint.Value.X < CellsHorizontalOffset)  // Skip selection when the pointer is in the row header area (and not on the TableView)
             || isShiftKey)                                                              // Skip selection when the Shift key is held
         {
             return;
@@ -462,7 +479,7 @@ public partial class TableView : ListView
         LastSelectionUnit = TableViewSelectionUnit.Row;
 #if !WINDOWS
         _dragStartCell = pressedElement as TableViewCell;
-        _dragStartRow = (pressedElement as TableViewRow) ?? orignalSoruce?.FindAscendant<TableViewRow>();
+        _dragStartRow = (pressedElement as TableViewRow) ?? pressedElement?.FindAscendant<TableViewRow>();
 #endif
         pressedElement ??= this; // If not, default to the TableView itself
 
@@ -803,14 +820,6 @@ public partial class TableView : ListView
 
             _lastDragSelectionCellRange = cells;
         });
-    }
-
-    /// <summary>
-    /// Handles pointer-released for all cases, including when elements sets <c>e.Handled = true</c>.
-    /// </summary>
-    private void OnAnyPointerReleased(object sender, PointerRoutedEventArgs e)
-    {
-        EndDragSelection();
     }
 
     /// <summary>
