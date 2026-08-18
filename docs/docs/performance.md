@@ -1,12 +1,28 @@
 ﻿# Performance guidance
 
-`TableView` is built on `ListView`, which provides UI virtualization out of the box. This means only the rows currently visible on screen are instantiated. The following guidance helps you get the best performance when working with large datasets.
+`TableView` hosts its rows in an `ItemsRepeater` with a virtualizing layout it owns, so only the rows currently visible on screen exist as elements. The following guidance helps you get the best performance when working with large datasets.
 
 ## Row virtualization
 
-Row virtualization is always active. `TableView` does not render all items at once; only the rows in the visible viewport (plus a small buffer) are created. When the user scrolls, rows are recycled.
+Row virtualization is always active and needs no configuration. Only the rows in the visible viewport plus a small
+cache exist as elements; scrolling recycles them rather than creating more.
 
-You do not need to do anything to enable virtualization — it is the default behavior inherited from `ListView`.
+The layout computes the scroll extent from the row heights arithmetically instead of measuring rows, so the cost of
+scrolling, of jumping to a distant row, and of reporting the extent are all independent of how many items there
+are. Concretely, with the same viewport size, 1,000 items and 1,000,000 items realize the same number of row
+elements.
+
+### Selection scales with ranges, not items
+
+Selected rows are stored as index ranges. Selecting every row of a million-row source is one range, and no row
+needs to be realized for it. [`SelectedItems`](xref:WinUI.TableView.TableView.SelectedItems) is a projection over
+those ranges rather than a materialised list, so reading its `Count` is cheap; enumerating it still walks the
+selection, so avoid doing that on a hot path when the selection is large. Prefer
+[`SelectedRanges`](xref:WinUI.TableView.TableView.SelectedRanges) or
+[`IsRowSelected`](xref:WinUI.TableView.TableView.IsRowSelected) when you only need to test membership.
+
+Cell selection is stored the same way, as rectangles, so selecting all cells is one rectangle rather than one
+entry per cell.
 
 ## Collection type
 
@@ -96,7 +112,12 @@ By default, dragging a column divider ([`ColumnResizeMode="Live"`](xref:WinUI.Ta
 
 ## Horizontal scrolling and column count
 
-Unlike rows, columns are not virtualized — all column headers are instantiated regardless of whether they are visible. A very large number of columns (100+) may affect horizontal scroll performance. In practice, most data grids have far fewer columns than rows.
+Unlike rows, columns are not virtualized — every visible column produces a cell in every realized row. A very
+large number of columns (100+) therefore costs `realized rows × columns` elements and may affect horizontal
+scroll performance. In practice, most data grids have far fewer columns than rows.
+
+The horizontal scroll extent is computed from the column widths rather than from whichever rows happen to be
+realized, so the horizontal scrollbar does not change size as you scroll vertically.
 
 ## Uno Platform
 

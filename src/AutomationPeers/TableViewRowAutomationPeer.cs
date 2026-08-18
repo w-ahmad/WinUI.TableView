@@ -1,15 +1,23 @@
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Automation.Provider;
+using Microsoft.UI.Xaml.Controls;
+using System.Collections.Generic;
 
 namespace WinUI.TableView.AutomationPeers;
 
 /// <summary>
-/// Exposes <see cref="TableViewRow"/> to UI Automation.
-/// Extends <see cref="ListViewItemAutomationPeer"/> to provide row-specific automation information
-/// including meaningful names that convey the row index and content.
+/// Exposes <see cref="TableViewRow"/> to UI Automation, providing row-specific automation information including
+/// meaningful names that convey the row index and content.
 /// </summary>
-public partial class TableViewRowAutomationPeer : ListViewItemAutomationPeer, IExpandCollapseProvider
+/// <remarks>
+/// The SelectionItem pattern used to come from <c>SelectorItemAutomationPeer</c>, which drove
+/// <c>ListViewItem.IsSelected</c> directly and so bypassed the table's selection unit and anchor handling. It is
+/// implemented here now and routed through the table, matching what the cell peer already did.
+/// </remarks>
+public partial class TableViewRowAutomationPeer : FrameworkElementAutomationPeer,
+                                                 ISelectionItemProvider,
+                                                 IExpandCollapseProvider
 {
     private readonly TableViewRow _owner;
 
@@ -21,6 +29,11 @@ public partial class TableViewRowAutomationPeer : ListViewItemAutomationPeer, IE
     {
         _owner = owner;
     }
+
+    /// <summary>
+    /// Gets the item index of the row this peer represents.
+    /// </summary>
+    internal int RowIndex => _owner.Index;
 
     /// <inheritdoc/>
     protected override string GetClassNameCore()
@@ -56,7 +69,7 @@ public partial class TableViewRowAutomationPeer : ListViewItemAutomationPeer, IE
             return base.GetHelpTextCore();
         }
 
-        var parts = new System.Collections.Generic.List<string>();
+        var parts = new List<string>();
         foreach (var cell in _owner.Cells)
         {
             if (cell.Column is { } column)
@@ -76,12 +89,55 @@ public partial class TableViewRowAutomationPeer : ListViewItemAutomationPeer, IE
     /// <inheritdoc/>
     protected override object GetPatternCore(PatternInterface patternInterface)
     {
+        if (patternInterface == PatternInterface.SelectionItem)
+        {
+            return this;
+        }
+
         if (patternInterface == PatternInterface.ExpandCollapse && HasRowDetails())
         {
             return this;
         }
 
         return base.GetPatternCore(patternInterface);
+    }
+
+    // ISelectionItemProvider
+
+    /// <inheritdoc/>
+    public bool IsSelected => _owner.IsSelected;
+
+    /// <inheritdoc/>
+    public IRawElementProviderSimple? SelectionContainer =>
+        _owner.TableView is { } tableView && CreatePeerForElement(tableView) is { } peer
+            ? ProviderFromPeer(peer)
+            : null;
+
+    /// <inheritdoc/>
+    public void Select()
+    {
+        if (_owner is { TableView: { } tableView, Index: >= 0 })
+        {
+            tableView.MakeSelection(new TableViewCellSlot(_owner.Index, -1), shiftKey: false);
+        }
+    }
+
+    /// <inheritdoc/>
+    public void AddToSelection()
+    {
+        if (_owner is { TableView: { } tableView, Index: >= 0 })
+        {
+            tableView.MakeSelection(new TableViewCellSlot(_owner.Index, -1), shiftKey: false, ctrlKey: true);
+        }
+    }
+
+    /// <inheritdoc/>
+    public void RemoveFromSelection()
+    {
+        if (_owner is { TableView: { } tableView, Index: >= 0 } && tableView.IsRowSelected(_owner.Index))
+        {
+            tableView.DeselectRange(new Microsoft.UI.Xaml.Data.ItemIndexRange(_owner.Index, 1));
+        }
     }
 
     // IExpandCollapseProvider

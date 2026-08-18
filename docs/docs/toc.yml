@@ -1,4 +1,4 @@
-- name: Introduction
+﻿- name: Introduction
   href: ../index.md
 - name: Getting Started
   items:
@@ -66,6 +66,8 @@
     href: accessibility.md
 - name: Migration
   items:
+  - name: Breaking Changes
+    href: breaking-changes.md
   - name: Migrating from WPF DataGrid
     href: migration-wpf.md
   - name: Migrating from WCT DataGrid

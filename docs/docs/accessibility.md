@@ -1,4 +1,4 @@
-# Accessibility
+﻿# Accessibility
 
 `TableView` exposes a complete UI Automation (UIA) tree so that screen readers, keyboard-only users, and accessibility testing tools can navigate and interact with the control. Custom `AutomationPeer` classes are registered for every interactive element: the table itself, rows, cells, column headers, and row headers.
 
@@ -10,8 +10,8 @@ You do not need to opt in. Accessibility support is always active. This page exp
 
 | Element | UIA patterns |
 |---|---|
-| [`TableView`](xref:WinUI.TableView.TableView) | `GridPattern`, `TablePattern`, `SelectionPattern` (inherited from `ListView`) |
-| [`TableViewRow`](xref:WinUI.TableView.TableViewRow) | `SelectionItemPattern` (inherited), `ExpandCollapsePattern` when `RowDetailsVisibilityMode` is `VisibleWhenExpanded` |
+| [`TableView`](xref:WinUI.TableView.TableView) | `GridPattern`, `TablePattern`, `SelectionPattern`, `ScrollPattern`, `ItemContainerPattern` |
+| [`TableViewRow`](xref:WinUI.TableView.TableViewRow) | `SelectionItemPattern`, `ExpandCollapsePattern` when `RowDetailsVisibilityMode` is `VisibleWhenExpanded` |
 | [`TableViewCell`](xref:WinUI.TableView.TableViewCell) | `GridItemPattern`, `TableItemPattern`, `SelectionItemPattern` |
 | [`TableViewColumnHeader`](xref:WinUI.TableView.TableViewColumnHeader) | `InvokePattern` when [`CanSort`](xref:WinUI.TableView.TableViewColumn.CanSort) is `true` |
 | `TableViewRowHeader` | Structural header element |
@@ -41,7 +41,16 @@ Each `TableViewCell` exposes `IGridItemProvider` and `ITableItemProvider`:
 - `IsSelected` reflects the current selection state
 - `Select()`, `AddToSelection()`, and `RemoveFromSelection()` manipulate the selection programmatically
 - `SelectionContainer` returns the owning `TableView`
-- Row `SelectionItemPattern` is provided automatically by the base `ListView` infrastructure
+- Row `SelectionItemPattern` is implemented by `TableView` itself and routes through the same selection logic as
+  mouse and keyboard input, so `SelectionUnit` and the selection anchor stay consistent
+
+### Virtualized rows
+
+Rows that are scrolled out of view have no automation peer, which is normal for a virtualizing control. Clients
+reach them two ways, both of which realize the row on demand:
+
+- `IGridProvider.GetItem(row, column)` returns a cell provider for any row, on screen or not
+- `IItemContainerProvider.FindItemByProperty` walks forward from a given row
 
 ### InvokePattern (column headers)
 

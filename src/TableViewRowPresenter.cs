@@ -1,4 +1,4 @@
-using Microsoft.UI;
+﻿using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -32,8 +32,11 @@ public partial class TableViewRowPresenter : Control
     private Panel? _detailsPanel;
     private ContentPresenter? _detailsPresenter;
     private ToggleButton? _detailsToggleButton;
-    private ListViewItemPresenter? _itemPresenter;
     private long? _detailsPanelVisibilityCallbackToken;
+    private RectangleGeometry? _detailsPanelClip;
+    private RectangleGeometry? _scrollableCellsClip;
+
+    private const double MultiSelectInset = 44d;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TableViewRowPresenter"/> class.
@@ -68,7 +71,6 @@ public partial class TableViewRowPresenter : Control
         _detailsPresenter = GetTemplateChild("DetailsPresenter") as ContentPresenter;
         _detailsToggleButton = GetTemplateChild("DetailsToggleButton") as ToggleButton;
 
-        _itemPresenter = this.FindAscendant<ListViewItemPresenter>();
         TableViewRow = this.FindAscendant<TableViewRow>();
         TableView = TableViewRow?.TableView;
         _rowHeader?.TableView = TableView;
@@ -130,9 +132,9 @@ public partial class TableViewRowPresenter : Control
 
         if (TableView is not null)
         {
-            var cornerRadius = _itemPresenter?.CornerRadius ?? new CornerRadius(0);
-            var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
-            var left = isMultiSelection ? 44 : Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft);
+            // Multi-select mode reserves room on the left for the row's check box.
+            var isMultiSelection = TableView is { SelectionMode: ListViewSelectionMode.Multiple };
+            var left = isMultiSelection ? MultiSelectInset : 0d;
             var xScroll = -TableView.HorizontalOffset;
             var xClip = TableView.HorizontalOffset;
 
@@ -146,11 +148,10 @@ public partial class TableViewRowPresenter : Control
                 var width = _detailsPanel.ActualWidth;
                 var height = _detailsPanel.ActualHeight;
                 _detailsPanel.Arrange(new(x, y, width, height));
-                _detailsPanel.Clip = x >= _v_gridLine.ActualOffset.X + _v_gridLine.ActualWidth ? null :
-                    new RectangleGeometry
-                    {
-                        Rect = new(xClip, 0, Math.Max(0, _detailsPanel.ActualWidth - xClip), _detailsPanel.ActualHeight)
-                    };
+                _detailsPanel.Clip = SetClip(
+                    ref _detailsPanelClip,
+                    needsClip: x < _v_gridLine.ActualOffset.X + _v_gridLine.ActualWidth,
+                    new(xClip, 0, Math.Max(0, _detailsPanel.ActualWidth - xClip), _detailsPanel.ActualHeight));
             }
 
             if (_scrollableCellsPanel?.ActualWidth > 0 && _frozenCellsPanel is not null)
@@ -158,11 +159,10 @@ public partial class TableViewRowPresenter : Control
                 xScroll += _frozenCellsPanel.ActualOffset.X + _frozenCellsPanel.ActualWidth;
 
                 _scrollableCellsPanel.Arrange(new(xScroll, 0, _scrollableCellsPanel.ActualWidth, _scrollableCellsPanel.ActualHeight));
-                _scrollableCellsPanel.Clip = xScroll >= _frozenCellsPanel.ActualOffset.X + _frozenCellsPanel.ActualWidth ? null :
-                    new RectangleGeometry
-                    {
-                        Rect = new(xClip, 0, Math.Max(0, _scrollableCellsPanel.ActualWidth - xClip), _scrollableCellsPanel.ActualHeight)
-                    };
+                _scrollableCellsPanel.Clip = SetClip(
+                    ref _scrollableCellsClip,
+                    needsClip: xScroll < _frozenCellsPanel.ActualOffset.X + _frozenCellsPanel.ActualWidth,
+                    new(xClip, 0, Math.Max(0, _scrollableCellsPanel.ActualWidth - xClip), _scrollableCellsPanel.ActualHeight));
             }
 
 
@@ -172,16 +172,35 @@ public partial class TableViewRowPresenter : Control
             // TransformToVisual walk, on every visible row) during a resize drag.
             if (TableView is not null && !TableView.IsColumnResizing && _v_gridLine is not null)
             {
-                var transform = _v_gridLine.TransformToVisual(this);
-                var relativePosition = transform.TransformPoint(new Point(0, 0));
-                var offset = _v_gridLine.Visibility is Visibility.Visible ? relativePosition.X : 0d;
-                offset -= Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft);
+                // RootPanel is arranged at x = left above, so left + the gridline offset within RootPanel is
+                // the same value a TransformToVisual(this) walk produced — without walking the visual tree
+                // once per visible row per arrange pass.
+                var offset = _v_gridLine.Visibility is Visibility.Visible ? left + _v_gridLine.ActualOffset.X : 0d;
 
                 TableView.SetValue(TableView.CellsHorizontalOffsetProperty, Math.Max(0, offset));
             }
         }
 
         return finalSize;
+    }
+
+    /// <summary>
+    /// Applies <paramref name="rect"/> to a cached clip geometry, or returns null when no clip is needed.
+    /// The geometry is cached per element because WinUI rejects a single <see cref="RectangleGeometry"/> being
+    /// used as the clip of more than one element, and because scrolling re-arranges every visible row —
+    /// allocating a geometry per row per frame is pure garbage.
+    /// </summary>
+    private static RectangleGeometry? SetClip(ref RectangleGeometry? clip, bool needsClip, Rect rect)
+    {
+        if (!needsClip)
+        {
+            return null;
+        }
+
+        clip ??= new RectangleGeometry();
+        clip.Rect = rect;
+
+        return clip;
     }
 
     /// <summary>
@@ -309,7 +328,7 @@ public partial class TableViewRowPresenter : Control
         if (_rowHeader is not null && TableView is not null)
         {
             var areHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
-            var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
+            var isMultiSelection = TableView is { SelectionMode: ListViewSelectionMode.Multiple };
             var isDetailsToggleButtonVisible = TableView.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded
                                                && (TableView.RowDetailsTemplate is not null || TableView.RowDetailsTemplateSelector is not null);
 
@@ -368,7 +387,7 @@ public partial class TableViewRowPresenter : Control
                 var vGridLinesVisibility = TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
                                            || TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical;
                 var areHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
-                var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
+                var isMultiSelection = TableView is { SelectionMode: ListViewSelectionMode.Multiple };
                 var isDetailsToggleButtonVisible = TableView.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded
                                                     && (TableView.RowDetailsTemplate is not null || TableView.RowDetailsTemplateSelector is not null);
 

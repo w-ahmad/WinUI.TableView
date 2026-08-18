@@ -4,17 +4,30 @@ WinUI.TableView is a data grid control for WinUI and Uno Platform applications. 
 
 ## Architecture
 
-`TableView` inherits from `ListView`. This gives it native WinUI scrolling, virtualization, selection, and accessibility behavior out of the box. The control adds its own header row, column definitions, cell rendering, and interaction layer on top.
+`TableView` derives from `Control` and owns its own row hosting: rows live in an `ItemsRepeater` driven by a
+TableView-specific virtualizing layout. That means the control — not a base class — decides which rows exist,
+where they are, how selection is stored, and how a point on screen maps to a row and column.
 
 ```
-TableView (derives from ListView)
-├── TableViewHeaderRow         ← sticky header above the scrollable content
-│   └── TableViewColumnHeader  ← one per column; handles sort, filter, resize, reorder
-└── TableViewRow (one per item)
-    ├── TableViewRowHeader      ← optional left gutter per row
-    ├── TableViewCell[]         ← one per column
-    └── RowDetails panel        ← optional collapsible detail area
+TableView (derives from Control)
+├── TableViewHeaderRow             ← sticky header above the scrollable content
+│   └── TableViewColumnHeader      ← one per column; handles sort, filter, resize, reorder
+├── ScrollViewer
+│   └── ItemsRepeater              ← hosts only the rows the viewport needs
+│       └── TableViewRow           ← one per *visible* item, recycled as you scroll
+│           ├── TableViewRowHeader ← optional left gutter per row
+│           ├── TableViewCell[]    ← one per column
+│           └── RowDetails panel   ← optional collapsible detail area
+└── selection model                ← selected rows stored as index ranges
 ```
+
+### What this buys you
+
+- The number of realized `TableViewRow` elements is proportional to the viewport height, not the item count. A
+  thousand items and a million items produce the same number of row elements.
+- Selecting a large range is a range operation: no row has to exist for it, and
+  [`SelectedItems`](xref:WinUI.TableView.TableView.SelectedItems) projects onto the items on demand.
+- Hit testing during drag selection is index arithmetic rather than a scan over rows.
 
 ## Key concepts
 

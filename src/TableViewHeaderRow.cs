@@ -1,4 +1,4 @@
-using Microsoft.UI;
+﻿using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
@@ -42,6 +42,7 @@ public partial class TableViewHeaderRow : Control
     private Image? _dragHeaderImage;
     private DispatcherTimer? _desiredWidthTimer;
     private bool _calculatingHeaderWidths;
+    private RectangleGeometry? _scrollableHeadersClip;
     private int _dropColumnIndex;
     private bool _isValidDropTarget;
     private readonly Dictionary<DependencyProperty, long> _callbackTokens = [];
@@ -114,11 +115,19 @@ public partial class TableViewHeaderRow : Control
             var xClip = (headersOffset * -1) + frozenOffset;
 
             _scrollableHeadersPanel.Arrange(new Rect(headersOffset, 0, _scrollableHeadersPanel.ActualWidth, _scrollableHeadersPanel.ActualHeight));
-            _scrollableHeadersPanel.Clip = headersOffset >= frozenOffset ? null :
-                new RectangleGeometry
-                {
-                    Rect = new Rect(xClip, 0, _scrollableHeadersPanel.ActualWidth - xClip, finalSize.Height)
-                };
+
+            if (headersOffset >= frozenOffset)
+            {
+                _scrollableHeadersPanel.Clip = null;
+            }
+            else
+            {
+                // Cached rather than reallocated: horizontal scrolling re-arranges this panel every frame
+                // (see TableView.OnHorizontalOffsetChanged).
+                _scrollableHeadersClip ??= new RectangleGeometry();
+                _scrollableHeadersClip.Rect = new Rect(xClip, 0, _scrollableHeadersPanel.ActualWidth - xClip, finalSize.Height);
+                _scrollableHeadersPanel.Clip = _scrollableHeadersClip;
+            }
         }
 
         return finalSize;
@@ -446,7 +455,7 @@ public partial class TableViewHeaderRow : Control
     {
         var stateName = VisualStates.StateNoButton;
 
-        if (TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple })
+        if (TableView is { SelectionMode: ListViewSelectionMode.Multiple })
         {
             stateName = TableView.IsEditing ? VisualStates.StateSelectAllCheckBoxDisabled : VisualStates.StateSelectAllCheckBox;
         }
@@ -503,7 +512,7 @@ public partial class TableViewHeaderRow : Control
                 var vGridLinesVisibility = TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
                                            || TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical;
                 var areHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
-                var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
+                var isMultiSelection = TableView is { SelectionMode: ListViewSelectionMode.Multiple };
                 var isDetailsToggleButtonVisible = TableView.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded
                                                     && (TableView.RowDetailsTemplate is not null || TableView.RowDetailsTemplateSelector is not null);
 
@@ -552,7 +561,7 @@ public partial class TableViewHeaderRow : Control
         if (_cornerButtonPanel is not null && TableView is not null)
         {
             var areRowHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
-            var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
+            var isMultiSelection = TableView is { SelectionMode: ListViewSelectionMode.Multiple };
             var isRowDetailExpandable = TableView.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded;
 
             _cornerButtonPanel.Visibility = areRowHeadersVisible || isMultiSelection || isRowDetailExpandable
@@ -733,11 +742,11 @@ public partial class TableViewHeaderRow : Control
         {
             oldTableView.SizeChanged -= OnTableViewSizeChanged;
             oldTableView.SelectionChanged -= OnTableViewSelectionChanged;
-            oldTableView.Items.VectorChanged -= OnTableViewItemsVectorChanged;
+            oldTableView.CollectionView.VectorChanged -= OnTableViewItemsVectorChanged;
             oldTableView.Columns.CollectionChanged -= OnTableViewColumnsCollectionChanged;
             oldTableView.Columns.ColumnPropertyChanged -= OnColumnPropertyChanged;
 
-            UnregisterPropertyChangedCallback(oldTableView, ListViewBase.SelectionModeProperty);
+            UnregisterPropertyChangedCallback(oldTableView, TableView.SelectionModeProperty);
             UnregisterPropertyChangedCallback(oldTableView, TableView.CornerButtonModeProperty);
             UnregisterPropertyChangedCallback(oldTableView, TableView.ItemsSourceProperty);
         }
@@ -746,12 +755,12 @@ public partial class TableViewHeaderRow : Control
         {
             newTableView.SizeChanged += OnTableViewSizeChanged;
             newTableView.SelectionChanged += OnTableViewSelectionChanged;
-            newTableView.Items.VectorChanged += OnTableViewItemsVectorChanged;
+            newTableView.CollectionView.VectorChanged += OnTableViewItemsVectorChanged;
             newTableView.Columns.CollectionChanged += OnTableViewColumnsCollectionChanged;
             newTableView.Columns.ColumnPropertyChanged += OnColumnPropertyChanged;
 
-            _callbackTokens[ListViewBase.SelectionModeProperty] =
-                newTableView.RegisterPropertyChangedCallback(ListViewBase.SelectionModeProperty, OnTableViewSelectionModePropertyChanged);
+            _callbackTokens[TableView.SelectionModeProperty] =
+                newTableView.RegisterPropertyChangedCallback(TableView.SelectionModeProperty, OnTableViewSelectionModePropertyChanged);
             _callbackTokens[TableView.CornerButtonModeProperty] =
                 newTableView.RegisterPropertyChangedCallback(TableView.CornerButtonModeProperty, OnTableViewCornerButtonModePropertyChanged);
             _callbackTokens[TableView.ItemsSourceProperty] =

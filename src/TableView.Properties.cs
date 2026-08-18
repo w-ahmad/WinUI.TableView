@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using WinUI.TableView.Helpers;
+using WinUI.TableView.Selection;
 
 namespace WinUI.TableView;
 
@@ -20,12 +21,12 @@ public partial class TableView
     /// <summary>
     /// Identifies the ItemsSource dependency property.
     /// </summary>
-    public static readonly new DependencyProperty ItemsSourceProperty = DependencyProperty.Register(nameof(ItemsSource), typeof(object), typeof(TableView), new PropertyMetadata(null, OnItemsSourceChanged));
+    public static readonly DependencyProperty ItemsSourceProperty = DependencyProperty.Register(nameof(ItemsSource), typeof(object), typeof(TableView), new PropertyMetadata(null, OnItemsSourceChanged));
 
     /// <summary>
     /// Identifies the SelectionMode dependency property.
     /// </summary>
-    public static readonly new DependencyProperty SelectionModeProperty = DependencyProperty.Register(nameof(SelectionMode), typeof(ListViewSelectionMode), typeof(TableView), new PropertyMetadata(ListViewSelectionMode.Extended, OnSelectionModeChanged));
+    public static readonly DependencyProperty SelectionModeProperty = DependencyProperty.Register(nameof(SelectionMode), typeof(ListViewSelectionMode), typeof(TableView), new PropertyMetadata(ListViewSelectionMode.Extended, OnSelectionModeChanged));
 
     /// <summary>
     /// Identifies the HeaderRowHeight dependency property.
@@ -414,9 +415,16 @@ public partial class TableView
     internal int? CurrentRowIndex { get; set; }
 
     /// <summary>
-    /// Gets or sets the selected cells.
+    /// Gets the selected cells.
     /// </summary>
-    internal HashSet<TableViewCellSlot> SelectedCells { get; set; } = [];
+    /// <remarks>
+    /// A live projection over <see cref="SelectedCellRanges"/> rather than a materialised set, so selecting a
+    /// whole large grid stays a handful of rectangles instead of one entry per cell.
+    /// </remarks>
+    internal IList<TableViewCellSlot> SelectedCells
+    {
+        get => field ??= new TableViewCellSlotCollection(SelectedCellRanges);
+    }
 
     /// <summary>
     /// Gets the selected cell ranges.
@@ -520,7 +528,7 @@ public partial class TableView
     /// <summary>
     ///  Gets or sets an object source used to generate the content of the TableView.
     /// </summary>
-    public new object? ItemsSource
+    public object? ItemsSource
     {
         get => GetValue(ItemsSourceProperty);
         set => SetValue(ItemsSourceProperty, value);
@@ -529,7 +537,7 @@ public partial class TableView
     /// <summary>
     /// Gets or sets the selection mode for the TableView.
     /// </summary>
-    public new ListViewSelectionMode SelectionMode
+    public ListViewSelectionMode SelectionMode
     {
         get => (ListViewSelectionMode)GetValue(SelectionModeProperty);
         set => SetValue(SelectionModeProperty, value);
@@ -1249,21 +1257,48 @@ public partial class TableView
     }
 
     /// <summary>
-    /// Throws an exception if the base ItemsSource property is set directly.
+    /// Identifies the <see cref="IncrementalLoadingTrigger"/> dependency property.
     /// </summary>
-    private void OnBaseItemsSourceChanged(DependencyObject sender, DependencyProperty dp)
+    public static readonly DependencyProperty IncrementalLoadingTriggerProperty = DependencyProperty.Register(
+        nameof(IncrementalLoadingTrigger), typeof(IncrementalLoadingTrigger), typeof(TableView), new PropertyMetadata(IncrementalLoadingTrigger.Edge));
+
+    /// <summary>
+    /// Identifies the <see cref="IncrementalLoadingThreshold"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty IncrementalLoadingThresholdProperty = DependencyProperty.Register(
+        nameof(IncrementalLoadingThreshold), typeof(double), typeof(TableView), new PropertyMetadata(0d));
+
+    /// <summary>
+    /// Identifies the <see cref="DataFetchSize"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty DataFetchSizeProperty = DependencyProperty.Register(
+        nameof(DataFetchSize), typeof(double), typeof(TableView), new PropertyMetadata(3d));
+
+    /// <summary>
+    /// Gets or sets the conditions for the TableView to request more items from an incrementally loading source.
+    /// </summary>
+    public IncrementalLoadingTrigger IncrementalLoadingTrigger
     {
-        throw new InvalidOperationException("Setting this property directly is not allowed. Use TableView.ItemsSource instead.");
+        get => (IncrementalLoadingTrigger)GetValue(IncrementalLoadingTriggerProperty);
+        set => SetValue(IncrementalLoadingTriggerProperty, value);
     }
 
     /// <summary>
-    /// Throws an exception if the base SelectionMode property is set directly.
+    /// Gets or sets how far from the end of the loaded items, measured in viewports, the TableView starts
+    /// requesting more items.
     /// </summary>
-    private void OnBaseSelectionModeChanged(DependencyObject sender, DependencyProperty dp)
+    public double IncrementalLoadingThreshold
     {
-        if (!_shouldThrowSelectionModeChangedException)
-        {
-            throw new InvalidOperationException("Setting this property directly is not allowed. Use TableView.SelectionMode instead.");
-        }
+        get => (double)GetValue(IncrementalLoadingThresholdProperty);
+        set => SetValue(IncrementalLoadingThresholdProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets how many items the TableView requests at a time, measured in viewports.
+    /// </summary>
+    public double DataFetchSize
+    {
+        get => (double)GetValue(DataFetchSizeProperty);
+        set => SetValue(DataFetchSizeProperty, value);
     }
 }

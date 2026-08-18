@@ -1,43 +1,50 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Media.Animation;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Data;
 using System.Linq;
-using System.Threading.Tasks;
-using Windows.Foundation;
-using WinUI.TableView.Extensions;
-using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
 
 /// <summary>
 /// Represents a row in a TableView.
 /// </summary>
-
+/// <remarks>
+/// Rows are realized and recycled by the table's row host, so a row instance is reused for many different items
+/// over its lifetime. Assigning <see cref="ContentControl.Content"/> is the reuse hook: it builds the cells the
+/// first time and refreshes them on every subsequent reuse.
+/// </remarks>
 #if WINDOWS
 [WinRT.GeneratedBindableCustomProperty]
 #endif
-public partial class TableViewRow : ListViewItem
+[TemplateVisualState(Name = VisualStates.StateNormal, GroupName = VisualStates.GroupCommon)]
+[TemplateVisualState(Name = VisualStates.StatePointerOver, GroupName = VisualStates.GroupCommon)]
+[TemplateVisualState(Name = VisualStates.StatePressed, GroupName = VisualStates.GroupCommon)]
+[TemplateVisualState(Name = VisualStates.StateSelected, GroupName = VisualStates.GroupCommon)]
+public partial class TableViewRow : ContentControl
 {
     private const string Selection_Background = "SelectionBackground";
     private const double Selection_IndicatorHeight = 16d;
-    private const string Check_Mark = "\uE73E";
-    private Thickness _focusVisualMargin = new(1);
     private readonly Thickness _selectionBackgroundMargin = new(4, 2, 4, 2);
     private readonly Thickness _selectionIndicatorMargin = new(4, 0, 0, 0);
-    private ListViewItemPresenter? _itemPresenter;
     private Border? _selectionBackground;
+    private Border? _selectionIndicator;
     private bool _ensureCells = true;
+    private bool _isPointerOver;
+    private bool _isPressed;
     private Brush? _cellPresenterBackground;
     private Brush? _cellPresenterForeground;
+
+    /// <summary>
+    /// Identifies the <see cref="IsSelected"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty IsSelectedProperty = DependencyProperty.Register(
+        nameof(IsSelected), typeof(bool), typeof(TableViewRow), new PropertyMetadata(false, OnIsSelectedChanged));
 
     /// <summary>
     /// Initializes a new instance of the TableViewRow class.
@@ -46,14 +53,66 @@ public partial class TableViewRow : ListViewItem
     {
         DefaultStyleKey = typeof(TableViewRow);
 
-        SizeChanged += OnSizeChanged;
         Loaded += TableViewRow_Loaded;
 #if WINDOWS
         ContextRequested += OnContextRequested;
-        RegisterPropertyChangedCallback(IsSelectedProperty, delegate { OnIsSelectedChanged(); });
 #endif
         RegisterPropertyChangedCallback(ForegroundProperty, delegate { OnForegroundChanged(); });
         RegisterPropertyChangedCallback(BackgroundProperty, delegate { OnBackgroundChanged(); });
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the row is selected.
+    /// </summary>
+    /// <remarks>
+    /// The table's selection model is the source of truth; this reflects it for the row's visuals. Setting it
+    /// directly changes only the visual state, not the table's selection.
+    /// </remarks>
+    public bool IsSelected
+    {
+        get => (bool)GetValue(IsSelectedProperty);
+        set => SetValue(IsSelectedProperty, value);
+    }
+
+    /// <summary>
+    /// Gets the index of the row within the TableView's items.
+    /// </summary>
+    /// <remarks>
+    /// An item index, so it is unaffected by group header rows and by groups being collapsed. Assigned by the row
+    /// host as the row is prepared, rather than looked up through a container generator on every read.
+    /// </remarks>
+    public int Index { get; internal set; } = -1;
+
+    /// <summary>
+    /// Gets the index of the row within the flattened visual row sequence, or -1 when the row is not realized.
+    /// </summary>
+    internal int VisualIndex { get; set; } = -1;
+
+    /// <summary>
+    /// Gets the list of cells in the row.
+    /// </summary>
+    public IReadOnlyList<TableViewCell> Cells => RowPresenter?.Cells ?? [];
+
+    /// <summary>
+    /// Gets the presenter hosting the row's cells, row header and details pane.
+    /// </summary>
+    public TableViewRowPresenter? RowPresenter { get; private set; }
+
+    /// <summary>
+    /// Gets or sets the TableView associated with the row.
+    /// </summary>
+    public TableView? TableView
+    {
+        get;
+        internal set
+        {
+            if (field != value)
+            {
+                OnTableViewChanging();
+                field = value;
+                OnTableViewChanged();
+            }
+        }
     }
 
 #if !WINDOWS
@@ -81,46 +140,6 @@ public partial class TableViewRow : ListViewItem
         e.Handled = TableView?.ShowRowContext(this, position) is true;
     }
 
-#if WINDOWS
-    /// <summary>
-    /// Handles the IsSelected property changed.
-    /// </summary>
-    private void OnIsSelectedChanged()
-    {
-        EnsureLayout();
-        RowPresenter?.SetRowDetailsVisibility();
-    }
-#endif
-
-    /// <summary>
-    /// Handles the Foreground property changed.
-    /// </summary>
-    private void OnForegroundChanged()
-    {
-        _cellPresenterForeground = Foreground;
-        EnsureAlternateColors();
-    }
-
-    /// <summary>
-    /// Handles the Background property changed.
-    /// </summary>
-    private void OnBackgroundChanged()
-    {
-        _cellPresenterBackground = Background;
-        EnsureAlternateColors();
-    }
-
-    /// <summary>
-    /// Handles the Loaded event.
-    /// </summary>
-    private void TableViewRow_Loaded(object sender, RoutedEventArgs e)
-    {
-        _focusVisualMargin = FocusVisualMargin;
-
-        RowPresenter?.EnsureGridLines();
-        EnsureLayout();
-    }
-
     /// <inheritdoc/>
     protected override void OnApplyTemplate()
     {
@@ -128,11 +147,11 @@ public partial class TableViewRow : ListViewItem
 
         _cellPresenterBackground = Background;
         _cellPresenterForeground = Foreground;
-        _itemPresenter = GetTemplateChild("Root") as ListViewItemPresenter;
-#if !WINDOWS
         RowPresenter = GetTemplateChild("RowPresenter") as TableViewRowPresenter;
-        _selectionBackground = GetTemplateChild("SelectionBackground") as Border;
-#endif
+        _selectionBackground = GetTemplateChild(Selection_Background) as Border;
+        _selectionIndicator = GetTemplateChild("SelectionIndicator") as Border;
+
+        UpdateVisualStates(useTransitions: false);
     }
 
     /// <inheritdoc/>
@@ -161,7 +180,6 @@ public partial class TableViewRow : ListViewItem
         }
 
         RowPresenter?.InvalidateMeasure(); // The cells presenter does not measure every time.
-        TableView?.EnsureAlternateRowColors();
     }
 
     /// <inheritdoc/>
@@ -175,30 +193,31 @@ public partial class TableViewRow : ListViewItem
     }
 
     /// <inheritdoc/>
-    protected override Size ArrangeOverride(Size finalSize)
+    protected override void OnPointerEntered(PointerRoutedEventArgs e)
     {
-        finalSize = base.ArrangeOverride(finalSize);
+        base.OnPointerEntered(e);
 
-        var cornerRadius = _itemPresenter?.CornerRadius ?? new();
-        var left = Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft);
+        _isPointerOver = true;
+        UpdateVisualStates();
+    }
 
-        _itemPresenter?.Arrange(new Rect(-left, 0, _itemPresenter.ActualWidth + left, _itemPresenter.ActualHeight));
+    /// <inheritdoc/>
+    protected override void OnPointerExited(PointerRoutedEventArgs e)
+    {
+        base.OnPointerExited(e);
 
-        // Position feeds drag-selection hit testing only; a column-width change never moves a row
-        // relative to the drag canvas, so recomputing it (a visual-tree transform walk) on every
-        // row on every frame of a resize drag is pure waste.
-        if (TableView?.IsColumnResizing != true)
-        {
-            UpdatePosition();
-        }
-
-        return finalSize;
+        _isPointerOver = false;
+        _isPressed = false;
+        UpdateVisualStates();
     }
 
     /// <inheritdoc/>
     protected override void OnPointerPressed(PointerRoutedEventArgs e)
     {
         base.OnPointerPressed(e);
+
+        _isPressed = true;
+        UpdateVisualStates();
 
         TableView?.OnAnyPointerPressed(this, e);
     }
@@ -208,30 +227,102 @@ public partial class TableViewRow : ListViewItem
     {
         base.OnPointerReleased(e);
 
+        _isPressed = false;
+        UpdateVisualStates();
+
+        TableView?.EndDragSelection();
+    }
+
+    /// <inheritdoc/>
+    protected override void OnPointerCanceled(PointerRoutedEventArgs e)
+    {
+        base.OnPointerCanceled(e);
+
+        ResetPointerState();
+    }
+
+    /// <inheritdoc/>
+    protected override void OnPointerCaptureLost(PointerRoutedEventArgs e)
+    {
+        base.OnPointerCaptureLost(e);
+
+        // Without this, a lost capture (alt-tab, touch cancel) left the row stuck looking pressed and left the
+        // table stuck in drag selection.
+        ResetPointerState();
         TableView?.EndDragSelection();
     }
 
     /// <summary>
-    /// Updates the position of the row relative to the TableView.
+    /// Clears the pointer state and repaints.
     /// </summary>
-    internal void UpdatePosition()
+    private void ResetPointerState()
     {
-        if (TableView is null) return;
-
-        try
-        {
-            Position = TransformToVisual(TableView.DragRectangleCanvas).TransformPoint(default);
-        }
-        catch (Exception ex)
-        {
-            TableViewTrace.Write($"UpdatePosition failed: {ex.Message}");
-        }
+        _isPressed = false;
+        _isPointerOver = false;
+        UpdateVisualStates();
     }
 
     /// <summary>
-    /// Gets or sets the position of the row relative to the TableView.
+    /// Drives the row's visual states. <c>SelectorItem</c> used to do this; now that the row is a plain
+    /// <see cref="ContentControl"/> it owns the state machine.
     /// </summary>
-    internal Point Position { get; set; }
+    private void UpdateVisualStates(bool useTransitions = true)
+    {
+        var state = (IsSelected, _isPressed, _isPointerOver) switch
+        {
+            (true, true, _) => VisualStates.StatePressedSelected,
+            (true, _, true) => VisualStates.StatePointerOverSelected,
+            (true, _, _) => VisualStates.StateSelected,
+            (_, true, _) => VisualStates.StatePressed,
+            (_, _, true) => VisualStates.StatePointerOver,
+            _ => VisualStates.StateNormal
+        };
+
+        VisualStates.GoToState(this, useTransitions, state);
+        VisualStates.GoToState(this, useTransitions, IsEnabled ? VisualStates.StateEnabled : VisualStates.StateDisabled);
+        VisualStates.GoToState(this, useTransitions, TableView is { SelectionMode: ListViewSelectionMode.Multiple }
+            ? VisualStates.StateMultiSelectEnabled
+            : VisualStates.StateMultiSelectDisabled);
+    }
+
+    /// <summary>
+    /// Clears the per-item state so the row can be reused for a different item.
+    /// </summary>
+    internal void PrepareForRecycle()
+    {
+        _isPointerOver = false;
+        _isPressed = false;
+        IsSelected = false;
+        Index = -1;
+        VisualIndex = -1;
+    }
+
+    /// <summary>
+    /// Handles the Loaded event.
+    /// </summary>
+    private void TableViewRow_Loaded(object sender, RoutedEventArgs e)
+    {
+        RowPresenter?.EnsureGridLines();
+        EnsureLayout();
+    }
+
+    /// <summary>
+    /// Handles the Foreground property changed.
+    /// </summary>
+    private void OnForegroundChanged()
+    {
+        _cellPresenterForeground = Foreground;
+        EnsureAlternateColors();
+    }
+
+    /// <summary>
+    /// Handles the Background property changed.
+    /// </summary>
+    private void OnBackgroundChanged()
+    {
+        _cellPresenterBackground = Background;
+        EnsureAlternateColors();
+    }
 
     /// <summary>
     /// Ensures cells are created for the row.
@@ -249,17 +340,6 @@ public partial class TableViewRow : ListViewItem
 
             AddCells(TableView.Columns.VisibleColumns);
             _ensureCells = false;
-        }
-    }
-
-    /// <summary>
-    /// Handles the SizeChanged event.
-    /// </summary>
-    private async void OnSizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        if (TableView?.CurrentCellSlot?.Row == Index)
-        {
-            _ = await TableView.ScrollCellIntoView(TableView.CurrentCellSlot.Value);
         }
     }
 
@@ -512,92 +592,29 @@ public partial class TableViewRow : ListViewItem
     /// <summary>
     /// Ensures the layout of the row.
     /// </summary>
+    /// <remarks>
+    /// Sizes the selection chrome around the details pane and the horizontal grid line. This used to find those
+    /// visuals by shape-matching inside the native <c>ListViewItemPresenter</c>; they are named template parts now.
+    /// </remarks>
     internal void EnsureLayout()
     {
-        var cornerRadius = _itemPresenter?.CornerRadius ?? new();
-        var left = Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft) / 2;
         var detailsHeight = RowPresenter?.GetDetailsContentHeight() ?? 0d;
-#if WINDOWS
-        var selectionIndicator = _itemPresenter?.FindDescendants()
-                                                .OfType<Border>()
-                                                .FirstOrDefault(x => x is { Width: 3 });
+        var gridLineHeight = GetHorizontalGridlineHeight();
 
-        var cellsHeight = ActualHeight - detailsHeight;
-        var selectionIndicatorHeight = Math.Max(Selection_IndicatorHeight, cellsHeight - 40);
-
-        if (selectionIndicator is not null)
+        if (_selectionIndicator is not null)
         {
-            selectionIndicator.MaxHeight = selectionIndicatorHeight;
-            selectionIndicator.Margin = new Thickness(
-                _selectionIndicatorMargin.Left + left,
-                _selectionIndicatorMargin.Top,
-                _selectionIndicatorMargin.Right,
-                _selectionIndicatorMargin.Bottom);
+            var cellsHeight = ActualHeight - detailsHeight;
+            _selectionIndicator.MaxHeight = Math.Max(Selection_IndicatorHeight, cellsHeight - 40);
+            _selectionIndicator.Margin = _selectionIndicatorMargin;
         }
 
-        if (TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple })
-        {
-            var fontIcon = this.FindDescendant<FontIcon>(x => x.Glyph == Check_Mark);
-            selectionIndicator = fontIcon?.Parent as Border;
-        }
-
-        if (TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple })
-        {
-            var fontIcon = this.FindDescendant<FontIcon>(x => x.Glyph == Check_Mark);
-            selectionIndicator = fontIcon?.Parent as Border;
-        }
-
-
-        _selectionBackground ??= _itemPresenter?.FindDescendants()
-                                                .OfType<Border>()
-                                                .FirstOrDefault(x => x.Name is not Selection_Background && x.Margin == _selectionBackgroundMargin);
-
-        FocusVisualMargin = new Thickness(
-            _focusVisualMargin.Left + left,
-            _focusVisualMargin.Top,
-            _focusVisualMargin.Right,
-            _focusVisualMargin.Bottom + GetHorizontalGridlineHeight());
-
-        EnsureSelectionIndicatorPosition(detailsHeight, selectionIndicator);
-#endif
         if (_selectionBackground is not null)
         {
-            _selectionBackground.Name = Selection_Background;
             _selectionBackground.Margin = new Thickness(
-                _selectionBackgroundMargin.Left + left,
+                _selectionBackgroundMargin.Left,
                 _selectionBackgroundMargin.Top,
                 _selectionBackgroundMargin.Right,
-                _selectionBackgroundMargin.Bottom + GetHorizontalGridlineHeight() + detailsHeight);
-        }
-    }
-
-    /// <summary>
-    /// Ensures the position of the selection indicator.
-    /// </summary>
-    private async void EnsureSelectionIndicatorPosition(double detailsHeight, Border? selectionIndicator)
-    {
-        await Task.Yield(); // let the animations and visual state changes complete
-
-        if (selectionIndicator is not null)
-        {
-            // Assign a TranslateTransform for animation
-            var translateTransform = new TranslateTransform();
-            selectionIndicator.RenderTransform = translateTransform;
-
-            var toValue = RowPresenter?.IsDetailsPanelVisible ?? false ? Math.Round(-detailsHeight / 2) : 0; // move up or down
-
-            var animation = new DoubleAnimation
-            {
-                To = toValue,
-                Duration = new Duration(TimeSpan.Zero)
-            };
-
-            var storyboard = new Storyboard();
-            Storyboard.SetTarget(animation, translateTransform);
-            Storyboard.SetTargetProperty(animation, "Y"); // vertical movement
-            storyboard.Children.Add(animation);
-
-            storyboard.Begin();
+                _selectionBackgroundMargin.Bottom + gridLineHeight + detailsHeight);
         }
     }
 
@@ -615,16 +632,6 @@ public partial class TableViewRow : ListViewItem
             Index % 2 == 1 && TableView.AlternateRowForeground is not null ? TableView.AlternateRowForeground : _cellPresenterForeground;
     }
 
-    internal void UpdateSelectCheckMarkOpacity()
-    {
-        var fontIcon = this.FindDescendant<FontIcon>(x => x.Glyph == Check_Mark);
-
-        if (fontIcon?.Parent is Border border)
-        {
-            border.Opacity = TableView?.IsEditing is true ? 0.3 : 1;
-        }
-    }
-
     /// <summary>
     /// Gets the height of the horizontal gridlines.
     /// </summary>
@@ -634,40 +641,15 @@ public partial class TableViewRow : ListViewItem
             ? TableView.HorizontalGridLinesStrokeThickness : 0d;
     }
 
-    /// <summary>
-    /// Gets the list of cells in the row.
-    /// </summary>
-    public IReadOnlyList<TableViewCell> Cells => RowPresenter?.Cells ?? [];
-
-    /// <summary>
-    /// Gets the index of the row.
-    /// </summary>
-    public int Index => TableView?.IndexFromContainer(this) ?? -1;
-
-    /// <summary>
-    /// Gets or sets the TableView associated with the row.
-    /// </summary>
-    public TableView? TableView
+    private static void OnIsSelectedChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        get;
-        internal set
+        if (d is TableViewRow row)
         {
-            if (field != value)
-            {
-                OnTableViewChanging();
-                field = value;
-                OnTableViewChanged();
-            }
+            row.UpdateVisualStates();
+            row.EnsureLayout();
+            row.RowPresenter?.SetRowDetailsVisibility();
         }
     }
-
-    /// <inheritdoc/>
-    public TableViewRowPresenter? RowPresenter
-#if WINDOWS
-       => ContentTemplateRoot as TableViewRowPresenter;
-#else
-    { get; private set; }
-#endif
 
     /// <inheritdoc/>
     protected override AutomationPeer OnCreateAutomationPeer()

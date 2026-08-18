@@ -83,7 +83,7 @@ xmlns:tv="using:WinUI.TableView"
 | `CopyingRowClipboardContent` | [`CopyToClipboard`](xref:WinUI.TableView.TableView.CopyToClipboard) | Renamed. |
 | [`ColumnReordered`](xref:WinUI.TableView.TableView.ColumnReordered) | [`ColumnReordered`](xref:WinUI.TableView.TableView.ColumnReordered) | Same purpose. |
 | `LoadingRowGroup` | *(no equivalent)* | WinUI.TableView does not support row grouping. |
-| `LoadingRow` | *(no equivalent)* | WinUI.TableView does not have a `LoadingRow` event. Use `ContainerContentChanging` inherited from `ListView`. |
+| `LoadingRow` | *(no equivalent)* | WinUI.TableView does not have a `LoadingRow` event. Use `TableView.CellDoubleTapped` or a conditional cell style inherited from `ListView`. |
 
 ## Sorting
 

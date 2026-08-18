@@ -1,4 +1,4 @@
-using Microsoft.UI.Windowing;
+﻿using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -60,6 +60,7 @@ public sealed partial class MainWindow : Window
                 "Corner Button" => typeof(CornerButtonPage),
                 "Alternate Row Color" => typeof(AlternateRowColorPage),
                 "Context Flyouts" => typeof(ContextFlyoutsPage),
+                "Virtualization" => typeof(VirtualizationPage),
                 "Row Reorder" => typeof(ReorderRowsPage),
                 "Pagination" => typeof(PaginationPage),
                 "Incremental Loading" => typeof(IncrementalLoadingPage),

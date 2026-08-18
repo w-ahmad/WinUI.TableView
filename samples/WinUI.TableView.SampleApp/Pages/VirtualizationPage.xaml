@@ -1,0 +1,117 @@
+<Page x:Class="WinUI.TableView.SampleApp.Pages.VirtualizationPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:tv="using:WinUI.TableView"
+      xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
+      mc:Ignorable="d">
+
+    <Grid>
+        <controls:SamplePresenter Header="Virtualization and selection"
+                                  Description="Rows are hosted in an ItemsRepeater with a TableView-specific virtualizing layout. The number of realized row elements tracks the viewport, not the number of items, and selection is stored as index ranges so selecting everything costs one range.">
+            <controls:SamplePresenter.Example>
+                <tv:TableView x:Name="tableView"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              AllowLiveShaping="False"
+                              SelectionMode="Extended"
+                              SelectionChanged="OnSelectionChanged">
+                    <tv:TableView.Columns>
+                        <tv:TableViewNumberColumn Header="Id"
+                                                  Width="90"
+                                                  Binding="{Binding Id}" />
+                        <tv:TableViewTextColumn Header="Name"
+                                                Width="160"
+                                                Binding="{Binding Name}" />
+                        <tv:TableViewTextColumn Header="Category"
+                                                Width="120"
+                                                Binding="{Binding Category}" />
+                        <tv:TableViewTextColumn Header="City"
+                                                Width="160"
+                                                Binding="{Binding City}" />
+                        <tv:TableViewNumberColumn Header="Amount"
+                                                  Width="120"
+                                                  Binding="{Binding Amount}" />
+                    </tv:TableView.Columns>
+                </tv:TableView>
+            </controls:SamplePresenter.Example>
+            <controls:SamplePresenter.Options>
+                <StackPanel Spacing="16"
+                            MaxWidth="360">
+                    <ComboBox x:Name="itemCounts"
+                              Header="Item count"
+                              HorizontalAlignment="Stretch"
+                              SelectionChanged="OnItemCountChanged" />
+
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8">
+                        <Button Content="Select all"
+                                Click="OnSelectAllClick" />
+                        <Button Content="Clear selection"
+                                Click="OnClearSelectionClick" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8">
+                        <NumberBox x:Name="jumpTarget"
+                                   Header="Jump to row"
+                                   Width="160"
+                                   Minimum="0"
+                                   SpinButtonPlacementMode="Compact"
+                                   Value="0" />
+                        <Button Content="Go"
+                                VerticalAlignment="Bottom"
+                                Click="OnJumpClick" />
+                    </StackPanel>
+
+                    <Border Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                            CornerRadius="4"
+                            Padding="12">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Live counters"
+                                       FontWeight="SemiBold" />
+                            <TextBlock>
+                                <Run Text="Items:" />
+                                <Run x:Name="itemCountRun" />
+                            </TextBlock>
+                            <TextBlock>
+                                <Run Text="Realized row elements:" />
+                                <Run x:Name="realizedRowsRun" />
+                            </TextBlock>
+                            <TextBlock>
+                                <Run Text="Selected items:" />
+                                <Run x:Name="selectedCountRun" />
+                            </TextBlock>
+                            <TextBlock>
+                                <Run Text="Selected ranges:" />
+                                <Run x:Name="selectedRangesRun" />
+                            </TextBlock>
+                            <TextBlock>
+                                <Run Text="Last operation:" />
+                                <Run x:Name="timingRun" />
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock TextWrapping="Wrap"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               Text="Change the item count and watch the realized row count stay put. Select all one million rows and watch the selected range count stay at one." />
+                </StackPanel>
+            </controls:SamplePresenter.Options>
+            <controls:SamplePresenter.CSharp>
+                <x:String xml:space="preserve">
+// Selection is index ranges, so this is O(1) whatever the item count.
+tableView.SelectRange(new ItemIndexRange(0, (uint)tableView.Items.Count));
+
+Debug.WriteLine(tableView.SelectedItems.Count);   // the full count, nothing materialized
+Debug.WriteLine(tableView.SelectedRanges.Count);  // 1
+
+// Scrolling to a distant row does not have to realize anything in between.
+await tableView.ScrollRowIntoView(750_000);
+                </x:String>
+            </controls:SamplePresenter.CSharp>
+        </controls:SamplePresenter>
+    </Grid>
+</Page>

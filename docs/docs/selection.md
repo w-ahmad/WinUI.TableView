@@ -42,7 +42,7 @@
 
 ## Reading selected items
 
-For row selection, use the standard `ListView` properties:
+For row selection, use the familiar selection properties:
 
 ```csharp
 // Single selected item
