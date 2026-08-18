@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using System;
@@ -22,11 +22,12 @@ public partial class TableView
     private bool _isLoadingMoreItems;
 
     /// <summary>
-    /// Gets the items produced by the current sorting and filtering.
+    /// Gets the items produced by the current sorting, filtering and grouping.
     /// </summary>
     /// <remarks>
-    /// Positions in this collection are what <see cref="TableViewCellSlot.Row"/>, <see cref="SelectedRanges"/>,
-    /// the clipboard and automation all mean by "row".
+    /// Positions in this collection are <em>item indexes</em>: what <see cref="TableViewCellSlot.Row"/>,
+    /// <see cref="SelectedRanges"/>, the clipboard and automation all mean by "row". They are unaffected by group
+    /// headers and by groups being collapsed.
     /// </remarks>
     public IList<object> Items => _collectionView;
 
@@ -36,7 +37,7 @@ public partial class TableView
     internal IReadOnlyList<TableViewRow> Rows => _rows;
 
     /// <summary>
-    /// Gets the number of visual rows.
+    /// Gets the number of visual rows, counting group headers and excluding collapsed groups' contents.
     /// </summary>
     internal int VisualRowCount => _visualRows?.Count ?? 0;
 
@@ -88,7 +89,7 @@ public partial class TableView
     }
 
     /// <summary>
-    /// Converts an item index to the visual row index showing it.
+    /// Converts an item index to the visual row index showing it, or -1 when it is inside a collapsed group.
     /// </summary>
     internal int GetVisualIndexFromItemIndex(int itemIndex)
     {
@@ -101,11 +102,19 @@ public partial class TableView
     }
 
     /// <summary>
-    /// Converts a visual row index to the item index it shows.
+    /// Converts a visual row index to the item index it shows, or -1 for a group header row.
     /// </summary>
     internal int GetItemIndexFromVisualIndex(int visualIndex)
     {
         return _visualRows?.GetItemIndex(visualIndex) ?? visualIndex;
+    }
+
+    /// <summary>
+    /// Returns the group whose header sits at a visual row index, or <see langword="null"/> for a data row.
+    /// </summary>
+    internal TableViewGroup? GetGroupFromVisualIndex(int visualIndex)
+    {
+        return _visualRows?.GetGroup(visualIndex);
     }
 
     /// <summary>
@@ -146,7 +155,7 @@ public partial class TableView
         _rowsRepeater = repeater;
         _rowsLayout = new TableViewRowsLayout { TableView = this };
         _rowElementFactory = new TableViewRowElementFactory(this);
-        _visualRows = new TableViewVisualRows(_collectionView);
+        _visualRows = new TableViewVisualRows(_collectionView, IsGroupCollapsed);
 
         // A small cache keeps the realized row count close to the viewport. The repeater's default of two
         // viewports either side would triple the number of live rows, and rows are not cheap elements.
@@ -185,15 +194,29 @@ public partial class TableView
     }
 
     /// <summary>
+    /// Reprojects the flattened row sequence, for when grouping or collapse state changes.
+    /// </summary>
+    private void RefreshVisualRows()
+    {
+        _visualRows?.Reset();
+    }
+
+    /// <summary>
     /// Applies the table's state to a row as it becomes visible. Everything a row needs to look right is pushed
     /// here rather than pulled per row from the whole table, which is what keeps realization proportional to the
     /// viewport.
     /// </summary>
     private void OnRowElementPrepared(ItemsRepeater sender, ItemsRepeaterElementPreparedEventArgs args)
     {
-        if (args.Element is TableViewRow row)
+        switch (args.Element)
         {
-            AttachRow(row, args.Index);
+            case TableViewRow row:
+                AttachRow(row, args.Index);
+                break;
+
+            case TableViewGroupRow groupRow:
+                groupRow.VisualIndex = args.Index;
+                break;
         }
     }
 
@@ -221,9 +244,15 @@ public partial class TableView
     /// </summary>
     private void OnRowElementIndexChanged(ItemsRepeater sender, ItemsRepeaterElementIndexChangedEventArgs args)
     {
-        if (args.Element is TableViewRow row)
+        switch (args.Element)
         {
-            AttachRow(row, args.NewIndex);
+            case TableViewRow row:
+                AttachRow(row, args.NewIndex);
+                break;
+
+            case TableViewGroupRow groupRow:
+                groupRow.VisualIndex = args.NewIndex;
+                break;
         }
     }
 
@@ -286,8 +315,8 @@ public partial class TableView
                 break;
 
             case CollectionChange.ItemRemoved:
-                // The visual index has to be read before the projection is rebuilt, while it still describes
-                // where the removed row was.
+                // The visual index has to be read before the projection is rebuilt, while the run list still
+                // describes where the removed row was.
                 var removedVisualIndex = _visualRows?.GetVisualIndex(index) ?? index;
                 _rowSelection.OnItemsRemoved(index, 1);
                 _visualRows?.OnItemRemoved(removedVisualIndex, (args as VectorChangedEventArgs)?.Item);

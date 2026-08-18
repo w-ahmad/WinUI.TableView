@@ -1,0 +1,114 @@
+<Page x:Class="WinUI.TableView.SampleApp.Pages.GroupingPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:tv="using:WinUI.TableView"
+      xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
+      d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
+      mc:Ignorable="d">
+
+    <Grid>
+        <controls:SamplePresenter Header="Grouping"
+                                  Description="Showcasing multi-level grouping. Group header rows are virtualized like data rows, so collapsing a group with thousands of items costs one realized element.">
+            <controls:SamplePresenter.Example>
+                <tv:TableView x:Name="tableView"
+                              ItemsSource="{Binding Items}"
+                              AutoGenerateColumns="False"
+                              SelectionMode="Extended">
+                    <tv:TableView.GroupHeaderTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Key}"
+                                       FontWeight="SemiBold" />
+                        </DataTemplate>
+                    </tv:TableView.GroupHeaderTemplate>
+                    <tv:TableView.Columns>
+                        <tv:TableViewTextColumn Header="First Name"
+                                                Width="140"
+                                                Binding="{Binding FirstName}" />
+                        <tv:TableViewTextColumn Header="Last Name"
+                                                Width="140"
+                                                Binding="{Binding LastName}" />
+                        <tv:TableViewTextColumn Header="Department"
+                                                Width="160"
+                                                Binding="{Binding Department}" />
+                        <tv:TableViewTextColumn Header="Gender"
+                                                Width="100"
+                                                Binding="{Binding Gender}" />
+                        <tv:TableViewCheckBoxColumn Header="Is Active"
+                                                    Width="90"
+                                                    Binding="{Binding IsActive}" />
+                    </tv:TableView.Columns>
+                </tv:TableView>
+            </controls:SamplePresenter.Example>
+            <controls:SamplePresenter.Options>
+                <StackPanel Spacing="16"
+                            MaxWidth="350">
+                    <ComboBox x:Name="firstLevel"
+                              Header="Group by"
+                              HorizontalAlignment="Stretch"
+                              SelectionChanged="OnGroupingChanged" />
+                    <ComboBox x:Name="secondLevel"
+                              Header="Then group by"
+                              HorizontalAlignment="Stretch"
+                              SelectionChanged="OnGroupingChanged" />
+                    <ToggleSwitch x:Name="descending"
+                                  Header="Descending group order"
+                                  OnContent="True"
+                                  OffContent="False"
+                                  Toggled="OnGroupingChanged" />
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8">
+                        <Button Content="Expand all"
+                                Click="OnExpandAllClick" />
+                        <Button Content="Collapse all"
+                                Click="OnCollapseAllClick" />
+                    </StackPanel>
+                    <TextBlock TextWrapping="Wrap"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}">
+                        <Run Text="Groups:" />
+                        <Run x:Name="groupCountRun" />
+                        <LineBreak />
+                        <Run Text="Items:" />
+                        <Run x:Name="itemCountRun" />
+                        <LineBreak />
+                        <Run Text="Realized rows:" />
+                        <Run x:Name="realizedRowsRun" />
+                    </TextBlock>
+                    <TextBlock TextWrapping="Wrap"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               Text="Selection uses item indexes, so collapsing a group never changes which items are selected. Click a header, or press Space or Enter on it, to toggle a group." />
+                </StackPanel>
+            </controls:SamplePresenter.Options>
+            <controls:SamplePresenter.Xaml>
+                <x:String xml:space="preserve">
+&lt;tv:TableView x:Name="tableView"
+    ItemsSource="{Binding Items}"&gt;
+    &lt;tv:TableView.GroupHeaderTemplate&gt;
+        &lt;DataTemplate&gt;
+            &lt;TextBlock Text="{Binding Key}" FontWeight="SemiBold" /&gt;
+        &lt;/DataTemplate&gt;
+    &lt;/tv:TableView.GroupHeaderTemplate&gt;
+&lt;/tv:TableView&gt;
+                </x:String>
+            </controls:SamplePresenter.Xaml>
+            <controls:SamplePresenter.CSharp>
+                <x:String xml:space="preserve">
+// Group by Department, then by Gender within each department.
+tableView.GroupDescriptions.Add(new GroupDescription(nameof(ExampleModel.Department)));
+tableView.GroupDescriptions.Add(new GroupDescription(nameof(ExampleModel.Gender)));
+
+// Groups are spans over the item view, so this never materializes the items.
+foreach (var group in tableView.Groups)
+{
+    Debug.WriteLine($"{group.Key} at level {group.Level} covers {group.ItemCount} items");
+}
+
+tableView.CollapseAllGroups();
+tableView.ExpandGroup(tableView.Groups[0]);
+                </x:String>
+            </controls:SamplePresenter.CSharp>
+        </controls:SamplePresenter>
+    </Grid>
+</Page>

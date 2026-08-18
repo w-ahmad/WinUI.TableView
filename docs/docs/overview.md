@@ -14,12 +14,26 @@ TableView (derives from Control)
 │   └── TableViewColumnHeader      ← one per column; handles sort, filter, resize, reorder
 ├── ScrollViewer
 │   └── ItemsRepeater              ← hosts only the rows the viewport needs
+│       ├── TableViewGroupRow      ← group header row, when grouping is applied
 │       └── TableViewRow           ← one per *visible* item, recycled as you scroll
 │           ├── TableViewRowHeader ← optional left gutter per row
 │           ├── TableViewCell[]    ← one per column
 │           └── RowDetails panel   ← optional collapsible detail area
 └── selection model                ← selected rows stored as index ranges
 ```
+
+### Two kinds of row index
+
+Because group header rows are interleaved with data rows, and collapsed groups hide theirs, the control works in
+two index spaces and is careful about which one it exposes:
+
+| Index | Means | Where you see it |
+|---|---|---|
+| **Item index** | Position in [`Items`](xref:WinUI.TableView.TableView.Items) | [`TableViewCellSlot.Row`](xref:WinUI.TableView.TableViewCellSlot), [`SelectedRanges`](xref:WinUI.TableView.TableView.SelectedRanges), [`TableViewRow.Index`](xref:WinUI.TableView.TableViewRow.Index), clipboard, automation |
+| **Visual index** | Position among the rows actually displayed | internal to layout, scrolling and hit testing |
+
+Everything public is in item indexes, so grouping and collapsing never change what a cell slot or a selection
+range refers to.
 
 ### What this buys you
 
@@ -28,6 +42,7 @@ TableView (derives from Control)
 - Selecting a large range is a range operation: no row has to exist for it, and
   [`SelectedItems`](xref:WinUI.TableView.TableView.SelectedItems) projects onto the items on demand.
 - Hit testing during drag selection is index arithmetic rather than a scan over rows.
+- Collapsing a group with thousands of items costs one realized element.
 
 ## Key concepts
 

@@ -1,4 +1,4 @@
-# DataGrid Feature Comparison: WPF DataGrid, WCT DataGrid, and WinUI.TableView
+﻿# DataGrid Feature Comparison: WPF DataGrid, WCT DataGrid, and WinUI.TableView
 
 DataGrids are heavily used in business desktop applications. Many WPF and UWP applications depend on a grid control for editing, sorting, filtering, row details, validation, clipboard operations, and large data-entry screens.
 
@@ -49,7 +49,7 @@ WinUI.TableView is actively maintained and continues to add new features based o
 | Delete row | ✅ | ❌ | ❌ | |
 | Sorting | ✅ | ⚠️ | ✅ | No built-in sorting in WCT DataGrid but exposes sorting events. |
 | Filtering | ⚠️ | ❌ | ✅ | WPF commonly uses collection view/app logic. WCT docs explicitly say there is no built-in filtering. TableView provides Excel-like column filtering. |
-| Grouping | ✅ | ✅ | ❌ |  |
+| Grouping | ✅ | ✅ | ✅ |  |
 | Row selection | ✅ | ✅ | ✅ |  |
 | Cell selection | ✅ | ❌ | ✅ | |
 | Clipboard copy | ✅ | ✅ | ✅ |  |

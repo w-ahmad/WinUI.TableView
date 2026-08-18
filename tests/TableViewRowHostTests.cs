@@ -15,7 +15,7 @@ namespace WinUI.TableView.Tests;
 
 /// <summary>
 /// Tests the ItemsRepeater-based row host: that realization tracks the viewport rather than the item count, that
-/// rows are recycled, and that selection does not force rows to be realized.
+/// rows are recycled, and that grouping and selection do not force rows to be realized.
 /// </summary>
 [TestClass]
 public class TableViewRowHostTests
@@ -74,6 +74,61 @@ public class TableViewRowHostTests
         for (var i = 1; i < ordered.Count; i++)
         {
             Assert.AreEqual(ordered[i - 1].Index + 1, ordered[i].Index, "realized rows should be a contiguous run");
+        }
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task GroupHeaderTemplate_AppliesAndTracksExpandState()
+    {
+        var tableView = await CreateTableViewAsync(itemCount: 60);
+        tableView.GroupDescriptions.Add(new GroupDescription(nameof(HostItem.Category)));
+
+        await WaitForLayoutAsync(tableView);
+
+        var headerRows = tableView.FindDescendants().OfType<TableViewGroupRow>().Where(x => x.IsLoaded).ToList();
+        Assert.IsTrue(headerRows.Count > 0);
+
+        var first = headerRows.OrderBy(x => x.VisualIndex).First();
+
+        Assert.IsNotNull(first.Group);
+        Assert.IsTrue(first.IsExpanded);
+        Assert.AreEqual(first.Group!.ItemCount, first.ItemCount);
+        Assert.AreEqual(0d, first.Indent, "a top-level group is not indented");
+        Assert.IsTrue(first.ActualHeight > 0, "a realized group header should have been arranged");
+
+        tableView.CollapseGroup(first.Group);
+        await WaitForLayoutAsync(tableView);
+
+        var afterCollapse = tableView.FindDescendants()
+                                     .OfType<TableViewGroupRow>()
+                                     .FirstOrDefault(x => x.IsLoaded && ReferenceEquals(x.Group, first.Group));
+
+        Assert.IsNotNull(afterCollapse, "the collapsed group keeps its header row");
+        Assert.IsFalse(afterCollapse!.IsExpanded);
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task NestedGroups_AreIndentedByLevel()
+    {
+        var tableView = await CreateTableViewAsync(itemCount: 60);
+        tableView.GroupDescriptions.Add(new GroupDescription(nameof(HostItem.Category)));
+        tableView.GroupDescriptions.Add(new GroupDescription(nameof(HostItem.Name)));
+
+        await WaitForLayoutAsync(tableView);
+
+        var headerRows = tableView.FindDescendants().OfType<TableViewGroupRow>().Where(x => x.IsLoaded).ToList();
+
+        Assert.IsTrue(headerRows.Any(x => x.Group?.Level is 0));
+        Assert.IsTrue(headerRows.Any(x => x.Group?.Level is 1));
+
+        foreach (var headerRow in headerRows)
+        {
+            Assert.IsTrue(headerRow.Indent > 0 == headerRow.Group?.Level > 0,
+                "indent should follow the nesting level");
         }
 
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
@@ -173,6 +228,83 @@ public class TableViewRowHostTests
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }
 
+    [UITestMethod]
+    public async Task Grouping_AddsHeaderRowsWithoutChangingItemIndexes()
+    {
+        var tableView = await CreateTableViewAsync(itemCount: 60);
+        tableView.GroupDescriptions.Add(new GroupDescription(nameof(HostItem.Category)));
+
+        await WaitForLayoutAsync(tableView);
+
+        Assert.IsTrue(tableView.IsGrouped);
+        Assert.AreEqual(3, tableView.Groups.Count, "60 items across 3 categories");
+        Assert.AreEqual(60, tableView.Items.Count, "grouping must not change the item count");
+
+        var groupRows = tableView.FindDescendants().OfType<TableViewGroupRow>().Where(x => x.IsLoaded).ToList();
+        Assert.IsTrue(groupRows.Count > 0, "group header rows should be realized");
+        Assert.IsTrue(groupRows.All(x => x.Group is not null));
+
+        // Cell slots still address items, so every realized row's index still points at the item it shows even
+        // though header rows have been interleaved into the visual sequence.
+        var dataRows = RealizedRows(tableView).Where(x => x.Index >= 0).ToList();
+
+        Assert.IsTrue(dataRows.Count > 0, "data rows should be realized alongside the headers");
+
+        foreach (var dataRow in dataRows)
+        {
+            Assert.AreSame(tableView.Items[dataRow.Index], dataRow.Content, $"row {dataRow.Index} shows the wrong item");
+        }
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task CollapsingAGroup_HidesItsRowsAndKeepsSelectionIndexes()
+    {
+        var tableView = await CreateTableViewAsync(itemCount: 60);
+        tableView.GroupDescriptions.Add(new GroupDescription(nameof(HostItem.Category)));
+
+        await WaitForLayoutAsync(tableView);
+
+        tableView.SelectRange(new ItemIndexRange(0, 5));
+        var expandedVisualCount = VisualRowCount(tableView);
+
+        tableView.CollapseGroup(tableView.Groups[0]);
+        await WaitForLayoutAsync(tableView);
+
+        Assert.IsTrue(VisualRowCount(tableView) < expandedVisualCount, "collapsing must shorten the visual sequence");
+        Assert.AreEqual(60, tableView.Items.Count, "collapsing must not change the items");
+        Assert.AreEqual(5, tableView.SelectedItems.Count, "collapsing must not change the selection");
+        Assert.IsTrue(tableView.IsRowSelected(0));
+
+        tableView.ExpandGroup(tableView.Groups[0]);
+        await WaitForLayoutAsync(tableView);
+
+        Assert.AreEqual(expandedVisualCount, VisualRowCount(tableView));
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task CollapseAndExpandAllGroups_Work()
+    {
+        var tableView = await CreateTableViewAsync(itemCount: 60);
+        tableView.GroupDescriptions.Add(new GroupDescription(nameof(HostItem.Category)));
+
+        await WaitForLayoutAsync(tableView);
+
+        tableView.CollapseAllGroups();
+        await WaitForLayoutAsync(tableView);
+
+        Assert.AreEqual(3, VisualRowCount(tableView), "only the three headers should remain");
+
+        tableView.ExpandAllGroups();
+        await WaitForLayoutAsync(tableView);
+
+        Assert.AreEqual(63, VisualRowCount(tableView), "three headers plus sixty items");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
 
     [UITestMethod]
     public async Task AddingAndRemovingOneItem_KeepsTheRealizedSetSmall()
@@ -214,6 +346,12 @@ public class TableViewRowHostTests
     private static List<TableViewRow> RealizedRows(TableView tableView)
     {
         return [.. tableView.FindDescendants().OfType<TableViewRow>().Where(x => x.IsLoaded)];
+    }
+
+    private static int VisualRowCount(TableView tableView)
+    {
+        // Header rows plus visible data rows, which is what the layout works in.
+        return tableView.VisualRowCount;
     }
 
     private static async Task ScrollToAsync(TableView tableView, double verticalOffset)

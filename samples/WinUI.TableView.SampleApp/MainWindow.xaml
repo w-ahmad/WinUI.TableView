@@ -78,6 +78,11 @@
                         <FontIcon Glyph="&#xE8A4;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
+                <NavigationViewItem Content="Grouping">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xF168;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
                 <NavigationViewItem Content="Virtualization">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE9D9;" />

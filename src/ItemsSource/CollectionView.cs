@@ -31,6 +31,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     {
         _filterDescriptions.CollectionChanged += OnFilterDescriptionsCollectionChanged;
         _sortDescriptions.CollectionChanged += OnSortDescriptionsCollectionChanged;
+        _groupDescriptions.CollectionChanged += OnGroupDescriptionsCollectionChanged;
 
         AllowLiveShaping = liveShapingEnabled;
         Source = source ?? new List<object>();
@@ -269,7 +270,8 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
             }
         }
 
-        if (SortDescriptions.Any(sd => string.IsNullOrEmpty(sd.PropertyName) || sd.PropertyName == e.PropertyName))
+        if (SortDescriptions.Any(sd => string.IsNullOrEmpty(sd.PropertyName) || sd.PropertyName == e.PropertyName)
+            || AffectsGrouping(e.PropertyName))
         {
             var oldIndex = _view.IndexOf(item);
 
@@ -280,6 +282,8 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
             }
 
             _view.RemoveAt(oldIndex);
+            OnItemRemovedFromGroups(oldIndex);
+
             var targetIndex = _view.BinarySearch(item, this);
             if (targetIndex < 0)
             {
@@ -292,12 +296,14 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
                 OnVectorChanged(new VectorChangedEventArgs(CollectionChange.ItemRemoved, oldIndex, item));
 
                 _view.Insert(targetIndex, item);
+                OnItemAddedToGroups(targetIndex);
 
                 OnVectorChanged(new VectorChangedEventArgs(CollectionChange.ItemInserted, targetIndex, item));
             }
             else
             {
                 _view.Insert(targetIndex, item);
+                OnItemAddedToGroups(targetIndex);
             }
         }
         else if (string.IsNullOrEmpty(e.PropertyName))
@@ -329,9 +335,11 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
                 _view.AddRange(Source.OfType<object>());
             }
 
-            if (SortDescriptions.Count > 0)
+            if (NeedsSorting)
                 _view.Sort(this);
         }
+
+        RebuildGroups();
 
         OnVectorChanged(new VectorChangedEventArgs(CollectionChange.Reset));
         MoveCurrentTo(currentItem);
@@ -342,6 +350,10 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     /// </summary>
     private void HandleFilterChanged()
     {
+        // Per-item group maintenance would fall back to a full rebuild for every item that starts a new group,
+        // so suspend it and rebuild once at the end.
+        _suspendGroupMaintenance = true;
+
         if (FilterDescriptions.Count > 0)
         {
             for (var index = 0; index < _view.Count; index++)
@@ -375,6 +387,9 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
 
             i++;
         }
+
+        _suspendGroupMaintenance = false;
+        RebuildGroups();
     }
 
     /// <summary>
@@ -382,9 +397,10 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     /// </summary>
     private void HandleSortChanged()
     {
-        if (SortDescriptions.Count > 0)
+        if (NeedsSorting)
         {
             _view.Sort(this);
+            RebuildGroups();
         }
         else
         {
@@ -406,7 +422,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
 
         var newViewIndex = newStartingIndex;
 
-        if (_sortDescriptions.Any())
+        if (NeedsSorting)
         {
             newViewIndex = _view.BinarySearch(newItem!, this);
             if (newViewIndex < 0)
@@ -425,6 +441,8 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
         }
 
         _view.Insert(newViewIndex, newItem!);
+        OnItemAddedToGroups(newViewIndex);
+
         if (newViewIndex <= CurrentPosition)
         {
             CurrentPosition++;
@@ -465,6 +483,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     private void RemoveFromView(int itemIndex, object? item)
     {
         _view.RemoveAt(itemIndex);
+        OnItemRemovedFromGroups(itemIndex);
 
         if (itemIndex <= CurrentPosition)
         {
@@ -670,19 +689,40 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     /// <returns>An integer that indicates the relative order of the objects being compared.</returns>
     public int Compare(object? x, object? y)
     {
-        foreach (var sortDescription in SortDescriptions)
+        // Group keys order the items first, so items land grouped and then sorted within each group.
+        foreach (var groupDescription in _groupDescriptions)
         {
-            var xValue = sortDescription.GetPropertyValue(x);
-            var yValue = sortDescription.GetPropertyValue(y);
-            var cmp = sortDescription.Compare(xValue, yValue);
+            var cmp = Compare(groupDescription, x, y);
 
             if (cmp != 0)
             {
-                return sortDescription.Direction is SortDirection.Ascending ? +cmp : -cmp;
+                return cmp;
+            }
+        }
+
+        foreach (var sortDescription in SortDescriptions)
+        {
+            var cmp = Compare(sortDescription, x, y);
+
+            if (cmp != 0)
+            {
+                return cmp;
             }
         }
 
         return 0;
+    }
+
+    /// <summary>
+    /// Compares two items using a single description, honouring its direction.
+    /// </summary>
+    private static int Compare(SortDescription description, object? x, object? y)
+    {
+        var xValue = description.GetPropertyValue(x);
+        var yValue = description.GetPropertyValue(y);
+        var cmp = description.Compare(xValue, yValue);
+
+        return cmp is 0 ? 0 : description.Direction is SortDirection.Ascending ? +cmp : -cmp;
     }
 
     /// <summary>

@@ -76,6 +76,11 @@ internal static class VisualStates
     /// <summary>
     /// Expanded state
     /// </summary>
+    /// <summary>
+    /// The name of the visual state group holding <see cref="StateExpanded"/> and <see cref="StateCollapsed"/>.
+    /// </summary>
+    public const string GroupExpandCollapse = "ExpandCollapseStates";
+
     public const string StateExpanded = "Expanded";
 
     /// <summary>

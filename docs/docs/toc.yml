@@ -30,6 +30,8 @@
     href: editing.md
   - name: Selection
     href: selection.md
+  - name: Grouping
+    href: grouping.md
 - name: Layout
   items:
   - name: Row Headers

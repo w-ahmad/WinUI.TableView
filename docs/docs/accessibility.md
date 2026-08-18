@@ -12,6 +12,7 @@ You do not need to opt in. Accessibility support is always active. This page exp
 |---|---|
 | [`TableView`](xref:WinUI.TableView.TableView) | `GridPattern`, `TablePattern`, `SelectionPattern`, `ScrollPattern`, `ItemContainerPattern` |
 | [`TableViewRow`](xref:WinUI.TableView.TableViewRow) | `SelectionItemPattern`, `ExpandCollapsePattern` when `RowDetailsVisibilityMode` is `VisibleWhenExpanded` |
+| [`TableViewGroupRow`](xref:WinUI.TableView.TableViewGroupRow) | `ExpandCollapsePattern`, exposed as a `Group` |
 | [`TableViewCell`](xref:WinUI.TableView.TableViewCell) | `GridItemPattern`, `TableItemPattern`, `SelectionItemPattern` |
 | [`TableViewColumnHeader`](xref:WinUI.TableView.TableViewColumnHeader) | `InvokePattern` when [`CanSort`](xref:WinUI.TableView.TableViewColumn.CanSort) is `true` |
 | `TableViewRowHeader` | Structural header element |
