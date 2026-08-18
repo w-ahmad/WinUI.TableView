@@ -1,8 +1,8 @@
-# GitHub Copilot Instructions for WinUI.TableView
+﻿# GitHub Copilot Instructions for WinUI.TableView
 
 ## Project Overview
 
-**WinUI.TableView** is a lightweight and fast data grid control for WinUI 3 apps with support for the Uno Platform. It's derived from `ListView` and provides an Excel-like data table experience with features like column filtering, sorting, editing, and data export.
+**WinUI.TableView** is a lightweight and fast data grid control for WinUI 3 apps with support for the Uno Platform. It derives from `Control` and hosts its rows in an `ItemsRepeater` with a purpose-built virtualizing layout, and provides an Excel-like data table experience with features like column filtering, sorting, editing, and data export.
 
 - **Repository**: https://github.com/w-ahmad/WinUI.TableView
 - **Documentation**: https://w-ahmad.github.io/WinUI.TableView/
@@ -124,7 +124,7 @@ The project supports both WinUI 3 and Uno Platform. When writing platform-specif
 
 ### Core Components
 
-1. **TableView**: Main control derived from ListView
+1. **TableView**: Main control derived from `Control`; owns row virtualization (`Layout/TableViewRowsLayout`), the flattened visual row sequence (`ItemsSource/TableViewVisualRows`) and row selection (`Selection/TableViewSelectionModel`)
 2. **TableViewColumn Types**:
    - TableViewTextColumn
    - TableViewCheckBoxColumn

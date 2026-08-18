@@ -62,7 +62,7 @@ The first page is loaded automatically when the control is displayed; subsequent
 
 ## Controlling when items are loaded
 
-`TableView` derives from `ListView`, so the standard incremental loading properties apply:
+The familiar incremental loading properties are declared on `TableView` itself:
 
 ```xml
 <tv:TableView ItemsSource="{x:Bind Products}"

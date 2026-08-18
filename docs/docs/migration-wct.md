@@ -85,7 +85,7 @@ xmlns:tv="using:WinUI.TableView"
 | [`ColumnReordered`](xref:WinUI.TableView.TableView.ColumnReordered) | [`ColumnReordered`](xref:WinUI.TableView.TableView.ColumnReordered) | Same purpose. |
 | `LoadingRowGroup` | *(no direct equivalent)* | WinUI.TableView supports grouping (see [Grouping](grouping.md)) but has no per-group-header loading event; customize the group header appearance instead via `GroupStyle`/`DefaultGroupStyle`. |
 | *(no equivalent)* | [`Grouping`](xref:WinUI.TableView.TableView.Grouping) | WCT DataGrid has no grouping event. Fires before a column's group/ungroup action runs. |
-| `LoadingRow` | *(no equivalent)* | WinUI.TableView does not have a `LoadingRow` event. Use `ContainerContentChanging` inherited from `ListView`. |
+| `LoadingRow` | *(no equivalent)* | WinUI.TableView does not have a `LoadingRow` event. Use [`CellDoubleTapped`](xref:WinUI.TableView.TableView.CellDoubleTapped) or a conditional cell style for row-level customization. |
 
 ## Sorting
 

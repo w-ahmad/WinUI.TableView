@@ -1,4 +1,4 @@
-<Page x:Class="WinUI.TableView.SampleApp.Pages.ReorderRowsPage"
+﻿<Page x:Class="WinUI.TableView.SampleApp.Pages.ReorderRowsPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:WinUI.TableView.SampleApp"
@@ -11,24 +11,19 @@
 
     <Grid>
         <controls:SamplePresenter Header="Drag, Drop, and Reordering"
-                                  Description="Showcasing how row drag &amp; drop and row reorder functionality works.">
+                                  Description="Row drag and drop is not currently supported. It used to come from the ListView base class; now that TableView hosts its own rows it has to be reimplemented, which is tracked as follow-up work.">
             <controls:SamplePresenter.Example>
                 <tv:TableView x:Name="tableView"
                               ItemsSource="{Binding Items}"
-                              AllowDrop="True"
-                              CanDragItems="True"
-                              CanReorderItems="True"
                               SelectionMode="Single"
                               AutoGeneratingColumn="{x:Bind local:ExampleModelColumnsHelper.OnAutoGeneratingColumns}">
                 </tv:TableView>
             </controls:SamplePresenter.Example>
             <controls:SamplePresenter.Xaml>
                 <x:String xml:space="preserve">
+&lt;!-- Row reorder is not currently supported. --&gt;
 &lt;tv:TableView x:Name="tableView"
     ItemsSource="{Binding Items}"
-    AllowDrop="True"
-    CanDragItems="True"
-    CanReorderItems="True"
     SelectionMode="Single" /&gt;
                 </x:String>
             </controls:SamplePresenter.Xaml>

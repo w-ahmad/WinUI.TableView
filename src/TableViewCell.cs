@@ -1,4 +1,4 @@
-using Microsoft.UI;
+﻿using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
@@ -46,7 +46,6 @@ public partial class TableViewCell : ContentControl
     public TableViewCell()
     {
         DefaultStyleKey = typeof(TableViewCell);
-        ManipulationMode = ManipulationModes.TranslateX | ManipulationModes.TranslateY;
         Loaded += OnLoaded;
 #if WINDOWS
         ContextRequested += OnContextRequested;

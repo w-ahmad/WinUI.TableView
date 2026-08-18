@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <Window x:Class="WinUI.TableView.SampleApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -76,6 +76,11 @@
                 <NavigationViewItem Content="Context Flyouts">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE8A4;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Virtualization">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE9D9;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
                 <NavigationViewItem Content="Row Reorder">

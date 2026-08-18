@@ -34,6 +34,41 @@ internal static class VisualStates
     /// <summary>
     /// Common state group
     /// </summary>
+    /// <summary>
+    /// Identifies the "PointerOverSelected" state of a row.
+    /// </summary>
+    public const string StatePointerOverSelected = "PointerOverSelected";
+
+    /// <summary>
+    /// Identifies the "PressedSelected" state of a row.
+    /// </summary>
+    public const string StatePressedSelected = "PressedSelected";
+
+    /// <summary>
+    /// Identifies the "Enabled" state.
+    /// </summary>
+    public const string StateEnabled = "Enabled";
+
+    /// <summary>
+    /// Identifies the name of the visual state group holding the enabled and disabled states.
+    /// </summary>
+    public const string GroupDisabled = "DisabledStates";
+
+    /// <summary>
+    /// Identifies the "MultiSelectEnabled" state of a row.
+    /// </summary>
+    public const string StateMultiSelectEnabled = "MultiSelectEnabled";
+
+    /// <summary>
+    /// Identifies the "MultiSelectDisabled" state of a row.
+    /// </summary>
+    public const string StateMultiSelectDisabled = "MultiSelectDisabled";
+
+    /// <summary>
+    /// Identifies the name of the visual state group holding the multi-select states.
+    /// </summary>
+    public const string GroupMultiSelect = "MultiSelectStates";
+
     public const string GroupCommon = "CommonStates";
 
     // GroupExpanded

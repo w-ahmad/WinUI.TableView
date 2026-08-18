@@ -1,4 +1,4 @@
-namespace WinUI.TableView.Extensions;
+﻿namespace WinUI.TableView.Extensions;
 
 /// <summary>
 /// Provides extension methods for the TableViewCellSlotRange type.
@@ -166,6 +166,38 @@ internal static class TableViewCellSlotRangeExtensions
                 bottom - top + 1,
                 range.LastColumn - right);
         }
+    }
+
+    /// <summary>
+    /// Subtracts every range in <paramref name="others"/> from <paramref name="range"/> and returns what is left.
+    /// </summary>
+    /// <param name="range">The range to subtract from.</param>
+    /// <param name="others">The ranges to subtract.</param>
+    /// <returns>The disjoint ranges covering the part of <paramref name="range"/> none of the others cover.</returns>
+    public static List<TableViewCellSlotRange> SubtractAll(this TableViewCellSlotRange range,
+                                                          IEnumerable<TableViewCellSlotRange> others)
+    {
+        List<TableViewCellSlotRange> remainder = [range];
+        List<TableViewCellSlotRange> buffer = [];
+
+        foreach (var other in others)
+        {
+            if (remainder.Count is 0)
+            {
+                break;
+            }
+
+            buffer.Clear();
+
+            foreach (var part in remainder)
+            {
+                buffer.AddRange(part.Subtract(other));
+            }
+
+            (remainder, buffer) = (buffer, remainder);
+        }
+
+        return remainder;
     }
 
     /// <summary>

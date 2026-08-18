@@ -1,5 +1,4 @@
-using Microsoft.UI.Xaml.Automation.Peers;
-using System.Collections.Generic;
+﻿using Microsoft.UI.Xaml.Automation.Peers;
 using WinUI.TableView.AutomationPeers;
 
 namespace WinUI.TableView;
@@ -9,11 +8,6 @@ namespace WinUI.TableView;
 /// </summary>
 public partial class TableView
 {
-    /// <summary>
-    /// Gets the currently realized row containers.
-    /// </summary>
-    internal IReadOnlyList<TableViewRow> Rows => _rows;
-
     /// <inheritdoc/>
     protected override AutomationPeer OnCreateAutomationPeer()
     {
