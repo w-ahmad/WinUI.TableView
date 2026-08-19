@@ -436,7 +436,7 @@ public partial class TableView : ListView
             return; 
         }
 
-        OnAnyPointerPressed(this, e);
+        e.Handled = OnAnyPointerPressed(this, e);
     }
 
     /// <inheritdoc/>
@@ -450,7 +450,7 @@ public partial class TableView : ListView
     /// <summary>
     /// Handles pointer-pressed for all cases, including when elements sets <c>e.Handled = true</c>.
     /// </summary>
-    internal void OnAnyPointerPressed(UIElement pressedElement, PointerRoutedEventArgs e)
+    internal bool OnAnyPointerPressed(UIElement pressedElement, PointerRoutedEventArgs e)
     {
         var pointerPoint = e.GetCurrentPoint(this);
         var position = pointerPoint.Position;
@@ -467,7 +467,7 @@ public partial class TableView : ListView
             || (pressedElement != this && canvasPoint.Value.X < CellsHorizontalOffset)  // Skip selection when the pointer is in the row header area (and not on the TableView)
             || isShiftKey)                                                              // Skip selection when the Shift key is held
         {
-            return;
+            return false;
         }
 
         _lastDragCanvasPoint = null;
@@ -484,7 +484,7 @@ public partial class TableView : ListView
         pressedElement ??= this; // If not, default to the TableView itself
 
         SelectionStartCellSlot = (pressedElement as TableViewCell)?.Slot;
-        SelectionStartRowIndex = (pressedElement as TableViewRow)?.Index;
+        SelectionStartRowIndex = (pressedElement as TableViewRow)?.Index ?? SelectionStartCellSlot?.Row;
 
         LastSelectionUnit = SelectionUnit switch
         {
@@ -497,11 +497,14 @@ public partial class TableView : ListView
 
         if (SelectionMode is ListViewSelectionMode.Single)
         {
-            _lastDragCanvasPoint = canvasPoint;
-            MakeSelectionInDragRect();
-            SetCurrentCell(GetSlotAtCanvasPoint(_lastDragCanvasPoint.Value));
+            if (LastSelectionUnit is TableViewSelectionUnit.Cell && SelectionStartCellSlot is not null)
+                MakeSelection(SelectionStartCellSlot.Value, false, false);
+            else if (SelectionStartRowIndex is not null)
+                MakeSelection(new(SelectionStartRowIndex.Value, -1), false, false);
 
-            return;
+            SetCurrentCell(SelectionStartCellSlot);
+
+            return true;
         }
 
         pressedElement.Focus(FocusState.Programmatic);
@@ -524,10 +527,11 @@ public partial class TableView : ListView
             _pointerCaptureElement?.ReleasePointerCaptures();
             _pointerCaptureElement = null;
             _tableViewDragPointer = null;
-            return;
+            return false;
         }
 
         MakeSelectionInDragRect();
+        return true;
     }
 
     /// <inheritdoc/>
@@ -2167,7 +2171,7 @@ public partial class TableView : ListView
     {
         if (_scrollViewer is null) return;
 
-        const double edgeThreshold = 40;
+        const double edgeThreshold = 0;
         const double maxScrollSpeed = 20;
 
         var viewportHeight = _scrollViewer.ViewportHeight;

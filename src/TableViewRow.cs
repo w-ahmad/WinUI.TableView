@@ -200,7 +200,7 @@ public partial class TableViewRow : ListViewItem
     {
         base.OnPointerPressed(e);
 
-        TableView?.OnAnyPointerPressed(this, e);
+        e.Handled = TableView?.OnAnyPointerPressed(this, e) ?? false;
     }
 
     /// <inheritdoc/>

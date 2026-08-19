@@ -423,7 +423,7 @@ public partial class TableViewCell : ContentControl
             return;
         }
 
-        TableView?.OnAnyPointerPressed(this, e);
+        e.Handled = TableView?.OnAnyPointerPressed(this, e) ?? false;
     }
 
     /// <inheritdoc/>
@@ -431,7 +431,7 @@ public partial class TableViewCell : ContentControl
     {
         base.OnPointerReleased(e);
 
-        if(TableView?.SelectionUnit is not TableViewSelectionUnit.Row)
+        if (TableView?.SelectionUnit is not TableViewSelectionUnit.Row)
         {
             e.Handled = true;
         }
