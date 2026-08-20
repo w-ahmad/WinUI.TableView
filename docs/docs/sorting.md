@@ -150,6 +150,10 @@ tableView.ClearSorting += (s, e) =>
 
 Ctrl+Click a column header to add it as a secondary sort. The sort indicators show numbers when multiple columns are sorted.
 
+## Sorting and grouping
+
+Grouping a column also drives its order, so a grouped column shows a sort indicator too. If the column already had its own sort applied before being grouped, that keeps three-state cycling as usual until it's eventually cleared; from that point on (or immediately, if it had no prior sort) the column toggles ascending/descending only, since a group's order always needs a direction. See [Grouping](grouping.md#sorting-and-grouping-together).
+
 ## Checking sort state
 
 ```csharp
@@ -179,6 +183,7 @@ var descriptions = tableView.SortDescriptions; // the active SortDescription lis
 
 ## Related articles
 
+- [Grouping](grouping.md)
 - [Filtering](filtering.md)
 - [Binding data](binding-data.md)
 - [Defining columns](defining-columns.md)

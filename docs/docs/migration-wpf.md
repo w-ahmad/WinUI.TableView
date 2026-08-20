@@ -23,6 +23,7 @@ This guide helps developers who are migrating a WPF application to WinUI 3 and n
 | [`AutoGenerateColumns`](xref:WinUI.TableView.TableView.AutoGenerateColumns) | [`AutoGenerateColumns`](xref:WinUI.TableView.TableView.AutoGenerateColumns) | Same behavior. |
 | [`IsReadOnly`](xref:WinUI.TableView.TableView.IsReadOnly) | [`IsReadOnly`](xref:WinUI.TableView.TableView.IsReadOnly) | Same behavior. Per-column [`IsReadOnly`](xref:WinUI.TableView.TableViewColumn.IsReadOnly) is also supported. |
 | `CanUserSortColumns` | [`CanSortColumns`](xref:WinUI.TableView.TableView.CanSortColumns) | Same behavior. |
+| *(no equivalent)* | [`CanGroupColumns`](xref:WinUI.TableView.TableView.CanGroupColumns) | WPF DataGrid has no built-in column grouping. WinUI.TableView supports multi-level grouping on Windows targets — see [Grouping](grouping.md). |
 | `CanUserReorderColumns` | [`CanReorderColumns`](xref:WinUI.TableView.TableView.CanReorderColumns) | Same behavior. |
 | `CanUserResizeColumns` | [`CanResizeColumns`](xref:WinUI.TableView.TableView.CanResizeColumns) | Same behavior. |
 | [`FrozenColumnCount`](xref:WinUI.TableView.TableView.FrozenColumnCount) | [`FrozenColumnCount`](xref:WinUI.TableView.TableView.FrozenColumnCount) | Same behavior. |
@@ -59,6 +60,7 @@ This guide helps developers who are migrating a WPF application to WinUI 3 and n
 | [`CellEditEnding`](xref:WinUI.TableView.TableView.CellEditEnding) | [`CellEditEnding`](xref:WinUI.TableView.TableView.CellEditEnding) | Same purpose. `EditAction` is `Commit` or `Cancel`. |
 | [`CellEditEnded`](xref:WinUI.TableView.TableView.CellEditEnded) | [`CellEditEnded`](xref:WinUI.TableView.TableView.CellEditEnded) | Fires after commit or cancel. |
 | [`Sorting`](xref:WinUI.TableView.TableView.Sorting) | [`Sorting`](xref:WinUI.TableView.TableView.Sorting) | Same purpose. Set `Handled = true` for custom sort. |
+| *(no equivalent)* | [`Grouping`](xref:WinUI.TableView.TableView.Grouping) | WPF DataGrid has no grouping event. Fires before a column's group/ungroup action runs. |
 | `SelectionChanged` | `SelectionChanged` (inherited) + [`CellSelectionChanged`](xref:WinUI.TableView.TableView.CellSelectionChanged) | `SelectionChanged` is from `ListView`. [`CellSelectionChanged`](xref:WinUI.TableView.TableView.CellSelectionChanged) is new. |
 | [`CurrentCellChanged`](xref:WinUI.TableView.TableView.CurrentCellChanged) | [`CurrentCellChanged`](xref:WinUI.TableView.TableView.CurrentCellChanged) | Similar. |
 | `CopyingRowClipboardContent` | [`CopyToClipboard`](xref:WinUI.TableView.TableView.CopyToClipboard) | Renamed. Set `Handled = true` for custom content. |
@@ -84,7 +86,6 @@ WinUI.TableView bindings also use `Binding="{Binding PropertyName}"` (standard `
 |---|---|
 | Add new row (NewItemPlaceholder) | ❌ Not supported |
 | Delete row (Del key) | ❌ Not supported — implement in a context flyout |
-| Row grouping | ❌ Not supported |
 | Cell and row validation | ❌ No built-in validation — use [`BeginningEdit`](xref:WinUI.TableView.TableView.BeginningEdit) / [`CellEditEnding`](xref:WinUI.TableView.TableView.CellEditEnding) |
 | Row resize | ❌ Not supported |
 | `DataGridRowHeader` custom style | ⚠️ Use [`RowHeaderTemplate`](xref:WinUI.TableView.TableView.RowHeaderTemplate) instead |
@@ -112,3 +113,4 @@ xmlns:tv="using:WinUI.TableView"
 - [Migrating from WCT DataGrid](migration-wct.md)
 - [Feature comparison](datagrid-feature-comparison.md)
 - [Getting started](getting-started.md)
+- [Grouping](grouping.md)

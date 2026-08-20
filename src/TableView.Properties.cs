@@ -625,9 +625,9 @@ public partial class TableView
 
     /// <summary>
     /// Gets or sets the default <see cref="Microsoft.UI.Xaml.Controls.GroupStyle"/> used when the consumer hasn't
-    /// added one to <see cref="ListViewBase.GroupStyle"/> themselves. Set from the default style; there's normally
+    /// added one to <c>ListViewBase.GroupStyle</c> themselves. Set from the default style; there's normally
     /// no need to set this directly. It's a plain property (rather than being applied via <c>GroupStyleSelector</c>)
-    /// because <c>GroupStyleSelector</c>, once set, always takes priority over <see cref="ListViewBase.GroupStyle"/>
+    /// because <c>GroupStyleSelector</c>, once set, always takes priority over <c>ListViewBase.GroupStyle</c>
     /// regardless of whether the consumer added their own entries, which would make overriding it impossible.
     /// </summary>
     public GroupStyle? DefaultGroupStyle
@@ -648,8 +648,9 @@ public partial class TableView
 
     /// <summary>
     /// Gets or sets a value indicating whether a group header shows its expand/collapse button. When
-    /// <see langword="false"/>, groups can still be toggled programmatically (e.g. <see cref="CollectionView.ToggleGroup"/>)
-    /// or start collapsed/expanded via <see cref="DefaultGroupState"/> - only the button is hidden.
+    /// <see langword="false"/>, groups can still be toggled programmatically (e.g. by setting
+    /// <see cref="TableViewGroupInfo.IsExpanded"/> directly) or start collapsed/expanded via
+    /// <see cref="DefaultGroupState"/> - only the button is hidden.
     /// </summary>
     public bool ShowGroupExpandCollapseButton
     {

@@ -24,6 +24,8 @@
   items:
   - name: Sorting
     href: sorting.md
+  - name: Grouping
+    href: grouping.md
   - name: Filtering
     href: filtering.md
   - name: Editing

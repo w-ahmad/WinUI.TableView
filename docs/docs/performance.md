@@ -63,6 +63,10 @@ ctx.DataItem is Product p && p.Tags.Any(t => t.StartsWith("clearance"))
 
 Filtering and sorting operate on the internal collection view. These run on the UI thread. For very large collections (100,000+ items), consider pre-filtering in your ViewModel before setting [`ItemsSource`](xref:WinUI.TableView.TableView.ItemsSource).
 
+## Grouping
+
+Grouping (Windows only) rebuilds group headers from the full filtered/sorted item set on every regroup, add, remove, or expand/collapse toggle. Collapsing a group removes its items from the view entirely, which reduces the number of rows virtualization has to realize - collapsing large groups by default (`DefaultGroupState="Collapsed"`, the default) can improve initial render time for grouped data. See [Grouping](grouping.md).
+
 ## Refreshing the view after bulk data changes
 
 When you modify items in your source collection in-place (e.g., changing a property without `INotifyPropertyChanged`, or replacing items in a `List<T>`) the view may not update automatically. Use the refresh methods to force the control to re-evaluate:
@@ -112,4 +116,5 @@ On Uno Platform targets, data binding and layout passes may have slightly differ
 - [Binding data](binding-data.md)
 - [Filtering](filtering.md)
 - [Sorting](sorting.md)
+- [Grouping](grouping.md)
 - [Conditional cell styling](conditional-styling.md)

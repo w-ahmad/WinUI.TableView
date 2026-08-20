@@ -166,12 +166,14 @@ To override the automation name of a column header (for example, to provide a lo
 - **IValueProvider on cells**: `IValueProvider` is not implemented on the cell peer. Instead, the editing element (for example, a `TextBox`) exposes `IValueProvider` while the cell is in edit mode.
 - **Custom column types**: cells in `TableViewTemplateColumn` show developer-defined content. Accessible names for those cells default to the column header and row index unless the template explicitly sets `AutomationProperties.Name`.
 - **Non-Windows platforms**: automation peers are compiled and run on all platforms (WinUI and Uno Platform). However, not all Uno Platform targets expose a full UIA tree to assistive technologies. On WebAssembly (WASM), the platform relies on ARIA attributes managed by Uno. On Desktop Skia targets, accessibility support depends on the native platform's accessibility APIs.
+- **Group headers**: [`TableViewGroupHeaderRow`](xref:WinUI.TableView.TableViewGroupHeaderRow) does not have a dedicated automation peer; it relies on the base `ListViewHeaderItem` automation behavior. Its default automation name is derived from the group's key ([`TableViewGroupInfo.Key`](xref:WinUI.TableView.TableViewGroupInfo.Key)), not the item count shown in the UI.
 
 ## Related articles
 
 - [Selection](selection.md)
 - [Editing](editing.md)
 - [Sorting](sorting.md)
+- [Grouping](grouping.md)
 - [Filtering](filtering.md)
 - [Row details](row-details.md)
 - [Row headers](row-headers.md)

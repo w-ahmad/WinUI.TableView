@@ -79,6 +79,7 @@ Explore interactive samples with code snippets in the Samples App on Microsoft S
 | [Auto-generating columns](docs/defining-columns.md) | Automatically generate columns based on the data source properties |
 | [Column types](docs/column-types.md) | Text, Number, CheckBox, ComboBox, ToggleSwitch, Date, Time, Hyperlink, Template |
 | [Sorting](docs/sorting.md) | Built-in column sorting with sort direction indicators |
+| [Grouping](docs/grouping.md) | Multi-level column grouping with expand/collapse (Windows only) |
 | [Filtering](docs/filtering.md) | Excel-like column filter flyout |
 | [Editing](docs/editing.md) | Double-tap a cell to edit; full editing lifecycle events |
 | [Selection](docs/selection.md) | Row, cell, or combined selection modes |
