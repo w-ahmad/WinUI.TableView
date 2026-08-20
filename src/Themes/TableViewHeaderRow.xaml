@@ -1,6 +1,7 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:local="using:WinUI.TableView">
+                    xmlns:local="using:WinUI.TableView"
+                    xmlns:win="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
 
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/Resources.xaml" />
@@ -159,6 +160,7 @@
                                         <MenuFlyoutSeparator />
                                         <MenuFlyoutItem x:Name="ClearSortingMenuItem" />
                                         <MenuFlyoutItem x:Name="ClearFilterMenuItem" />
+                                        <win:MenuFlyoutItem x:Name="UngroupAllMenuItem" />
                                         <MenuFlyoutSeparator Visibility="{Binding Visibility, ElementName=ExportAllMenuItem}" />
                                         <MenuFlyoutItem x:Name="ExportAllMenuItem">
                                             <MenuFlyoutItem.Icon>

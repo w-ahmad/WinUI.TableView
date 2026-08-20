@@ -1,7 +1,8 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="using:WinUI.TableView"
-                    xmlns:controls="using:WinUI.TableView.Controls">
+                    xmlns:controls="using:WinUI.TableView.Controls"
+                    xmlns:win="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
 
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/Resources.xaml" />
@@ -133,6 +134,12 @@
                                         <local:TableViewFilterMenuFlyout x:Name="OptionsFlyout"
                                                                          Placement="Bottom">
                                             <local:TableViewFilterMenuFlyout.Items>
+                                                <win:MenuFlyoutItem x:Name="GroupMenuItem">
+                                                    <win:MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xF168;" />
+                                                    </win:MenuFlyoutItem.Icon>
+                                                </win:MenuFlyoutItem>
+                                                <MenuFlyoutSeparator />
                                                 <MenuFlyoutItem x:Name="SortAscendingMenuItem">
                                                     <MenuFlyoutItem.Icon>
                                                         <FontIcon Glyph="&#xf0ad;" />

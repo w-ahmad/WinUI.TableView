@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Text;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
+using Windows.Foundation.Collections;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.System;
@@ -30,7 +31,7 @@ public partial class TableView : ListView
     private TableViewHeaderRow? _headerRow;
     private ScrollViewer? _scrollViewer;
     private RowDefinition? _headerRowDefinition;
-    private bool _shouldThrowSelectionModeChangedException;
+    private bool _shouldThrowBaseProeprtyChangedException = true;
     private bool _ensureColumns = true;
     private bool _isItemsSourceSuspended;
     private readonly List<TableViewRow> _rows = [];
@@ -55,6 +56,10 @@ public partial class TableView : ListView
     private readonly List<TableViewCell> _resizingPreviewCells = [];
     private readonly List<TableViewCell> _resizingDownstreamCells = [];
     private readonly List<(Panel Panel, TranslateTransform Shift)> _resizingScrollableShifts = [];
+    // private bool _isScrollingRowIntoView;
+#if WINDOWS
+    private readonly List<TableViewGroupHeaderRow> _groupHeaderRows = [];
+#endif
 
     /// <summary>
     /// Initializes a new instance of the TableView class.
@@ -77,7 +82,82 @@ public partial class TableView : ListView
         Unloaded += OnUnloaded;
         SelectionChanged += TableView_SelectionChanged;
         _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
+#if WINDOWS
+        _collectionView.VectorChanged += OnCollectionViewVectorChanged;
+        _collectionView.PropertyChanging += OnCollectionViewPropertyChanging;
+        _collectionView.PropertyChanged += OnCollectionViewPropertyChanged;
+        ChoosingGroupHeaderContainer += OnChoosingGroupHeaderContainer;
     }
+
+    /// <summary>
+    /// Handles the PropertyChanging event of the CollectionView.
+    /// </summary>
+    private void OnCollectionViewPropertyChanging(object? sender, PropertyChangingEventArgs e)
+    {
+        if (e.PropertyName == nameof(CollectionView.CollectionGroups))
+        {
+            _collectionView.CollectionGroups?.VectorChanged -= OnCollectionViewGroupDescriptionsChanged;
+        }
+    }
+
+    /// <summary>
+    /// Handles the PropertyChanged event of the CollectionView.
+    /// </summary>
+    private async void OnCollectionViewPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(CollectionView.CollectionGroups))
+        {
+            _collectionView.CollectionGroups?.VectorChanged += OnCollectionViewGroupDescriptionsChanged;
+
+            _shouldThrowBaseProeprtyChangedException = false;
+            base.ItemsSource = null;
+            await Task.Yield();
+            base.ItemsSource = _collectionView;
+            _shouldThrowBaseProeprtyChangedException = true;
+        }
+    }
+
+    /// <summary>
+    /// Handles the VectorChanged event of the CollectionGroups collection in the CollectionView.
+    /// </summary>
+    private void OnCollectionViewGroupDescriptionsChanged(IObservableVector<object> sender, IVectorChangedEventArgs args)
+    {
+        if (args.CollectionChange is CollectionChange.Reset)
+        {
+            DeselectAll();
+        }
+    }
+
+    /// <summary>
+    /// Refreshes every currently realized row's group indent on a Reset - covers a regroup/collapse/expand
+    /// toggle, which changes GroupDescriptions.Count or which rows are visible without necessarily going
+    /// through PrepareContainerForItemOverride for rows that were already realized. Also re-targets
+    /// <see cref="CurrentCellSlot"/> at the same underlying item - toggling any group reshuffles every
+    /// index after it, so the row a previously-set current cell points at can silently become a different
+    /// item once other groups expand or collapse around it.
+    /// </summary>
+    private void OnCollectionViewVectorChanged(IObservableVector<object> sender, IVectorChangedEventArgs args)
+    {
+        if (args.CollectionChange != CollectionChange.Reset) return;
+
+        foreach (var row in _rows)
+        {
+            row.RowPresenter?.SetGroupIndent();
+        }
+    }
+
+    private void OnChoosingGroupHeaderContainer(ListViewBase sender, ChoosingGroupHeaderContainerEventArgs args)
+    {
+        if (args.GroupHeaderContainer is not TableViewGroupHeaderRow)
+        {
+            var groupRow = new TableViewGroupHeaderRow { TableView = this };
+            _groupHeaderRows.Add(groupRow);
+            args.GroupHeaderContainer = groupRow;
+        }
+    }
+#else
+    }
+#endif
 
     /// <summary>
     /// Handles the SelectionChanged event of the TableView control.
@@ -117,7 +197,12 @@ public partial class TableView : ListView
 
         if (SelectedItems?.Count == 1)
         {
-            DispatcherQueue.TryEnqueue(async () => await ScrollRowIntoView(SelectedIndex));
+            //// Items.IndexOf(SelectedItem), not SelectedIndex: once grouped, a grouped ListViewBase's own
+            //// SelectedIndex has been observed resolving against a different (and inconsistent) index space
+            //// than Items - passing that straight into ScrollRowIntoView's Items[index] lookup could hand it
+            //// an entirely unrelated item to scroll to.
+            //var index = Items.IndexOf(SelectedItem);
+            //DispatcherQueue.TryEnqueue(async () => await ScrollRowIntoView(index));
         }
     }
 
@@ -173,6 +258,7 @@ public partial class TableView : ListView
                 }
 
                 row.RowPresenter?.ApplyDetailsPaneState(item);
+                row.RowPresenter?.SetGroupIndent();
 
                 if (CurrentCellSlot.HasValue)
                 {
@@ -433,7 +519,7 @@ public partial class TableView : ListView
             || originalSource?.FindAscendant<TableViewCell>() is not null   // Skip if the pointer is over a TableViewCell.
             || originalSource?.FindAscendant<TableViewRow>() is not null)   // Skip if the pointer is over a TableViewRow.
         {
-            return; 
+            return;
         }
 
         e.Handled = OnAnyPointerPressed(this, e);
@@ -931,10 +1017,8 @@ public partial class TableView : ListView
 
             var row = (LastSelectionUnit is TableViewSelectionUnit.Row ? CurrentRowIndex : CurrentCellSlot?.Row) ?? -1;
             var column = CurrentCellSlot?.Column ?? -1;
-
-            var numRows = CollectionView.Count;
             var nextRow = e.Key == VirtualKey.PageDown
-                ? Math.Min(numRows - 1, row + pageSize)
+                ? Math.Min(Items.Count - 1, row + pageSize)
                 : Math.Max(0, row - pageSize);
 
             var newSlot = new TableViewCellSlot(nextRow, column);
@@ -1021,10 +1105,34 @@ public partial class TableView : ListView
             while (ItemsPanelRoot is null) await Task.Yield();
 
             EnsureAutoColumns();
+#if WINDOWS
+            ApplyStickyGroupHeadersSetting();
+        }
+
+        // GroupStyle is a get-only collection, so it can only be populated (never Setter-assigned); this default
+        // only applies when the consumer hasn't already added their own entry.
+        if (GroupStyle.Count == 0 && DefaultGroupStyle is { } defaultGroupStyle)
+        {
+            GroupStyle.Add(defaultGroupStyle);
+#endif
         }
 
         SetHeadersVisibility();
     }
+
+#if WINDOWS
+    /// <summary>
+    /// Applies <see cref="AreStickyGroupHeadersEnabled"/> to the underlying <see cref="ItemsStackPanel"/>, if the
+    /// current <see cref="ItemsPanelRoot"/> is one.
+    /// </summary>
+    private void ApplyStickyGroupHeadersSetting()
+    {
+        if (ItemsPanelRoot is ItemsStackPanel panel)
+        {
+            panel.AreStickyGroupHeadersEnabled = AreStickyGroupHeadersEnabled;
+        }
+    }
+#endif
 
     /// <summary>
     /// Handles the ViewChanged event of the ScrollViewer control, updating the position of each row when the view changes.
@@ -1070,6 +1178,9 @@ public partial class TableView : ListView
 
         ResumeItemsSource();
         EnsureAutoColumns();
+#if WINDOWS
+        ApplyStickyGroupHeadersSetting();
+#endif
     }
 
     /// <summary>
@@ -1658,6 +1769,21 @@ public partial class TableView : ListView
         FilterHandler.ClearFilter(null);
     }
 
+#if WINDOWS
+    /// <summary>
+    /// Removes all grouping applied to the items.
+    /// </summary>
+    public void UngroupAll()
+    {
+        foreach (var column in _collectionView.GroupDescriptions.OfType<ColumnGroupDescription>().Select(x => x.Column))
+        {
+            column.SortDirection = null;
+        }
+
+        _collectionView.GroupDescriptions.Clear();
+    }
+#endif
+
     /// <summary>
     /// Refreshes all applied filters.
     /// </summary>
@@ -1691,7 +1817,11 @@ public partial class TableView : ListView
                     break;
                 case ListViewSelectionMode.Multiple:
                 case ListViewSelectionMode.Extended:
-                    SelectRange(new ItemIndexRange(0, (uint)Items.Count));
+                    if (Items.Count > 0)
+                    {
+                        SelectRange(new ItemIndexRange(0, (uint)Items.Count));
+                    }
+
                     break;
             }
         }
@@ -1763,10 +1893,12 @@ public partial class TableView : ListView
     /// </summary>
     private void DeselectAllCells()
     {
-        if (SelectedCellRanges.Count is 0) return;
+        if (SelectedCellRanges.Count > 0)
+        {
+            SelectedCellRanges.Clear();
+            OnCellSelectionChanged();
+        }
 
-        SelectedCellRanges.Clear();
-        OnCellSelectionChanged();
         CurrentCellSlot = null;
     }
 
@@ -2001,6 +2133,14 @@ public partial class TableView : ListView
         {
             return;
         }
+
+        //// This runs from CurrentCellSlot's DependencyProperty changed callback, which fires synchronously
+        //// as part of CurrentCellSlot's own SetValue call. Without yielding first, everything below - down
+        //// through ScrollCellIntoView's native ScrollIntoView call - executes re-entrantly on that same
+        //// native SetValue call stack, which crashes the process outright (an unhandled native exception,
+        //// not a catchable .NET one). Yielding lets that SetValue call fully unwind before touching XAML's
+        //// scroll/layout machinery again.
+        //await Task.Yield();
 
         if (oldSlot.HasValue)
         {
@@ -2601,7 +2741,7 @@ public partial class TableView : ListView
     /// </summary>
     private void UpdateBaseSelectionMode()
     {
-        _shouldThrowSelectionModeChangedException = true;
+        _shouldThrowBaseProeprtyChangedException = false;
         base.SelectionMode = SelectionUnit is TableViewSelectionUnit.Cell ? ListViewSelectionMode.None : SelectionMode;
 
         UpdateHorizontalScrollBarMargin();
@@ -2614,7 +2754,7 @@ public partial class TableView : ListView
 
         }
 
-        _shouldThrowSelectionModeChangedException = false;
+        _shouldThrowBaseProeprtyChangedException = true;
     }
 
     /// <summary>
@@ -2628,6 +2768,13 @@ public partial class TableView : ListView
         {
             row.RowPresenter?.EnsureGridLines();
         }
+
+#if WINDOWS
+        foreach (var groupHeaderRow in _groupHeaderRows)
+        {
+            groupHeaderRow.EnsureGridLines();
+        }
+#endif
     }
 
     /// <summary>

@@ -17,6 +17,9 @@ partial class TableViewHeaderRow
     private readonly StandardUICommand _copyWithHeadersCommand = new() { Label = TableViewLocalizedStrings.CopyWithHeaders };
     private readonly StandardUICommand _clearSortingCommand = new() { Label = TableViewLocalizedStrings.ClearSorting };
     private readonly StandardUICommand _clearFilterCommand = new() { Label = TableViewLocalizedStrings.ClearFilter };
+#if WINDOWS
+    private readonly StandardUICommand _ungroupAllCommand = new() { Label = "Ungroup All" };
+#endif
     private readonly StandardUICommand _exportAllToCSVCommand = new() { Label = TableViewLocalizedStrings.ExportAll };
     private readonly StandardUICommand _exportSelectedToCSVCommand = new() { Label = TableViewLocalizedStrings.ExportSelected };
 
@@ -52,6 +55,10 @@ partial class TableViewHeaderRow
             clearSortingMenuItem.Command = _clearSortingCommand;
         if (GetTemplateChild("ClearFilterMenuItem") is MenuFlyoutItem clearFilterMenuItem)
             clearFilterMenuItem.Command = _clearFilterCommand;
+#if WINDOWS
+        if (GetTemplateChild("UngroupAllMenuItem") is MenuFlyoutItem ungroupAllMenuItem)
+            ungroupAllMenuItem.Command = _ungroupAllCommand;
+#endif
         if (GetTemplateChild("ExportAllMenuItem") is MenuFlyoutItem exportAllMenuItem)
         {
             _exportAllMenuItem = exportAllMenuItem;
@@ -99,6 +106,11 @@ partial class TableViewHeaderRow
 
         _clearFilterCommand.ExecuteRequested += delegate { TableView?.FilterHandler.ClearFilter(default); };
         _clearFilterCommand.CanExecuteRequested += CanExecuteClearFilterCommand;
+
+#if WINDOWS
+        _ungroupAllCommand.ExecuteRequested += delegate { TableView?.UngroupAll(); };
+        _ungroupAllCommand.CanExecuteRequested += CanExecuteUngroupAllCommand;
+#endif
 
         _exportAllToCSVCommand.ExecuteRequested += delegate { TableView?.ExportAllToCSV(); };
 
@@ -155,6 +167,13 @@ partial class TableViewHeaderRow
     {
         e.CanExecute = TableView?.IsEditing is false && TableView.IsFiltered;
     }
+
+#if WINDOWS
+    private void CanExecuteUngroupAllCommand(XamlUICommand sender, CanExecuteRequestedEventArgs e)
+    {
+        e.CanExecute = TableView?.IsEditing is false && TableView.IsGrouped;
+    }
+#endif
 
     private void CanExecuteExportSelectedToCSVCommand(XamlUICommand sender, CanExecuteRequestedEventArgs e)
     {

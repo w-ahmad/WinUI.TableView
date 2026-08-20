@@ -13,7 +13,7 @@ internal class ColumnSortDescription : SortDescription
     /// <param name="direction">The direction of the sort.</param>
     public ColumnSortDescription(TableViewColumn column,
                                  string? propertyName,
-                                 SortDirection direction)
+                                 SortDirection direction = SortDirection.Ascending)
         : base(propertyName!, direction, null, null)
     {
         Column = column;

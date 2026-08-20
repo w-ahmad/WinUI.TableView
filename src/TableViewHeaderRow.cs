@@ -33,6 +33,7 @@ public partial class TableViewHeaderRow : Control
     private Button? _optionsButton;
     private Button? _selectAllButton;
     private CheckBox? _selectAllCheckBox;
+    private bool _isSyncingSelectAllCheckBox;
     private Rectangle? _v_gridLine;
     private Rectangle? _h_gridLine;
     private StackPanel? _frozenHeadersPanel;
@@ -375,6 +376,13 @@ public partial class TableViewHeaderRow : Control
     {
         if (TableView is not null && _selectAllCheckBox is not null)
         {
+            // Setting IsChecked below can itself raise Checked/Unchecked (WinUI doesn't distinguish a
+            // programmatic set from a user click) - those handlers call back into TableView.SelectAll()/
+            // DeselectAll(), which re-enters this same method via the resulting SelectionChanged, and so on
+            // forever until the stack overflows. _isSyncingSelectAllCheckBox marks this update as our own
+            // so OnSelectAllCheckBoxChecked/Unchecked can ignore it instead of re-triggering selection.
+            _isSyncingSelectAllCheckBox = true;
+
             if (TableView.Items.Count == 0)
             {
                 _selectAllCheckBox.IsChecked = null;
@@ -395,6 +403,8 @@ public partial class TableViewHeaderRow : Control
                 _selectAllCheckBox.IsChecked = false;
                 _selectAllCheckBox.IsEnabled = true;
             }
+
+            _isSyncingSelectAllCheckBox = false;
         }
     }
 
@@ -475,6 +485,11 @@ public partial class TableViewHeaderRow : Control
     /// </summary>
     private void OnSelectAllCheckBoxChecked(object sender, RoutedEventArgs e)
     {
+        // Ignore our own programmatic update from OnTableViewSelectionChanged - only react to a real
+        // user click, otherwise this and DeselectAll() below recurse into each other via SelectionChanged
+        // until the stack overflows.
+        if (_isSyncingSelectAllCheckBox) return;
+
         TableView?.SelectAll();
     }
 
@@ -483,6 +498,8 @@ public partial class TableViewHeaderRow : Control
     /// </summary>
     private void OnSelectAllCheckBoxUnchecked(object sender, RoutedEventArgs e)
     {
+        if (_isSyncingSelectAllCheckBox) return;
+
         TableView?.DeselectAll();
     }
 

@@ -21,7 +21,7 @@ public class SortDescription
     /// <param name="comparer">An optional comparer to use for sorting.</param>
     /// <param name="valueDelegate">An optional delegate to extract the value to sort by.</param>
     public SortDescription(string? propertyName,
-                           SortDirection direction,
+                           SortDirection direction = SortDirection.Ascending,
                            IComparer? comparer = null,
                            Func<object?, object?>? valueDelegate = null)
     {
@@ -71,9 +71,9 @@ public class SortDescription
     public string? PropertyName { get; }
 
     /// <summary>
-    /// Gets the direction of the sort.
+    /// Gets or sets the direction of the sort.
     /// </summary>
-    public SortDirection Direction { get; }
+    public SortDirection Direction { get; set; }
 
     /// <summary>
     /// Gets the comparer to use for sorting.

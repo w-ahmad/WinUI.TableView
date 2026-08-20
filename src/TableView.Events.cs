@@ -147,6 +147,22 @@ partial class TableView
         CellContextFlyoutOpening?.Invoke(this, args);
     }
 
+#if WINDOWS
+    /// <summary>
+    /// Occurs when a grouping is being applied to a column in the TableView.
+    /// </summary>
+    public event EventHandler<TableViewGroupingEventArgs>? Grouping;
+
+    /// <summary>
+    /// Called before the <see cref="Grouping"/> event occurs.
+    /// </summary>
+    /// <param name="args">Handleable event args.</param>
+    protected internal virtual void OnGrouping(TableViewGroupingEventArgs args)
+    {
+        Grouping?.Invoke(this, args);
+    }
+#endif
+
     /// <summary>
     /// Occurs when a sorting is being applied to a column in the TableView.
     /// </summary>
