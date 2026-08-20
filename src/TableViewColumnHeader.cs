@@ -350,6 +350,9 @@ public partial class TableViewColumnHeader : ContentControl
     {
         base.OnDoubleTapped(e);
 
+        // Commit any in-progress resize first, so that the double-tap can reset the width to auto without.
+        CommitResize();
+
         if (!IsSizingCursor || _tableView is null)
         {
             return;
