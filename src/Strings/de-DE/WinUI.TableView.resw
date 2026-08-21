@@ -189,4 +189,13 @@
   <data name="Filtered" xml:space="preserve">
     <value>Gefiltert</value>
   </data>
+  <data name="Group" xml:space="preserve">
+    <value>Gruppieren</value>
+  </data>
+  <data name="Ungroup" xml:space="preserve">
+    <value>Gruppierung aufheben</value>
+  </data>
+  <data name="UngroupAll" xml:space="preserve">
+    <value>Alle Gruppierungen aufheben</value>
+  </data>
 </root>

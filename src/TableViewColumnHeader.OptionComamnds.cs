@@ -8,7 +8,7 @@ partial class TableViewColumnHeader
 {
     private bool _commandsInitialized;
 #if WINDOWS
-    private readonly StandardUICommand _groupCommand = new() { Label = "Group" }; 
+    private readonly StandardUICommand _groupCommand = new() { Label = TableViewLocalizedStrings.Group };
 #endif
     private readonly StandardUICommand _sortAscendingCommand = new() { Label = TableViewLocalizedStrings.SortAscending };
     private readonly StandardUICommand _sortDescendingCommand = new() { Label = TableViewLocalizedStrings.SortDescending };
@@ -51,7 +51,7 @@ partial class TableViewColumnHeader
         _groupCommand.CanExecuteRequested += (_, e) =>
         {
             e.CanExecute = CanGroup;
-            _groupCommand.Label = IsGrouped ? "Ungroup" : "Group";
+            _groupCommand.Label = IsGrouped ? TableViewLocalizedStrings.Ungroup : TableViewLocalizedStrings.Group;
         };
 #endif
 

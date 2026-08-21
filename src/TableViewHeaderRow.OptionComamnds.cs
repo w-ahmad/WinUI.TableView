@@ -18,7 +18,7 @@ partial class TableViewHeaderRow
     private readonly StandardUICommand _clearSortingCommand = new() { Label = TableViewLocalizedStrings.ClearSorting };
     private readonly StandardUICommand _clearFilterCommand = new() { Label = TableViewLocalizedStrings.ClearFilter };
 #if WINDOWS
-    private readonly StandardUICommand _ungroupAllCommand = new() { Label = "Ungroup All" };
+    private readonly StandardUICommand _ungroupAllCommand = new() { Label = TableViewLocalizedStrings.UngroupAll };
 #endif
     private readonly StandardUICommand _exportAllToCSVCommand = new() { Label = TableViewLocalizedStrings.ExportAll };
     private readonly StandardUICommand _exportSelectedToCSVCommand = new() { Label = TableViewLocalizedStrings.ExportSelected };

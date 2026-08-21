@@ -189,4 +189,13 @@
   <data name="Filtered" xml:space="preserve">
     <value>Filtered</value>
   </data>
+  <data name="Group" xml:space="preserve">
+    <value>Group</value>
+  </data>
+  <data name="Ungroup" xml:space="preserve">
+    <value>Ungroup</value>
+  </data>
+  <data name="UngroupAll" xml:space="preserve">
+    <value>Ungroup All</value>
+  </data>
 </root>

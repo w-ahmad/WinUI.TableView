@@ -189,4 +189,13 @@
   <data name="Filtered" xml:space="preserve">
     <value>Filtrované</value>
   </data>
+  <data name="Group" xml:space="preserve">
+    <value>Zoskupiť</value>
+  </data>
+  <data name="Ungroup" xml:space="preserve">
+    <value>Zrušiť Zoskupenie</value>
+  </data>
+  <data name="UngroupAll" xml:space="preserve">
+    <value>Zrušiť Všetky Zoskupenia</value>
+  </data>
 </root>
