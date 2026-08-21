@@ -1741,6 +1741,14 @@ public partial class TableView : ListView
 
         foreach (var column in Columns.Where(c => c.SortDirection is not null))
         {
+#if WINDOWS
+            // A grouped column's SortDirection mirrors its group's own order, not an independent sort -
+            // sorting a different column shouldn't strip its indicator or desync it from the group.
+            if (_collectionView.GroupDescriptions.Any(x => x is ColumnGroupDescription columnGroup && columnGroup.Column == column))
+            {
+                continue;
+            }
+#endif
             column?.SortDirection = null;
         }
     }
