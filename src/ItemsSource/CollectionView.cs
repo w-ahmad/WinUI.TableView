@@ -464,7 +464,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
                 Level = level,
                 GroupPath = groupPath,
                 Description = description,
-                Count = group.Count(),
+                Count = groupedItems.Count,
                 IsExpanded = isExpanded,
                 CollectionView = this,
             };

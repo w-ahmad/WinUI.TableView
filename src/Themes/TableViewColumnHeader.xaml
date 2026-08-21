@@ -139,7 +139,7 @@
                                                         <FontIcon Glyph="&#xF168;" />
                                                     </win:MenuFlyoutItem.Icon>
                                                 </win:MenuFlyoutItem>
-                                                <MenuFlyoutSeparator />
+                                                <win:MenuFlyoutSeparator />
                                                 <MenuFlyoutItem x:Name="SortAscendingMenuItem">
                                                     <MenuFlyoutItem.Icon>
                                                         <FontIcon Glyph="&#xf0ad;" />

@@ -197,12 +197,8 @@ public partial class TableView : ListView
 
         if (SelectedItems?.Count == 1)
         {
-            //// Items.IndexOf(SelectedItem), not SelectedIndex: once grouped, a grouped ListViewBase's own
-            //// SelectedIndex has been observed resolving against a different (and inconsistent) index space
-            //// than Items - passing that straight into ScrollRowIntoView's Items[index] lookup could hand it
-            //// an entirely unrelated item to scroll to.
-            //var index = Items.IndexOf(SelectedItem);
-            //DispatcherQueue.TryEnqueue(async () => await ScrollRowIntoView(index));
+            var index = Items.IndexOf(SelectedItem);
+            DispatcherQueue.TryEnqueue(async () => await ScrollRowIntoView(index));
         }
     }
 
@@ -1783,12 +1779,19 @@ public partial class TableView : ListView
     /// </summary>
     public void UngroupAll()
     {
-        foreach (var column in _collectionView.GroupDescriptions.OfType<ColumnGroupDescription>().Select(x => x.Column))
+        var groupedColumns = _collectionView.GroupDescriptions.OfType<ColumnGroupDescription>().Select(x => x.Column).ToList();
+
+        foreach (var column in groupedColumns)
         {
             column.SortDirection = null;
         }
 
         _collectionView.GroupDescriptions.Clear();
+
+        // A column can still have an independent ColumnSortDescription mirroring its group's order (see
+        // HasGroupSortCompanion) - without removing it too, the view would stay sorted by that column even
+        // though its SortDirection indicator above was just cleared.
+        _collectionView.SortDescriptions.RemoveWhere(x => x is ColumnSortDescription columnSort && groupedColumns.Contains(columnSort.Column));
     }
 #endif
 
@@ -2142,13 +2145,13 @@ public partial class TableView : ListView
             return;
         }
 
-        //// This runs from CurrentCellSlot's DependencyProperty changed callback, which fires synchronously
-        //// as part of CurrentCellSlot's own SetValue call. Without yielding first, everything below - down
-        //// through ScrollCellIntoView's native ScrollIntoView call - executes re-entrantly on that same
-        //// native SetValue call stack, which crashes the process outright (an unhandled native exception,
-        //// not a catchable .NET one). Yielding lets that SetValue call fully unwind before touching XAML's
-        //// scroll/layout machinery again.
-        //await Task.Yield();
+        // This runs from CurrentCellSlot's DependencyProperty changed callback, which fires synchronously
+        // as part of CurrentCellSlot's own SetValue call. Without yielding first, everything below - down
+        // through ScrollCellIntoView's native ScrollIntoView call - executes re-entrantly on that same
+        // native SetValue call stack, which crashes the process outright (an unhandled native exception,
+        // not a catchable .NET one). Yielding lets that SetValue call fully unwind before touching XAML's
+        // scroll/layout machinery again.
+        await Task.Yield();
 
         if (oldSlot.HasValue)
         {
