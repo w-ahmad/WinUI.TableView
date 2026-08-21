@@ -162,6 +162,7 @@ public partial class TableViewRow : ListViewItem
 
         RowPresenter?.InvalidateMeasure(); // The cells presenter does not measure every time.
         TableView?.EnsureAlternateRowColors();
+        TableView?.RefreshRowNumbers();
     }
 
     /// <inheritdoc/>
@@ -643,6 +644,13 @@ public partial class TableViewRow : ListViewItem
     /// Gets the index of the row.
     /// </summary>
     public int Index => TableView?.IndexFromContainer(this) ?? -1;
+
+    /// <summary>
+    /// Gets the row's 1-based number as shown in the UI. When <see cref="TableView.ShowRowNumbers"/> is
+    /// enabled, this is the row's real, stable position among all rows - unaffected by other rows being
+    /// hidden by a collapsed group - rather than <see cref="Index"/>, which excludes them.
+    /// </summary>
+    public int RowNumber => TableView is { ShowRowNumbers: true } tableView ? tableView.GetRealRowIndex(this) + 1 : Index + 1;
 
     /// <summary>
     /// Gets or sets the TableView associated with the row.
