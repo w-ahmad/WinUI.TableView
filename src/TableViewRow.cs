@@ -90,6 +90,13 @@ public partial class TableViewRow : ContentControl
     internal int VisualIndex { get; set; } = -1;
 
     /// <summary>
+    /// Gets the row's 1-based number as shown in the UI. When <see cref="TableView.ShowRowNumbers"/> is
+    /// enabled, this is the row's real, stable position among all rows - unaffected by other rows being
+    /// hidden by a collapsed group - rather than <see cref="Index"/>, which excludes them.
+    /// </summary>
+    public int RowNumber => TableView is { ShowRowNumbers: true } tableView ? tableView.GetRealRowIndex(this) + 1 : Index + 1;
+
+    /// <summary>
     /// Gets the list of cells in the row.
     /// </summary>
     public IReadOnlyList<TableViewCell> Cells => RowPresenter?.Cells ?? [];

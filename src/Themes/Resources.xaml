@@ -84,8 +84,12 @@
             <Thickness x:Key="TableViewGroupHeaderRowExpanderMargin">4,0,4,0</Thickness>
             <Thickness x:Key="TableViewGroupHeaderRowContentMargin">8,0,16,0</Thickness>
             <x:Double x:Key="TableViewGroupHeaderRowFontSize">18</x:Double>
+            <StaticResource x:Key="TableViewRowNumberForeground" ResourceKey="TextFillColorSecondaryBrush" />
+            <x:Double x:Key="TableViewRowNumberFontSize">12</x:Double>
+            <Thickness x:Key="TableViewRowNumberMargin">8,0,4,0</Thickness>
+            <x:Double x:Key="TableViewRowNumberMinWidth">24</x:Double>
         </ResourceDictionary>
-        
+
         <ResourceDictionary x:Key="Dark">
             <x:String x:Key="SortIconAscending">&#xf0ad;</x:String>
             <x:String x:Key="SortIconDescending">&#xf0ae;</x:String>
@@ -163,6 +167,10 @@
             <Thickness x:Key="TableViewGroupHeaderRowExpanderMargin">4,0,0,0</Thickness>
             <Thickness x:Key="TableViewGroupHeaderRowContentMargin">8,0,16,0</Thickness>
             <x:Double x:Key="TableViewGroupHeaderRowFontSize">18</x:Double>
+            <StaticResource x:Key="TableViewRowNumberForeground" ResourceKey="TextFillColorSecondaryBrush" />
+            <x:Double x:Key="TableViewRowNumberFontSize">12</x:Double>
+            <Thickness x:Key="TableViewRowNumberMargin">8,0,4,0</Thickness>
+            <x:Double x:Key="TableViewRowNumberMinWidth">24</x:Double>
         </ResourceDictionary>
 
         <ResourceDictionary x:Key="HighContrast">
@@ -242,6 +250,10 @@
             <Thickness x:Key="TableViewGroupHeaderRowExpanderMargin">4,0,0,0</Thickness>
             <Thickness x:Key="TableViewGroupHeaderRowContentMargin">8,0,16,0</Thickness>
             <x:Double x:Key="TableViewGroupHeaderRowFontSize">18</x:Double>
+            <SolidColorBrush x:Key="TableViewRowNumberForeground" Color="{ThemeResource SystemColorButtonTextColor}" />
+            <x:Double x:Key="TableViewRowNumberFontSize">12</x:Double>
+            <Thickness x:Key="TableViewRowNumberMargin">8,0,4,0</Thickness>
+            <x:Double x:Key="TableViewRowNumberMinWidth">24</x:Double>
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 

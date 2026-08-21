@@ -3234,6 +3234,32 @@ public partial class TableView : Control
     }
 
     /// <summary>
+    /// Gets <paramref name="row"/>'s real, stable position among all rows - unlike <see cref="TableViewRow.Index"/>,
+    /// unaffected by other rows being hidden by a collapsed ancestor group. Only worth the lookup cost while
+    /// grouping is actually active; otherwise the display index already is the real index.
+    /// </summary>
+    internal int GetRealRowIndex(TableViewRow row)
+    {
+        if (_collectionView.GroupDescriptions.Count > 0)
+        {
+            return _collectionView.IndexOfSourceItem(row.Content);
+        }
+
+        return row.Index;
+    }
+
+    /// <summary>
+    /// Refreshes the displayed row number (and <see cref="TableViewRowHeader.Tag"/>) for every realized row.
+    /// </summary>
+    internal void RefreshRowNumbers()
+    {
+        foreach (var row in _rows)
+        {
+            row.RowPresenter?.SetRowNumber();
+        }
+    }
+
+    /// <summary>
     /// Resets the auto-calculated widths of the specified columns and recalculates them.
     /// </summary>
     /// <param name="columns">The columns to refresh. When null, all columns are refreshed.</param>
@@ -3405,6 +3431,7 @@ public partial class TableView : Control
         foreach (var row in _rows)
         {
             row.RowPresenter?.SetRowHeaderVisibility();
+            row.RowPresenter?.SetRowNumberVisibility();
         }
     }
 

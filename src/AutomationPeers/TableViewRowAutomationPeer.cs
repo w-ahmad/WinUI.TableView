@@ -57,8 +57,8 @@ public partial class TableViewRowAutomationPeer : FrameworkElementAutomationPeer
             return name;
         }
 
-        var index = _owner.Index;
-        return index >= 0 ? $"Row {index + 1}" : "Row";
+        var rowNumber = _owner.RowNumber;
+        return rowNumber > 0 ? $"Row {rowNumber}" : "Row";
     }
 
     /// <inheritdoc/>
