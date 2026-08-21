@@ -36,7 +36,7 @@ public sealed partial class GroupingPage : Page
     {
         var items = new List<ExampleModel>();
 
-        for (var i = 0; i < 16; i++)
+        for (var i = 0; i < 100; i++)
         {
             items.Add(new ExampleModel
             {

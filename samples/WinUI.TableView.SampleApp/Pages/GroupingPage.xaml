@@ -100,7 +100,8 @@
                     <InfoBar IsOpen="True"
                              IsClosable="False"
                              Title="State">
-                        <StackPanel Spacing="8">
+                        <StackPanel Spacing="8"
+                                    Padding="0,0,0,12">
                             <TextBlock>
                                 <Run Text="Item count:" />
                                 <Run FontWeight="Bold"
