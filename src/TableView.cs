@@ -1793,6 +1793,12 @@ public partial class TableView : ListView
         // though its SortDirection indicator above was just cleared.
         _collectionView.SortDescriptions.RemoveWhere(x => x is ColumnSortDescription columnSort && groupedColumns.Contains(columnSort.Column));
     }
+
+    public void RefreshGrouping()
+    {
+        DeselectAll();
+        _collectionView.RefreshGrouping();
+    }
 #endif
 
     /// <summary>

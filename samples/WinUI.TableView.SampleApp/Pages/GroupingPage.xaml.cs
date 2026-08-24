@@ -125,4 +125,20 @@ public sealed partial class GroupingPage : Page
 
         viewModel.Items.Remove(selected);
     }
+
+    private void OnToggleLastNameGroupClicked(object sender, RoutedEventArgs e)
+    {
+        var existingGroupDescription = tableView.GroupDescriptions
+            .OfType<GroupDescription>()
+            .FirstOrDefault(gd => gd.PropertyName is nameof(ExampleModel.LastName));
+
+        if (existingGroupDescription is not null)
+        {
+            tableView.GroupDescriptions.Remove(existingGroupDescription);
+        }
+        else
+        {
+            tableView.GroupDescriptions.Add(new GroupDescription(nameof(ExampleModel.LastName)));
+        }
+    }
 }

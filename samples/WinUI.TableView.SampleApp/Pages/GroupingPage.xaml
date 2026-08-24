@@ -24,12 +24,9 @@
                         <tv:TableViewNumberColumn Header="Id"
                                                   Width="70"
                                                   Binding="{Binding Id}" />
-                        <tv:TableViewTextColumn Header="First Name"
+                        <tv:TableViewTextColumn Header="Full Name"
                                                 Width="150"
-                                                Binding="{Binding FirstName}" />
-                        <tv:TableViewTextColumn Header="Last Name"
-                                                Width="150"
-                                                Binding="{Binding LastName}" />
+                                                Binding="{Binding FullName}" />
                         <tv:TableViewTextColumn Header="Department"
                                                 Width="150"
                                                 Binding="{Binding Department}" />
@@ -83,6 +80,10 @@
                     <Button Content="Reset data"
                             HorizontalAlignment="Stretch"
                             Click="OnResetClicked" />
+
+                    <Button Content="Group by last name"
+                            HorizontalAlignment="Stretch"
+                            Click="OnToggleLastNameGroupClicked" />
 
                     <ComboBox Header="DefaultGroupState"
                               HorizontalAlignment="Stretch"

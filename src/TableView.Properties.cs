@@ -600,6 +600,11 @@ public partial class TableView
 
 #if WINDOWS
     /// <summary>
+    /// Gets the collection of group descriptions applied to the items.
+    /// </summary>
+    public IList<GroupDescription> GroupDescriptions => _collectionView.GroupDescriptions;
+
+    /// <summary>
     /// Gets a value indicating whether the TableView items are grouped.
     /// </summary>
     public bool IsGrouped => _collectionView.GroupDescriptions.Count > 0;
