@@ -128,6 +128,7 @@ public sealed partial class GroupingPage : Page
 
     private void OnToggleLastNameGroupClicked(object sender, RoutedEventArgs e)
     {
+#if WINDOWS
         var existingGroupDescription = tableView.GroupDescriptions
             .OfType<GroupDescription>()
             .FirstOrDefault(gd => gd.PropertyName is nameof(ExampleModel.LastName));
@@ -140,5 +141,6 @@ public sealed partial class GroupingPage : Page
         {
             tableView.GroupDescriptions.Add(new GroupDescription(nameof(ExampleModel.LastName)));
         }
+#endif
     }
 }
