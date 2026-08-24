@@ -1794,6 +1794,9 @@ public partial class TableView : ListView
         _collectionView.SortDescriptions.RemoveWhere(x => x is ColumnSortDescription columnSort && groupedColumns.Contains(columnSort.Column));
     }
 
+    /// <summary>
+    /// Refreshes the grouping applied to the items in the TableView.
+    /// </summary>
     public void RefreshGrouping()
     {
         DeselectAll();
