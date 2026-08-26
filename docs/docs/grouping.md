@@ -20,20 +20,17 @@ Clicking **Group** on the **Category** column collapses the rows into headers, o
 
 ## Grouping programmatically
 
-Grouping descriptions live on the underlying collection view, similar to [`SortDescriptions`](sorting.md). Because grouping is a Windows-only capability, the group-related API is exposed on the concrete `WinUI.TableView.CollectionView` type rather than on the `ICollectionView` interface returned by `TableView.CollectionView` - cast to it first:
+Grouping descriptions live on `TableView.GroupDescriptions`, similar to [`SortDescriptions`](sorting.md):
 
 ```csharp
-if (tableView.CollectionView is WinUI.TableView.CollectionView collectionView)
-{
-    collectionView.GroupDescriptions.Add(new GroupDescription("Category"));
-}
+tableView.GroupDescriptions.Add(new GroupDescription("Category"));
 ```
 
 Add a second `GroupDescription` to group by more than one level - each additional description nests inside the previous one:
 
 ```csharp
-collectionView.GroupDescriptions.Add(new GroupDescription("Department"));
-collectionView.GroupDescriptions.Add(new GroupDescription("Role"));
+tableView.GroupDescriptions.Add(new GroupDescription("Department"));
+tableView.GroupDescriptions.Add(new GroupDescription("Role"));
 ```
 
 This produces a two-level hierarchy: a header per department, and inside each, a header per role.
@@ -99,10 +96,10 @@ Changing `DefaultGroupState` at runtime re-applies it to every group that has no
 
 ### Toggling a group programmatically
 
-Each entry in `CollectionGroups` implements the standard `ICollectionViewGroup` interface; its `Group` property is the `TableViewGroupInfo` whose `IsExpanded` you can set directly:
+Each entry in `TableView.CollectionView.CollectionGroups` implements the standard `ICollectionViewGroup` interface; its `Group` property is the `TableViewGroupInfo` whose `IsExpanded` you can set directly:
 
 ```csharp
-var firstGroup = collectionView.CollectionGroups?
+var firstGroup = tableView.CollectionView.CollectionGroups?
     .Select(g => ((ICollectionViewGroup)g).Group)
     .OfType<TableViewGroupInfo>()
     .FirstOrDefault();
@@ -144,23 +141,32 @@ Grouping a column and sorting it are unified: grouping a column also drives its 
 
 ```csharp
 // Groups by Category, then reorders both headers and each group's items descending
-if (tableView.CollectionView is WinUI.TableView.CollectionView collectionView)
-{
-    var categoryGroup = collectionView.GroupDescriptions
-        .OfType<GroupDescription>()
-        .First();
+var categoryGroup = tableView.GroupDescriptions
+    .OfType<GroupDescription>()
+    .First();
 
-    categoryGroup.Direction = SortDirection.Descending;
-    collectionView.RefreshGrouping();
-}
+categoryGroup.Direction = SortDirection.Descending;
+tableView.RefreshGrouping();
 ```
+
+### Sorting groups by item count
+
+By default, groups are ordered by their key value. Set `GroupSortMode` on a `GroupDescription` to order groups by how many items they contain instead - "show the biggest group first":
+
+```csharp
+categoryGroup.SortMode = GroupSortMode.Count;
+categoryGroup.Direction = SortDirection.Descending; // biggest group first
+tableView.RefreshGrouping();
+```
+
+`Direction` still controls ascending/descending of whichever `SortMode` is set to. Groups with equal counts always break ties ascending by key, regardless of `Direction`. This is also available from a grouped column's own header flyout, as **Sort Groups by Count** / **Sort Groups by Value**.
 
 ## Refreshing groups
 
-Call `RefreshGrouping()` on the `WinUI.TableView.CollectionView` to rebuild groups from the current data without user interaction - useful after mutating data outside an `ObservableCollection`:
+Call `TableView.RefreshGrouping()` to rebuild groups from the current data without user interaction - useful after mutating data outside an `ObservableCollection`:
 
 ```csharp
-collectionView.RefreshGrouping();
+tableView.RefreshGrouping();
 ```
 
 ## Row and header indentation
@@ -201,14 +207,15 @@ bool isGrouped = tableView.IsGrouped; // true if any GroupDescription is applied
 |---|---|
 | [`CanGroupColumns`](xref:WinUI.TableView.TableView.CanGroupColumns) | Enables or disables grouping for all columns |
 | [`CanGroup`](xref:WinUI.TableView.TableViewColumn.CanGroup) | Per-column grouping toggle |
-| `GroupDescriptions` (on `WinUI.TableView.CollectionView`) | Collection of active group descriptions |
+| [`GroupDescriptions`](xref:WinUI.TableView.TableView.GroupDescriptions) | Collection of active group descriptions |
+| [`GroupSortMode`](xref:WinUI.TableView.GroupDescription.SortMode) | Orders groups by key (default) or item count |
 | [`DefaultGroupStyle`](xref:WinUI.TableView.TableView.DefaultGroupStyle) | The `GroupStyle` applied when no custom `GroupStyle` entry is set |
 | [`DefaultGroupState`](xref:WinUI.TableView.TableView.DefaultGroupState) | Whether new groups start expanded or collapsed |
 | [`ShowGroupExpandCollapseButton`](xref:WinUI.TableView.TableView.ShowGroupExpandCollapseButton) | Shows or hides the per-group expand/collapse button |
 | [`AreStickyGroupHeadersEnabled`](xref:WinUI.TableView.TableView.AreStickyGroupHeadersEnabled) | Pins the current group header to the top while scrolling |
 | [`IsGrouped`](xref:WinUI.TableView.TableView.IsGrouped) | `true` if any grouping is applied |
 | [`UngroupAll()`](xref:WinUI.TableView.TableView.UngroupAll) | Removes all grouping and resets affected columns' sort indicators |
-| `RefreshGrouping()` (on `WinUI.TableView.CollectionView`) | Rebuilds groups from the current data without user interaction |
+| [`RefreshGrouping()`](xref:WinUI.TableView.TableView.RefreshGrouping) | Rebuilds groups from the current data without user interaction |
 | [`Grouping`](xref:WinUI.TableView.TableView.Grouping) | Fires before the default group action runs; can be handled/suppressed |
 
 ## Notes and limitations

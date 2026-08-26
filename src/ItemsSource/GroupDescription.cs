@@ -24,4 +24,11 @@ public class GroupDescription : SortDescription
         : base(propertyName, direction, comparer, valueDelegate)
     {
     }
+
+    /// <summary>
+    /// Gets or sets what groups at this level are ordered by - their key value (default) or the number of
+    /// items they contain. <see cref="SortDescription.Direction"/> still controls ascending/descending of
+    /// whichever this is set to.
+    /// </summary>
+    public GroupSortMode SortMode { get; set; } = GroupSortMode.Key;
 }

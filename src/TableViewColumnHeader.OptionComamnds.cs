@@ -9,6 +9,7 @@ partial class TableViewColumnHeader
     private bool _commandsInitialized;
 #if WINDOWS
     private readonly StandardUICommand _groupCommand = new() { Label = TableViewLocalizedStrings.Group };
+    private readonly StandardUICommand _sortGroupsByCountCommand = new() { Label = TableViewLocalizedStrings.SortGroupsByCount };
 #endif
     private readonly StandardUICommand _sortAscendingCommand = new() { Label = TableViewLocalizedStrings.SortAscending };
     private readonly StandardUICommand _sortDescendingCommand = new() { Label = TableViewLocalizedStrings.SortDescending };
@@ -24,7 +25,9 @@ partial class TableViewColumnHeader
 
 #if WINDOWS
         if (GetTemplateChild("GroupMenuItem") is MenuFlyoutItem groupMenuItem)
-            groupMenuItem.Command = _groupCommand; 
+            groupMenuItem.Command = _groupCommand;
+        if (GetTemplateChild("SortGroupsByCountMenuItem") is MenuFlyoutItem sortGroupsByCountMenuItem)
+            sortGroupsByCountMenuItem.Command = _sortGroupsByCountCommand;
 #endif
         if (GetTemplateChild("SortAscendingMenuItem") is MenuFlyoutItem sortAscendingMenuItem)
             sortAscendingMenuItem.Command = _sortAscendingCommand;
@@ -52,6 +55,21 @@ partial class TableViewColumnHeader
         {
             e.CanExecute = CanGroup;
             _groupCommand.Label = IsGrouped ? TableViewLocalizedStrings.Ungroup : TableViewLocalizedStrings.Group;
+        };
+
+        _sortGroupsByCountCommand.ExecuteRequested += delegate
+        {
+            if (_tableView?.CollectionView is CollectionView { } collectionView)
+            {
+                ToggleGroupSortMode(collectionView);
+            }
+        };
+        _sortGroupsByCountCommand.CanExecuteRequested += (_, e) =>
+        {
+            e.CanExecute = IsGrouped;
+            _sortGroupsByCountCommand.Label = IsGroupSortedByCount
+                ? TableViewLocalizedStrings.SortGroupsByValue
+                : TableViewLocalizedStrings.SortGroupsByCount;
         };
 #endif
 

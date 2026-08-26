@@ -38,7 +38,7 @@ This page lists all public events exposed by `TableView` and related types.
 
 | Event | Args type | Description |
 |---|---|---|
-| [`Grouping`](xref:WinUI.TableView.TableView.Grouping) | [`TableViewGroupingEventArgs`](xref:WinUI.TableView.TableViewGroupingEventArgs) | Fires before a column's **Group** option runs the default group/ungroup action. Set `Handled = true` for custom behavior. |
+| [`Grouping`](xref:WinUI.TableView.TableView.Grouping) | [`TableViewGroupingEventArgs`](xref:WinUI.TableView.TableViewGroupingEventArgs) | Fires before a column's **Group** option applies a new group - not when ungrouping. Set `Handled = true` to suppress the default grouping. |
 
 ### Clipboard and export
 

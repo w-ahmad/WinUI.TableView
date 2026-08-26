@@ -753,6 +753,121 @@ public class CollectionViewTests
         Assert.AreEqual(2, ((TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups![0]).Group!).Key);
     }
 
+    [UITestMethod]
+    public void Group_Sort_Mode_Count_Orders_Groups_By_Size_Not_Key()
+    {
+        var src = new ObservableCollection<TestItem>
+        {
+            new() { Id = 1, Name = "A", Value = 1 },
+            new() { Id = 2, Name = "B", Value = 1 },
+            new() { Id = 3, Name = "C", Value = 1 },
+            new() { Id = 4, Name = "D", Value = 2 },
+        };
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+        var groupDescription = GroupByValue();
+        groupDescription.SortMode = GroupSortMode.Count;
+        view.GroupDescriptions.Add(groupDescription);
+
+        // Value=1 has 3 items, Value=2 has 1 - ascending-by-key (the default mode) would put Value=1
+        // first; ascending-by-count puts the SMALLER group first instead, so Value=2 comes first here.
+        var first = (TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups![0]).Group!;
+        Assert.AreEqual(2, first.Key);
+        Assert.AreEqual(1, first.Count);
+
+        var second = (TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups[1]).Group!;
+        Assert.AreEqual(1, second.Key);
+        Assert.AreEqual(3, second.Count);
+    }
+
+    [UITestMethod]
+    public void Changing_A_Group_Descriptions_Sort_Mode_Reorders_Groups()
+    {
+        var src = new ObservableCollection<TestItem>
+        {
+            new() { Id = 1, Name = "A", Value = 1 },
+            new() { Id = 2, Name = "B", Value = 1 },
+            new() { Id = 3, Name = "C", Value = 1 },
+            new() { Id = 4, Name = "D", Value = 2 },
+        };
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+        var groupDescription = GroupByValue();
+        view.GroupDescriptions.Add(groupDescription);
+
+        // Default: Key mode, ascending - Value=1 (the smaller key) first, same as today.
+        Assert.AreEqual(1, ((TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups![0]).Group!).Key);
+
+        groupDescription.SortMode = GroupSortMode.Count;
+        view.RefreshGrouping();
+
+        // Switching to Count mode (still Ascending) puts the smaller GROUP first instead - Value=2 (1 item).
+        Assert.AreEqual(2, ((TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups![0]).Group!).Key);
+
+        groupDescription.Direction = SortDirection.Descending;
+        view.RefreshGrouping();
+
+        // The two toggles compose: Count mode + Descending puts the BIGGER group first - Value=1 (3 items).
+        Assert.AreEqual(1, ((TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups![0]).Group!).Key);
+    }
+
+    [UITestMethod]
+    public void Group_Sort_Mode_Count_Breaks_Ties_By_Key()
+    {
+        var src = new ObservableCollection<TestItem>
+        {
+            // Value=2's item is encountered first, but ties should break ascending by key (Value=1
+            // first), not by source encounter order.
+            new() { Id = 1, Name = "A", Value = 2 },
+            new() { Id = 2, Name = "B", Value = 1 },
+        };
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+        var groupDescription = GroupByValue();
+        groupDescription.SortMode = GroupSortMode.Count;
+        view.GroupDescriptions.Add(groupDescription);
+
+        // Both groups have exactly 1 item - a tie. The tie-break is always ascending by key, so Value=1
+        // comes first despite Value=2 appearing first in the source.
+        Assert.AreEqual(1, ((TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups![0]).Group!).Key);
+        Assert.AreEqual(2, ((TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups[1]).Group!).Key);
+    }
+
+    [UITestMethod]
+    public void Multi_Level_Group_Sort_Mode_Applies_Independently_Per_Level()
+    {
+        var src = new ObservableCollection<TestItem>
+        {
+            new() { Id = 1, Name = "Z", Value = 1 },
+            new() { Id = 2, Name = "M", Value = 2 },
+            new() { Id = 3, Name = "A", Value = 2 },
+        };
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+
+        var outerGroupDescription = GroupByValue();
+        outerGroupDescription.SortMode = GroupSortMode.Count;
+        outerGroupDescription.Direction = SortDirection.Descending; // biggest outer group first
+        view.GroupDescriptions.Add(outerGroupDescription);
+        view.GroupDescriptions.Add(GroupByName()); // inner level: default Key mode, ascending
+
+        // Outer: Value=2 has 2 items, Value=1 has 1 - Count+Descending puts Value=2 (bigger) first,
+        // the opposite of the default key-ascending order.
+        var outerFirst = (TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups![0]).Group!;
+        Assert.AreEqual(2, outerFirst.Key);
+
+        // Inner (still Key mode) keeps ordering alphabetically within that outer group: "A" before "M".
+        var innerFirst = (TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups[1]).Group!;
+        Assert.AreEqual("A", innerFirst.Key);
+
+        var innerSecond = (TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups[2]).Group!;
+        Assert.AreEqual("M", innerSecond.Key);
+
+        // Outer: Value=1 (1 item) comes last.
+        var outerSecond = (TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups[3]).Group!;
+        Assert.AreEqual(1, outerSecond.Key);
+    }
+
     /// <summary>
     /// Flips a group's expanded/collapsed state, the same DependencyProperty the header row's expand/collapse
     /// button toggles - a stand-in for the removed CollectionView.ToggleGroup convenience method.

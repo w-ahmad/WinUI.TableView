@@ -205,6 +205,34 @@ public partial class TableViewColumnHeader : ContentControl
             Column!.SortDirection = groupDescription.Direction;
         }
     }
+
+    /// <summary>
+    /// Gets a value indicating whether this grouped column currently orders its groups by item count
+    /// rather than by key.
+    /// </summary>
+    private bool IsGroupSortedByCount =>
+        Column is not null &&
+        _tableView?.CollectionView is CollectionView { } collectionView &&
+        collectionView.GroupDescriptions.OfType<ColumnGroupDescription>()
+            .FirstOrDefault(x => x.Column == Column) is { SortMode: GroupSortMode.Count };
+
+    /// <summary>
+    /// Toggles a grouped column's <see cref="GroupDescription.SortMode"/> between key and item-count order.
+    /// </summary>
+    private void ToggleGroupSortMode(CollectionView collectionView)
+    {
+        var groupDescription = collectionView.GroupDescriptions
+            .OfType<ColumnGroupDescription>()
+            .FirstOrDefault(x => x.Column == Column);
+
+        if (groupDescription is null) return;
+
+        groupDescription.SortMode = groupDescription.SortMode == GroupSortMode.Count
+            ? GroupSortMode.Key
+            : GroupSortMode.Count;
+
+        collectionView.RefreshGrouping();
+    }
 #endif
 
     /// <summary>

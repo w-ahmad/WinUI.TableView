@@ -441,26 +441,42 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
         var description = GroupDescriptions[level];
         var isLeafLevel = level == GroupDescriptions.Count - 1;
         var comparer = Comparer<object?>.Create(description.Compare);
-        var groups = description.Direction == SortDirection.Ascending
-            ? items.GroupBy(description.GetPropertyValue).OrderBy(g => g.Key, comparer)
-            : items.GroupBy(description.GetPropertyValue).OrderByDescending(g => g.Key, comparer);
+
+        // Materialized up front (key + item list): GroupSortMode.Count needs each group's size to decide
+        // the order, which only exists once every group's items are known - Key mode materializes here too
+        // so the ordering and the loop below don't have to special-case IGrouping vs. a plain list.
+        var materialized = items.GroupBy(description.GetPropertyValue)
+            .Select(g => (g.Key, Items: g.ToList()))
+            .ToList();
+
+        var ordered = description.SortMode switch
+        {
+            // Ties (equal counts) always break ascending by key, regardless of Direction - a deterministic
+            // fallback, not a user-facing direction concept. Unlike key mode, where GroupBy guarantees no
+            // ties, count ties are common (many groups can share a size).
+            GroupSortMode.Count => description.Direction == SortDirection.Ascending
+                ? materialized.OrderBy(g => g.Items.Count).ThenBy(g => g.Key, comparer)
+                : materialized.OrderByDescending(g => g.Items.Count).ThenBy(g => g.Key, comparer),
+            _ => description.Direction == SortDirection.Ascending
+                ? materialized.OrderBy(g => g.Key, comparer)
+                : materialized.OrderByDescending(g => g.Key, comparer)
+        };
 
         var overridesForDescription = _groupExpandedStates.TryGetValue(description, out var existing) ? existing : null;
 
-        foreach (var group in groups)
+        foreach (var (key, groupedItems) in ordered)
         {
-            object[] groupPath = [.. parentPath, group.Key!];
+            object[] groupPath = [.. parentPath, key!];
             var isExpanded = overridesForDescription is not null && overridesForDescription.TryGetValue(groupPath, out var overridden)
                 ? overridden
                 : DefaultGroupState == TableViewGroupState.Expanded;
-            var groupedItems = group.ToList();
             // IsExpanded must be set before CollectionView: its DependencyProperty changed callback calls back
             // into CollectionView.OnGroupExpandedChanged (which triggers a full group rebuild), and setting it
             // here is just restoring already-computed state, not a real toggle - assigning CollectionView first
             // would make that callback fire mid-rebuild and recurse into BuildGroupLevel until the stack overflows.
             var groupInfo = new TableViewGroupInfo
             {
-                Key = group.Key,
+                Key = key,
                 Level = level,
                 GroupPath = groupPath,
                 Description = description,
@@ -487,7 +503,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
 
             if (isExpanded)
             {
-                BuildGroupLevel(group, level + 1, groupPath);
+                BuildGroupLevel(groupedItems, level + 1, groupPath);
             }
         }
     }

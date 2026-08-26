@@ -198,4 +198,10 @@
   <data name="UngroupAll" xml:space="preserve">
     <value>取消所有群組</value>
   </data>
+  <data name="SortGroupsByCount" xml:space="preserve">
+    <value>依數量排序群組</value>
+  </data>
+  <data name="SortGroupsByValue" xml:space="preserve">
+    <value>依值排序群組</value>
+  </data>
 </root>

@@ -139,6 +139,11 @@
                                                         <FontIcon Glyph="&#xF168;" />
                                                     </win:MenuFlyoutItem.Icon>
                                                 </win:MenuFlyoutItem>
+                                                <win:MenuFlyoutItem x:Name="SortGroupsByCountMenuItem">
+                                                    <win:MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE9D9;" />
+                                                    </win:MenuFlyoutItem.Icon>
+                                                </win:MenuFlyoutItem>
                                                 <win:MenuFlyoutSeparator />
                                                 <MenuFlyoutItem x:Name="SortAscendingMenuItem">
                                                     <MenuFlyoutItem.Icon>
