@@ -42,6 +42,11 @@ internal partial class TableViewLocalizedStrings
         SortDescending = GetValue(nameof(SortDescending));
         TimePickerPlaceholder = GetValue(nameof(TimePickerPlaceholder));
         Filtered = GetValue(nameof(Filtered));
+        Group = GetValue(nameof(Group));
+        Ungroup = GetValue(nameof(Ungroup));
+        UngroupAll = GetValue(nameof(UngroupAll));
+        SortGroupsByCount = GetValue(nameof(SortGroupsByCount));
+        SortGroupsByValue = GetValue(nameof(SortGroupsByValue));
     }
 
     private static string GetValue(string name)
@@ -91,4 +96,9 @@ internal partial class TableViewLocalizedStrings
     public static string SortDescending { get; set; }
     public static string TimePickerPlaceholder { get; set; }
     public static string Filtered { get; set; }
+    public static string Group { get; set; }
+    public static string Ungroup { get; set; }
+    public static string UngroupAll { get; set; }
+    public static string SortGroupsByCount { get; set; }
+    public static string SortGroupsByValue { get; set; }
 }

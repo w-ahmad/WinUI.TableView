@@ -57,6 +57,12 @@ tableView.SortDescriptions.Add(new SortDescription("Price", SortDirection.Ascend
 tableView.FilterDescriptions.Add(new FilterDescription("Name", new PredicateFilter(x => x.ToString()!.StartsWith("A"))));
 ```
 
+### Grouping
+
+On Windows targets, columns can be grouped - collapsing rows into collapsible, multi-level headers with expand/collapse control and integration with column sorting.
+
+See [Grouping](grouping.md).
+
 ## Namespace and XAML prefix
 
 ```xml
@@ -67,7 +73,7 @@ All types are in the `WinUI.TableView` namespace.
 
 ## Uno Platform
 
-On Uno Platform targets some behaviors differ slightly from the Windows target, particularly around data binding and focus management. See [Getting started with Uno](getting-started-with-uno.md) for platform-specific notes.
+On Uno Platform targets some behaviors differ slightly from the Windows target, particularly around data binding and focus management. [Grouping](grouping.md) is Windows-only and is not available on non-Windows Uno targets. See [Getting started with Uno](getting-started-with-uno.md) for platform-specific notes.
 
 ## Related articles
 
@@ -75,3 +81,5 @@ On Uno Platform targets some behaviors differ slightly from the Windows target, 
 - [Binding data](binding-data.md)
 - [Defining columns](defining-columns.md)
 - [Column types](column-types.md)
+- [Sorting](sorting.md)
+- [Grouping](grouping.md)

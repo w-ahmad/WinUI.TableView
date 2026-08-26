@@ -70,6 +70,7 @@ public sealed partial class MainWindow : Window
                 "Editing" => typeof(EditingPage),
                 "Sorting" => typeof(SortingPage),
                 "Custom Sorting" => typeof(CustomizeSortingPage),
+                "Grouping" => typeof(GroupingPage),
                 "Data Export" => typeof(ExportPage),
                 "Large Dataset" => typeof(LargeDataPage),
                 "Conditional Cell Styling" => typeof(ConditionalStylingPage),

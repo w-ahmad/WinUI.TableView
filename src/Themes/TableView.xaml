@@ -9,6 +9,7 @@
 
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/Resources.xaml" />
+        <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/TableViewGroupHeaderRow.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <Style x:Key="DefaultTableViewStyle"
@@ -61,6 +62,8 @@
                 Value="{ThemeResource TableViewHorizontalGridLineStrokeThickness}" />
         <Setter Property="VerticalGridLinesStrokeThickness"
                 Value="{ThemeResource TableViewVerticalGridLineStrokeThickness}" />
+        <win:Setter Property="DefaultGroupStyle"
+                    Value="{StaticResource DefaultTableViewGroupStyle}" />
         <win:Setter Property="ItemContainerTransitions">
             <win:Setter.Value>
                 <TransitionCollection>

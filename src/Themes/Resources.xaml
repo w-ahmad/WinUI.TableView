@@ -77,6 +77,12 @@
             <SolidColorBrush x:Key="TableViewDragRectangleFill" Color="{StaticResource SystemAccentColor}" Opacity="0.2" />
             <StaticResource x:Key="TableViewDragRectangleStroke" ResourceKey="AccentFillColorDefaultBrush" />
             <CornerRadius x:Key="TableViewDragRectangleCornerRadius">0</CornerRadius>
+            <StaticResource x:Key="TableViewGroupHeaderRowBackground" ResourceKey="CardBackgroundFillColorSecondaryBrush" />
+            <StaticResource x:Key="TableViewGroupHeaderRowForeground" ResourceKey="TextFillColorPrimaryBrush" />
+            <x:Double x:Key="TableViewGroupHeaderRowMinHeight">36</x:Double>
+            <Thickness x:Key="TableViewGroupHeaderRowExpanderMargin">4,0,4,0</Thickness>
+            <Thickness x:Key="TableViewGroupHeaderRowContentMargin">8,0,16,0</Thickness>
+            <x:Double x:Key="TableViewGroupHeaderRowFontSize">18</x:Double>
         </ResourceDictionary>
         
         <ResourceDictionary x:Key="Dark">
@@ -149,6 +155,12 @@
             <SolidColorBrush x:Key="TableViewDragRectangleFill" Color="{StaticResource SystemAccentColor}" Opacity="0.2" />
             <StaticResource x:Key="TableViewDragRectangleStroke" ResourceKey="AccentFillColorDefaultBrush" />
             <CornerRadius x:Key="TableViewDragRectangleCornerRadius">0</CornerRadius>
+            <StaticResource x:Key="TableViewGroupHeaderRowBackground" ResourceKey="CardBackgroundFillColorSecondaryBrush" />
+            <StaticResource x:Key="TableViewGroupHeaderRowForeground" ResourceKey="TextFillColorPrimaryBrush" />
+            <x:Double x:Key="TableViewGroupHeaderRowMinHeight">36</x:Double>
+            <Thickness x:Key="TableViewGroupHeaderRowExpanderMargin">4,0,0,0</Thickness>
+            <Thickness x:Key="TableViewGroupHeaderRowContentMargin">8,0,16,0</Thickness>
+            <x:Double x:Key="TableViewGroupHeaderRowFontSize">18</x:Double>
         </ResourceDictionary>
 
         <ResourceDictionary x:Key="HighContrast">
@@ -221,6 +233,12 @@
             <SolidColorBrush x:Key="TableViewDragRectangleFill" Color="{ThemeResource SystemColorHighlightColor}" Opacity="0.3" />
             <SolidColorBrush x:Key="TableViewDragRectangleStroke" Color="{ThemeResource SystemColorHighlightColor}" />
             <CornerRadius x:Key="TableViewDragRectangleCornerRadius">0</CornerRadius>
+            <SolidColorBrush x:Key="TableViewGroupHeaderRowBackground" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="TableViewGroupHeaderRowForeground" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <x:Double x:Key="TableViewGroupHeaderRowMinHeight">36</x:Double>
+            <Thickness x:Key="TableViewGroupHeaderRowExpanderMargin">4,0,0,0</Thickness>
+            <Thickness x:Key="TableViewGroupHeaderRowContentMargin">8,0,16,0</Thickness>
+            <x:Double x:Key="TableViewGroupHeaderRowFontSize">18</x:Double>
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 

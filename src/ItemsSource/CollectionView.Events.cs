@@ -20,6 +20,7 @@ partial class CollectionView
         }
 
         CurrentChanging?.Invoke(this, e);
+        OnPropertyChanging(nameof(CurrentItem));
     }
 
     /// <summary>
@@ -59,6 +60,15 @@ partial class CollectionView
     /// Property changed event invoker
     /// </summary>
     /// <param name="propertyName">name of the property that changed</param>
+    private void OnPropertyChanging([CallerMemberName] string propertyName = null!)
+    {
+        PropertyChanging?.Invoke(this, new PropertyChangingEventArgs(propertyName));
+    }
+
+    /// <summary>
+    /// Property changed event invoker
+    /// </summary>
+    /// <param name="propertyName">name of the property that changed</param>
     private void OnPropertyChanged([CallerMemberName] string propertyName = null!)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -78,6 +88,11 @@ partial class CollectionView
     /// Occurs when the vector has changed.
     /// </summary>
     public event VectorChangedEventHandler<object>? VectorChanged;
+
+    /// <summary>
+    /// Occurs when a property value is changing.
+    /// </summary>
+    public event PropertyChangingEventHandler? PropertyChanging;
 
     /// <summary>
     /// Occurs when a property value changes.

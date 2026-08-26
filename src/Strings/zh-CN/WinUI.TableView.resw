@@ -189,4 +189,19 @@
   <data name="Filtered" xml:space="preserve">
     <value>已筛选</value>
   </data>
+  <data name="Group" xml:space="preserve">
+    <value>分组</value>
+  </data>
+  <data name="Ungroup" xml:space="preserve">
+    <value>取消分组</value>
+  </data>
+  <data name="UngroupAll" xml:space="preserve">
+    <value>取消所有分组</value>
+  </data>
+  <data name="SortGroupsByCount" xml:space="preserve">
+    <value>按数量排序分组</value>
+  </data>
+  <data name="SortGroupsByValue" xml:space="preserve">
+    <value>按值排序分组</value>
+  </data>
 </root>

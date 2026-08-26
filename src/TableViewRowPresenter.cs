@@ -32,6 +32,7 @@ public partial class TableViewRowPresenter : Control
     private Panel? _detailsPanel;
     private ContentPresenter? _detailsPresenter;
     private ToggleButton? _detailsToggleButton;
+    private Border? _indentPlaceholder;
     private ListViewItemPresenter? _itemPresenter;
     private long? _detailsPanelVisibilityCallbackToken;
 
@@ -67,6 +68,7 @@ public partial class TableViewRowPresenter : Control
         _detailsPanel = GetTemplateChild("DetailsPanel") as Panel;
         _detailsPresenter = GetTemplateChild("DetailsPresenter") as ContentPresenter;
         _detailsToggleButton = GetTemplateChild("DetailsToggleButton") as ToggleButton;
+        _indentPlaceholder = GetTemplateChild("IndentPlaceholder") as Border;
 
         _itemPresenter = this.FindAscendant<ListViewItemPresenter>();
         TableViewRow = this.FindAscendant<TableViewRow>();
@@ -91,6 +93,20 @@ public partial class TableViewRowPresenter : Control
         SetRowHeaderWidth();
         SetRowDetailsVisibility();
         SetRowDetailsTemplate();
+        SetGroupIndent();
+    }
+
+    /// <summary>
+    /// Indents this row's cells for the active grouping depth by setting a left margin on
+    /// <see cref="_frozenCellsPanel"/> - <see cref="_scrollableCellsPanel"/> follows automatically since
+    /// <see cref="ArrangeOverride"/> positions it relative to the frozen panel's actual (post-margin) offset.
+    /// The row header, in its own column, is unaffected. Called once per row preparation (not from
+    /// ArrangeOverride, which runs on every scroll tick - mutating a child's Margin there would
+    /// re-invalidate measure every pass and risks a "Layout cycle detected" crash).
+    /// </summary>
+    internal void SetGroupIndent()
+    {
+        _indentPlaceholder?.Width = GetGroupIndent();
     }
 
     /// <summary>
@@ -182,6 +198,21 @@ public partial class TableViewRowPresenter : Control
         }
 
         return finalSize;
+    }
+
+    /// <summary>
+    /// The extra <see cref="TableView.CellsHorizontalOffset"/> added for the active grouping depth, so cells (and,
+    /// via that shared offset, the column headers) shift right under nested group headers. A single grouping
+    /// level isn't indented - only levels after the first add <see cref="TableViewGroupHeaderRow.GroupIndentSize"/>.
+    /// </summary>
+    private double GetGroupIndent()
+    {
+#if WINDOWS
+        var groupLevels = (TableView?.CollectionView as CollectionView)?.GroupDescriptions.Count ?? 0;
+        return Math.Max(0, groupLevels - 1) * TableViewGroupHeaderRow.GroupIndentSize;
+#else
+        return 0d;
+#endif
     }
 
     /// <summary>

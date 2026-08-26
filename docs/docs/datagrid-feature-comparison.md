@@ -49,7 +49,7 @@ WinUI.TableView is actively maintained and continues to add new features based o
 | Delete row | ✅ | ❌ | ❌ | |
 | Sorting | ✅ | ⚠️ | ✅ | No built-in sorting in WCT DataGrid but exposes sorting events. |
 | Filtering | ⚠️ | ❌ | ✅ | WPF commonly uses collection view/app logic. WCT docs explicitly say there is no built-in filtering. TableView provides Excel-like column filtering. |
-| Grouping | ✅ | ✅ | ❌ |  |
+| Grouping | ✅ | ✅ | ✅ | Multi-level grouping with expand/collapse and sort integration. Windows-only; not available on non-Windows Uno targets. |
 | Row selection | ✅ | ✅ | ✅ |  |
 | Cell selection | ✅ | ❌ | ✅ | |
 | Clipboard copy | ✅ | ✅ | ✅ |  |

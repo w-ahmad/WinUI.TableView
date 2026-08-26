@@ -247,6 +247,15 @@ public abstract partial class TableViewColumn : DependencyObject
     }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the column can be grouped.
+    /// </summary>
+    public bool CanGroup
+    {
+        get => (bool)GetValue(CanGroupProperty);
+        set => SetValue(CanGroupProperty, value);
+    }
+
+    /// <summary>
     /// Gets or sets a value indicating whether the column can be resized.
     /// </summary>
     public bool CanResize
@@ -628,6 +637,11 @@ public abstract partial class TableViewColumn : DependencyObject
     /// Identifies the ColumnAutoWidthMode dependency property.
     /// </summary>
     public static readonly DependencyProperty ColumnAutoWidthModeProperty = DependencyProperty.Register(nameof(ColumnAutoWidthMode), typeof(TableViewColumnAutoWidthMode?), typeof(TableViewColumn), new PropertyMetadata(null, OnColumnAutoWidthModeChanged));
+
+    /// <summary>
+    /// Identifies the CanGroup dependency property.
+    /// </summary>
+    public static readonly DependencyProperty CanGroupProperty = DependencyProperty.Register(nameof(CanGroup), typeof(bool), typeof(TableViewColumn), new PropertyMetadata(true));
 
     /// <summary>
     /// Identifies the CanResize dependency property.

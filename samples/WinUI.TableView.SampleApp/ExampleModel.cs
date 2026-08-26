@@ -12,11 +12,16 @@ public partial class ExampleModel : ObservableObject
 
     [ObservableProperty]
     [Display(ShortName = "First Name")]
+    [NotifyPropertyChangedFor(nameof(FullName))]
     public partial string? FirstName { get; set; }
 
     [ObservableProperty]
     [Display(ShortName = "Last Name")]
+    [NotifyPropertyChangedFor(nameof(FullName))]
     public partial string? LastName { get; set; }
+
+    [Display(AutoGenerateField = false)]
+    public string FullName => $"{FirstName} {LastName}".Trim();
 
     [ObservableProperty]
     public partial string? Email { get; set; }

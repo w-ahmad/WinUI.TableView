@@ -189,4 +189,19 @@
   <data name="Filtered" xml:space="preserve">
     <value>Отфильтровано</value>
   </data>
+  <data name="Group" xml:space="preserve">
+    <value>Группировать</value>
+  </data>
+  <data name="Ungroup" xml:space="preserve">
+    <value>Разгруппировать</value>
+  </data>
+  <data name="UngroupAll" xml:space="preserve">
+    <value>Разгруппировать всё</value>
+  </data>
+  <data name="SortGroupsByCount" xml:space="preserve">
+    <value>Сортировать группы по количеству</value>
+  </data>
+  <data name="SortGroupsByValue" xml:space="preserve">
+    <value>Сортировать группы по значению</value>
+  </data>
 </root>

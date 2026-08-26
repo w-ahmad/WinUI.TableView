@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Windows.Foundation.Collections;
+using WinUI.TableView.Collections;
 using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView;
@@ -20,7 +21,7 @@ partial class CollectionView
 
             DetachCollectionChangedHandlers(field);
             DetachPropertyChangedHandlers(field);
-
+            OnPropertyChanging();
             field = value;
 
             AttachCollectionChangedHandlers(field);
@@ -59,10 +60,49 @@ partial class CollectionView
         set => _view[index] = value;
     }
 
+#if WINDOWS
+    /// <summary>
+    /// Gets the collection of group descriptions.
+    /// </summary>
+    public IList<GroupDescription> GroupDescriptions => _groupDescriptions;
+
+    /// <summary>
+    /// Gets or sets whether a group starts out expanded or collapsed by default, unless it's been explicitly
+    /// toggled away from that. Changing this re-applies it to every group that hasn't been explicitly toggled.
+    /// </summary>
+    public TableViewGroupState DefaultGroupState
+    {
+        get;
+        set
+        {
+            if (field == value) return;
+
+            field = value;
+
+            if (GroupDescriptions.Count > 0)
+            {
+                HandleGroupChanged();
+            }
+        }
+    } = TableViewGroupState.Collapsed;
+
     /// <summary>
     /// Gets the collection groups.
     /// </summary>
+    public IObservableVector<object>? CollectionGroups
+    {
+        get;
+        set
+        {
+            if (field == value) return;
+            OnPropertyChanging();
+            field = value;
+            OnPropertyChanged();
+        }
+    }
+#else
     public IObservableVector<object?>? CollectionGroups { get; } = null;
+#endif
 
     /// <summary>
     /// Gets or sets the current item in the view.

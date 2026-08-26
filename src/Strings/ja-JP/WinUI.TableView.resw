@@ -197,4 +197,21 @@
   <data name="Filtered" xml:space="preserve">
     <value>フィルター済み</value>
   </data>
+  <data name="Group" xml:space="preserve">
+    <value>グループ化</value>
+    <comment>Excel 表記準拠</comment>
+  </data>
+  <data name="Ungroup" xml:space="preserve">
+    <value>グループ解除</value>
+    <comment>Excel 表記準拠</comment>
+  </data>
+  <data name="UngroupAll" xml:space="preserve">
+    <value>すべてグループ解除</value>
+  </data>
+  <data name="SortGroupsByCount" xml:space="preserve">
+    <value>グループを件数で並べ替え</value>
+  </data>
+  <data name="SortGroupsByValue" xml:space="preserve">
+    <value>グループを値で並べ替え</value>
+  </data>
 </root>

@@ -158,6 +158,7 @@ Build and run your application. You should see `WinUI.TableView` populated with 
 
 ### Known limitations on Uno targets
 
+- **Grouping is not available.** [Column grouping](grouping.md) is a Windows-only feature; `CanGroupColumns` and the column header's "Group" option have no effect on non-Windows Uno targets.
 - `AutoGenerateColumns="True"` uses reflection to discover model properties. This works on all Uno targets but is slower than explicit column definitions on first load.
 - The filter flyout UI renders using the same XAML as the Windows target. On small-screen targets (phone), the flyout may extend beyond the visible area. Consider disabling the filter flyout (`CanFilterColumns="False"`) on those form factors.
 - Row details expand/collapse animation may not be as smooth on Skia targets compared to Windows.
@@ -166,6 +167,7 @@ Build and run your application. You should see `WinUI.TableView` populated with 
 
 - [Installation and quick start](getting-started.md)
 - [Overview and concepts](overview.md)
+- [Grouping](grouping.md)
 - [Performance guidance](performance.md)
 - [Accessibility](accessibility.md)
 - [Native AOT compatibility](aot-compatibility.md)

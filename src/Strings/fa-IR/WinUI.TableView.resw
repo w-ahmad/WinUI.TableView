@@ -189,4 +189,19 @@
   <data name="Filtered" xml:space="preserve">
     <value>فیلتر شده</value>
   </data>
+  <data name="Group" xml:space="preserve">
+    <value>گروه‌ بندی</value>
+  </data>
+  <data name="Ungroup" xml:space="preserve">
+    <value>لغو گروه‌ بندی</value>
+  </data>
+  <data name="UngroupAll" xml:space="preserve">
+    <value>لغو همه گروه‌ بندی‌ ها</value>
+  </data>
+  <data name="SortGroupsByCount" xml:space="preserve">
+    <value>مرتب‌ سازی گروه‌ ها بر اساس تعداد</value>
+  </data>
+  <data name="SortGroupsByValue" xml:space="preserve">
+    <value>مرتب‌ سازی گروه‌ ها بر اساس مقدار</value>
+  </data>
 </root>

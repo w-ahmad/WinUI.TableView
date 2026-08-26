@@ -308,6 +308,586 @@ public class CollectionViewTests
         Assert.AreEqual(0, view.Count);
     }
 
+    [UITestMethod]
+    public void Single_Group_Description_Groups_Items()
+    {
+        var src = new ObservableCollection<TestItem>
+        {
+            new() { Id = 1, Name = "A", Value = 1 },
+            new() { Id = 2, Name = "B", Value = 2 },
+            new() { Id = 3, Name = "C", Value = 1 },
+            new() { Id = 4, Name = "D", Value = 2 },
+        };
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+        view.GroupDescriptions.Add(GroupByValue());
+
+        Assert.AreEqual(2, view.CollectionGroups!.Count);
+
+        var group1 = (CollectionViewGroup)view.CollectionGroups[0];
+        var group2 = (CollectionViewGroup)view.CollectionGroups[1];
+        Assert.AreEqual(1, ((TableViewGroupInfo)group1.Group!).Key);
+        Assert.AreEqual(2, ((TableViewGroupInfo)group2.Group!).Key);
+        CollectionAssert.AreEqual(new[] { "A", "C" }, group1.GroupItems!.Select(i => ((TestItem)i!).Name).ToArray());
+        CollectionAssert.AreEqual(new[] { "B", "D" }, group2.GroupItems!.Select(i => ((TestItem)i!).Name).ToArray());
+
+        // The flat view is pruned/reordered to match what's currently visible - with everything expanded,
+        // that's every item, flattened in group order (Value=1's A, C, then Value=2's B, D), not source order.
+        CollectionAssert.AreEqual(new[] { "A", "C", "B", "D" }, view.Select(i => ((TestItem)i).Name).ToArray());
+    }
+
+    [UITestMethod]
+    public void Multi_Level_Group_Descriptions_Create_Nested_Flattened_Groups()
+    {
+        var src = new ObservableCollection<TestItem>
+        {
+            new() { Id = 1, Name = "A", Value = 1 },
+            new() { Id = 2, Name = "B", Value = 2 },
+            new() { Id = 3, Name = "C", Value = 1 },
+            new() { Id = 4, Name = "D", Value = 2 },
+        };
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+        view.GroupDescriptions.Add(GroupByValue());
+        view.GroupDescriptions.Add(GroupByName());
+
+        // Depth-first flattened order: Value-1 (parent, empty), Name-A (leaf), Name-C (leaf),
+        // Value-2 (parent, empty), Name-B (leaf), Name-D (leaf).
+        Assert.AreEqual(6, view.CollectionGroups!.Count);
+
+        var parent1 = (CollectionViewGroup)view.CollectionGroups[0];
+        Assert.AreEqual(1, ((TableViewGroupInfo)parent1.Group!).Key);
+        Assert.AreEqual(0, parent1.GroupItems!.Count);
+
+        var leafA = (CollectionViewGroup)view.CollectionGroups[1];
+        Assert.AreEqual("A", ((TableViewGroupInfo)leafA.Group!).Key);
+        CollectionAssert.AreEqual(new[] { "A" }, leafA.GroupItems!.Select(i => ((TestItem)i!).Name).ToArray());
+
+        var leafC = (CollectionViewGroup)view.CollectionGroups[2];
+        Assert.AreEqual("C", ((TableViewGroupInfo)leafC.Group!).Key);
+
+        var parent2 = (CollectionViewGroup)view.CollectionGroups[3];
+        Assert.AreEqual(2, ((TableViewGroupInfo)parent2.Group!).Key);
+        Assert.AreEqual(0, parent2.GroupItems!.Count);
+
+        var leafB = (CollectionViewGroup)view.CollectionGroups[4];
+        Assert.AreEqual("B", ((TableViewGroupInfo)leafB.Group!).Key);
+
+        var leafD = (CollectionViewGroup)view.CollectionGroups[5];
+        Assert.AreEqual("D", ((TableViewGroupInfo)leafD.Group!).Key);
+
+        // With everything expanded, the flat view holds every item flattened in depth-first group order.
+        CollectionAssert.AreEqual(new[] { "A", "C", "B", "D" }, view.Select(i => ((TestItem)i).Name).ToArray());
+    }
+
+    [UITestMethod]
+    public void Group_Descriptions_Direct_Add_Without_Deferral_Updates_Groups()
+    {
+        var src = CreateItems(4); // Values: 4,3,2,1
+        var view = new CollectionView(src);
+
+        // Adding directly (no DeferRefresh) must still rebuild CollectionGroups.
+        view.GroupDescriptions.Add(GroupByValue());
+
+        Assert.AreEqual(4, view.CollectionGroups!.Count);
+    }
+
+    [UITestMethod]
+    public void Default_Group_State_Collapsed_Starts_Groups_Collapsed()
+    {
+        var src = new ObservableCollection<TestItem>
+        {
+            new() { Id = 1, Name = "A", Value = 1 },
+            new() { Id = 2, Name = "B", Value = 2 },
+        };
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Collapsed;
+        view.GroupDescriptions.Add(GroupByValue());
+
+        Assert.AreEqual(2, view.CollectionGroups!.Count);
+        var group1 = (CollectionViewGroup)view.CollectionGroups[0];
+        Assert.IsFalse(((TableViewGroupInfo)group1.Group!).IsExpanded);
+        Assert.AreEqual(0, group1.GroupItems!.Count); // Collapsed - no items surfaced through this group.
+        Assert.AreEqual(0, view.Count); // Both groups collapsed - nothing is currently visible.
+    }
+
+    [UITestMethod]
+    public void Changing_Default_Group_State_Reapplies_To_Non_Overridden_Groups()
+    {
+        var src = new ObservableCollection<TestItem>
+        {
+            new() { Id = 1, Name = "A", Value = 1 },
+            new() { Id = 2, Name = "B", Value = 2 },
+        };
+        var view = new CollectionView(src);
+        view.GroupDescriptions.Add(GroupByValue()); // CollectionView's own default is Collapsed.
+
+        Assert.IsTrue(view.CollectionGroups!.Cast<CollectionViewGroup>().All(g => g.GroupItems!.Count == 0));
+
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+
+        Assert.IsTrue(view.CollectionGroups!.Cast<CollectionViewGroup>().All(g => g.GroupItems!.Count == 1));
+        Assert.AreEqual(2, view.Count); // Both groups are now expanded, so both items are visible.
+    }
+
+    [UITestMethod]
+    public void Explicitly_Toggled_Group_Ignores_Later_Default_State_Changes()
+    {
+        var src = new ObservableCollection<TestItem>
+        {
+            new() { Id = 1, Name = "A", Value = 1 },
+            new() { Id = 2, Name = "B", Value = 2 },
+        };
+        var view = new CollectionView(src);
+        view.GroupDescriptions.Add(GroupByValue()); // Both groups start collapsed.
+
+        ToggleGroup((CollectionViewGroup)view.CollectionGroups![0]); // Explicitly expand just this one.
+        Assert.AreEqual(1, ((CollectionViewGroup)view.CollectionGroups![0]).GroupItems!.Count);
+        Assert.AreEqual(0, ((CollectionViewGroup)view.CollectionGroups![1]).GroupItems!.Count);
+
+        view.DefaultGroupState = TableViewGroupState.Expanded; // Both groups now show.
+        Assert.AreEqual(1, ((CollectionViewGroup)view.CollectionGroups![0]).GroupItems!.Count);
+        Assert.AreEqual(1, ((CollectionViewGroup)view.CollectionGroups![1]).GroupItems!.Count);
+
+        view.DefaultGroupState = TableViewGroupState.Collapsed; // The explicitly-expanded group stays expanded.
+        Assert.AreEqual(1, ((CollectionViewGroup)view.CollectionGroups![0]).GroupItems!.Count);
+        Assert.AreEqual(0, ((CollectionViewGroup)view.CollectionGroups![1]).GroupItems!.Count);
+    }
+
+    [UITestMethod]
+    public void Ungrouping_And_Regrouping_Does_Not_Resurrect_Prior_Expanded_State()
+    {
+        var src = new ObservableCollection<TestItem>
+        {
+            new() { Id = 1, Name = "A", Value = 1 },
+            new() { Id = 2, Name = "B", Value = 2 },
+        };
+        var view = new CollectionView(src); // Default group state is Collapsed.
+        var firstGrouping = GroupByValue();
+        view.GroupDescriptions.Add(firstGrouping);
+
+        ToggleGroup((CollectionViewGroup)view.CollectionGroups![0]); // Explicitly expand just this one.
+        Assert.AreEqual(1, ((CollectionViewGroup)view.CollectionGroups![0]).GroupItems!.Count);
+
+        view.GroupDescriptions.Remove(firstGrouping); // Ungroup.
+
+        // Re-group: a brand new GroupDescription instance, exactly like the ColumnGroupDescription
+        // TableViewColumnHeader.Group() creates when a column is grouped again after being ungrouped.
+        view.GroupDescriptions.Add(GroupByValue());
+
+        // The prior expand override must not resurrect under the new GroupDescription instance - both
+        // groups should start at the (still Collapsed) default again, not "remember" the old expand state.
+        Assert.IsTrue(view.CollectionGroups!.Cast<CollectionViewGroup>().All(g => g.GroupItems!.Count == 0));
+    }
+
+    [UITestMethod]
+    public void Collapsing_A_Leaf_Group_Hides_Its_Items()
+    {
+        var src = new ObservableCollection<TestItem>
+        {
+            new() { Id = 1, Name = "A", Value = 1 },
+            new() { Id = 2, Name = "B", Value = 2 },
+            new() { Id = 3, Name = "C", Value = 1 },
+        };
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+        view.GroupDescriptions.Add(GroupByValue());
+
+        ToggleGroup((CollectionViewGroup)view.CollectionGroups![0]);
+
+        // ToggleGroup rebuilds CollectionGroups, so re-fetch rather than reuse the pre-toggle instance.
+        var group1 = (CollectionViewGroup)view.CollectionGroups![0];
+        Assert.AreEqual(0, group1.GroupItems!.Count); // Collapsed - no items surfaced through this group.
+        Assert.AreEqual(1, view.Count); // Only the still-expanded Value=2 group's item ("B") is visible.
+
+        ToggleGroup((CollectionViewGroup)view.CollectionGroups![0]);
+        group1 = (CollectionViewGroup)view.CollectionGroups![0];
+        Assert.AreEqual(2, group1.GroupItems!.Count); // Re-expanded - both Value=1 items surfaced again.
+        Assert.AreEqual(3, view.Count); // Both groups now expanded - everything is visible again.
+    }
+
+    [UITestMethod]
+    public void Collapsing_A_Parent_Group_Hides_Descendant_Subgroups_And_Items()
+    {
+        var src = new ObservableCollection<TestItem>
+        {
+            new() { Id = 1, Name = "A", Value = 1 },
+            new() { Id = 2, Name = "B", Value = 2 },
+            new() { Id = 3, Name = "C", Value = 1 },
+        };
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+        view.GroupDescriptions.Add(GroupByValue());
+        view.GroupDescriptions.Add(GroupByName());
+
+        // Flattened order: Value-1 (parent), Name-A (leaf), Name-C (leaf), Value-2 (parent), Name-B (leaf).
+        Assert.AreEqual(5, view.CollectionGroups!.Count);
+
+        var parent1 = (CollectionViewGroup)view.CollectionGroups[0];
+        ToggleGroup(parent1);
+
+        // Collapsing the parent removes its subgroup headers entirely, not just their items.
+        Assert.AreEqual(3, view.CollectionGroups!.Count);
+        Assert.AreEqual(1, view.Count); // Only Value=2's "B" remains visible - Value=1's subtree is hidden.
+
+        var remainingLeaf = (CollectionViewGroup)view.CollectionGroups[2];
+        Assert.AreEqual("B", ((TableViewGroupInfo)remainingLeaf.Group!).Key);
+        CollectionAssert.AreEqual(new[] { "B" }, remainingLeaf.GroupItems!.Select(i => ((TestItem)i!).Name).ToArray());
+    }
+
+    [UITestMethod]
+    public void Collapsed_State_Survives_A_Rebuild_Triggered_By_Something_Else()
+    {
+        var src = new ObservableCollection<TestItem>
+        {
+            new() { Id = 1, Name = "A", Value = 1 },
+            new() { Id = 2, Name = "B", Value = 2 },
+        };
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+        view.GroupDescriptions.Add(GroupByValue());
+
+        var group1 = (CollectionViewGroup)view.CollectionGroups![0];
+        ToggleGroup(group1);
+        group1 = (CollectionViewGroup)view.CollectionGroups![0];
+        Assert.AreEqual(0, group1.GroupItems!.Count);
+
+        // Adding a single item goes through HandleItemAdded (not HandleSourceChanged), which rebuilds
+        // CollectionGroups via HandleGroupChanged and so constructs brand new TableViewGroupInfo
+        // instances - the collapsed state must still stick.
+        src.Add(new TestItem { Id = 3, Name = "E", Value = 1 });
+
+        // Still collapsed - the new Value=1 item stays hidden too, even under a brand new
+        // TableViewGroupInfo instance for the (still collapsed) Value=1 group.
+        group1 = (CollectionViewGroup)view.CollectionGroups![0];
+        Assert.AreEqual(0, group1.GroupItems!.Count);
+        Assert.AreEqual(1, view.Count); // Only Value=2's "B" is visible - Value=1's group (A, E) stays collapsed.
+    }
+
+    [UITestMethod]
+    public void Adding_An_Item_Places_It_In_Its_Existing_Group()
+    {
+        var src = new ObservableCollection<TestItem>
+        {
+            new() { Id = 1, Name = "A", Value = 1 },
+            new() { Id = 2, Name = "B", Value = 2 },
+        };
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+        view.GroupDescriptions.Add(GroupByValue());
+
+        src.Add(new TestItem { Id = 3, Name = "C", Value = 1 }); // Joins the existing Value=1 group.
+
+        Assert.AreEqual(2, view.CollectionGroups!.Count); // Still just two groups - no new one created.
+        var group1 = (CollectionViewGroup)view.CollectionGroups[0];
+        CollectionAssert.AreEqual(new[] { "A", "C" }, group1.GroupItems!.Select(i => ((TestItem)i!).Name).ToArray());
+        Assert.AreEqual(2, ((TableViewGroupInfo)group1.Group!).Count);
+        Assert.AreEqual(3, view.Count);
+    }
+
+    [UITestMethod]
+    public void Adding_An_Item_With_A_New_Key_Creates_A_New_Group()
+    {
+        var src = new ObservableCollection<TestItem>
+        {
+            new() { Id = 1, Name = "A", Value = 1 },
+        };
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+        view.GroupDescriptions.Add(GroupByValue());
+
+        Assert.AreEqual(1, view.CollectionGroups!.Count);
+
+        src.Add(new TestItem { Id = 2, Name = "B", Value = 2 }); // A brand new Value=2 group.
+
+        Assert.AreEqual(2, view.CollectionGroups!.Count);
+        var newGroup = (CollectionViewGroup)view.CollectionGroups[1];
+        Assert.AreEqual(2, ((TableViewGroupInfo)newGroup.Group!).Key);
+        CollectionAssert.AreEqual(new[] { "B" }, newGroup.GroupItems!.Select(i => ((TestItem)i!).Name).ToArray());
+        Assert.AreEqual(2, view.Count);
+    }
+
+    [UITestMethod]
+    public void Removing_An_Item_Updates_Its_Group()
+    {
+        var a = new TestItem { Id = 1, Name = "A", Value = 1 };
+        var c = new TestItem { Id = 3, Name = "C", Value = 1 };
+        var src = new ObservableCollection<TestItem>
+        {
+            a,
+            new() { Id = 2, Name = "B", Value = 2 },
+            c,
+        };
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+        view.GroupDescriptions.Add(GroupByValue());
+
+        src.Remove(a);
+
+        Assert.AreEqual(2, view.CollectionGroups!.Count); // Value=1 group still exists - C remains.
+        var group1 = (CollectionViewGroup)view.CollectionGroups[0];
+        CollectionAssert.AreEqual(new[] { "C" }, group1.GroupItems!.Select(i => ((TestItem)i!).Name).ToArray());
+        Assert.AreEqual(1, ((TableViewGroupInfo)group1.Group!).Count);
+        Assert.AreEqual(2, view.Count);
+    }
+
+    [UITestMethod]
+    public void Removing_The_Last_Item_In_A_Group_Removes_The_Group_Header()
+    {
+        var a = new TestItem { Id = 1, Name = "A", Value = 1 };
+        var src = new ObservableCollection<TestItem>
+        {
+            a,
+            new() { Id = 2, Name = "B", Value = 2 },
+        };
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+        view.GroupDescriptions.Add(GroupByValue());
+
+        Assert.AreEqual(2, view.CollectionGroups!.Count);
+
+        src.Remove(a); // The only Value=1 item - its group should disappear entirely, not just empty out.
+
+        Assert.AreEqual(1, view.CollectionGroups!.Count);
+        Assert.AreEqual(2, ((TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups[0]).Group!).Key);
+        Assert.AreEqual(1, view.Count);
+    }
+
+    [UITestMethod]
+    public void Removing_An_Item_Hidden_In_A_Collapsed_Group_Updates_The_Group()
+    {
+        var a = new TestItem { Id = 1, Name = "A", Value = 1 };
+        var c = new TestItem { Id = 3, Name = "C", Value = 1 };
+        var src = new ObservableCollection<TestItem> { a, c };
+        var view = new CollectionView(src); // Groups start collapsed per CollectionView's own default.
+        view.GroupDescriptions.Add(GroupByValue());
+
+        var group1 = (CollectionViewGroup)view.CollectionGroups![0];
+        Assert.AreEqual(0, group1.GroupItems!.Count); // Collapsed - nothing surfaced through the group yet.
+        Assert.AreEqual(0, view.Count); // The only group is collapsed - nothing is currently visible.
+
+        src.Remove(a); // Removing an item that's currently hidden inside the collapsed group.
+
+        group1 = (CollectionViewGroup)view.CollectionGroups![0];
+        ToggleGroup(group1); // Expand to check what's actually left inside.
+
+        var expandedGroup = (CollectionViewGroup)view.CollectionGroups![0];
+        CollectionAssert.AreEqual(new[] { "C" }, expandedGroup.GroupItems!.Select(i => ((TestItem)i!).Name).ToArray());
+        Assert.AreEqual(1, view.Count);
+    }
+
+    [UITestMethod]
+    public void Adding_An_Item_Places_It_In_The_Correct_Nested_Group()
+    {
+        var src = new ObservableCollection<TestItem>
+        {
+            new() { Id = 1, Name = "A", Value = 1 },
+            new() { Id = 2, Name = "B", Value = 2 },
+        };
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+        view.GroupDescriptions.Add(GroupByValue());
+        view.GroupDescriptions.Add(GroupByName());
+
+        // Flattened: Value-1 (parent), Name-A (leaf), Value-2 (parent), Name-B (leaf).
+        Assert.AreEqual(4, view.CollectionGroups!.Count);
+
+        src.Add(new TestItem { Id = 3, Name = "A", Value = 1 }); // Joins the existing Value=1/Name=A leaf group.
+
+        Assert.AreEqual(4, view.CollectionGroups!.Count); // No new group - same Value/Name combo.
+        var leafA = (CollectionViewGroup)view.CollectionGroups[1];
+        Assert.AreEqual("A", ((TableViewGroupInfo)leafA.Group!).Key);
+        Assert.AreEqual(2, leafA.GroupItems!.Count);
+        Assert.AreEqual(3, view.Count);
+
+        src.Add(new TestItem { Id = 4, Name = "D", Value = 1 }); // A brand new Value=1/Name=D leaf group.
+
+        Assert.AreEqual(5, view.CollectionGroups!.Count);
+        Assert.AreEqual(4, view.Count);
+    }
+
+    [UITestMethod]
+    public void CollectionView_Add_And_Remove_Respect_Grouping()
+    {
+        var src = new ObservableCollection<TestItem>
+        {
+            new() { Id = 1, Name = "A", Value = 1 },
+        };
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+        view.GroupDescriptions.Add(GroupByValue());
+
+        view.Add(new TestItem { Id = 2, Name = "B", Value = 2 }); // Via CollectionView.Add, not the source directly.
+
+        Assert.AreEqual(2, view.CollectionGroups!.Count);
+        Assert.AreEqual(2, view.Count);
+
+        view.RemoveAt(0); // Removes whatever is first in the (grouped/reordered) view - item "A".
+
+        Assert.AreEqual(1, view.CollectionGroups!.Count);
+        Assert.AreEqual(1, view.Count);
+    }
+
+    [UITestMethod]
+    public void Changing_A_Group_Descriptions_Direction_Reorders_Groups()
+    {
+        var src = new ObservableCollection<TestItem>
+        {
+            new() { Id = 1, Name = "A", Value = 1 },
+            new() { Id = 2, Name = "B", Value = 2 },
+        };
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+        var groupDescription = GroupByValue();
+        view.GroupDescriptions.Add(groupDescription);
+
+        // Ascending by default.
+        Assert.AreEqual(1, ((TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups![0]).Group!).Key);
+
+        groupDescription.Direction = SortDirection.Descending;
+        view.RefreshGrouping();
+
+        // Mutating the same GroupDescription's Direction and refreshing reorders groups in place -
+        // this is exactly what TableViewColumnHeader.SortGroupDescription does when toggling a grouped
+        // column's sort direction, instead of adding a redundant SortDescription.
+        Assert.AreEqual(2, ((TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups![0]).Group!).Key);
+    }
+
+    [UITestMethod]
+    public void Group_Sort_Mode_Count_Orders_Groups_By_Size_Not_Key()
+    {
+        var src = new ObservableCollection<TestItem>
+        {
+            new() { Id = 1, Name = "A", Value = 1 },
+            new() { Id = 2, Name = "B", Value = 1 },
+            new() { Id = 3, Name = "C", Value = 1 },
+            new() { Id = 4, Name = "D", Value = 2 },
+        };
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+        var groupDescription = GroupByValue();
+        groupDescription.SortMode = GroupSortMode.Count;
+        view.GroupDescriptions.Add(groupDescription);
+
+        // Value=1 has 3 items, Value=2 has 1 - ascending-by-key (the default mode) would put Value=1
+        // first; ascending-by-count puts the SMALLER group first instead, so Value=2 comes first here.
+        var first = (TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups![0]).Group!;
+        Assert.AreEqual(2, first.Key);
+        Assert.AreEqual(1, first.Count);
+
+        var second = (TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups[1]).Group!;
+        Assert.AreEqual(1, second.Key);
+        Assert.AreEqual(3, second.Count);
+    }
+
+    [UITestMethod]
+    public void Changing_A_Group_Descriptions_Sort_Mode_Reorders_Groups()
+    {
+        var src = new ObservableCollection<TestItem>
+        {
+            new() { Id = 1, Name = "A", Value = 1 },
+            new() { Id = 2, Name = "B", Value = 1 },
+            new() { Id = 3, Name = "C", Value = 1 },
+            new() { Id = 4, Name = "D", Value = 2 },
+        };
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+        var groupDescription = GroupByValue();
+        view.GroupDescriptions.Add(groupDescription);
+
+        // Default: Key mode, ascending - Value=1 (the smaller key) first, same as today.
+        Assert.AreEqual(1, ((TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups![0]).Group!).Key);
+
+        groupDescription.SortMode = GroupSortMode.Count;
+        view.RefreshGrouping();
+
+        // Switching to Count mode (still Ascending) puts the smaller GROUP first instead - Value=2 (1 item).
+        Assert.AreEqual(2, ((TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups![0]).Group!).Key);
+
+        groupDescription.Direction = SortDirection.Descending;
+        view.RefreshGrouping();
+
+        // The two toggles compose: Count mode + Descending puts the BIGGER group first - Value=1 (3 items).
+        Assert.AreEqual(1, ((TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups![0]).Group!).Key);
+    }
+
+    [UITestMethod]
+    public void Group_Sort_Mode_Count_Breaks_Ties_By_Key()
+    {
+        var src = new ObservableCollection<TestItem>
+        {
+            // Value=2's item is encountered first, but ties should break ascending by key (Value=1
+            // first), not by source encounter order.
+            new() { Id = 1, Name = "A", Value = 2 },
+            new() { Id = 2, Name = "B", Value = 1 },
+        };
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+        var groupDescription = GroupByValue();
+        groupDescription.SortMode = GroupSortMode.Count;
+        view.GroupDescriptions.Add(groupDescription);
+
+        // Both groups have exactly 1 item - a tie. The tie-break is always ascending by key, so Value=1
+        // comes first despite Value=2 appearing first in the source.
+        Assert.AreEqual(1, ((TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups![0]).Group!).Key);
+        Assert.AreEqual(2, ((TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups[1]).Group!).Key);
+    }
+
+    [UITestMethod]
+    public void Multi_Level_Group_Sort_Mode_Applies_Independently_Per_Level()
+    {
+        var src = new ObservableCollection<TestItem>
+        {
+            new() { Id = 1, Name = "Z", Value = 1 },
+            new() { Id = 2, Name = "M", Value = 2 },
+            new() { Id = 3, Name = "A", Value = 2 },
+        };
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+
+        var outerGroupDescription = GroupByValue();
+        outerGroupDescription.SortMode = GroupSortMode.Count;
+        outerGroupDescription.Direction = SortDirection.Descending; // biggest outer group first
+        view.GroupDescriptions.Add(outerGroupDescription);
+        view.GroupDescriptions.Add(GroupByName()); // inner level: default Key mode, ascending
+
+        // Outer: Value=2 has 2 items, Value=1 has 1 - Count+Descending puts Value=2 (bigger) first,
+        // the opposite of the default key-ascending order.
+        var outerFirst = (TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups![0]).Group!;
+        Assert.AreEqual(2, outerFirst.Key);
+
+        // Inner (still Key mode) keeps ordering alphabetically within that outer group: "A" before "M".
+        var innerFirst = (TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups[1]).Group!;
+        Assert.AreEqual("A", innerFirst.Key);
+
+        var innerSecond = (TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups[2]).Group!;
+        Assert.AreEqual("M", innerSecond.Key);
+
+        // Outer: Value=1 (1 item) comes last.
+        var outerSecond = (TableViewGroupInfo)((CollectionViewGroup)view.CollectionGroups[3]).Group!;
+        Assert.AreEqual(1, outerSecond.Key);
+    }
+
+    /// <summary>
+    /// Flips a group's expanded/collapsed state, the same DependencyProperty the header row's expand/collapse
+    /// button toggles - a stand-in for the removed CollectionView.ToggleGroup convenience method.
+    /// </summary>
+    private static void ToggleGroup(CollectionViewGroup group)
+    {
+        var info = (TableViewGroupInfo)group.Group!;
+        info.IsExpanded = !info.IsExpanded;
+    }
+
+    private static GroupDescription GroupByValue()
+    {
+        return new GroupDescription(null, valueDelegate: item => ((TestItem)item!).Value);
+    }
+
+    private static GroupDescription GroupByName()
+    {
+        return new GroupDescription(null, valueDelegate: item => ((TestItem)item!).Name);
+    }
+
     private static ObservableCollection<TestItem> CreateItems(int count)
     {
         var list = new ObservableCollection<TestItem>();

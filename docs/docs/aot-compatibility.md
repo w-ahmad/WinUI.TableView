@@ -156,12 +156,14 @@ Enable AOT and set the CsWinRT warning level to catch any remaining issues at bu
 - Only WinUI (Windows App SDK) targets support Native AOT publishing. Uno Platform targets have their own AOT characteristics — consult the [Uno Platform documentation](https://platform.uno/docs/articles/uno-development/aot-compilation.html) for those targets.
 - `AutoGenerateColumns="True"` uses reflection to discover properties. This works with the attribute in place, but for maximum AOT compatibility prefer explicit columns (`AutoGenerateColumns="False"`).
 - `SortMemberPath` uses reflection-based property access when set. Ensure the model has the attribute when using `SortMemberPath`.
+- [Grouping](grouping.md) is built on the same `SortDescription`-derived reflection path as sorting - grouping by a bound column's property (rather than its rendered cell content) needs the same model attribute.
 
 ## Related articles
 
 - [Binding data](binding-data.md)
 - [Defining columns](defining-columns.md)
 - [Column types](column-types.md)
+- [Grouping](grouping.md)
 - [Performance guidance](performance.md)
 - [.NET Native AOT deployment overview](https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/)
 - [C#/WinRT overview](https://learn.microsoft.com/en-us/windows/apps/develop/platform/csharp-winrt/)

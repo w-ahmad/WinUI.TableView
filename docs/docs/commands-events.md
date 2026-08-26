@@ -34,6 +34,12 @@ This page lists all public events exposed by `TableView` and related types.
 | [`Sorting`](xref:WinUI.TableView.TableView.Sorting) | [`TableViewSortingEventArgs`](xref:WinUI.TableView.TableViewSortingEventArgs) | Fires before the default sort runs. Set `Handled = true` for custom sort. |
 | [`ClearSorting`](xref:WinUI.TableView.TableView.ClearSorting) | [`TableViewClearSortingEventArgs`](xref:WinUI.TableView.TableViewClearSortingEventArgs) | Fires when a column's sort direction is cleared. |
 
+### Grouping (Windows only)
+
+| Event | Args type | Description |
+|---|---|---|
+| [`Grouping`](xref:WinUI.TableView.TableView.Grouping) | [`TableViewGroupingEventArgs`](xref:WinUI.TableView.TableViewGroupingEventArgs) | Fires before a column's **Group** option applies a new group - not when ungrouping. Set `Handled = true` to suppress the default grouping. |
+
 ### Clipboard and export
 
 | Event | Args type | Description |
@@ -111,6 +117,13 @@ This page lists all public events exposed by `TableView` and related types.
 |---|---|---|
 | `Column` | [`TableViewColumn`](xref:WinUI.TableView.TableViewColumn) | The column being sorted |
 | `Handled` (inherited) | `bool` | Set `true` to suppress default sort |
+
+### TableViewGroupingEventArgs
+
+| Property | Type | Description |
+|---|---|---|
+| `Column` | [`TableViewColumn`](xref:WinUI.TableView.TableViewColumn) | The column being grouped |
+| `Handled` (inherited) | `bool` | Set `true` to suppress default grouping |
 
 ### TableViewCopyToClipboardEventArgs
 
@@ -206,11 +219,19 @@ This page lists all public events exposed by `TableView` and related types.
 | `Cells` | Cell content width only |
 | [`Header`](xref:WinUI.TableView.TableViewColumnAutoWidthMode.Header) | Header content width only |
 
+### TableViewGroupState
+
+| Value | Description |
+|---|---|
+| `Expanded` | Newly created groups start expanded |
+| `Collapsed` | Newly created groups start collapsed |
+
 ## Related articles
 
 - [Editing](editing.md)
 - [Selection](selection.md)
 - [Sorting](sorting.md)
+- [Grouping](grouping.md)
 - [Filtering](filtering.md)
 - [Clipboard and copy/paste](clipboard.md)
 - [Export to CSV](export.md)
