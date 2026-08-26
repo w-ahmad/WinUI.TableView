@@ -29,7 +29,8 @@ public static class ExampleModelColumnsHelper
                     Binding = boundColumn.Binding,
                     Header = boundColumn.Header,
                     Width = new GridLength(120),
-                    ItemsSource = viewModel.Genders
+                    ItemsSource = viewModel.Genders,
+                    CanSort = false
                 };
                 break;
             case nameof(ExampleModel.Dob):
@@ -47,7 +48,8 @@ public static class ExampleModelColumnsHelper
                     Binding = boundColumn.Binding,
                     Header = boundColumn.Header,
                     Width = new GridLength(200),
-                    ItemsSource = viewModel.Departments
+                    ItemsSource = viewModel.Departments,
+                    CanSort = false
                 };
                 break;
             case nameof(ExampleModel.Designation):
