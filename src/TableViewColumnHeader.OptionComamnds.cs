@@ -57,13 +57,7 @@ partial class TableViewColumnHeader
             _groupCommand.Label = IsGrouped ? TableViewLocalizedStrings.Ungroup : TableViewLocalizedStrings.Group;
         };
 
-        _sortGroupsByCountCommand.ExecuteRequested += delegate
-        {
-            if (_tableView?.CollectionView is CollectionView { } collectionView)
-            {
-                ToggleGroupSortMode(collectionView);
-            }
-        };
+        _sortGroupsByCountCommand.ExecuteRequested += delegate { ToggleGroupSortMode(); };
         _sortGroupsByCountCommand.CanExecuteRequested += (_, e) =>
         {
             e.CanExecute = IsGrouped;
@@ -80,19 +74,12 @@ partial class TableViewColumnHeader
         _sortDescendingCommand.CanExecuteRequested += (_, e) => e.CanExecute = CanSort && Column?.SortDirection != SD.Descending;
 
         _clearSortingCommand.ExecuteRequested += delegate { ClearSortingWithEvent(); };
-        _clearSortingCommand.CanExecuteRequested += (_, e) =>
-        {
-            // A grouped column with no independent sort left over is driven entirely by its group -
-            // "clear sorting" isn't offered for it; ungroup instead. Only three-state (asc -> desc ->
-            // clear) sorting is disabled, not the asc/desc toggle itself (handled by DoSort/SortGroupDescription).
-            // While a leftover ColumnSortDescription from before grouping is still mirroring the group's
-            // order, clearing it is allowed and hands ordering fully over to the group description.
-            var canClear = Column?.SortDirection is not null;
+        _clearSortingCommand.CanExecuteRequested += (_, e) => e.CanExecute = Column?.SortDirection is not null &&
 #if WINDOWS
-            canClear = canClear && (!IsGrouped || HasGroupSortCompanion);
+        !IsGrouped;
+#else
+        true;
 #endif
-            e.CanExecute = canClear;
-        };
 
         _clearFilterCommand.ExecuteRequested += delegate { ClearFilter(); };
         _clearFilterCommand.CanExecuteRequested += (_, e) => e.CanExecute = Column?.IsFiltered is true;

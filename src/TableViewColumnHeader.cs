@@ -106,17 +106,6 @@ public partial class TableViewColumnHeader : ContentControl
         collectionView.GroupDescriptions.Any(x => x is ColumnGroupDescription columnGroup && columnGroup.Column == Column);
 
     /// <summary>
-    /// Gets a value indicating whether this grouped column still has an independent <see cref="ColumnSortDescription"/>
-    /// left over from before it was grouped - i.e. its order is still being mirrored from that description
-    /// rather than owned outright by its <see cref="ColumnGroupDescription"/>. See <see cref="SortGroupDescription"/>
-    /// and <see cref="HandOffToGroupDescription"/>.
-    /// </summary>
-    private bool HasGroupSortCompanion =>
-        Column is not null &&
-        _tableView?.CollectionView is CollectionView { } collectionView &&
-        collectionView.SortDescriptions.Any(x => x is ColumnSortDescription columnSort && columnSort.Column == Column);
-
-    /// <summary>
     /// Groups the column, or removes its grouping if it's already grouped.
     /// </summary>
     private void Group()
@@ -130,8 +119,11 @@ public partial class TableViewColumnHeader : ContentControl
         {
             using var ungroupDefer = collectionView.DeferRefresh();
             collectionView.GroupDescriptions.RemoveWhere(x => x is ColumnGroupDescription columnGroup && columnGroup.Column == Column);
-            collectionView.SortDescriptions.RemoveWhere(x => x is ColumnSortDescription columnSort && columnSort.Column == Column);
-            Column.SortDirection = null;
+            collectionView.SortDescriptions.RemoveWhere(x => x is ColumnGroupDescription columnSort && columnSort.Column == Column);
+
+            var sortDescription = collectionView.SortDescriptions.FirstOrDefault(x => x is ColumnSortDescription columnSort && columnSort.Column == Column);
+            Column.SortDirection = sortDescription?.Direction;
+
             return;
         }
 
@@ -147,62 +139,15 @@ public partial class TableViewColumnHeader : ContentControl
 
         using var defer = collectionView.DeferRefresh();
 
-        // If the column already had its own sort applied, keep that ColumnSortDescription in place and
-        // seed the group with its direction, rather than discarding it and resetting to Ascending - see
-        // SortGroupDescription/HandOffToGroupDescription for how the two are kept in sync afterwards.
-        var direction = Column.SortDirection ?? SortDirection.Ascending;
+        var direction = Column.SortDirection ?? SD.Ascending;
 
         var groupDescription = new ColumnGroupDescription(Column, sortPath, direction);
         collectionView.GroupDescriptions.Add(groupDescription);
-        Column.SortDirection = direction;
-    }
 
-    /// <summary>
-    /// Changes the direction driving a grouped column's order. If the column still has an independent
-    /// <see cref="ColumnSortDescription"/> left over from before it was grouped (<see cref="HasGroupSortCompanion"/>),
-    /// that description is updated too, keeping it mirrored; otherwise only the <see cref="ColumnGroupDescription"/>
-    /// itself changes. Either way, the group's order always needs a direction, so this is the only way to
-    /// change it while grouped - there's no cycling to a cleared/unsorted state.
-    /// </summary>
-    private void SortGroupDescription(SD direction, CollectionView collectionView)
-    {
-        var groupDescription = collectionView.GroupDescriptions
-            .OfType<ColumnGroupDescription>()
-            .FirstOrDefault(x => x.Column == Column);
-
-        if (groupDescription is null || groupDescription.Direction == direction) return;
-
-        var sortDescription = collectionView.SortDescriptions
-            .OfType<ColumnSortDescription>()
-            .FirstOrDefault(x => x.Column == Column);
-
-        if (sortDescription is not null)
+        if (Column.SortDirection is null)
         {
-            sortDescription.Direction = direction;
-        }
-
-        groupDescription.Direction = direction;
-        Column!.SortDirection = direction;
-        collectionView.RefreshGrouping();
-    }
-
-    /// <summary>
-    /// Removes a grouped column's leftover <see cref="ColumnSortDescription"/> from before it was grouped,
-    /// once it's cycled to cleared (or "Clear Sorting" is invoked) - handing its order over fully to the
-    /// <see cref="ColumnGroupDescription"/> that's been mirroring it (see <see cref="SortGroupDescription"/>).
-    /// Its current direction carries over unchanged, since the group still needs one.
-    /// </summary>
-    private void HandOffToGroupDescription(CollectionView collectionView)
-    {
-        collectionView.SortDescriptions.RemoveWhere(x => x is ColumnSortDescription columnSort && columnSort.Column == Column);
-
-        var groupDescription = collectionView.GroupDescriptions
-            .OfType<ColumnGroupDescription>()
-            .FirstOrDefault(x => x.Column == Column);
-
-        if (groupDescription is not null)
-        {
-            Column!.SortDirection = groupDescription.Direction;
+            collectionView.SortDescriptions.Add(groupDescription);
+            Column.SortDirection = direction;
         }
     }
 
@@ -210,20 +155,17 @@ public partial class TableViewColumnHeader : ContentControl
     /// Gets a value indicating whether this grouped column currently orders its groups by item count
     /// rather than by key.
     /// </summary>
-    private bool IsGroupSortedByCount =>
-        Column is not null &&
-        _tableView?.CollectionView is CollectionView { } collectionView &&
-        collectionView.GroupDescriptions.OfType<ColumnGroupDescription>()
-            .FirstOrDefault(x => x.Column == Column) is { SortMode: GroupSortMode.Count };
+    private bool IsGroupSortedByCount => 
+        _tableView?.GroupDescriptions.OfType<ColumnGroupDescription>()
+                                     .FirstOrDefault(x => x.Column == Column) is { SortMode: GroupSortMode.Count };
 
     /// <summary>
     /// Toggles a grouped column's <see cref="GroupDescription.SortMode"/> between key and item-count order.
     /// </summary>
-    private void ToggleGroupSortMode(CollectionView collectionView)
+    private void ToggleGroupSortMode()
     {
-        var groupDescription = collectionView.GroupDescriptions
-            .OfType<ColumnGroupDescription>()
-            .FirstOrDefault(x => x.Column == Column);
+        var groupDescription = _tableView?.GroupDescriptions.OfType<ColumnGroupDescription>()
+                                                            .FirstOrDefault(x => x.Column == Column);
 
         if (groupDescription is null) return;
 
@@ -231,7 +173,7 @@ public partial class TableViewColumnHeader : ContentControl
             ? GroupSortMode.Key
             : GroupSortMode.Count;
 
-        collectionView.RefreshGrouping();
+        _tableView?.RefreshGrouping();
     }
 #endif
 
@@ -250,42 +192,38 @@ public partial class TableViewColumnHeader : ContentControl
 
         if (eventArgs.Handled) return;
 
-#if WINDOWS
-        if (IsGrouped)
-        {
-            if (direction is not null)
-            {
-                SortGroupDescription(direction.Value, collectionView);
-            }
-            else
-            {
-                HandOffToGroupDescription(collectionView);
-            }
-
-            return;
-        }
-#endif
-
         using var defer = collectionView.DeferRefresh();
+        var sortDescription = collectionView.SortDescriptions
+            .FirstOrDefault(x => (x is ColumnSortDescription columnSort && columnSort.Column == Column) ||
+                                          (x is ColumnGroupDescription columnGroup && columnGroup.Column == Column));
+
         if (singleSorting)
         {
             _tableView.ClearAllSortingWithEvent();
         }
-        else
-        {
-            ClearSortingWithEvent();
-        }
 
         if (direction is not null)
         {
+
+#if WINDOWS
+            if (sortDescription is ColumnSortDescription && IsGrouped)
+            {
+                var groupDescription = collectionView.GroupDescriptions
+                    .FirstOrDefault(x => x is ColumnGroupDescription columnGroup && columnGroup.Column == Column);
+
+                groupDescription?.Direction = direction.Value;
+            }
+#endif
+
             var boundColumn = Column as TableViewBoundColumn;
             Column.SortDirection = direction;
 
             // Prefer explicit SortMemberPath if provided, otherwise use bound column's property path
             var sortPath = Column.SortMemberPath ?? boundColumn?.PropertyPath;
+            sortDescription ??= new ColumnSortDescription(Column, sortPath);
+            sortDescription.Direction = direction.Value;
 
-            _tableView.SortDescriptions.Add(
-                new ColumnSortDescription(Column!, sortPath, direction.Value));
+            _tableView.SortDescriptions.Add(sortDescription);
         }
     }
 
@@ -306,14 +244,6 @@ public partial class TableViewColumnHeader : ContentControl
         {
             using var defer = collectionView.DeferRefresh();
             _tableView.DeselectAll();
-
-#if WINDOWS
-            if (IsGrouped)
-            {
-                HandOffToGroupDescription(collectionView);
-                return;
-            }
-#endif
 
             Column.SortDirection = null;
             collectionView.SortDescriptions.RemoveWhere(x => x is ColumnSortDescription columnSort && columnSort.Column == Column);
@@ -403,7 +333,7 @@ public partial class TableViewColumnHeader : ContentControl
     private SD? GetNextSortDirection()
     {
 #if WINDOWS
-        if (IsGrouped && !HasGroupSortCompanion)
+        if (IsGrouped)
         {
             return Column?.SortDirection == SD.Ascending ? SD.Descending : SD.Ascending;
         }
