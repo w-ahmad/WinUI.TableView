@@ -524,43 +524,88 @@ public class CollectionViewTests
     }
 
     [UITestMethod]
-    public void IndexOfSourceItem_Is_Unaffected_By_Group_Collapse()
+    public void IndexOfSourceItem_ReturnsSourcePosition_WhenGroupingReordersTheView()
     {
         var src = new ObservableCollection<TestItem>
         {
             new() { Id = 1, Name = "A", Value = 1 },
             new() { Id = 2, Name = "B", Value = 2 },
             new() { Id = 3, Name = "C", Value = 1 },
+            new() { Id = 4, Name = "D", Value = 2 },
         };
         var view = new CollectionView(src);
         view.DefaultGroupState = TableViewGroupState.Expanded;
         view.GroupDescriptions.Add(GroupByValue());
 
-        // Before any collapse, source order and grouped/flattened view order coincide for this dataset.
-        Assert.AreEqual(0, view.IndexOfSourceItem(src[0]));
-        Assert.AreEqual(1, view.IndexOfSourceItem(src[1]));
-        Assert.AreEqual(2, view.IndexOfSourceItem(src[2]));
-
-        ToggleGroup((CollectionViewGroup)view.CollectionGroups![0]); // Collapse the Value=1 group (A, C).
-
-        // IndexOf (the pruned/visible view) no longer finds the hidden items, and B shifted to view index 0 -
-        // but IndexOfSourceItem must still report every item's stable position in the full source set.
-        Assert.AreEqual(-1, view.IndexOf(src[0]));
-        Assert.AreEqual(0, view.IndexOf(src[1]));
-        Assert.AreEqual(0, view.IndexOfSourceItem(src[0]));
-        Assert.AreEqual(1, view.IndexOfSourceItem(src[1]));
-        Assert.AreEqual(2, view.IndexOfSourceItem(src[2]));
+        // Grouped/flattened view order is A, C, B, D (see Single_Group_Description_Groups_Items) - source
+        // order is A, B, C, D. IndexOfSourceItem must report the latter given each item's position in the
+        // former, i.e. the real, ungrouped position - not just echo the viewIndex it was passed.
+        Assert.AreEqual(0, view.IndexOfSourceItem(src[0], viewIndex: 0)); // A: view 0 -> source 0.
+        Assert.AreEqual(2, view.IndexOfSourceItem(src[2], viewIndex: 1)); // C: view 1 -> source 2.
+        Assert.AreEqual(1, view.IndexOfSourceItem(src[1], viewIndex: 2)); // B: view 2 -> source 1.
+        Assert.AreEqual(3, view.IndexOfSourceItem(src[3], viewIndex: 3)); // D: view 3 -> source 3.
     }
 
     [UITestMethod]
-    public void IndexOfSourceItem_Returns_Negative_One_For_Null_Or_Missing_Item()
+    public void IndexOfSourceItem_StaysCorrect_ForItemsStillVisibleAfterACollapse()
+    {
+        var src = new ObservableCollection<TestItem>
+        {
+            new() { Id = 1, Name = "A", Value = 1 },
+            new() { Id = 2, Name = "B", Value = 2 },
+            new() { Id = 3, Name = "C", Value = 1 },
+            new() { Id = 4, Name = "D", Value = 2 },
+        };
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+        view.GroupDescriptions.Add(GroupByValue());
+
+        ToggleGroup((CollectionViewGroup)view.CollectionGroups![0]); // Collapse the Value=1 group (A, C).
+
+        // B and D are still visible, now at view indices 0 and 1 - their real (source) position must still
+        // resolve correctly relative to their new view position.
+        Assert.AreEqual(1, view.IndexOfSourceItem(src[1], viewIndex: 0)); // B: view 0 -> source 1.
+        Assert.AreEqual(3, view.IndexOfSourceItem(src[3], viewIndex: 1)); // D: view 1 -> source 3.
+    }
+
+    [UITestMethod]
+    public void IndexOfSourceItem_DistinctInstancesThatCompareEqual_ResolveToTheirOwnPosition()
+    {
+        // Two distinct instances that are Equals by value - List<T>.IndexOf (value equality) would resolve
+        // both to the first occurrence's index; IndexOfSourceItem must disambiguate by reference instead.
+        var a = new EqualByKeyItem(1);
+        var b = new EqualByKeyItem(1);
+        var src = new ObservableCollection<EqualByKeyItem> { a, b };
+        var view = new CollectionView(src);
+
+        Assert.AreEqual(a, b); // Sanity check: the record's generated Equals treats them as equal.
+        Assert.AreEqual(0, view.IndexOfSourceItem(a, viewIndex: 0));
+        Assert.AreEqual(1, view.IndexOfSourceItem(b, viewIndex: 1));
+    }
+
+    [UITestMethod]
+    public void IndexOfSourceItem_SameInstanceRepeatedTwice_ResolvesEachOccurrenceSeparately()
+    {
+        var a = new TestItem { Id = 1, Name = "Dup", Value = 5 };
+        var src = new ObservableCollection<TestItem> { a, a };
+        var view = new CollectionView(src);
+
+        Assert.AreEqual(0, view.IndexOfSourceItem(a, viewIndex: 0)); // The first occurrence.
+        Assert.AreEqual(1, view.IndexOfSourceItem(a, viewIndex: 1)); // The second occurrence - not the first's index again.
+    }
+
+    [UITestMethod]
+    public void IndexOfSourceItem_Returns_Negative_One_For_Null_Item_Or_Invalid_ViewIndex()
     {
         var src = CreateItems(2);
         var view = new CollectionView(src);
 
-        Assert.AreEqual(-1, view.IndexOfSourceItem(null));
-        Assert.AreEqual(-1, view.IndexOfSourceItem(new TestItem { Id = 99, Name = "Missing", Value = 0 }));
+        Assert.AreEqual(-1, view.IndexOfSourceItem(null, viewIndex: 0));
+        Assert.AreEqual(-1, view.IndexOfSourceItem(src[0], viewIndex: -1));
+        Assert.AreEqual(-1, view.IndexOfSourceItem(src[0], viewIndex: 99)); // Out of range for the view.
     }
+
+    private sealed record EqualByKeyItem(int Key);
 
     [UITestMethod]
     public void Collapsing_A_Parent_Group_Hides_Descendant_Subgroups_And_Items()

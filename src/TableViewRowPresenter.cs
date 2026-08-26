@@ -105,6 +105,7 @@ public partial class TableViewRowPresenter : Control
         SetRowDetailsTemplate();
         SetGroupIndent();
         SetRowNumberVisibility();
+        SetRowNumberWidth();
         IsTemplateApplied = true;
 
         // A new row is prepared before this template exists, so its per-item visuals are applied now.
@@ -215,7 +216,21 @@ public partial class TableViewRowPresenter : Control
 
         LimitDetailsToViewport();
 
-        return base.MeasureOverride(availableSize);
+        var result = base.MeasureOverride(availableSize);
+
+        // Each row presenter has its own RowNumberColumn ("Auto" width), measured independently of every
+        // other row - without synchronizing them, a row whose number is wider than the rest would grow only
+        // its own header area, shifting that row's cells out of alignment with the others. Broadcasting the
+        // running maximum through TableView.RowNumberColumnWidth (mirrors RowHeaderActualWidth) keeps every
+        // row's column the same width. Math.Max against the current value first, like RowHeaderActualWidth
+        // does, keeps this non-decreasing within a layout pass instead of only after the deferred broadcast.
+        if (TableView is { ShowRowNumbers: true } tableView && _rowNumberText is { Visibility: Visibility.Visible })
+        {
+            var desiredWidth = Math.Max(tableView.RowNumberColumnWidth, _rowNumberText.DesiredSize.Width);
+            tableView.SetValue(TableView.RowNumberColumnWidthProperty, desiredWidth);
+        }
+
+        return result;
     }
 
     // Rows are measured at an unbounded width; wide details stay within the viewport instead of widening the row.
@@ -543,6 +558,18 @@ public partial class TableViewRowPresenter : Control
         if (_rowNumberText is not null)
         {
             _rowNumberText.Text = rowNumber > 0 ? rowNumber.ToString() : string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// Applies the width synchronized across every row's row-number column (see the push in
+    /// <see cref="MeasureOverride"/>), so a row with a wider number doesn't grow only its own header area.
+    /// </summary>
+    internal void SetRowNumberWidth()
+    {
+        if (_rowNumberText is not null && TableView is not null && TableView.RowNumberColumnWidth > 0)
+        {
+            _rowNumberText.Width = TableView.RowNumberColumnWidth;
         }
     }
 

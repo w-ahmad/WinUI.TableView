@@ -141,7 +141,7 @@
             </controls:SamplePresenter.Options>
             <controls:SamplePresenter.Xaml>
                 <x:String xml:space="preserve">
-&lt;tv:TableView ItemsSource="{Binding Items}" />
+&lt;tv:TableView ItemsSource="{Binding Items}" ShowRowNumbers="True" />
                 </x:String>
             </controls:SamplePresenter.Xaml>
         </controls:SamplePresenter>

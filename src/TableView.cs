@@ -98,6 +98,7 @@ public partial class TableView : Control
         _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
         _collectionView.ViewResetting += OnCollectionViewResetting;
         _collectionView.VectorChanged += OnCollectionViewVectorChanged;
+        _collectionView.VectorChanged += OnCollectionViewVectorChangedForRowNumbers;
         _groupStyle.CollectionChanged += delegate { RefreshGroupHeaderTemplates(); };
         Columns.ColumnPropertyChanged += OnColumnPropertyChanged;
         Columns.CollectionChanged += delegate { UpdateRowsMinWidth(); };
@@ -110,6 +111,15 @@ public partial class TableView : Control
             LastCellsHorizontalOffset = CellsHorizontalOffset;
             UpdateRowsMinWidth();
         });
+    }
+
+    /// <summary>
+    /// Refreshes every realized row's number after a collection change. With grouping a row's number is its
+    /// position in the full item list, which an insert or removal elsewhere shifts without re-indexing the row.
+    /// </summary>
+    private void OnCollectionViewVectorChangedForRowNumbers(IObservableVector<object> sender, IVectorChangedEventArgs args)
+    {
+        DispatcherQueue.TryEnqueue(RefreshRowNumbers);
     }
 
     /// <summary>
@@ -3242,7 +3252,7 @@ public partial class TableView : Control
     {
         if (_collectionView.GroupDescriptions.Count > 0)
         {
-            return _collectionView.IndexOfSourceItem(row.Content);
+            return _collectionView.IndexOfSourceItem(row.Content, row.Index);
         }
 
         return row.Index;

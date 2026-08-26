@@ -1010,10 +1010,34 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     /// <summary>
     /// Returns the item's position among <see cref="_groupingSourceItems"/> - the full filtered+sorted set,
     /// in source order - unlike <see cref="IndexOf"/>, unaffected by items being hidden by a collapsed group.
+    /// <paramref name="viewIndex"/> (the item's current position in the pruned/visible <see cref="_view"/>) is
+    /// used to disambiguate duplicates by occurrence rather than by value: <see cref="List{T}.IndexOf"/> would
+    /// use value equality and always resolve to the *first* matching item, so every duplicate - whether a
+    /// distinct instance a custom <see cref="object.Equals(object?)"/> treats as equal, or literally the same
+    /// instance repeated - would collide on one number. Instead this counts, by reference, which occurrence of
+    /// <paramref name="item"/> sits at <paramref name="viewIndex"/> in <see cref="_view"/>, then finds that
+    /// same occurrence (again by reference) in <see cref="_groupingSourceItems"/>.
     /// </summary>
-    internal int IndexOfSourceItem(object? item)
+    internal int IndexOfSourceItem(object? item, int viewIndex)
     {
-        return item is null ? -1 : _groupingSourceItems.IndexOf(item);
+        if (item is null || viewIndex < 0 || viewIndex >= _view.Count) return -1;
+
+        var occurrence = 0;
+        for (var i = 0; i <= viewIndex; i++)
+        {
+            if (ReferenceEquals(_view[i], item)) occurrence++;
+        }
+
+        var seen = 0;
+        for (var i = 0; i < _groupingSourceItems.Count; i++)
+        {
+            if (ReferenceEquals(_groupingSourceItems[i], item) && ++seen == occurrence)
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     /// <summary>

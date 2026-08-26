@@ -3,6 +3,8 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using WinUI.TableView.Extensions;
@@ -91,7 +93,60 @@ public class TableViewRowNumberingTests
         Assert.AreEqual(row!.RowNumber, row.RowPresenter?.RowHeader?.Tag);
     }
 
-    private static async Task<TableView> CreateTableViewAsync(RowNumberingTestItem[] items)
+    [UITestMethod]
+    public async Task RowNumber_RefreshesForRowsBelowARemoval_WithoutRebindingTheirContent()
+    {
+        var items = new ObservableCollection<RowNumberingTestItem>(CreateItems());
+        var tableView = await CreateTableViewAsync(items);
+        tableView.ShowRowNumbers = true;
+
+        var row = await tableView.ScrollRowIntoView(3); // The 4th item - RowNumber 4.
+        Assert.IsNotNull(row);
+        var originalContent = row!.Content;
+        Assert.AreEqual(4, row.RowNumber);
+
+        var rowNumberText = row.FindDescendant<TextBlock>(x => x.Name == "RowNumberText");
+        Assert.IsNotNull(rowNumberText);
+        Assert.AreEqual("4", rowNumberText!.Text);
+
+        items.RemoveAt(0); // Shifts every remaining item up by one; this row's own Content does not change.
+
+        await Task.Yield(); // Let the deferred, dispatched row-number refresh (from the vector-changed
+        await Task.Yield(); // handler, not from OnContentChanged) run.
+
+        // Confirms this container's Content genuinely never changed - so any refresh below can only have
+        // come from the collection-wide vector-changed path, not from OnContentChanged recycling.
+        Assert.AreSame(originalContent, row.Content);
+        Assert.AreEqual(3, row.RowNumber); // Index/RowNumber getters are always live either way.
+        Assert.AreEqual("3", rowNumberText.Text); // The cached TextBlock.Text must also have refreshed.
+    }
+
+    [UITestMethod]
+    public async Task ShowRowNumbers_ColumnWidthGrows_ToFitTheWidestRealizedNumber()
+    {
+        // A 1-digit and a 5-digit number - wide enough apart that the shared column width can't plausibly
+        // stay flat between them just because both happen to fit under TableViewRowNumberMinWidth's floor.
+        const int itemCount = 10_000;
+        var tableView = await CreateTableViewAsync(CreateManyItems(itemCount));
+        tableView.ShowRowNumbers = true;
+
+        await tableView.ScrollRowIntoView(0);
+        var widthForSingleDigit = tableView.RowNumberColumnWidth;
+
+        var wideRow = await tableView.ScrollRowIntoView(itemCount - 1); // RowNumber "10000".
+        await Task.Yield(); // The width broadcast is deferred one tick past the measure that grows it.
+        await Task.Yield();
+
+        Assert.IsNotNull(wideRow);
+        Assert.IsTrue(tableView.RowNumberColumnWidth > widthForSingleDigit);
+
+        var wideRowNumberText = wideRow!.FindDescendant<TextBlock>(x => x.Name == "RowNumberText");
+        Assert.IsNotNull(wideRowNumberText);
+        // Proves the shared width was actually applied to this row, not just computed.
+        Assert.AreEqual(tableView.RowNumberColumnWidth, wideRowNumberText!.Width);
+    }
+
+    private static async Task<TableView> CreateTableViewAsync(IEnumerable<RowNumberingTestItem> items)
     {
         var tableView = new TableView();
 
@@ -117,6 +172,17 @@ public class TableViewRowNumberingTests
 
         return Enumerable.Range(0, 6)
             .Select(i => new RowNumberingTestItem { Category = categories[i / 2] })
+            .ToArray();
+    }
+
+    /// <summary>
+    /// <paramref name="count"/> plain, ungrouped items - used where the only thing that matters is having
+    /// enough rows for a double-digit row number to appear.
+    /// </summary>
+    private static RowNumberingTestItem[] CreateManyItems(int count)
+    {
+        return Enumerable.Range(0, count)
+            .Select(i => new RowNumberingTestItem { Category = $"Item{i}" })
             .ToArray();
     }
 

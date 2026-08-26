@@ -92,7 +92,8 @@
                                            MinWidth="{ThemeResource TableViewRowNumberMinWidth}"
                                            Margin="{ThemeResource TableViewRowNumberMargin}"
                                            FontSize="{ThemeResource TableViewRowNumberFontSize}"
-                                           Foreground="{ThemeResource TableViewRowNumberForeground}" />
+                                           Foreground="{ThemeResource TableViewRowNumberForeground}"
+                                           AutomationProperties.AccessibilityView="Raw" />
 
                                 <local:TableViewRowHeader x:Name="RowHeader"
                                                            Grid.Column="1" />
