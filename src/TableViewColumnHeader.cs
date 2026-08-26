@@ -201,10 +201,13 @@ public partial class TableViewColumnHeader : ContentControl
         {
             _tableView.ClearAllSortingWithEvent();
         }
+        else
+        {
+            ClearSortingWithEvent();
+        }
 
         if (direction is not null)
         {
-
 #if WINDOWS
             if (sortDescription is ColumnSortDescription && IsGrouped)
             {
@@ -223,7 +226,7 @@ public partial class TableViewColumnHeader : ContentControl
             sortDescription ??= new ColumnSortDescription(Column, sortPath);
             sortDescription.Direction = direction.Value;
 
-            _tableView.SortDescriptions.Add(sortDescription);
+            collectionView.SortDescriptions.Add(sortDescription);
         }
     }
 
