@@ -12,7 +12,7 @@
 
     <Grid>
         <controls:SamplePresenter Header="Grouping"
-                                  Description="Group a column via its options button (try Department or Gender), then use the buttons to add, insert, move, and delete items - a way to check those operations keep group headers, counts, and order correct.">
+                                  Description="Group a column via its options button (try Department or Gender), then use the buttons to add, insert, move, and delete items - a way to check those operations keep group headers, counts, and order correct. Groups sort by key by default; toggle 'Sort Groups by Count' below (or the same option in a grouped column's own flyout) to show the biggest group first instead.">
             <controls:SamplePresenter.Example>
                 <tv:TableView x:Name="tableView"
                               ItemsSource="{Binding Items}"
@@ -97,6 +97,11 @@
                                   OnContent="True"
                                   OffContent="False"
                                   IsOn="{Binding AreStickyGroupHeadersEnabled, Mode=TwoWay, ElementName=tableView}" />
+                    <ToggleSwitch x:Name="sortGroupsByCount"
+                                  Header="Sort Groups by Count"
+                                  OnContent="True"
+                                  OffContent="False"
+                                  Toggled="OnSortGroupsByCountToggled" />
 
                     <InfoBar IsOpen="True"
                              IsClosable="False"

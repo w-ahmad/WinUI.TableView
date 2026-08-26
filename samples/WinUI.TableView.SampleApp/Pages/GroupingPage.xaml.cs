@@ -1,5 +1,8 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+#if WINDOWS
+using System.Collections.Specialized;
+#endif
 
 namespace WinUI.TableView.SampleApp.Pages;
 
@@ -8,10 +11,31 @@ public sealed partial class GroupingPage : Page
     private static readonly string[] Departments = ["Sales", "Engineering", "Support", "Marketing"];
 
     private int _nextId = 1;
+    private bool _sortGroupsByCount;
 
     public GroupingPage()
     {
         InitializeComponent();
+
+#if WINDOWS
+        // Groups are always created fresh (Group(), or the "Group by last name" button below) with
+        // SortMode defaulting back to Key - without this, toggling "Sort Groups by Count" before any
+        // column is grouped, or grouping a second level after the toggle, would silently stay key-ordered.
+        if (tableView.GroupDescriptions is INotifyCollectionChanged groupDescriptions)
+        {
+            groupDescriptions.CollectionChanged += (_, e) =>
+            {
+                // This fires synchronously from inside Group()'s own Add() call, itself still inside
+                // Group()'s own DeferRefresh() scope - calling RefreshGrouping() (which ignores any
+                // in-progress defer) from here directly would rebuild grouping reentrantly, mid-rebuild.
+                // Deferring to the next dispatcher tick lets Group() fully unwind first.
+                if (e.NewItems is { Count: > 0 })
+                {
+                    DispatcherQueue.TryEnqueue(ApplyGroupSortMode);
+                }
+            };
+        }
+#endif
     }
 
     private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
@@ -130,8 +154,8 @@ public sealed partial class GroupingPage : Page
     {
 #if WINDOWS
         var existingGroupDescription = tableView.GroupDescriptions
-            .OfType<GroupDescription>()
-            .FirstOrDefault(gd => gd.PropertyName is nameof(ExampleModel.LastName));
+    .OfType<GroupDescription>()
+    .FirstOrDefault(gd => gd.PropertyName is nameof(ExampleModel.LastName));
 
         if (existingGroupDescription is not null)
         {
@@ -140,7 +164,41 @@ public sealed partial class GroupingPage : Page
         else
         {
             tableView.GroupDescriptions.Add(new GroupDescription(nameof(ExampleModel.LastName)));
+        } 
+#endif
+    }
+
+    /// <summary>
+    /// Records the desired mode and applies it to every currently-grouped level - and, via the
+    /// CollectionChanged subscription in the constructor, to any level grouped afterward too.
+    /// </summary>
+    private void OnSortGroupsByCountToggled(object sender, RoutedEventArgs e)
+    {
+        _sortGroupsByCount = sortGroupsByCount.IsOn;
+#if WINDOWS
+        ApplyGroupSortMode();
+#endif
+    }
+
+#if WINDOWS
+    private void ApplyGroupSortMode()
+    {
+        var mode = _sortGroupsByCount ? GroupSortMode.Count : GroupSortMode.Key;
+        var changed = false;
+
+        foreach (var groupDescription in tableView.GroupDescriptions)
+        {
+            if (groupDescription.SortMode == mode) continue;
+
+            groupDescription.SortMode = mode;
+            changed = true;
+        }
+
+        if (changed)
+        {
+            tableView.RefreshGrouping();
         }
 #endif
     }
+#endif
 }
