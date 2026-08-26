@@ -28,6 +28,7 @@ namespace WinUI.TableView;
 [TemplateVisualState(Name = VisualStates.StateUnsorted, GroupName = VisualStates.GroupSort)]
 [TemplateVisualState(Name = VisualStates.StateSortAscending, GroupName = VisualStates.GroupSort)]
 [TemplateVisualState(Name = VisualStates.StateSortDescending, GroupName = VisualStates.GroupSort)]
+[TemplateVisualState(Name = VisualStates.StateSortable, GroupName = VisualStates.GroupSort)]
 [TemplateVisualState(Name = VisualStates.StateFiltered, GroupName = VisualStates.GroupFilter)]
 [TemplateVisualState(Name = VisualStates.StateUnfiltered, GroupName = VisualStates.GroupFilter)]
 public partial class TableViewColumnHeader : ContentControl
@@ -403,6 +404,10 @@ public partial class TableViewColumnHeader : ContentControl
         else if (Column?.SortDirection == SD.Descending)
         {
             VisualStates.GoToState(this, false, VisualStates.StateSortDescending);
+        }
+        else if (CanSort && _tableView?.ShowSortableColumnIcon is true)
+        {
+            VisualStates.GoToState(this, false, VisualStates.StateSortable);
         }
         else
         {

@@ -112,12 +112,17 @@ public partial class TableView
     /// <summary>
     /// Identifies the CanSortColumns dependency property.
     /// </summary>
-    public static readonly DependencyProperty CanSortColumnsProperty = DependencyProperty.Register(nameof(CanSortColumns), typeof(bool), typeof(TableView), new PropertyMetadata(true));
+    public static readonly DependencyProperty CanSortColumnsProperty = DependencyProperty.Register(nameof(CanSortColumns), typeof(bool), typeof(TableView), new PropertyMetadata(true, OnCanSortColumnsChanged));
 
     /// <summary>
     /// Identifies the CanFilterColumns dependency property.
     /// </summary>
     public static readonly DependencyProperty CanFilterColumnsProperty = DependencyProperty.Register(nameof(CanFilterColumns), typeof(bool), typeof(TableView), new PropertyMetadata(true, OnCanFilterColumnsChanged));
+
+    /// <summary>
+    /// Identifies the ShowSortableColumnIcon dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ShowSortableColumnIconProperty = DependencyProperty.Register(nameof(ShowSortableColumnIcon), typeof(bool), typeof(TableView), new PropertyMetadata(false, OnShowSortableColumnIconChanged));
 
     /// <summary>
     /// Identifies the MinColumnWidth dependency property.
@@ -692,6 +697,15 @@ public partial class TableView
     }
 
     /// <summary>
+    /// Gets or sets a value indicating whether a subtle icon is shown on sortable columns that are not currently sorted.
+    /// </summary>
+    public bool ShowSortableColumnIcon
+    {
+        get => (bool)GetValue(ShowSortableColumnIconProperty);
+        set => SetValue(ShowSortableColumnIconProperty, value);
+    }
+
+    /// <summary>
     /// Gets or sets the minimum width of columns. This can be overridden by the individual column.
     /// </summary>
     public double MinColumnWidth
@@ -1148,6 +1162,34 @@ public partial class TableView
             foreach (var header in tableView._headerRow.Headers)
             {
                 header.SetFilterButtonVisibility();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the CanSortColumns property.
+    /// </summary>
+    private static void OnCanSortColumnsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView && tableView._headerRow is not null)
+        {
+            foreach (var header in tableView._headerRow.Headers)
+            {
+                header.OnSortDirectionChanged();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the ShowSortableColumnIcon property.
+    /// </summary>
+    private static void OnShowSortableColumnIconChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView && tableView._headerRow is not null)
+        {
+            foreach (var header in tableView._headerRow.Headers)
+            {
+                header.OnSortDirectionChanged();
             }
         }
     }
