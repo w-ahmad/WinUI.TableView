@@ -13,7 +13,7 @@
         <controls:SamplePresenter Header="Overview"
                                   Description="Here's a preview of how the default implementation of the WinUI TableView will look, showcasing its standard layout, structure, and features.">
             <controls:SamplePresenter.Example>
-                <tv:TableView ItemsSource="{Binding Items}" />
+                <tv:TableView ItemsSource="{Binding Items}" ShowRowNumbers="True" />
             </controls:SamplePresenter.Example>
             <controls:SamplePresenter.Xaml>
                 <x:String xml:space="preserve">
