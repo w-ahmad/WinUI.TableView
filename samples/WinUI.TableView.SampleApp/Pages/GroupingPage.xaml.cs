@@ -198,7 +198,6 @@ public sealed partial class GroupingPage : Page
         {
             tableView.RefreshGrouping();
         }
-#endif
     }
 #endif
 }
