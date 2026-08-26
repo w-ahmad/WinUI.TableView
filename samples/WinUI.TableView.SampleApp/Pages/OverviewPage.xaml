@@ -16,7 +16,7 @@
                                   Header="Overview"
                                   Description="TableView with nothing but an ItemsSource: columns are generated from the item type, and sorting, filtering, editing, selection and the clipboard all work out of the box.">
             <controls:SamplePresenter.Example>
-                <tv:TableView ItemsSource="{Binding Items}" />
+                <tv:TableView ItemsSource="{Binding Items}" ShowRowNumbers="True" />
             </controls:SamplePresenter.Example>
             <controls:SamplePresenter.Options>
                 <StackPanel Spacing="16"
