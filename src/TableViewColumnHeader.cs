@@ -382,6 +382,7 @@ public partial class TableViewColumnHeader : ContentControl
         SetOptionCommands();
         SetFilterButtonVisibility();
         EnsureGridLines();
+        OnSortDirectionChanged();
     }
 
     /// <summary>

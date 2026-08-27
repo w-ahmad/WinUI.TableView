@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
+using System;
 using System.Threading.Tasks;
 using WinUI.TableView.Extensions;
 
@@ -125,6 +126,32 @@ public class TableViewSortableColumnIconTests
         Assert.AreEqual(Visibility.Visible, sortIcon.Visibility);
     }
 
+    [UITestMethod]
+    public async Task ShowSortableColumnIcon_SetBeforeLoad_StillAppliesOnFirstApplyTemplate()
+    {
+        var (_, column) = await CreateTableViewAsync((tableView, _) => tableView.ShowSortableColumnIcon = true);
+
+        var sortIcon = GetSortIcon(column);
+
+        Assert.AreEqual(Visibility.Visible, sortIcon.Visibility,
+            "ShowSortableColumnIcon set before the TableView loads must still be reflected once the header's template is applied");
+    }
+
+    [UITestMethod]
+    public async Task CanSortColumnsFalse_SetBeforeLoad_KeepsHintIconCollapsed()
+    {
+        var (_, column) = await CreateTableViewAsync((tableView, _) =>
+        {
+            tableView.ShowSortableColumnIcon = true;
+            tableView.CanSortColumns = false;
+        });
+
+        var sortIcon = GetSortIcon(column);
+
+        Assert.AreEqual(Visibility.Collapsed, sortIcon.Visibility,
+            "CanSortColumns=False set before the TableView loads must still be reflected once the header's template is applied");
+    }
+
     private static FontIcon GetSortIcon(TableViewColumn column)
     {
         var header = column.HeaderControl!;
@@ -135,7 +162,7 @@ public class TableViewSortableColumnIconTests
         return sortIcon!;
     }
 
-    private static async Task<(TableView TableView, TableViewTextColumn Column)> CreateTableViewAsync()
+    private static async Task<(TableView TableView, TableViewTextColumn Column)> CreateTableViewAsync(Action<TableView, TableViewTextColumn>? configure = null)
     {
         var items = new[]
         {
@@ -147,6 +174,8 @@ public class TableViewSortableColumnIconTests
         var column = new TableViewTextColumn { Header = "Name", Binding = new Binding { Path = new PropertyPath(nameof(SortableIconTestItem.Name)) } };
         tableView.Columns.Add(column);
         tableView.ItemsSource = items;
+
+        configure?.Invoke(tableView, column);
 
         await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
 
