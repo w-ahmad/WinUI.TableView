@@ -161,6 +161,11 @@ internal static class VisualStates
     public const string StateSortDescending = "SortDescending";
 
     /// <summary>
+    /// Sortable (unsorted, but sortable) state
+    /// </summary>
+    public const string StateSortable = "Sortable";
+
+    /// <summary>
     /// Sort state group
     /// </summary>
     public const string GroupSort = "SortStates";

@@ -574,6 +574,17 @@ public abstract partial class TableViewColumn : DependencyObject
     }
 
     /// <summary>
+    /// Handles changes to the CanSort property.
+    /// </summary>
+    private static void OnCanSortChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableViewColumn column && column.HeaderControl is not null)
+        {
+            column.HeaderControl.OnSortDirectionChanged();
+        }
+    }
+
+    /// <summary>
     /// Handles changes to the HeaderStyle property.
     /// </summary>
     private static void OnHeaderStyleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -666,7 +677,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// <summary>
     /// Identifies the CanSort dependency property.
     /// </summary>
-    public static readonly DependencyProperty CanSortProperty = DependencyProperty.Register(nameof(CanSort), typeof(bool), typeof(TableViewColumn), new PropertyMetadata(true));
+    public static readonly DependencyProperty CanSortProperty = DependencyProperty.Register(nameof(CanSort), typeof(bool), typeof(TableViewColumn), new PropertyMetadata(true, OnCanSortChanged));
 
     /// <summary>
     /// Identifies the CanFilter dependency property.

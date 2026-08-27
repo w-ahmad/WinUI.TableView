@@ -32,6 +32,16 @@ Disable sorting for a specific column:
 <tv:TableViewNumberColumn Header="Price" Binding="{Binding Price}" CanSort="False" />
 ```
 
+## Showing a hint icon for sortable columns
+
+By default, an unsorted column shows no indicator, even if it's sortable — there's no way to tell a column supports sorting until you click it. Set [`ShowSortableColumnIcon`](xref:WinUI.TableView.TableView.ShowSortableColumnIcon) to `True` to show a subtle icon on sortable columns that aren't currently sorted, hinting that clicking the header will sort them:
+
+```xml
+<tv:TableView ShowSortableColumnIcon="True" />
+```
+
+The hint icon only appears where sorting is actually possible — it respects both `CanSortColumns` and the column's own `CanSort`. It disappears once the column is sorted, replaced by the usual ascending/descending indicator. `ShowSortableColumnIcon` is `False` by default, so existing apps see no visual change unless they opt in.
+
 ## Sorting by a different property (SortMemberPath)
 
 By default, clicking a column header sorts by the column's bound property path. Use [`SortMemberPath`](xref:WinUI.TableView.TableViewColumn.SortMemberPath) to sort by a **different** property than the one displayed in the cell.
@@ -167,6 +177,7 @@ var descriptions = tableView.SortDescriptions; // the active SortDescription lis
 |---|---|
 | [`CanSortColumns`](xref:WinUI.TableView.TableView.CanSortColumns) | Enables or disables sorting for all columns |
 | [`CanSort`](xref:WinUI.TableView.TableViewColumn.CanSort) | Per-column sort toggle |
+| [`ShowSortableColumnIcon`](xref:WinUI.TableView.TableView.ShowSortableColumnIcon) | Shows a hint icon on sortable, unsorted columns. `False` by default |
 | [`SortMemberPath`](xref:WinUI.TableView.TableViewColumn.SortMemberPath) | Property path used for sorting, overriding the display binding |
 | [`SortDirection`](xref:WinUI.TableView.TableViewColumn.SortDirection) | Current sort direction (`Ascending`, `Descending`, or `null`) |
 | [`SortDescriptions`](xref:WinUI.TableView.TableView.SortDescriptions) | Collection of active sort descriptions |

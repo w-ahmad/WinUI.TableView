@@ -10,6 +10,7 @@
         <ResourceDictionary x:Key="Light">
             <x:String x:Key="SortIconAscending">&#xf0ad;</x:String>
             <x:String x:Key="SortIconDescending">&#xf0ae;</x:String>
+            <x:String x:Key="SortIconUnsorted">&#xe8cb;</x:String>
             <x:String x:Key="FilterIcon">&#xe71c;</x:String>
             <x:String x:Key="OptionsButtonIcon">&#xe712;</x:String>
             <x:String x:Key="SelectAllButtonIcon">&#xE936;</x:String>
@@ -88,6 +89,7 @@
         <ResourceDictionary x:Key="Dark">
             <x:String x:Key="SortIconAscending">&#xf0ad;</x:String>
             <x:String x:Key="SortIconDescending">&#xf0ae;</x:String>
+            <x:String x:Key="SortIconUnsorted">&#xe8cb;</x:String>
             <x:String x:Key="FilterIcon">&#xe71c;</x:String>
             <x:String x:Key="OptionsButtonIcon">&#xe712;</x:String>
             <x:String x:Key="SelectAllButtonIcon">&#xE936;</x:String>
@@ -166,6 +168,7 @@
         <ResourceDictionary x:Key="HighContrast">
             <x:String x:Key="SortIconAscending">&#xf0ad;</x:String>
             <x:String x:Key="SortIconDescending">&#xf0ae;</x:String>
+            <x:String x:Key="SortIconUnsorted">&#xe8cb;</x:String>
             <x:String x:Key="FilterIcon">&#xe71c;</x:String>
             <x:String x:Key="OptionsButtonIcon">&#xe712;</x:String>
             <x:String x:Key="SelectAllButtonIcon">&#xE936;</x:String>
