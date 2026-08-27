@@ -261,6 +261,9 @@ public partial class TableViewRow : ListViewItem
         {
             _ = await TableView.ScrollCellIntoView(TableView.CurrentCellSlot.Value);
         }
+
+        // Update the row positions in the TableView after the size change.
+        TableView?.UpdateRowPositions();
     }
 
     /// <summary>

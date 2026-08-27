@@ -1135,6 +1135,14 @@ public partial class TableView : ListView
     /// </summary>
     private void OnScrollViewerViewChanged(object? sender, ScrollViewerViewChangedEventArgs e)
     {
+        UpdateRowPositions();
+    }
+
+    /// <summary>
+    /// Updates the position of each row in the TableView, ensuring that they are correctly aligned with the current scroll position.
+    /// </summary>
+    internal void UpdateRowPositions()
+    {
         foreach (var row in _rows)
         {
             row.UpdatePosition();
