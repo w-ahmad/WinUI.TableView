@@ -1,0 +1,83 @@
+<Page x:Class="WinUI.TableView.SampleApp.Pages.RowHeaderTemplatePage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:tv="using:WinUI.TableView"
+      xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
+      d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
+      mc:Ignorable="d"
+      DataContextChanged="OnDataContextChanged">
+
+    <Page.Resources>
+        <DataTemplate x:Key="RowNumberHeaderTemplate"
+                      x:DataType="local:ExampleModel">
+            <Border MinWidth="40">
+                <TextBlock Text="{x:Bind Id}"
+                           Opacity="0.6"
+                           FontSize="12"
+                           HorizontalAlignment="Center" />
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate x:Key="AvatarHeaderTemplate"
+                      x:DataType="local:ExampleModel">
+            <Grid MinWidth="48"
+                  Padding="4">
+                <Border Width="28"
+                        Height="28"
+                        CornerRadius="14"
+                        HorizontalAlignment="Center"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                    <Image Source="{x:Bind Avatar}"
+                           Stretch="UniformToFill" />
+                </Border>
+            </Grid>
+        </DataTemplate>
+    </Page.Resources>
+
+    <Grid>
+        <controls:SamplePresenter Header="Row Header Template"
+                                  Description="Showcasing custom content in row headers, such as row numbers, avatars, or any other content, using RowHeaderTemplate.">
+            <controls:SamplePresenter.Example>
+                <tv:TableView x:Name="tableView"
+                              ItemsSource="{Binding Items}"
+                              RowHeaderTemplate="{StaticResource AvatarHeaderTemplate}"
+                              AutoGeneratingColumn="{x:Bind local:ExampleModelColumnsHelper.OnAutoGeneratingColumns}" />
+            </controls:SamplePresenter.Example>
+            <controls:SamplePresenter.Options>
+                <StackPanel Spacing="16"
+                            MinWidth="200">
+                    <RadioButtons x:Name="rowHeaderContent"
+                                  Header="Row Header Content"
+                                  SelectedIndex="2"
+                                  SelectionChanged="OnRowHeaderContentChanged">
+                        <x:String>None (default)</x:String>
+                        <x:String>Row Number</x:String>
+                        <x:String>Avatar</x:String>
+                    </RadioButtons>
+                    <NumberBox Header="Row Header Width"
+                               Minimum="0"
+                               SpinButtonPlacementMode="Inline"
+                               Value="{Binding RowHeaderWidth, Mode=TwoWay, ElementName=tableView}" />
+                </StackPanel>
+            </controls:SamplePresenter.Options>
+            <controls:SamplePresenter.Xaml>
+                <x:String xml:space="preserve">
+&lt;tv:TableView.RowHeaderTemplate>
+    &lt;DataTemplate x:DataType="local:ExampleModel">
+        &lt;Grid MinWidth="48" Padding="4">
+            &lt;Border Width="28" Height="28" CornerRadius="14"
+                    HorizontalAlignment="Center"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                &lt;Image Source="{x:Bind Avatar}" Stretch="UniformToFill" />
+            &lt;/Border>
+        &lt;/Grid>
+    &lt;/DataTemplate>
+&lt;/tv:TableView.RowHeaderTemplate>
+                </x:String>
+            </controls:SamplePresenter.Xaml>
+        </controls:SamplePresenter>
+    </Grid>
+</Page>

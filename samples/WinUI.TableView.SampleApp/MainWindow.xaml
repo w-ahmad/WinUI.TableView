@@ -155,6 +155,26 @@
                         </FontIcon>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
+                <NavigationViewItem Content="Headers Visibility">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE7B3;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Row Header Template">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8A9;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Row Details">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8FD;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Compact Sizing">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE713;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
                 <NavigationViewItem Content="Customization">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE771;" />

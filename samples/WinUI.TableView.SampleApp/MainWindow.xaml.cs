@@ -75,6 +75,10 @@ public sealed partial class MainWindow : Window
                 "Large Dataset" => typeof(LargeDataPage),
                 "Conditional Cell Styling" => typeof(ConditionalStylingPage),
                 "Column Sizing" => typeof(ColumnSizingPage),
+                "Headers Visibility" => typeof(HeadersVisibilityPage),
+                "Row Header Template" => typeof(RowHeaderTemplatePage),
+                "Row Details" => typeof(RowDetailsPage),
+                "Compact Sizing" => typeof(CompactSizingPage),
                 _ => typeof(BlankPage)
             };
 
