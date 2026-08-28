@@ -24,6 +24,7 @@ This section contains release notes for all versions of WinUI.TableView.
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| [v1.5.0-preview2](v1.5.0-preview2.md) | August 29, 2026 | Multi level row grouping, Sortable columns icon, Column resize performance improvement |
 | [v1.5.0-preview1](v1.5.0-preview1.md) | July 7, 2026 | CellWithRow selection, drag selection, paste support, AOT, accessibility |
 | [v1.4.0-preview2](v1.4.0-preview2.md) | January 23, 2026 | Performance boost, SortMemberPath, double-tap events |
 | [v1.4.0-preview1](v1.4.0-preview1.md) | November 28, 2025 | Frozen columns, row details, column reordering, conditional styling |
