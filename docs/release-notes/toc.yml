@@ -30,6 +30,8 @@
     href: v1.0.0.md
 - name: Preview Releases
   items:
+  - name: v1.5.0-preview2
+    href: v1.5.0-preview2.md
   - name: v1.5.0-preview1
     href: v1.5.0-preview1.md
   - name: v1.4.0-preview2
