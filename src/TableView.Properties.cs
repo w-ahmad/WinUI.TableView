@@ -244,6 +244,11 @@ public partial class TableView
     public static readonly DependencyProperty HeadersVisibilityProperty = DependencyProperty.Register(nameof(HeadersVisibility), typeof(TableViewHeadersVisibility), typeof(TableView), new PropertyMetadata(TableViewHeadersVisibility.All, OnRowHeadersVisibilityChanged));
 
     /// <summary>
+    /// Identifies the ShowRowNumbers dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ShowRowNumbersProperty = DependencyProperty.Register(nameof(ShowRowNumbers), typeof(bool), typeof(TableView), new PropertyMetadata(false, OnShowRowNumbersChanged));
+
+    /// <summary>
     /// Identifies the RowHeaderContent dependency property.
     /// </summary>
     public static readonly DependencyProperty RowHeaderTemplateProperty = DependencyProperty.Register(nameof(RowHeaderTemplate), typeof(DataTemplate), typeof(TableView), new PropertyMetadata(null, OnRowHeaderTemplateChanged));
@@ -892,6 +897,15 @@ public partial class TableView
     }
 
     /// <summary>
+    /// Gets or sets a value indicating whether each row shows its number in the row header area.
+    /// </summary>
+    public bool ShowRowNumbers
+    {
+        get => (bool)GetValue(ShowRowNumbersProperty);
+        set => SetValue(ShowRowNumbersProperty, value);
+    }
+
+    /// <summary>
     /// Gets or sets the data template for the row header.
     /// </summary>
     public DataTemplate? RowHeaderTemplate
@@ -1342,6 +1356,21 @@ public partial class TableView
         {
             tableView.SetHeadersVisibility();
             tableView.UpdateHorizontalScrollBarMargin();
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the ShowRowNumbers property.
+    /// </summary>
+    private static void OnShowRowNumbersChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            foreach (var row in tableView._rows)
+            {
+                row.RowPresenter?.SetRowNumberVisibility();
+                row.RowPresenter?.SetRowNumber();
+            }
         }
     }
 
