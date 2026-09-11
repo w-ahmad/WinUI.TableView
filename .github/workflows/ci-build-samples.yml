@@ -36,9 +36,14 @@ jobs:
           9.0.x
           10.0.100
 
-    - name: Build WinUI sample app
-      run: |
-        msbuild /restore samples/WinUI.TableView.SampleApp/WinUI.TableView.SampleApp.csproj /p:Configuration=Release /p:Platform=${{ matrix.architecture }} /bl:artifacts/binlogs/build-winui-sample-${{ matrix.architecture }}.binlog
+    - name: Build Uno desktop sample app
+      run: >
+        dotnet build
+        samples/WinUI.TableView.SampleApp.Uno/WinUI.TableView.SampleApp.Uno.csproj
+        -c Release
+        -f net10.0-desktop
+        -p:TargetFrameworks=net10.0-desktop
+        -bl:artifacts/binlogs/build-uno-desktop.binlog
 
     - name: Upload WinUI sample artifacts
       uses: actions/upload-artifact@v7.0.1
