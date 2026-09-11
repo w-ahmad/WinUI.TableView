@@ -526,6 +526,7 @@ public partial class TableViewCell : ContentControl
 
         return BeginCellEditing(new RoutedEventArgs());
     }
+
     /// <summary>
     /// Prepares the cell for editing.
     /// </summary>
