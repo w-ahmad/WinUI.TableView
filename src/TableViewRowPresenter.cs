@@ -24,6 +24,7 @@ namespace WinUI.TableView;
 public partial class TableViewRowPresenter : Control
 {
     private TableViewRowHeader? _rowHeader;
+    private TextBlock? _rowNumberText;
     private Panel? _rootPanel;
     private StackPanel? _scrollableCellsPanel;
     private StackPanel? _frozenCellsPanel;
@@ -60,6 +61,7 @@ public partial class TableViewRowPresenter : Control
         }
 
         _rowHeader = GetTemplateChild("RowHeader") as TableViewRowHeader;
+        _rowNumberText = GetTemplateChild("RowNumberText") as TextBlock;
         _rootPanel = GetTemplateChild("RootPanel") as Panel;
         _scrollableCellsPanel = GetTemplateChild("ScrollableCellsPanel") as StackPanel;
         _frozenCellsPanel = GetTemplateChild("FrozenCellsPanel") as StackPanel;
@@ -94,6 +96,8 @@ public partial class TableViewRowPresenter : Control
         SetRowDetailsVisibility();
         SetRowDetailsTemplate();
         SetGroupIndent();
+        SetRowNumberVisibility();
+        SetRowNumber();
     }
 
     /// <summary>
@@ -356,6 +360,43 @@ public partial class TableViewRowPresenter : Control
             }
 
             EnsureGridLines();
+        }
+    }
+
+    /// <summary>
+    /// Sets the visibility of the row number based on the <see cref="TableView.ShowRowNumbers"/> setting.
+    /// Deliberately independent of multi-selection, the details toggle button, and <see cref="TableView.RowHeaderTemplate"/> -
+    /// the row number lives in its own column and must never be suppressed by any of those.
+    /// </summary>
+    internal void SetRowNumberVisibility()
+    {
+        if (_rowNumberText is not null && TableView is not null)
+        {
+            var areHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
+
+            _rowNumberText.Visibility = TableView.ShowRowNumbers && areHeadersVisible ? Visibility.Visible : Visibility.Collapsed;
+        }
+    }
+
+    /// <summary>
+    /// Sets the displayed row number and <see cref="TableViewRowHeader.Tag"/> - the latter kept up to date
+    /// regardless of <see cref="TableView.ShowRowNumbers"/> so a custom <see cref="TableView.RowHeaderTemplate"/>
+    /// can bind to it via <c>{RelativeSource Mode=TemplatedParent}</c>.
+    /// </summary>
+    internal void SetRowNumber()
+    {
+        if (TableView is null || TableViewRow is null) return;
+
+        var rowNumber = TableViewRow.RowNumber;
+
+        if (_rowHeader is not null)
+        {
+            _rowHeader.Tag = rowNumber;
+        }
+
+        if (_rowNumberText is not null)
+        {
+            _rowNumberText.Text = rowNumber > 0 ? rowNumber.ToString() : string.Empty;
         }
     }
 

@@ -507,6 +507,45 @@ public class CollectionViewTests
     }
 
     [UITestMethod]
+    public void IndexOfSourceItem_Is_Unaffected_By_Group_Collapse()
+    {
+        var src = new ObservableCollection<TestItem>
+        {
+            new() { Id = 1, Name = "A", Value = 1 },
+            new() { Id = 2, Name = "B", Value = 2 },
+            new() { Id = 3, Name = "C", Value = 1 },
+        };
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+        view.GroupDescriptions.Add(GroupByValue());
+
+        // Before any collapse, source order and grouped/flattened view order coincide for this dataset.
+        Assert.AreEqual(0, view.IndexOfSourceItem(src[0]));
+        Assert.AreEqual(1, view.IndexOfSourceItem(src[1]));
+        Assert.AreEqual(2, view.IndexOfSourceItem(src[2]));
+
+        ToggleGroup((CollectionViewGroup)view.CollectionGroups![0]); // Collapse the Value=1 group (A, C).
+
+        // IndexOf (the pruned/visible view) no longer finds the hidden items, and B shifted to view index 0 -
+        // but IndexOfSourceItem must still report every item's stable position in the full source set.
+        Assert.AreEqual(-1, view.IndexOf(src[0]));
+        Assert.AreEqual(0, view.IndexOf(src[1]));
+        Assert.AreEqual(0, view.IndexOfSourceItem(src[0]));
+        Assert.AreEqual(1, view.IndexOfSourceItem(src[1]));
+        Assert.AreEqual(2, view.IndexOfSourceItem(src[2]));
+    }
+
+    [UITestMethod]
+    public void IndexOfSourceItem_Returns_Negative_One_For_Null_Or_Missing_Item()
+    {
+        var src = CreateItems(2);
+        var view = new CollectionView(src);
+
+        Assert.AreEqual(-1, view.IndexOfSourceItem(null));
+        Assert.AreEqual(-1, view.IndexOfSourceItem(new TestItem { Id = 99, Name = "Missing", Value = 0 }));
+    }
+
+    [UITestMethod]
     public void Collapsing_A_Parent_Group_Hides_Descendant_Subgroups_And_Items()
     {
         var src = new ObservableCollection<TestItem>

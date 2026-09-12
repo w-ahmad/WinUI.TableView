@@ -78,14 +78,27 @@
 
                             <Grid>
                                 <Grid.ColumnDefinitions>
+                                    <ColumnDefinition x:Name="RowNumberColumn" Width="Auto" />
                                     <ColumnDefinition x:Name="RowHeaderColumn" Width="Auto" />
                                     <ColumnDefinition x:Name="DetailsExpandChevronColumn" Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
-                                <local:TableViewRowHeader x:Name="RowHeader" />
-                                
+                                <TextBlock x:Name="RowNumberText"
+                                           Grid.Column="0"
+                                           Visibility="Collapsed"
+                                           TextAlignment="Right"
+                                           HorizontalAlignment="Stretch"
+                                           VerticalAlignment="Center"
+                                           MinWidth="{ThemeResource TableViewRowNumberMinWidth}"
+                                           Margin="{ThemeResource TableViewRowNumberMargin}"
+                                           FontSize="{ThemeResource TableViewRowNumberFontSize}"
+                                           Foreground="{ThemeResource TableViewRowNumberForeground}" />
+
+                                <local:TableViewRowHeader x:Name="RowHeader"
+                                                           Grid.Column="1" />
+
                                 <ToggleButton x:Name="DetailsToggleButton"
-                                              Grid.Column="1"
+                                              Grid.Column="2"
                                               VerticalAlignment="Stretch"
                                               Visibility="Collapsed"
                                               Margin="{ThemeResource TableViewDetailsToggleButtonMargin}"

@@ -75,8 +75,8 @@ public partial class TableViewRowHeaderAutomationPeer : FrameworkElementAutomati
             }
         }
 
-        // Fall back to the row index
-        var rowIndex = _owner.TableViewRow?.Index ?? -1;
-        return rowIndex >= 0 ? $"Row {rowIndex + 1}" : base.GetNameCore();
+        // Fall back to the row number
+        var rowNumber = _owner.TableViewRow?.RowNumber ?? 0;
+        return rowNumber > 0 ? $"Row {rowNumber}" : base.GetNameCore();
     }
 }
