@@ -1,4 +1,4 @@
-﻿
+
 # WinUI.TableView
 
 **WinUI.TableView** is a lightweight and fast data grid control made for [WinUI](https://learn.microsoft.com/en-us/windows/apps/winui/winui3) apps and now supports the [Uno Platform](https://platform.uno/docs/index.html). It is easy to use, and capable of handling large numbers of items with a focus on performance. It hosts its rows in an `ItemsRepeater` driven by a purpose-built virtualizing layout, so the number of row elements tracks the size of the viewport rather than the size of your data, while keeping the Fluent look and feel. It comes with all the essential features you need, plus extras like an Excel like column filter, options buttons (for columns and the TableView) and easy data export.

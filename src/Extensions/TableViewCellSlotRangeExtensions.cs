@@ -1,4 +1,4 @@
-﻿namespace WinUI.TableView.Extensions;
+namespace WinUI.TableView.Extensions;
 
 /// <summary>
 /// Provides extension methods for the TableViewCellSlotRange type.

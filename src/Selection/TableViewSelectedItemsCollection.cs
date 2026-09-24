@@ -12,14 +12,18 @@ namespace WinUI.TableView.Selection;
 /// from the item view on demand. Selecting every row of a million-row source therefore costs one range rather
 /// than a million-element list, while <c>Add</c>/<c>Remove</c>/<c>Clear</c> keep working so code that mutates
 /// <c>SelectedItems</c> directly behaves as it did when the collection came from <c>ListViewBase</c>.
+/// <para>
+/// Without the two mutation callbacks the projection is read-only, which is what the added and removed lists of a
+/// selection change are: changing them would not change the selection, so they refuse rather than ignore it.
+/// </para>
 /// </remarks>
 internal sealed class TableViewSelectedItemsCollection : IList<object>
 {
     private readonly TableViewSelectionModel _model;
     private readonly Func<int, object?> _itemAt;
     private readonly Func<object?, int> _indexOfItem;
-    private readonly Action<int, bool> _setSelected;
-    private readonly Action _clearSelection;
+    private readonly Action<int, bool>? _setSelected;
+    private readonly Action? _clearSelection;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TableViewSelectedItemsCollection"/> class.
@@ -27,13 +31,15 @@ internal sealed class TableViewSelectedItemsCollection : IList<object>
     /// <param name="model">The range model holding the selected item indexes.</param>
     /// <param name="itemAt">Resolves an item view index to the item.</param>
     /// <param name="indexOfItem">Resolves an item to its item view index, or -1.</param>
-    /// <param name="setSelected">Selects or deselects a single item view index, raising the owner's events.</param>
-    /// <param name="clearSelection">Clears the whole selection, raising the owner's events.</param>
+    /// <param name="setSelected">Selects or deselects a single item view index, raising the owner's events; omit
+    /// for a read-only projection.</param>
+    /// <param name="clearSelection">Clears the whole selection, raising the owner's events; omit for a read-only
+    /// projection.</param>
     public TableViewSelectedItemsCollection(TableViewSelectionModel model,
                                             Func<int, object?> itemAt,
                                             Func<object?, int> indexOfItem,
-                                            Action<int, bool> setSelected,
-                                            Action clearSelection)
+                                            Action<int, bool>? setSelected = null,
+                                            Action? clearSelection = null)
     {
         _model = model;
         _itemAt = itemAt;
@@ -46,7 +52,7 @@ internal sealed class TableViewSelectedItemsCollection : IList<object>
     public int Count => _model.Count;
 
     /// <inheritdoc/>
-    public bool IsReadOnly => false;
+    public bool IsReadOnly => _setSelected is null || _clearSelection is null;
 
     /// <inheritdoc/>
     public object this[int index]
@@ -68,17 +74,19 @@ internal sealed class TableViewSelectedItemsCollection : IList<object>
     /// <inheritdoc/>
     public void Add(object item)
     {
+        var setSelected = SetSelected;
         var itemIndex = _indexOfItem(item);
 
         if (itemIndex >= 0)
         {
-            _setSelected(itemIndex, true);
+            setSelected(itemIndex, true);
         }
     }
 
     /// <inheritdoc/>
     public bool Remove(object item)
     {
+        var setSelected = SetSelected;
         var itemIndex = _indexOfItem(item);
 
         if (itemIndex < 0 || !_model.Contains(itemIndex))
@@ -86,7 +94,7 @@ internal sealed class TableViewSelectedItemsCollection : IList<object>
             return false;
         }
 
-        _setSelected(itemIndex, false);
+        setSelected(itemIndex, false);
 
         return true;
     }
@@ -94,7 +102,7 @@ internal sealed class TableViewSelectedItemsCollection : IList<object>
     /// <inheritdoc/>
     public void Clear()
     {
-        _clearSelection();
+        (_clearSelection ?? throw ReadOnly())();
     }
 
     /// <inheritdoc/>
@@ -142,6 +150,7 @@ internal sealed class TableViewSelectedItemsCollection : IList<object>
     /// <inheritdoc/>
     public void RemoveAt(int index)
     {
+        var setSelected = SetSelected;
         var itemIndex = _model.IndexAt(index);
 
         if (itemIndex < 0)
@@ -149,6 +158,10 @@ internal sealed class TableViewSelectedItemsCollection : IList<object>
             throw new ArgumentOutOfRangeException(nameof(index));
         }
 
-        _setSelected(itemIndex, false);
+        setSelected(itemIndex, false);
     }
+
+    private Action<int, bool> SetSelected => _setSelected ?? throw ReadOnly();
+
+    private static NotSupportedException ReadOnly() => new("This list reports a selection change; it cannot be modified.");
 }

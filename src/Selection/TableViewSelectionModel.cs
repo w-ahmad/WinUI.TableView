@@ -111,6 +111,24 @@ internal sealed class TableViewSelectionModel
     }
 
     /// <summary>
+    /// Returns the selected range containing <paramref name="index"/>, or <see langword="null"/> when it is not
+    /// selected.
+    /// </summary>
+    public ItemIndexRange? GetRangeContaining(int index)
+    {
+        var position = FindRange(index);
+
+        if (position < 0)
+        {
+            return null;
+        }
+
+        var range = _ranges[position];
+
+        return new ItemIndexRange(range.First, (uint)(range.Last - range.First + 1));
+    }
+
+    /// <summary>
     /// Enumerates the selected ranges in ascending order.
     /// </summary>
     public IEnumerable<ItemIndexRange> GetRanges()

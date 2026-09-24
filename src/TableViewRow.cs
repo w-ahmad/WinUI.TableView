@@ -206,9 +206,7 @@ public partial class TableViewRow : ContentControl
     {
         base.OnPointerExited(e);
 
-        _isPointerOver = false;
-        _isPressed = false;
-        UpdateVisualStates();
+        ResetPointerState();
     }
 
     /// <inheritdoc/>

@@ -44,24 +44,9 @@ internal sealed class TableViewRowsLayout : VirtualizingLayout
     public TableViewRowHeights Heights { get; } = new();
 
     /// <summary>
-    /// Gets the first visual index realized by the last measure pass, or -1 when nothing is realized.
-    /// </summary>
-    public int FirstRealizedIndex => _firstRealizedIndex;
-
-    /// <summary>
-    /// Gets the last visual index realized by the last measure pass, or -1 when nothing is realized.
-    /// </summary>
-    public int LastRealizedIndex => _lastRealizedIndex;
-
-    /// <summary>
     /// Gets the total height of every row, realized or not.
     /// </summary>
     public double TotalHeight => Heights.TotalHeight;
-
-    /// <summary>
-    /// Gets the visual index of the group header pinned to the top of the viewport, or -1 when none is.
-    /// </summary>
-    public int PinnedIndex => _pinnedIndex;
 
     /// <summary>
     /// Gets the visual index of the row at the given vertical offset within the rows area.
@@ -113,7 +98,7 @@ internal sealed class TableViewRowsLayout : VirtualizingLayout
             _firstRealizedIndex = _lastRealizedIndex = _pinnedIndex = -1;
 
             // An incrementally loading source starts empty, so this is where its first page gets requested.
-            TableView?.OnRowsRealized(-1, -1, 0);
+            TableView?.OnRowsRealized(-1, 0);
 
             return new Size(rowWidth, 0d);
         }
@@ -156,7 +141,7 @@ internal sealed class TableViewRowsLayout : VirtualizingLayout
             RecordMeasuredHeight(_pinnedIndex, element);
         }
 
-        TableView?.OnRowsRealized(first, last, itemCount);
+        TableView?.OnRowsRealized(last, itemCount);
 
         return new Size(rowWidth, Heights.TotalHeight);
     }

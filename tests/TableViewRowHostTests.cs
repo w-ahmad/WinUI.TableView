@@ -10,6 +10,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.Foundation;
 using WinUI.TableView.Extensions;
+using static WinUI.TableView.Tests.TableViewRowHostTestHelpers;
 
 namespace WinUI.TableView.Tests;
 
@@ -214,24 +215,6 @@ public class TableViewRowHostTests
     private static List<TableViewRow> RealizedRows(TableView tableView)
     {
         return [.. tableView.FindDescendants().OfType<TableViewRow>().Where(x => x.IsLoaded)];
-    }
-
-    private static async Task ScrollToAsync(TableView tableView, double verticalOffset)
-    {
-        var scrollViewer = tableView.FindDescendants().OfType<ScrollViewer>().First();
-        scrollViewer.ChangeView(null, verticalOffset, null, true);
-
-        await WaitForLayoutAsync(tableView);
-        await WaitForLayoutAsync(tableView);
-    }
-
-    private static async Task WaitForLayoutAsync(TableView tableView)
-    {
-        tableView.UpdateLayout();
-        await Task.Yield();
-        tableView.UpdateLayout();
-        await Task.Yield();
-        tableView.UpdateLayout();
     }
 
     private static Task<TableView> CreateTableViewAsync(int itemCount) => CreateTableViewAsync(CreateItems(itemCount));

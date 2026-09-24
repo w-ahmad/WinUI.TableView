@@ -1,4 +1,4 @@
-﻿# Accessibility
+# Accessibility
 
 `TableView` exposes a complete UI Automation (UIA) tree so that screen readers, keyboard-only users, and accessibility testing tools can navigate and interact with the control. Custom `AutomationPeer` classes are registered for every interactive element: the table itself, rows, cells, column headers, and row headers.
 

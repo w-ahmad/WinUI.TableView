@@ -32,9 +32,6 @@ internal static class VisualStates
     public const string StateDisabled = "Disabled";
 
     /// <summary>
-    /// Common state group
-    /// </summary>
-    /// <summary>
     /// Identifies the "PointerOverSelected" state of a row.
     /// </summary>
     public const string StatePointerOverSelected = "PointerOverSelected";
@@ -69,6 +66,9 @@ internal static class VisualStates
     /// </summary>
     public const string GroupMultiSelect = "MultiSelectStates";
 
+    /// <summary>
+    /// Common state group
+    /// </summary>
     public const string GroupCommon = "CommonStates";
 
     // GroupExpanded

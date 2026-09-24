@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WinUI.TableView.Extensions;
+using static WinUI.TableView.Tests.TableViewRowHostTestHelpers;
 
 namespace WinUI.TableView.Tests;
 
@@ -223,15 +224,15 @@ public class TableViewGroupingHostTests
         tableView.AreStickyGroupHeadersEnabled = true;
         await GroupAsync(tableView, TableViewGroupState.Expanded);
 
-        var scrollViewer = tableView.FindDescendants().OfType<ScrollViewer>().First();
+        var scrollViewer = GetScrollViewer(tableView);
 
         Assert.IsFalse(tableView.GroupHeaderRows.Any(x => x.IsPinned), "nothing is pinned before scrolling");
 
-        await ScrollToAsync(tableView, scrollViewer, 2_000d);
+        await ScrollToAsync(tableView, 2_000d);
         AssertPinned(tableView, scrollViewer, "A");
 
         // Halfway down, the second of three equally sized groups is at the top.
-        await ScrollToAsync(tableView, scrollViewer, scrollViewer.ExtentHeight / 2);
+        await ScrollToAsync(tableView, scrollViewer.ExtentHeight / 2);
         AssertPinned(tableView, scrollViewer, "B");
 
         tableView.AreStickyGroupHeadersEnabled = false;
@@ -248,8 +249,8 @@ public class TableViewGroupingHostTests
         var tableView = await CreateTableViewAsync(CreateItems(3_000));
         await GroupAsync(tableView, TableViewGroupState.Expanded);
 
-        var scrollViewer = tableView.FindDescendants().OfType<ScrollViewer>().First();
-        await ScrollToAsync(tableView, scrollViewer, 2_000d);
+        var scrollViewer = GetScrollViewer(tableView);
+        await ScrollToAsync(tableView, 2_000d);
 
         Assert.IsFalse(tableView.GroupHeaderRows.Any(x => x.IsPinned));
 
@@ -263,8 +264,10 @@ public class TableViewGroupingHostTests
         tableView.SelectRange(new ItemIndexRange(1, 1));
 
         var selected = tableView.SelectedItem;
-        List<object>? removed = null;
-        tableView.SelectionChanged += (_, e) => removed = [.. e.RemovedItems];
+        IList<object>? removed = null;
+
+        // Kept, not copied: the list has to stay right after the handler returns and the view has been rebuilt.
+        tableView.SelectionChanged += (_, e) => removed = e.RemovedItems;
 
         // Sorting rebuilds the view, re-ordering every index.
         ((CollectionView)tableView.CollectionView).SortDescriptions.Add(
@@ -272,10 +275,90 @@ public class TableViewGroupingHostTests
 
         Assert.IsNotNull(selected);
         Assert.IsNotNull(removed, "SelectionChanged should be raised");
-        CollectionAssert.AreEqual(new[] { selected }, removed);
+        CollectionAssert.AreEqual(new[] { selected }, removed.ToArray());
+        Assert.AreNotSame(selected, tableView.Items[1], "the sort should have moved another item onto the old index");
         Assert.IsNull(tableView.SelectedItem);
         Assert.AreEqual(-1, tableView.SelectedIndex);
         Assert.AreEqual(0, tableView.SelectedItems.Count);
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task SelectionChangedLists_AreReadOnly()
+    {
+        var tableView = await CreateTableViewAsync(CreateItems(6));
+        IList<object>? added = null;
+        tableView.SelectionChanged += (_, e) => added = e.AddedItems;
+
+        tableView.SelectRange(new ItemIndexRange(1, 2));
+
+        Assert.IsNotNull(added);
+        Assert.AreEqual(2, added.Count);
+        Assert.IsTrue(added.IsReadOnly);
+        Assert.ThrowsExactly<System.NotSupportedException>(() => added.Add(tableView.Items[4]));
+        Assert.ThrowsExactly<System.NotSupportedException>(() => added.Clear());
+        Assert.AreEqual(2, tableView.SelectedItems.Count, "the selection itself is untouched");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task GroupHeader_VisualStates_FollowTheGroupAndPinning()
+    {
+        var tableView = await CreateTableViewAsync(CreateItems(3_000));
+        tableView.AreStickyGroupHeadersEnabled = true;
+        await GroupAsync(tableView, TableViewGroupState.Collapsed);
+
+        var collapsed = tableView.GroupHeaderRows.First(x => Equals(x.GroupInfo!.Key, "A"));
+        Assert.AreEqual(-90d, GetChevronAngle(collapsed), "a collapsed group's chevron points sideways");
+        Assert.IsNull(GetTemplatePart<Border>(collapsed, "PinnedBackground").Background, "an unpinned header has no backing fill");
+
+        collapsed.ToggleExpanded();
+        await WaitForLayoutAsync(tableView);
+
+        var expanded = tableView.GroupHeaderRows.First(x => Equals(x.GroupInfo!.Key, "A"));
+        Assert.AreEqual(0d, GetChevronAngle(expanded), "an expanded group's chevron points down");
+
+        await ScrollToAsync(tableView, 2_000d);
+
+        var pinned = tableView.GroupHeaderRows.Single(x => x.IsPinned);
+        Assert.IsNotNull(GetTemplatePart<Border>(pinned, "PinnedBackground").Background, "a pinned header is backed by an opaque fill");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task NestedGrouping_IndentsHeadersByLevel_AndRowsBelowTheFirstLevel()
+    {
+        var tableView = await CreateTableViewAsync(CreateItems(6));
+        await GroupAsync(tableView, TableViewGroupState.Expanded, nameof(GroupItem.Category), nameof(GroupItem.Kind));
+
+        foreach (var header in tableView.GroupHeaderRows)
+        {
+            Assert.AreEqual(header.GroupInfo!.Level * 24d, GetTemplatePart<Border>(header, "IndentPlaceholder").Width);
+        }
+
+        // Two levels of grouping: rows sit one indent step in, under the innermost headers.
+        Assert.IsTrue(tableView.Rows.Count > 0);
+        Assert.IsTrue(tableView.Rows.All(row => GetTemplatePart<Border>(row, "IndentPlaceholder").Width is 24d));
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task GroupHeaders_AreRecycled_AcrossExpandAndCollapse()
+    {
+        var tableView = await CreateTableViewAsync(CreateItems(6));
+        await GroupAsync(tableView, TableViewGroupState.Collapsed);
+
+        var before = tableView.GroupHeaderRows.ToHashSet();
+
+        tableView.GroupHeaderRows.First(x => Equals(x.GroupInfo!.Key, "A")).ToggleExpanded();
+        await WaitForLayoutAsync(tableView);
+
+        Assert.AreEqual(3, tableView.GroupHeaderRows.Count);
+        Assert.IsTrue(tableView.GroupHeaderRows.All(before.Contains), "the rebuild should reuse the pooled header elements");
 
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }
@@ -294,6 +377,16 @@ public class TableViewGroupingHostTests
         Assert.IsTrue(tableView.Rows.All(row => !row.IsSelected));
 
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    private static double GetChevronAngle(TableViewGroupHeaderRow header)
+    {
+        return ((Microsoft.UI.Xaml.Media.RotateTransform)GetTemplatePart<FontIcon>(header, "ExpandCollapseIcon").RenderTransform).Angle;
+    }
+
+    private static T GetTemplatePart<T>(DependencyObject owner, string name) where T : FrameworkElement
+    {
+        return owner.FindDescendants().OfType<T>().First(x => x.Name == name);
     }
 
     private static void AssertPinned(TableView tableView, ScrollViewer scrollViewer, string expectedKey)
@@ -341,23 +434,6 @@ public class TableViewGroupingHostTests
         }
 
         await WaitForLayoutAsync(tableView);
-    }
-
-    private static async Task ScrollToAsync(TableView tableView, ScrollViewer scrollViewer, double verticalOffset)
-    {
-        scrollViewer.ChangeView(null, verticalOffset, null, true);
-
-        await WaitForLayoutAsync(tableView);
-        await WaitForLayoutAsync(tableView);
-    }
-
-    private static async Task WaitForLayoutAsync(TableView tableView)
-    {
-        tableView.UpdateLayout();
-        await Task.Yield();
-        tableView.UpdateLayout();
-        await Task.Yield();
-        tableView.UpdateLayout();
     }
 
     private static async Task<TableView> CreateTableViewAsync(GroupItem[] items)

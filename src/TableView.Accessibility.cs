@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml.Automation.Peers;
+using Microsoft.UI.Xaml.Automation.Peers;
 using WinUI.TableView.AutomationPeers;
 
 namespace WinUI.TableView;

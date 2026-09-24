@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
+using System;
 using System.Collections.Generic;
 using WinUI.TableView.Selection;
 
@@ -65,7 +66,7 @@ public partial class TableView
     /// </remarks>
     public IList<object> SelectedItems => _selectedItems ??= new TableViewSelectedItemsCollection(
         _rowSelection,
-        index => index >= 0 && index < _collectionView.Count ? _collectionView[index] : null,
+        ItemAt,
         item => _collectionView.IndexOf(item),
         (index, isSelected) => SetItemSelected(index, isSelected),
         DeselectAllItems);
@@ -138,7 +139,12 @@ public partial class TableView
     /// Applies a change to the selection model and, when it changed anything, updates the affected rows' visuals
     /// and raises <see cref="SelectionChanged"/>.
     /// </summary>
-    private void ChangeSelection(System.Func<TableViewSelectionModel, bool> change)
+    /// <param name="change">Changes the model and reports whether it did.</param>
+    /// <param name="snapshotRemovedItems">
+    /// Copies the removed items into the event instead of projecting them lazily. Needed when the item view is
+    /// about to be rebuilt, after which the removed indexes would resolve to whatever items land on them.
+    /// </param>
+    private void ChangeSelection(Func<TableViewSelectionModel, bool> change, bool snapshotRemovedItems = false)
     {
         var before = _rowSelection.Clone();
 
@@ -170,22 +176,37 @@ public partial class TableView
         ApplySelectionToRealizedRows(added, removed);
         OnRowSelectionChanged(added, removed);
 
+        var removedItems = ProjectItems(removed);
+
         SelectionChanged?.Invoke(this, new SelectionChangedEventArgs(
-            ProjectItems(removed),
+            snapshotRemovedItems ? [.. removedItems] : removedItems,
             ProjectItems(added)));
     }
 
     /// <summary>
-    /// Projects a selection span onto the items it covers, without materialising them.
+    /// Deselects everything just before the item view is rebuilt, reporting the removed items as they were.
+    /// </summary>
+    private void DeselectAllBeforeViewReset()
+    {
+        ChangeSelection(static model => model.Clear(), snapshotRemovedItems: true);
+        DeselectAllCells();
+    }
+
+    /// <summary>
+    /// Projects a selection span onto the items it covers, without materialising them. The projection is
+    /// read-only: it describes a selection change rather than being one.
     /// </summary>
     private IList<object> ProjectItems(TableViewSelectionModel model)
     {
-        return new TableViewSelectedItemsCollection(
-            model,
-            index => index >= 0 && index < _collectionView.Count ? _collectionView[index] : null,
-            item => _collectionView.IndexOf(item),
-            static (_, _) => { },
-            static () => { });
+        return new TableViewSelectedItemsCollection(model, ItemAt, item => _collectionView.IndexOf(item));
+    }
+
+    /// <summary>
+    /// Returns the item at an item index, or <see langword="null"/> when the index is out of range.
+    /// </summary>
+    private object? ItemAt(int index)
+    {
+        return index >= 0 && index < _collectionView.Count ? _collectionView[index] : null;
     }
 
     /// <summary>
@@ -217,7 +238,7 @@ public partial class TableView
             var index = _rowSelection.FirstIndex;
 
             SetValue(SelectedIndexProperty, index);
-            SetValue(SelectedItemProperty, index >= 0 && index < _collectionView.Count ? _collectionView[index] : null);
+            SetValue(SelectedItemProperty, ItemAt(index));
         }
         finally
         {

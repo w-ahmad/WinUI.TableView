@@ -79,14 +79,4 @@ internal sealed class TableViewRowElementFactory : IElementFactory
                 break;
         }
     }
-
-    /// <summary>
-    /// Drops the pooled elements, for when the table's columns or templates change so completely that reusing
-    /// existing rows would cost more than rebuilding them.
-    /// </summary>
-    public void ClearPools()
-    {
-        _rowPool.Clear();
-        _groupHeaderPool.Clear();
-    }
 }

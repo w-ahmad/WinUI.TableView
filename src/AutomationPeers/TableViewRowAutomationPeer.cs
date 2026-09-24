@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Automation.Provider;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Data;
 using System.Collections.Generic;
 
 namespace WinUI.TableView.AutomationPeers;
@@ -136,7 +137,7 @@ public partial class TableViewRowAutomationPeer : FrameworkElementAutomationPeer
     {
         if (_owner is { TableView: { } tableView, Index: >= 0 } && tableView.IsRowSelected(_owner.Index))
         {
-            tableView.DeselectRange(new Microsoft.UI.Xaml.Data.ItemIndexRange(_owner.Index, 1));
+            tableView.DeselectRange(new ItemIndexRange(_owner.Index, 1));
         }
     }
 

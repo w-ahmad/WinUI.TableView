@@ -142,6 +142,81 @@ internal sealed class TableViewVisualRows : IList, INotifyCollectionChanged
     }
 
     /// <summary>
+    /// Returns the item index of the first data row at or after <paramref name="visualIndex"/>, or -1 when there is
+    /// none - skipping over any group headers in between.
+    /// </summary>
+    public int FindItemIndexAtOrAfter(int visualIndex)
+    {
+        visualIndex = Math.Max(0, visualIndex);
+
+        // The first data segment that ends at or after the visual index.
+        var found = -1;
+        var low = 0;
+        var high = _dataSegments.Count - 1;
+
+        while (low <= high)
+        {
+            var middle = low + ((high - low) >> 1);
+            var entry = _dataSegments[middle];
+
+            if (entry.VisualStart + entry.Length - 1 < visualIndex)
+            {
+                low = middle + 1;
+            }
+            else
+            {
+                found = middle;
+                high = middle - 1;
+            }
+        }
+
+        if (found < 0)
+        {
+            return -1;
+        }
+
+        var segment = _dataSegments[found];
+
+        return segment.ItemStart + Math.Max(0, visualIndex - segment.VisualStart);
+    }
+
+    /// <summary>
+    /// Returns the item index of the last data row at or before <paramref name="visualIndex"/>, or -1 when there is
+    /// none - skipping over any group headers in between.
+    /// </summary>
+    public int FindItemIndexAtOrBefore(int visualIndex)
+    {
+        // The last data segment that starts at or before the visual index.
+        var found = -1;
+        var low = 0;
+        var high = _dataSegments.Count - 1;
+
+        while (low <= high)
+        {
+            var middle = low + ((high - low) >> 1);
+
+            if (_dataSegments[middle].VisualStart <= visualIndex)
+            {
+                found = middle;
+                low = middle + 1;
+            }
+            else
+            {
+                high = middle - 1;
+            }
+        }
+
+        if (found < 0)
+        {
+            return -1;
+        }
+
+        var segment = _dataSegments[found];
+
+        return segment.ItemStart + Math.Min(segment.Length - 1, visualIndex - segment.VisualStart);
+    }
+
+    /// <summary>
     /// Returns the group whose header sits at the given visual index, or <see langword="null"/> for a data row.
     /// </summary>
     public TableViewGroupInfo? GetGroupHeader(int visualIndex)

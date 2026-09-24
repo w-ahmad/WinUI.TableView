@@ -27,14 +27,17 @@
 ```
 /
 ├── src/                          # Main library source code
+│   ├── AutomationPeers/          # UI Automation peers
+│   ├── Collections/              # Observable collection primitives
 │   ├── Columns/                  # Column type implementations
 │   ├── Controls/                 # Custom control implementations
 │   ├── Converters/               # XAML value converters
 │   ├── EventArgs/                # Custom event argument classes
 │   ├── Extensions/               # Extension methods
 │   ├── Helpers/                  # Helper classes and utilities
-│   ├── ItemsSource/              # Data source handling
-│   ├── Primitives/               # Base/primitive control classes
+│   ├── ItemsSource/              # Data source handling (CollectionView, grouping, visual rows)
+│   ├── Layout/                   # Row host: virtualizing layout, row heights, element factory
+│   ├── Selection/                # Range-based row and cell selection
 │   ├── Strings/                  # Localization resources
 │   ├── Themes/                   # XAML styles and control templates
 │   ├── TableView.cs              # Main TableView control

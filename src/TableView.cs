@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
@@ -95,7 +95,7 @@ public partial class TableView : Control
     /// Reads the change as index ranges rather than as lists of items, so selecting a large span no longer costs
     /// an <c>IndexOf</c> per selected item.
     /// </remarks>
-    private void OnRowSelectionChanged(Selection.TableViewSelectionModel added, Selection.TableViewSelectionModel removed)
+    private void OnRowSelectionChanged(TableViewSelectionModel added, TableViewSelectionModel removed)
     {
         TableViewTrace.Write($"TableViewSelectionChanged: Added={added.Count}, Removed={removed.Count}");
 
@@ -883,14 +883,38 @@ public partial class TableView : Control
 
             var row = (LastSelectionUnit is TableViewSelectionUnit.Row ? CurrentRowIndex : CurrentCellSlot?.Row) ?? -1;
             var column = CurrentCellSlot?.Column ?? -1;
-            var nextRow = e.Key == VirtualKey.PageDown
-                ? Math.Min(Items.Count - 1, row + pageSize)
-                : Math.Max(0, row - pageSize);
+            var nextRow = GetRowOnePageAway(row, pageSize, down: e.Key is VirtualKey.PageDown);
 
-            var newSlot = new TableViewCellSlot(nextRow, column);
-            MakeSelection(newSlot, shiftKey);
+            if (nextRow >= 0)
+            {
+                MakeSelection(new TableViewCellSlot(nextRow, column), shiftKey);
+            }
+
             e.Handled = true;
         }
+    }
+
+    /// <summary>
+    /// Returns the item index a page away from <paramref name="itemIndex"/>, or -1 when there are no rows.
+    /// </summary>
+    /// <remarks>
+    /// Pages are measured in displayed rows, group headers included, so the step is taken in visual space and
+    /// then settled on the nearest data row in the direction of travel.
+    /// </remarks>
+    private int GetRowOnePageAway(int itemIndex, int pageSize, bool down)
+    {
+        if (_visualRows is null || VisualRowCount is 0)
+        {
+            return _collectionView.Count is 0
+                ? -1
+                : Math.Clamp(down ? itemIndex + pageSize : itemIndex - pageSize, 0, _collectionView.Count - 1);
+        }
+
+        var visualIndex = Math.Max(0, GetVisualIndexFromItemIndex(itemIndex));
+        var target = Math.Clamp(down ? visualIndex + pageSize : visualIndex - pageSize, 0, VisualRowCount - 1);
+        var ahead = down ? _visualRows.FindItemIndexAtOrAfter(target) : _visualRows.FindItemIndexAtOrBefore(target);
+
+        return ahead >= 0 ? ahead : down ? _visualRows.FindItemIndexAtOrBefore(target) : _visualRows.FindItemIndexAtOrAfter(target);
     }
 
     /// <summary>
@@ -1838,7 +1862,7 @@ public partial class TableView : Control
     /// </summary>
     private void SelectRows(TableViewCellSlot slot, bool shiftKey, bool ctrlKey)
     {
-        var selectionRange = _rowSelection.Contains(slot.Row) ? FindSelectedRange(slot.Row) : null;
+        var selectionRange = _rowSelection.GetRangeContaining(slot.Row);
         SelectionStartRowIndex ??= slot.Row;
 
         if (selectionRange is not null && ctrlKey && !shiftKey && (CurrentRowIndex != slot.Row || CurrentCellSlot == slot))
@@ -1929,11 +1953,12 @@ public partial class TableView : Control
         SelectionStartCellSlot ??= CurrentCellSlot;
         SelectionStartCellSlot ??= slot;
 
-        var addedRange = shiftKey && SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended
+        var extendsFromAnchor = shiftKey && SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended;
+        var addedRange = extendsFromAnchor
             ? TableViewCellSlotRange.FromSlots(SelectionStartCellSlot.Value, slot)
             : TableViewCellSlotRange.FromSlots(slot);
 
-        if (!(shiftKey && SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended))
+        if (!extendsFromAnchor)
         {
             SelectionStartCellSlot = slot;
         }
@@ -2572,37 +2597,13 @@ public partial class TableView : Control
     }
 
     /// <summary>
-    /// Returns the selected range containing the given item index, or null.
-    /// </summary>
-    private ItemIndexRange? FindSelectedRange(int itemIndex)
-    {
-        foreach (var range in _rowSelection.GetRanges())
-        {
-            if (range.FirstIndex <= itemIndex && itemIndex <= range.LastIndex)
-            {
-                return range;
-            }
-        }
-
-        return null;
-    }
-
-    /// <summary>
     /// Returns the first item index in the given visual row span, or -1 when the span holds only group headers.
     /// </summary>
     private int FirstItemIndexAtOrAfter(int firstVisualIndex, int lastVisualIndex)
     {
-        for (var visualIndex = firstVisualIndex; visualIndex <= lastVisualIndex; visualIndex++)
-        {
-            var itemIndex = GetItemIndexFromVisualIndex(visualIndex);
+        var itemIndex = _visualRows?.FindItemIndexAtOrAfter(firstVisualIndex) ?? -1;
 
-            if (itemIndex >= 0)
-            {
-                return itemIndex;
-            }
-        }
-
-        return -1;
+        return itemIndex >= 0 && GetVisualIndexFromItemIndex(itemIndex) <= lastVisualIndex ? itemIndex : -1;
     }
 
     /// <summary>
@@ -2610,17 +2611,9 @@ public partial class TableView : Control
     /// </summary>
     private int LastItemIndexAtOrBefore(int firstVisualIndex, int lastVisualIndex)
     {
-        for (var visualIndex = lastVisualIndex; visualIndex >= firstVisualIndex; visualIndex--)
-        {
-            var itemIndex = GetItemIndexFromVisualIndex(visualIndex);
+        var itemIndex = _visualRows?.FindItemIndexAtOrBefore(lastVisualIndex) ?? -1;
 
-            if (itemIndex >= 0)
-            {
-                return itemIndex;
-            }
-        }
-
-        return -1;
+        return itemIndex >= 0 && GetVisualIndexFromItemIndex(itemIndex) >= firstVisualIndex ? itemIndex : -1;
     }
 
     /// <summary>
@@ -2722,9 +2715,11 @@ public partial class TableView : Control
     }
 
     /// <summary>
-    /// Updates the base SelectionMode property.
+    /// Refreshes the header row and the realized rows after <see cref="SelectionMode"/> or
+    /// <see cref="SelectionUnit"/> changed: the multi-select check box column, row header visibility and the
+    /// horizontal scroll bar margin all depend on them.
     /// </summary>
-    private void UpdateBaseSelectionMode()
+    private void RefreshSelectionModeVisuals()
     {
         UpdateHorizontalScrollBarMargin();
         _headerRow?.SetHeadersVisibility();

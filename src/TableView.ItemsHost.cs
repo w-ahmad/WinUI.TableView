@@ -428,7 +428,7 @@ public partial class TableView
     /// </remarks>
     private void OnCollectionViewResetting(object? sender, EventArgs e)
     {
-        DeselectAll();
+        DeselectAllBeforeViewReset();
     }
 
     /// <summary>
@@ -492,9 +492,9 @@ public partial class TableView
     }
 
     /// <summary>
-    /// Called by the layout after each measure pass with the range of visual rows it realized.
+    /// Called by the layout after each measure pass with the last visual row it realized and the visual row count.
     /// </summary>
-    internal void OnRowsRealized(int firstRealizedIndex, int lastRealizedIndex, int rowCount)
+    internal void OnRowsRealized(int lastRealizedIndex, int rowCount)
     {
         RequestMoreItemsIfNeeded(lastRealizedIndex, rowCount);
     }

@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
@@ -653,11 +653,9 @@ public partial class TableView
     }
 
     /// <summary>
-    /// Gets or sets the default <see cref="Microsoft.UI.Xaml.Controls.GroupStyle"/> used when the consumer hasn't
-    /// added one to <c>ListViewBase.GroupStyle</c> themselves. Set from the default style; there's normally
-    /// no need to set this directly. It's a plain property (rather than being applied via <c>GroupStyleSelector</c>)
-    /// because <c>GroupStyleSelector</c>, once set, always takes priority over <c>ListViewBase.GroupStyle</c>
-    /// regardless of whether the consumer added their own entries, which would make overriding it impossible.
+    /// Gets or sets the <see cref="Microsoft.UI.Xaml.Controls.GroupStyle"/> used for group headers while
+    /// <see cref="GroupStyle"/> is empty. Set from the default style; there's normally no need to set this directly -
+    /// add an entry to <see cref="GroupStyle"/> instead to replace it.
     /// </summary>
     public GroupStyle? DefaultGroupStyle
     {
@@ -1043,7 +1041,7 @@ public partial class TableView
                 tableView.OnCellSelectionChanged();
             }
 
-            tableView.UpdateBaseSelectionMode();
+            tableView.RefreshSelectionModeVisuals();
             tableView.UpdateCornerButtonState();
         }
     }
@@ -1267,7 +1265,7 @@ public partial class TableView
                 tableView.OnCellSelectionChanged();
             }
 
-            tableView.UpdateBaseSelectionMode();
+            tableView.RefreshSelectionModeVisuals();
             tableView.UpdateCornerButtonState();
         }
     }
