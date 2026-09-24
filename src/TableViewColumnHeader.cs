@@ -97,7 +97,6 @@ public partial class TableViewColumnHeader : ContentControl
         }
     }
 
-#if WINDOWS
     /// <summary>
     /// Gets a value indicating whether the column is currently grouped.
     /// </summary>
@@ -176,7 +175,6 @@ public partial class TableViewColumnHeader : ContentControl
 
         _tableView?.RefreshGrouping();
     }
-#endif
 
     /// <summary>
     /// Sorts the column in the specified direction.
@@ -209,7 +207,6 @@ public partial class TableViewColumnHeader : ContentControl
 
         if (direction is not null)
         {
-#if WINDOWS
             if (sortDescription is ColumnSortDescription && IsGrouped)
             {
                 var groupDescription = collectionView.GroupDescriptions
@@ -217,7 +214,6 @@ public partial class TableViewColumnHeader : ContentControl
 
                 groupDescription?.Direction = direction.Value;
             }
-#endif
 
             var boundColumn = Column as TableViewBoundColumn;
             Column.SortDirection = direction;
@@ -336,12 +332,10 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     private SD? GetNextSortDirection()
     {
-#if WINDOWS
         if (IsGrouped)
         {
             return Column?.SortDirection == SD.Ascending ? SD.Descending : SD.Ascending;
         }
-#endif
 
         return Column?.SortDirection switch
         {
@@ -745,12 +739,10 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     public TableViewColumn? Column { get; internal set; }
 
-#if WINDOWS
     /// <summary>
     /// Gets a value indicating whether the column can be grouped.
     /// </summary>
     private bool CanGroup => _tableView?.CanGroupColumns == true && Column?.CanGroup == true;
-#endif
 
     /// <summary>
     /// Gets a value indicating whether the column can be resized.

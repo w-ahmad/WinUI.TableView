@@ -58,8 +58,8 @@
                 Value="{ThemeResource TableViewHorizontalGridLineStrokeThickness}" />
         <Setter Property="VerticalGridLinesStrokeThickness"
                 Value="{ThemeResource TableViewVerticalGridLineStrokeThickness}" />
-        <win:Setter Property="DefaultGroupStyle"
-                    Value="{StaticResource DefaultTableViewGroupStyle}" />
+        <Setter Property="DefaultGroupStyle"
+                Value="{StaticResource DefaultTableViewGroupStyle}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:TableView">

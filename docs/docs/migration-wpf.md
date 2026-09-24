@@ -23,7 +23,7 @@ This guide helps developers who are migrating a WPF application to WinUI 3 and n
 | [`AutoGenerateColumns`](xref:WinUI.TableView.TableView.AutoGenerateColumns) | [`AutoGenerateColumns`](xref:WinUI.TableView.TableView.AutoGenerateColumns) | Same behavior. |
 | [`IsReadOnly`](xref:WinUI.TableView.TableView.IsReadOnly) | [`IsReadOnly`](xref:WinUI.TableView.TableView.IsReadOnly) | Same behavior. Per-column [`IsReadOnly`](xref:WinUI.TableView.TableViewColumn.IsReadOnly) is also supported. |
 | `CanUserSortColumns` | [`CanSortColumns`](xref:WinUI.TableView.TableView.CanSortColumns) | Same behavior. |
-| *(no equivalent)* | [`CanGroupColumns`](xref:WinUI.TableView.TableView.CanGroupColumns) | WPF DataGrid has no built-in column grouping. WinUI.TableView supports multi-level grouping on Windows targets — see [Grouping](grouping.md). |
+| *(no equivalent)* | [`CanGroupColumns`](xref:WinUI.TableView.TableView.CanGroupColumns) | WPF DataGrid has no built-in column grouping. WinUI.TableView supports multi-level grouping — see [Grouping](grouping.md). |
 | `CanUserReorderColumns` | [`CanReorderColumns`](xref:WinUI.TableView.TableView.CanReorderColumns) | Same behavior. |
 | `CanUserResizeColumns` | [`CanResizeColumns`](xref:WinUI.TableView.TableView.CanResizeColumns) | Same behavior. |
 | [`FrozenColumnCount`](xref:WinUI.TableView.TableView.FrozenColumnCount) | [`FrozenColumnCount`](xref:WinUI.TableView.TableView.FrozenColumnCount) | Same behavior. |

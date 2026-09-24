@@ -160,7 +160,7 @@
                                         <MenuFlyoutSeparator />
                                         <MenuFlyoutItem x:Name="ClearSortingMenuItem" />
                                         <MenuFlyoutItem x:Name="ClearFilterMenuItem" />
-                                        <win:MenuFlyoutItem x:Name="UngroupAllMenuItem" />
+                                        <MenuFlyoutItem x:Name="UngroupAllMenuItem" />
                                         <MenuFlyoutSeparator Visibility="{Binding Visibility, ElementName=ExportAllMenuItem}" />
                                         <MenuFlyoutItem x:Name="ExportAllMenuItem">
                                             <MenuFlyoutItem.Icon>

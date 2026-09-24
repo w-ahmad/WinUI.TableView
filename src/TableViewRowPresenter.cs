@@ -207,12 +207,8 @@ public partial class TableViewRowPresenter : Control
     /// </summary>
     private double GetGroupIndent()
     {
-#if WINDOWS
         var groupLevels = (TableView?.CollectionView as CollectionView)?.GroupDescriptions.Count ?? 0;
         return Math.Max(0, groupLevels - 1) * TableViewGroupHeaderRow.GroupIndentSize;
-#else
-        return 0d;
-#endif
     }
 
     /// <summary>

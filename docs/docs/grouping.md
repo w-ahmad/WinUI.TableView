@@ -2,7 +2,7 @@
 
 `TableView` supports multi-level column grouping: collapsing rows into collapsible headers by one or more column values, with expand/collapse control per group and full integration with column sorting.
 
-> **Note:** Grouping is currently a **Windows-only** feature. It is not available when running on non-Windows Uno Platform targets (macOS, Linux, WASM, iOS, Android). `CanGroupColumns` and the "Group" column header option are hidden/no-ops on those targets.
+Grouping works on every target: Windows and all Uno Platform targets. Group headers are virtualized alongside the rows they cover, so scrolling a large grouped collection realizes only what is on screen, just as it does ungrouped.
 
 ## When to use it
 
@@ -47,7 +47,7 @@ Ungrouping and later re-grouping the same column starts every group at [`Default
 
 ## Group headers: name and count
 
-By default, each group header shows the group's key and item count, e.g. `Electronics (12)`. This comes from `TableView.DefaultGroupStyle`, which is a plain `GroupStyle` applied automatically unless you add your own entry to `TableView.GroupStyle` (a `ListViewBase.GroupStyle` collection):
+By default, each group header shows the group's key and item count. This comes from `TableView.DefaultGroupStyle`, which is used whenever `TableView.GroupStyle` is empty. Add your own `GroupStyle` entry to replace it:
 
 ```xml
 <tv:TableView ItemsSource="{x:Bind Products}">
@@ -66,6 +66,10 @@ By default, each group header shows the group's key and item count, e.g. `Electr
     </tv:TableView.GroupStyle>
 </tv:TableView>
 ```
+
+`TableView.GroupStyle` holds one entry per nesting level: the first styles top-level group headers, the second styles the groups nested inside them, and so on. The last entry is reused for any level deeper than the list goes, so a single entry styles every level. A `GroupStyle.HeaderTemplateSelector`, when set, takes priority over its `HeaderTemplate`.
+
+The header itself is always a [`TableViewGroupHeaderRow`](xref:WinUI.TableView.TableViewGroupHeaderRow); restyle it with an implicit style targeting that type. `GroupStyle.HeaderContainerStyle` is not applied.
 
 The header's `DataContext` is a `TableViewGroupInfo` with these members:
 
@@ -127,6 +131,8 @@ Enable sticky group headers so the current group's header stays pinned to the to
 ```xml
 <tv:TableView AreStickyGroupHeadersEnabled="True" />
 ```
+
+The pinned header is the one for the group the top visible row belongs to. It stays at the top edge until the next group's header scrolls up and pushes it out of the way. While pinned, it is drawn over the rows beneath it with an opaque background (the `TableViewGroupHeaderRowPinnedBackground` theme resource), and keyboard navigation keeps the current row below it rather than underneath it.
 
 > **Note:** This only pins a single level of header at a time - with multi-level grouping, ancestor headers above the innermost one do not stack.
 
@@ -220,7 +226,7 @@ bool isGrouped = tableView.IsGrouped; // true if any GroupDescription is applied
 
 ## Notes and limitations
 
-- Grouping is Windows-only; it does not run on non-Windows Uno Platform targets.
+- Anything that rebuilds the view - grouping or ungrouping, expanding or collapsing a group, sorting, or adding or removing an item while grouped - clears the row and cell selection, because the row indexes it was based on change. `SelectionChanged` reports the rows that were deselected.
 - A grouped column's order always needs a direction, so it never truly clears to unsorted the way an ungrouped column's third click does - see [Sorting and grouping together](#sorting-and-grouping-together) for the three-state-until-cleared-then-two-state cycle.
 - Grouping and its implicit sort operate on the internal collection view. They do not mutate the original collection.
 - Sticky group headers pin only one header level at a time.

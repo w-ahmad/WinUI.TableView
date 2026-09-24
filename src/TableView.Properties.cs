@@ -78,7 +78,6 @@ public partial class TableView
     /// </summary>
     public static readonly DependencyProperty CornerButtonModeProperty = DependencyProperty.Register(nameof(CornerButtonMode), typeof(TableViewCornerButtonMode), typeof(TableView), new PropertyMetadata(TableViewCornerButtonMode.Options, OnCornerButtonModeChanged));
 
-#if WINDOWS
     /// <summary>
     /// Identifies the CanGroupColumns dependency property.
     /// </summary>
@@ -92,7 +91,7 @@ public partial class TableView
     /// <summary>
     /// Identifies the DefaultGroupStyle dependency property.
     /// </summary>
-    public static readonly DependencyProperty DefaultGroupStyleProperty = DependencyProperty.Register(nameof(DefaultGroupStyle), typeof(GroupStyle), typeof(TableView), new PropertyMetadata(null));
+    public static readonly DependencyProperty DefaultGroupStyleProperty = DependencyProperty.Register(nameof(DefaultGroupStyle), typeof(GroupStyle), typeof(TableView), new PropertyMetadata(null, OnDefaultGroupStyleChanged));
 
     /// <summary>
     /// Identifies the DefaultGroupState dependency property.
@@ -103,7 +102,6 @@ public partial class TableView
     /// Identifies the ShowGroupExpandCollapseButton dependency property.
     /// </summary>
     public static readonly DependencyProperty ShowGroupExpandCollapseButtonProperty = DependencyProperty.Register(nameof(ShowGroupExpandCollapseButton), typeof(bool), typeof(TableView), new PropertyMetadata(true, OnShowGroupExpandCollapseButtonChanged));
-#endif
 
     /// <summary>
     /// Identifies the CanResizeColumns dependency property.
@@ -611,7 +609,6 @@ public partial class TableView
         set => SetValue(CornerButtonModeProperty, value);
     }
 
-#if WINDOWS
     /// <summary>
     /// Gets the collection of group descriptions applied to the items.
     /// </summary>
@@ -624,10 +621,16 @@ public partial class TableView
 
     /// <summary>
     /// Gets the collection of <see cref="Microsoft.UI.Xaml.Controls.GroupStyle"/> entries used to style group
-    /// headers, one per nesting level (the last entry is reused for any level beyond what's specified). This
-    /// used to come free from <c>ListViewBase</c>; it's re-declared here with the same get-only, populate-only
-    /// shape so existing <c>&lt;tv:TableView.GroupStyle&gt;</c> XAML keeps working unchanged.
+    /// headers, one per nesting level (the last entry is reused for any level beyond what's specified). When it is
+    /// empty, <see cref="DefaultGroupStyle"/> is used.
     /// </summary>
+    /// <remarks>
+    /// This used to come from <c>ListViewBase</c>; it keeps the same get-only, populate-only shape so existing
+    /// <c>&lt;tv:TableView.GroupStyle&gt;</c> XAML works unchanged. The header's content comes from
+    /// <see cref="GroupStyle.HeaderTemplateSelector"/> or <see cref="GroupStyle.HeaderTemplate"/>; the container
+    /// is always a <see cref="TableViewGroupHeaderRow"/>, restyled through an implicit style rather than
+    /// <see cref="GroupStyle.HeaderContainerStyle"/>.
+    /// </remarks>
     public IList<GroupStyle> GroupStyle => _groupStyle;
 
     /// <summary>
@@ -683,7 +686,6 @@ public partial class TableView
         get => (bool)GetValue(ShowGroupExpandCollapseButtonProperty);
         set => SetValue(ShowGroupExpandCollapseButtonProperty, value);
     }
-#endif
 
     /// <summary>
     /// Gets or sets a value indicating whether columns can be resized. This will override what is set on individual column.
@@ -1086,7 +1088,6 @@ public partial class TableView
         }
     }
 
-#if WINDOWS
     /// <summary>
     /// Handles changes to the AreStickyGroupHeadersEnabled property.
     /// </summary>
@@ -1112,14 +1113,27 @@ public partial class TableView
     /// <summary>
     /// Handles changes to the ShowGroupExpandCollapseButton property.
     /// </summary>
-    /// <remarks>
-    /// TODO: refresh realized TableViewGroupHeaderRow instances here once group headers are rehosted on the
-    /// ItemsRepeater (they are currently untracked - see the grouping rehosting follow-up).
-    /// </remarks>
     private static void OnShowGroupExpandCollapseButtonChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
+        if (d is TableView tableView)
+        {
+            foreach (var groupHeaderRow in tableView._groupHeaderRows)
+            {
+                groupHeaderRow.UpdateExpandCollapseButtonVisibility();
+            }
+        }
     }
-#endif
+
+    /// <summary>
+    /// Handles changes to the DefaultGroupStyle property.
+    /// </summary>
+    private static void OnDefaultGroupStyleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            tableView.RefreshGroupHeaderTemplates();
+        }
+    }
 
     /// <summary>
     /// Handles changes to the IsReadOnly property.

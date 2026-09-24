@@ -6,8 +6,8 @@ selection storage and the Windows row visual came from. It now derives from `Con
 
 This is a deliberate, semver-major change. It exists because the base class had become the limit: hit testing during
 drag selection scanned every item on every pointer-move frame, row positions were maintained with a visual-tree
-transform walk per row per scroll frame, cell selection materialised one entry per selected cell, and grouping was
-impossible because the control assumed the row you see and the item you have are the same index.
+transform walk per row per scroll frame, cell selection materialised one entry per selected cell, and grouping had
+to lean on `ListView`'s own grouped rendering, which only exists on Windows.
 
 See [Overview](overview.md#architecture) for what replaced it and [Performance guidance](performance.md) for what
 that changes in practice.
@@ -40,6 +40,9 @@ do not depend on the base class.
 | `SingleSelectionFollowsFocus`, `IsSwipeEnabled`, `ShowsScrollingPlaceholders` | inherited | **removed** | No replacement needed; selection no longer follows focus in any mode |
 | `SelectedValue`, `SelectedValuePath` | inherited | **removed** | Read the value from `SelectedItem` |
 | `Columns.VisibleColumns` | a fresh list per read | a cached read-only list | It was never meaningful to mutate it; attempting to now throws instead of silently mutating a copy |
+| `TableViewGroupHeaderRow` base class | `ListViewHeaderItem` | `ContentControl` | Its template parts, visual states and theme resources are unchanged. Restyle it with an implicit style targeting `TableViewGroupHeaderRow` |
+| `GroupStyle` | inherited from `ListViewBase` | declared on `TableView` | XAML populating `<tv:TableView.GroupStyle>` is unchanged. Entries now apply per nesting level (the last one is reused for deeper levels), `DefaultGroupStyle` is used while the collection is empty instead of being copied into it, and `HeaderContainerStyle` is not applied |
+| Selection across a view rebuild | cleared by some rebuilds (header sorting, grouping), left on shifted indexes by others | always cleared | Anything that rebuilds the view (sorting, grouping, expanding or collapsing a group, a source reset) clears row and cell selection first, with `SelectionChanged` reporting the removed items |
 
 ### Row drag-reorder
 
@@ -48,6 +51,16 @@ base class rather than being ported. Reimplementing it on top of the new row hos
 Row Reorder sample page documents the gap.
 
 Reordering items in your own collection and letting the control follow the change still works.
+
+### Grouping
+
+Grouping keeps its public API — `GroupDescriptions`, `GroupStyle`, `DefaultGroupStyle`, `DefaultGroupState`,
+`AreStickyGroupHeadersEnabled`, `ShowGroupExpandCollapseButton`, `UngroupAll`, `RefreshGrouping`, the `Grouping` event
+and the column header's **Group** commands — but group headers are now rows of the table's own row host rather than
+`ListView` group containers. That is what makes them virtualized like any other row, and what lets grouping run on
+**every Uno Platform target** instead of only on Windows. Sticky group headers are implemented by the row layout
+rather than by `ItemsStackPanel`, and draw an opaque background (`TableViewGroupHeaderRowPinnedBackground`) while
+pinned.
 
 ## Fixed along the way
 

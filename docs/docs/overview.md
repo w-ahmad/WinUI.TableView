@@ -72,7 +72,7 @@ tableView.FilterDescriptions.Add(new FilterDescription("Name", new PredicateFilt
 
 ### Grouping
 
-On Windows targets, columns can be grouped - collapsing rows into collapsible, multi-level headers with expand/collapse control and integration with column sorting.
+Columns can be grouped - collapsing rows into collapsible, multi-level headers with expand/collapse control and integration with column sorting.
 
 See [Grouping](grouping.md).
 
@@ -86,7 +86,7 @@ All types are in the `WinUI.TableView` namespace.
 
 ## Uno Platform
 
-On Uno Platform targets some behaviors differ slightly from the Windows target, particularly around data binding and focus management. [Grouping](grouping.md) is Windows-only and is not available on non-Windows Uno targets. See [Getting started with Uno](getting-started-with-uno.md) for platform-specific notes.
+On Uno Platform targets some behaviors differ slightly from the Windows target, particularly around data binding and focus management. See [Getting started with Uno](getting-started-with-uno.md) for platform-specific notes.
 
 ## Related articles
 

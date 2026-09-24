@@ -19,6 +19,7 @@ public partial class TableView
     private TableViewRowsLayout? _rowsLayout;
     private TableViewRowElementFactory? _rowElementFactory;
     private TableViewVisualRows? _visualRows;
+    private readonly List<TableViewGroupHeaderRow> _groupHeaderRows = [];
     private bool _isLoadingMoreItems;
 
     /// <summary>
@@ -39,6 +40,82 @@ public partial class TableView
     /// Gets the number of visual rows.
     /// </summary>
     internal int VisualRowCount => _visualRows?.Count ?? 0;
+
+    /// <summary>
+    /// Gets the currently realized group header rows.
+    /// </summary>
+    internal IReadOnlyList<TableViewGroupHeaderRow> GroupHeaderRows => _groupHeaderRows;
+
+    /// <summary>
+    /// Returns the realized rows and group headers in the order they are displayed.
+    /// </summary>
+    internal List<UIElement> GetRealizedRowElements()
+    {
+        var elements = new List<(int VisualIndex, UIElement Element)>(_rows.Count + _groupHeaderRows.Count);
+
+        foreach (var row in _rows)
+        {
+            elements.Add((row.VisualIndex, row));
+        }
+
+        foreach (var header in _groupHeaderRows)
+        {
+            elements.Add((_rowsRepeater?.GetElementIndex(header) ?? -1, header));
+        }
+
+        elements.RemoveAll(x => x.VisualIndex < 0);
+        elements.Sort((x, y) => x.VisualIndex.CompareTo(y.VisualIndex));
+
+        return elements.ConvertAll(x => x.Element);
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether a group header should currently be pinned to the top of the viewport.
+    /// </summary>
+    internal bool AreStickyGroupHeadersActive => AreStickyGroupHeadersEnabled && _visualRows?.HasGroups is true;
+
+    /// <summary>
+    /// Gets the top of the viewport in the row host's coordinates, which start below the template's padding.
+    /// </summary>
+    internal double RowsViewportTop => (_scrollViewer?.VerticalOffset ?? 0d) - Padding.Top;
+
+    /// <summary>
+    /// Returns the visual index of the group header a visual row belongs to, or -1 when it belongs to none.
+    /// </summary>
+    internal int FindGroupHeaderAtOrBefore(int visualIndex) => _visualRows?.FindHeaderAtOrBefore(visualIndex) ?? -1;
+
+    /// <summary>
+    /// Returns the visual index of the next group header after a visual row, or -1 when there is none.
+    /// </summary>
+    internal int FindGroupHeaderAfter(int visualIndex) => _visualRows?.FindHeaderAfter(visualIndex) ?? -1;
+
+    /// <summary>
+    /// Returns the header template for a group, from the <see cref="GroupStyle"/> entry for its nesting level, or
+    /// from <see cref="DefaultGroupStyle"/> when <see cref="GroupStyle"/> is empty.
+    /// </summary>
+    internal DataTemplate? GetGroupHeaderTemplate(TableViewGroupInfo groupInfo, DependencyObject container)
+    {
+        var style = _groupStyle.Count > 0
+            ? _groupStyle[Math.Clamp(groupInfo.Level, 0, _groupStyle.Count - 1)]
+            : DefaultGroupStyle;
+
+        return style?.HeaderTemplateSelector?.SelectTemplate(groupInfo, container) ?? style?.HeaderTemplate;
+    }
+
+    /// <summary>
+    /// Re-resolves the header template of every realized group header, after <see cref="GroupStyle"/> or
+    /// <see cref="DefaultGroupStyle"/> changed.
+    /// </summary>
+    private void RefreshGroupHeaderTemplates()
+    {
+        foreach (var header in _groupHeaderRows)
+        {
+            if (header.GroupInfo is { } groupInfo)
+            {
+                header.ContentTemplate = GetGroupHeaderTemplate(groupInfo, header);
+            }
+        }
+    }
 
     /// <summary>
     /// Returns the realized row for an item index, or <see langword="null"/> when it is not realized.
@@ -182,6 +259,7 @@ public partial class TableView
         _rowElementFactory = null;
         _visualRows = null;
         _rows.Clear();
+        _groupHeaderRows.Clear();
     }
 
     /// <summary>
@@ -195,6 +273,10 @@ public partial class TableView
         {
             AttachRow(row, args.Index);
         }
+        else if (args.Element is TableViewGroupHeaderRow header)
+        {
+            AttachGroupHeader(header);
+        }
     }
 
     /// <summary>
@@ -202,6 +284,14 @@ public partial class TableView
     /// </summary>
     private void OnRowElementClearing(ItemsRepeater sender, ItemsRepeaterElementClearingEventArgs args)
     {
+        if (args.Element is TableViewGroupHeaderRow header)
+        {
+            _groupHeaderRows.Remove(header);
+            _rowsLayout?.OnElementCleared(header);
+
+            return;
+        }
+
         if (args.Element is not TableViewRow row)
         {
             return;
@@ -257,6 +347,22 @@ public partial class TableView
     }
 
     /// <summary>
+    /// Brings a group header's table-driven appearance up to date as it becomes visible.
+    /// </summary>
+    private void AttachGroupHeader(TableViewGroupHeaderRow header)
+    {
+        header.TableView = this;
+
+        if (!_groupHeaderRows.Contains(header))
+        {
+            _groupHeaderRows.Add(header);
+        }
+
+        header.EnsureGridLines();
+        header.UpdateExpandCollapseButtonVisibility();
+    }
+
+    /// <summary>
     /// Commits an in-flight edit hosted by the given row.
     /// </summary>
     private void CommitEditIfEditing(TableViewRow row)
@@ -295,13 +401,34 @@ public partial class TableView
                 break;
 
             default:
-                // A reset re-orders everything, so index-based selection no longer means anything.
-                _rowSelection.Clear();
+                // A reset re-orders everything, so index-based selection no longer means anything. It was already
+                // cleared, with notifications, by OnCollectionViewResetting while the old indexes still held; this
+                // only guards against a reset that did not announce itself first.
+                if (_rowSelection.Clear())
+                {
+                    SyncSelectionProperties();
+                }
+
                 _visualRows?.Reset();
                 break;
         }
 
         OnItemsChangedForSelection();
+    }
+
+    /// <summary>
+    /// Clears the selection just before the item view rebuilds itself, while the selected indexes still refer to
+    /// the items they were selected on.
+    /// </summary>
+    /// <remarks>
+    /// A rebuild (sorting, regrouping, expanding or collapsing a group, replacing the source) re-orders every
+    /// index, so an index-based selection cannot survive it. Clearing it here rather than after the fact is what
+    /// lets <see cref="SelectionChanged"/> report the right removed items and keeps <see cref="SelectedItem"/> and
+    /// <see cref="CurrentCellSlot"/> from pointing at whatever happens to land on the old index.
+    /// </remarks>
+    private void OnCollectionViewResetting(object? sender, EventArgs e)
+    {
+        DeselectAll();
     }
 
     /// <summary>

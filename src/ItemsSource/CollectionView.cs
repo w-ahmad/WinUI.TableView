@@ -24,10 +24,8 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     private readonly List<object?> _groupingSourceItems = [];
     private readonly ObservableCollection<FilterDescription> _filterDescriptions = [];
     private readonly ObservableCollection<SortDescription> _sortDescriptions = [];
-#if WINDOWS
     private readonly ObservableCollection<GroupDescription> _groupDescriptions = [];
     private readonly Dictionary<GroupDescription, Dictionary<object[], bool>> _groupExpandedStates = [];
-#endif
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CollectionView"/> class.
@@ -38,9 +36,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     {
         _filterDescriptions.CollectionChanged += OnFilterDescriptionsCollectionChanged;
         _sortDescriptions.CollectionChanged += OnSortDescriptionsCollectionChanged;
-#if WINDOWS
         _groupDescriptions.CollectionChanged += OnGroupDescriptionsCollectionChanged;
-#endif
 
         AllowLiveShaping = liveShapingEnabled;
         Source = source ?? new List<object>();
@@ -72,7 +68,6 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
             HandleSortChanged();
     }
 
-#if WINDOWS
     /// <summary>
     /// Handles changes to the group descriptions collection. Also drops any recorded expanded/collapsed
     /// overrides for a description once it's removed - it no longer groups anything, and re-adding the same
@@ -102,7 +97,6 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
             HandleGroupChanged();
         }
     }
-#endif
 
     /// <summary>
     /// Attaches collection changed handlers to the source collection.
@@ -330,13 +324,11 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
 
             _groupingSourceItems.Insert(targetIndex, item);
 
-#if WINDOWS
             if (GroupDescriptions.Count > 0)
             {
                 HandleGroupChanged();
                 return;
             }
-#endif
 
             // Only trigger expensive UI updates if the index really changed:
             if (targetIndex != oldIndex)
@@ -381,7 +373,6 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
                 _groupingSourceItems.Sort(this);
         }
 
-#if WINDOWS
         if (GroupDescriptions.Count > 0)
         {
             CreateGroupCollections();
@@ -390,9 +381,6 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
         {
             RebuildFlatView();
         }
-#else
-        RebuildFlatView();
-#endif
 
         OnVectorChanged(new VectorChangedEventArgs(CollectionChange.Reset));
         MoveCurrentTo(currentItem);
@@ -404,11 +392,11 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     /// </summary>
     private void RebuildFlatView()
     {
+        OnViewResetting();
         _view.Clear();
         _view.AddRange(_groupingSourceItems);
     }
 
-#if WINDOWS
 
     /// <summary>
     /// Rebuilds <see cref="CollectionGroups"/> - and, alongside it, <see cref="_view"/> pruned down to just
@@ -416,6 +404,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     /// </summary>
     private void CreateGroupCollections()
     {
+        OnViewResetting();
         CollectionGroups?.Clear();
         _view.Clear();
 
@@ -567,7 +556,6 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
         OnVectorChanged(new VectorChangedEventArgs(CollectionChange.Reset));
         MoveCurrentTo(currentItem);
     }
-#endif
 
     /// <summary>
     /// Handles changes to the filter descriptions.
@@ -618,13 +606,11 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
         {
             _groupingSourceItems.Sort(this);
 
-#if WINDOWS
             if (GroupDescriptions.Count > 0)
             {
                 HandleGroupChanged();
                 return;
             }
-#endif
 
             RebuildFlatView();
         }
@@ -669,13 +655,11 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
 
         _groupingSourceItems.Insert(newIndex, newItem!);
 
-#if WINDOWS
         if (GroupDescriptions.Count > 0)
         {
             HandleGroupChanged();
             return true;
         }
-#endif
 
         _view.Insert(newIndex, newItem!);
         if (newIndex <= CurrentPosition)
@@ -720,13 +704,11 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     {
         _groupingSourceItems.RemoveAt(itemIndex);
 
-#if WINDOWS
         if (GroupDescriptions.Count > 0)
         {
             HandleGroupChanged();
             return;
         }
-#endif
 
         _view.RemoveAt(itemIndex);
 
@@ -973,7 +955,6 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
         HandleSortChanged();
     }
 
-#if WINDOWS
     /// <summary>
     /// Refreshes the grouping applied to the view.
     /// </summary>
@@ -981,5 +962,4 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     {
         HandleGroupChanged();
     }
-#endif
 }

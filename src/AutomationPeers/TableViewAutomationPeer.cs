@@ -76,10 +76,10 @@ public partial class TableViewAutomationPeer : FrameworkElementAutomationPeer,
         }
 
         // Only realized rows have peers, which is how every virtualizing control behaves; clients reach the rest
-        // through the ItemContainer pattern below.
-        foreach (var row in _owner.Rows)
+        // through the ItemContainer pattern below. Group headers are included, in the order they are displayed.
+        foreach (var element in _owner.GetRealizedRowElements())
         {
-            if (CreatePeerForElement(row) is { } rowPeer)
+            if (CreatePeerForElement(element) is { } rowPeer)
             {
                 children.Add(rowPeer);
             }

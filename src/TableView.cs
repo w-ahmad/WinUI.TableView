@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using System.Collections;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
@@ -58,11 +59,7 @@ public partial class TableView : Control
     private readonly List<TableViewCell> _resizingPreviewCells = [];
     private readonly List<TableViewCell> _resizingDownstreamCells = [];
     private readonly List<(Panel Panel, TranslateTransform Shift)> _resizingScrollableShifts = [];
-#if WINDOWS
-    // No longer free from ListViewBase now that TableView doesn't inherit it - re-declared purely so consumers
-    // populating TableView.GroupStyle (e.g. via GroupStyle.HeaderTemplate) keep working unchanged.
-    private readonly List<GroupStyle> _groupStyle = [];
-#endif
+    private readonly ObservableCollection<GroupStyle> _groupStyle = [];
 #if !WINDOWS
     // Uno leaves the pressed row/cell stuck in their pointer states after a drag, so the drag start elements are
     // tracked to repair them when it ends. These moved here from the deleted Uno-only partial, whose reason for
@@ -86,7 +83,9 @@ public partial class TableView : Control
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
         _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
+        _collectionView.ViewResetting += OnCollectionViewResetting;
         _collectionView.VectorChanged += OnCollectionViewVectorChanged;
+        _groupStyle.CollectionChanged += delegate { RefreshGroupHeaderTemplates(); };
     }
 
     /// <summary>
@@ -986,36 +985,23 @@ public partial class TableView : Control
         if (IsLoaded)
         {
             EnsureAutoColumns();
-#if WINDOWS
             ApplyStickyGroupHeadersSetting();
-#endif
         }
-
-#if WINDOWS
-        // GroupStyle is a get-only collection, so it can only be populated (never Setter-assigned); this default
-        // only applies when the consumer hasn't already added their own entry.
-        if (GroupStyle.Count == 0 && DefaultGroupStyle is { } defaultGroupStyle)
-        {
-            GroupStyle.Add(defaultGroupStyle);
-        }
-#endif
 
         SetHeadersVisibility();
     }
 
-#if WINDOWS
     /// <summary>
     /// Applies <see cref="AreStickyGroupHeadersEnabled"/> to the row host.
     /// </summary>
     /// <remarks>
-    /// TODO: no-op until group headers are rehosted on the ItemsRepeater (see the grouping rehosting
-    /// follow-up) - the native <c>ItemsStackPanel.AreStickyGroupHeadersEnabled</c> this used to defer to no
-    /// longer applies now that rows are hosted by <see cref="TableViewRowsLayout"/> instead.
+    /// Pinning is decided by <see cref="Layout.TableViewRowsLayout"/> on every layout pass, so turning it on or off
+    /// only needs one.
     /// </remarks>
     private void ApplyStickyGroupHeadersSetting()
     {
+        _rowsRepeater?.InvalidateMeasure();
     }
-#endif
 
     /// <summary>
     /// Handles the ViewChanged event of the ScrollViewer control.
@@ -1028,6 +1014,12 @@ public partial class TableView : Control
     private void OnScrollViewerViewChanged(object? sender, ScrollViewerViewChangedEventArgs e)
     {
         SetValue(VerticalOffsetProperty, _scrollViewer?.VerticalOffset ?? 0d);
+
+        // A pinned group header moves with the viewport, and which header is pinned can change on any scroll.
+        if (AreStickyGroupHeadersActive)
+        {
+            _rowsRepeater?.InvalidateMeasure();
+        }
     }
 
     /// <summary>
@@ -1063,9 +1055,7 @@ public partial class TableView : Control
 
         ResumeItemsSource();
         EnsureAutoColumns();
-#if WINDOWS
         ApplyStickyGroupHeadersSetting();
-#endif
     }
 
     /// <summary>
@@ -1626,14 +1616,12 @@ public partial class TableView : Control
 
         foreach (var column in Columns.Where(c => c.SortDirection is not null))
         {
-#if WINDOWS
             // A grouped column's SortDirection mirrors its group's own order, not an independent sort -
             // sorting a different column shouldn't strip its indicator or desync it from the group.
             if (_collectionView.GroupDescriptions.Any(x => x is ColumnGroupDescription columnGroup && columnGroup.Column == column))
             {
                 continue;
             }
-#endif
             column?.SortDirection = null;
         }
     }
@@ -1662,7 +1650,6 @@ public partial class TableView : Control
         FilterHandler.ClearFilter(null);
     }
 
-#if WINDOWS
     /// <summary>
     /// Removes all grouping applied to the items.
     /// </summary>
@@ -1691,7 +1678,6 @@ public partial class TableView : Control
         DeselectAll();
         _collectionView.RefreshGrouping();
     }
-#endif
 
     /// <summary>
     /// Refreshes all applied filters.
@@ -2545,9 +2531,15 @@ public partial class TableView : Control
         var viewportHeight = _scrollViewer.ViewportHeight;
         var target = viewportTop;
 
-        if (rowTop < viewportTop)
+        // A pinned group header covers the top of the viewport, so a row brought in from above has to stop just
+        // below it rather than underneath it.
+        var topInset = AreStickyGroupHeadersActive && FindGroupHeaderAtOrBefore(visualIndex) is >= 0 and var header
+            ? _rowsLayout.GetHeightOfIndex(header)
+            : 0d;
+
+        if (rowTop - topInset < viewportTop)
         {
-            target = rowTop;
+            target = rowTop - topInset;
         }
         else if (rowTop + rowHeight > viewportTop + viewportHeight)
         {
@@ -2756,8 +2748,10 @@ public partial class TableView : Control
             row.RowPresenter?.EnsureGridLines();
         }
 
-        // TODO: refresh realized TableViewGroupHeaderRow grid lines here once group headers are rehosted on
-        // the ItemsRepeater (they are currently untracked - see the grouping rehosting follow-up).
+        foreach (var groupHeaderRow in _groupHeaderRows)
+        {
+            groupHeaderRow.EnsureGridLines();
+        }
     }
 
     /// <summary>

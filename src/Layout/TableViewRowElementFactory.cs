@@ -4,12 +4,14 @@ using System.Collections.Generic;
 namespace WinUI.TableView.Layout;
 
 /// <summary>
-/// Creates and recycles the <see cref="TableViewRow"/> elements the row host displays.
+/// Creates and recycles the <see cref="TableViewRow"/> and <see cref="TableViewGroupHeaderRow"/> elements the row
+/// host displays.
 /// </summary>
 /// <remarks>
-/// The repeater delegates recycling entirely to the factory, so this owns the pool. Rows are the expensive
+/// The repeater delegates recycling entirely to the factory, so this owns the pools. Rows are the expensive
 /// element — each one builds a cell per visible column — which is exactly why they are pooled and reused rather
-/// than recreated as the viewport moves.
+/// than recreated as the viewport moves. Group headers get a pool of their own, since a header can never be
+/// reused as a data row or the other way round.
 /// </remarks>
 internal sealed class TableViewRowElementFactory : IElementFactory
 {
@@ -17,6 +19,7 @@ internal sealed class TableViewRowElementFactory : IElementFactory
 
     private readonly TableView _tableView;
     private readonly Stack<TableViewRow> _rowPool = new();
+    private readonly Stack<TableViewGroupHeaderRow> _groupHeaderPool = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TableViewRowElementFactory"/> class.
@@ -29,6 +32,16 @@ internal sealed class TableViewRowElementFactory : IElementFactory
     /// <inheritdoc/>
     public UIElement GetElement(ElementFactoryGetArgs args)
     {
+        if (args.Data is TableViewGroupInfo groupInfo)
+        {
+            var header = _groupHeaderPool.Count > 0 ? _groupHeaderPool.Pop() : new TableViewGroupHeaderRow();
+            header.TableView = _tableView;
+            header.ContentTemplate = _tableView.GetGroupHeaderTemplate(groupInfo, header);
+            header.Content = groupInfo;
+
+            return header;
+        }
+
         var row = _rowPool.Count > 0 ? _rowPool.Pop() : _tableView.CreateRow();
         row.TableView = _tableView;
 
@@ -41,16 +54,29 @@ internal sealed class TableViewRowElementFactory : IElementFactory
     /// <inheritdoc/>
     public void RecycleElement(ElementFactoryRecycleArgs args)
     {
-        if (args.Element is not TableViewRow row)
+        switch (args.Element)
         {
-            return;
-        }
+            case TableViewRow row:
+                row.PrepareForRecycle();
 
-        row.PrepareForRecycle();
+                if (_rowPool.Count < MaxPooledElements)
+                {
+                    _rowPool.Push(row);
+                }
 
-        if (_rowPool.Count < MaxPooledElements)
-        {
-            _rowPool.Push(row);
+                break;
+
+            case TableViewGroupHeaderRow header:
+                // Drop the group so a pooled header does not keep a stale TableViewGroupInfo (and through it the
+                // CollectionView) alive, and so its next group always arrives as a content change.
+                header.Content = null;
+
+                if (_groupHeaderPool.Count < MaxPooledElements)
+                {
+                    _groupHeaderPool.Push(header);
+                }
+
+                break;
         }
     }
 
@@ -61,5 +87,6 @@ internal sealed class TableViewRowElementFactory : IElementFactory
     public void ClearPools()
     {
         _rowPool.Clear();
+        _groupHeaderPool.Clear();
     }
 }

@@ -74,6 +74,11 @@ internal static class VisualStates
     // GroupExpanded
 
     /// <summary>
+    /// Identifies the name of the visual state group holding a group header's expanded/collapsed states.
+    /// </summary>
+    public const string GroupExpandCollapse = "ExpandCollapseStates";
+
+    /// <summary>
     /// Expanded state
     /// </summary>
     public const string StateExpanded = "Expanded";
@@ -82,6 +87,23 @@ internal static class VisualStates
     /// Collapsed state
     /// </summary>
     public const string StateCollapsed = "Collapsed";
+
+    // GroupPin
+
+    /// <summary>
+    /// Identifies the name of the visual state group holding a group header's pinned/unpinned states.
+    /// </summary>
+    public const string GroupPin = "PinStates";
+
+    /// <summary>
+    /// Unpinned state: the header scrolls with its rows.
+    /// </summary>
+    public const string StateUnpinned = "Unpinned";
+
+    /// <summary>
+    /// Pinned state: the header is held at the top of the viewport over the rows scrolling beneath it.
+    /// </summary>
+    public const string StatePinned = "Pinned";
 
     /// <summary>
     /// Empty state

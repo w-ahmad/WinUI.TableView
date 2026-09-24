@@ -34,7 +34,7 @@ This page lists all public events exposed by `TableView` and related types.
 | [`Sorting`](xref:WinUI.TableView.TableView.Sorting) | [`TableViewSortingEventArgs`](xref:WinUI.TableView.TableViewSortingEventArgs) | Fires before the default sort runs. Set `Handled = true` for custom sort. |
 | [`ClearSorting`](xref:WinUI.TableView.TableView.ClearSorting) | [`TableViewClearSortingEventArgs`](xref:WinUI.TableView.TableViewClearSortingEventArgs) | Fires when a column's sort direction is cleared. |
 
-### Grouping (Windows only)
+### Grouping
 
 | Event | Args type | Description |
 |---|---|---|

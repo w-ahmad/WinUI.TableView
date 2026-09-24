@@ -60,7 +60,6 @@ partial class CollectionView
         set => _view[index] = value;
     }
 
-#if WINDOWS
     /// <summary>
     /// Gets the collection of group descriptions.
     /// </summary>
@@ -100,9 +99,6 @@ partial class CollectionView
             OnPropertyChanged();
         }
     }
-#else
-    public IObservableVector<object?>? CollectionGroups { get; } = null;
-#endif
 
     /// <summary>
     /// Gets or sets the current item in the view.

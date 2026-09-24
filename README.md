@@ -34,7 +34,7 @@ Explore the interactive `WinUI.TableView` samples with code snippets in a Sample
 - **Copy row or cell content**: TableView allows you to copy rows or cells content, with the option to include or exclude column headers.
 - **Editing**: Modify cell content directly within the TableView by double tapping on a cell. [Learn more →](https://w-ahmad.dev/WinUI.TableView/docs/editing.html)
 - **Sorting**: Offers built in column sorting. [Learn more →](https://w-ahmad.dev/WinUI.TableView/docs/sorting.html)
-- **Grouping**: Multi-level column grouping with expand/collapse and full sort integration (Windows only). [Learn more →](https://w-ahmad.dev/WinUI.TableView/docs/grouping.html)
+- **Grouping**: Multi-level column grouping with expand/collapse and full sort integration. [Learn more →](https://w-ahmad.dev/WinUI.TableView/docs/grouping.html)
 - **Excel-like Column Filter**: TableView allows you to filter data within columns with an excel like flyout to enhance data exploration and analysis. [Learn more →](https://w-ahmad.dev/WinUI.TableView/docs/filtering.html)
 - **Export functionality**: Built-in export functionality to export data to CSV format. This feature can be enabled by setting the `ShowExportOptions = true`. [Learn more →](https://w-ahmad.dev/WinUI.TableView/docs/export.html)
 - **Grid Lines**: Display grid lines to improve data visibility and organization.

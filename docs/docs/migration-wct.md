@@ -44,7 +44,7 @@ xmlns:tv="using:WinUI.TableView"
 | [`AutoGenerateColumns`](xref:WinUI.TableView.TableView.AutoGenerateColumns) | [`AutoGenerateColumns`](xref:WinUI.TableView.TableView.AutoGenerateColumns) | Same behavior. |
 | [`IsReadOnly`](xref:WinUI.TableView.TableView.IsReadOnly) | [`IsReadOnly`](xref:WinUI.TableView.TableView.IsReadOnly) | Same behavior. |
 | `CanUserSortColumns` | [`CanSortColumns`](xref:WinUI.TableView.TableView.CanSortColumns) | Same behavior. |
-| *(no equivalent)* | [`CanGroupColumns`](xref:WinUI.TableView.TableView.CanGroupColumns) | WCT DataGrid group descriptions were applied to the source `CollectionViewSource`, not the grid itself. WinUI.TableView supports multi-level grouping directly on Windows targets — see [Grouping](grouping.md). |
+| *(no equivalent)* | [`CanGroupColumns`](xref:WinUI.TableView.TableView.CanGroupColumns) | WCT DataGrid group descriptions were applied to the source `CollectionViewSource`, not the grid itself. WinUI.TableView supports multi-level grouping directly — see [Grouping](grouping.md). |
 | `CanUserReorderColumns` | [`CanReorderColumns`](xref:WinUI.TableView.TableView.CanReorderColumns) | Same behavior. |
 | `CanUserResizeColumns` | [`CanResizeColumns`](xref:WinUI.TableView.TableView.CanResizeColumns) | Same behavior. |
 | [`FrozenColumnCount`](xref:WinUI.TableView.TableView.FrozenColumnCount) | [`FrozenColumnCount`](xref:WinUI.TableView.TableView.FrozenColumnCount) | Same behavior. |

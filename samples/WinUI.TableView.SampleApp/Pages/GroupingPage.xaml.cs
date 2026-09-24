@@ -1,8 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-#if WINDOWS
 using System.Collections.Specialized;
-#endif
 
 namespace WinUI.TableView.SampleApp.Pages;
 
@@ -17,7 +15,6 @@ public sealed partial class GroupingPage : Page
     {
         InitializeComponent();
 
-#if WINDOWS
         // Groups are always created fresh (Group(), or the "Group by last name" button below) with
         // SortMode defaulting back to Key - without this, toggling "Sort Groups by Count" before any
         // column is grouped, or grouping a second level after the toggle, would silently stay key-ordered.
@@ -35,7 +32,6 @@ public sealed partial class GroupingPage : Page
                 }
             };
         }
-#endif
     }
 
     private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
@@ -152,7 +148,6 @@ public sealed partial class GroupingPage : Page
 
     private void OnToggleLastNameGroupClicked(object sender, RoutedEventArgs e)
     {
-#if WINDOWS
         var existingGroupDescription = tableView.GroupDescriptions
     .OfType<GroupDescription>()
     .FirstOrDefault(gd => gd.PropertyName is nameof(ExampleModel.LastName));
@@ -165,7 +160,6 @@ public sealed partial class GroupingPage : Page
         {
             tableView.GroupDescriptions.Add(new GroupDescription(nameof(ExampleModel.LastName)));
         } 
-#endif
     }
 
     /// <summary>
@@ -175,12 +169,9 @@ public sealed partial class GroupingPage : Page
     private void OnSortGroupsByCountToggled(object sender, RoutedEventArgs e)
     {
         _sortGroupsByCount = sortGroupsByCount.IsOn;
-#if WINDOWS
         ApplyGroupSortMode();
-#endif
     }
 
-#if WINDOWS
     private void ApplyGroupSortMode()
     {
         var mode = _sortGroupsByCount ? GroupSortMode.Count : GroupSortMode.Key;
@@ -199,5 +190,4 @@ public sealed partial class GroupingPage : Page
             tableView.RefreshGrouping();
         }
     }
-#endif
 }

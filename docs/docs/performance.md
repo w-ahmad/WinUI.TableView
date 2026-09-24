@@ -81,7 +81,9 @@ Filtering and sorting operate on the internal collection view. These run on the 
 
 ## Grouping
 
-Grouping (Windows only) rebuilds group headers from the full filtered/sorted item set on every regroup, add, remove, or expand/collapse toggle. Collapsing a group removes its items from the view entirely, which reduces the number of rows virtualization has to realize - collapsing large groups by default (`DefaultGroupState="Collapsed"`, the default) can improve initial render time for grouped data. See [Grouping](grouping.md).
+Group headers are virtualized with the rows: only the headers and rows in the viewport are realized, and mapping between row indexes and display positions is a binary search over the visible groups, so scrolling a grouped table costs the same as an ungrouped one.
+
+What does cost time is rebuilding the groups, which happens from the full filtered and sorted item set on every regroup, add, remove, or expand/collapse toggle. Collapsing a group removes its items from the view entirely, so collapsing large groups by default (`DefaultGroupState="Collapsed"`, the default) keeps both that rebuild and the initial render cheap for grouped data. See [Grouping](grouping.md).
 
 ## Refreshing the view after bulk data changes
 
