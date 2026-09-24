@@ -48,6 +48,22 @@
                         <toolkit:ColorPickerButton VerticalAlignment="Bottom"
                                                    SelectedColor="{Binding VerticalGridLinesStroke, Mode=TwoWay, ElementName=tableView, Converter={StaticResource ColorToBrush}}" />
                     </StackPanel>
+                    <StackPanel Spacing="8"
+                                Orientation="Horizontal">
+                        <NumberBox Header="Border"
+                                   Value="1"
+                                   Minimum="0"
+                                   Maximum="16"
+                                   SpinButtonPlacementMode="Inline"
+                                   ValueChanged="OnBorderThicknessChanged" />
+                        <toolkit:ColorPickerButton VerticalAlignment="Bottom"
+                                                   SelectedColor="{Binding BorderBrush, Mode=TwoWay, ElementName=tableView, Converter={StaticResource ColorToBrush}}" />
+                    </StackPanel>
+                    <Slider x:Name="cornerRadius"
+                            Header="Corner Radius"
+                            Minimum="0"
+                            Maximum="16"
+                            ValueChanged="OnCornerRadiusChanged" />
                 </StackPanel>
             </controls:SamplePresenter.Options>
             <controls:SamplePresenter.Xaml>

@@ -14,7 +14,9 @@
                                   Description="Showcasing built in column sorting feature.">
             <controls:SamplePresenter.Example>
                 <tv:TableView ItemsSource="{Binding Items}"
-                              CanSortColumns="{Binding IsOn, ElementName=canSort, Mode=TwoWay}" />
+                              CanSortColumns="{Binding IsOn, ElementName=canSort, Mode=TwoWay}"
+                              ShowSortableColumnIcon="{Binding IsOn, ElementName=showSortableColumnIcon, Mode=TwoWay}"
+                              AutoGeneratingColumn="{x:Bind local:ExampleModelColumnsHelper.OnAutoGeneratingColumns}"/>
             </controls:SamplePresenter.Example>
             <controls:SamplePresenter.Options>
                 <StackPanel VerticalAlignment="Top">
@@ -23,17 +25,25 @@
                                   Header="Can Sort Columns"
                                   OnContent="True"
                                   OffContent="False" />
+                    <ToggleSwitch x:Name="showSortableColumnIcon"
+                                  IsOn="False"
+                                  Header="Show Sortable Column Icon"
+                                  OnContent="True"
+                                  OffContent="False" />
                 </StackPanel>
             </controls:SamplePresenter.Options>
             <controls:SamplePresenter.Xaml>
                 <x:String xml:space="preserve">
 &lt;tv:TableView ItemsSource="{Binding Items}"
-    CanSortColumns="$(CanSortColumns)">
+    CanSortColumns="$(CanSortColumns)"
+    ShowSortableColumnIcon="$(ShowSortableColumnIcon)">
                 </x:String>
             </controls:SamplePresenter.Xaml>
             <controls:SamplePresenter.Substitutions>
                 <controls:CodeSubstitution Key="CanSortColumns"
                                            Value="{x:Bind canSort.IsOn, Mode=OneWay}" />
+                <controls:CodeSubstitution Key="ShowSortableColumnIcon"
+                                           Value="{x:Bind showSortableColumnIcon.IsOn, Mode=OneWay}" />
             </controls:SamplePresenter.Substitutions>
         </controls:SamplePresenter>
     </Grid>

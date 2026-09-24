@@ -1,8 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using System.Collections.Generic;
-using System.Linq;
 using WinUI.TableView.Controls;
 using WinUI.TableView.Extensions;
 
@@ -113,5 +111,5 @@ public partial class TableViewFilterMenuFlyout : Flyout
     /// <summary>
     /// Gets or sets the collection of menu items to be displayed in the filter flyout.
     /// </summary>
-    public IList<MenuFlyoutItemBase> Items { get; set; }
+    public List<MenuFlyoutItemBase> Items { get; set; }
 }

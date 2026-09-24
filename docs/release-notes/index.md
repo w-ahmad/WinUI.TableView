@@ -6,6 +6,7 @@ This section contains release notes for all versions of WinUI.TableView.
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| [v1.5.0](v1.5.0.md) | September 16, 2026 | Multi-level grouping, paste support, drag selection, Native AOT, accessibility, smoother column resizing |
 | [v1.4.1](v1.4.1.md) | April 21, 2026 | Japanese localization, macOS/Linux build, bug fixes |
 | [v1.4.0](v1.4.0.md) | February 11, 2026 | Frozen columns, row details, column reordering, conditional styling, Uno MVUX support |
 | [v1.3.4](v1.3.4.md) | November 13, 2025 | Template column alignment fix, WinRT binding fix |
@@ -24,6 +25,7 @@ This section contains release notes for all versions of WinUI.TableView.
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| [v1.5.0-preview2](v1.5.0-preview2.md) | August 29, 2026 | Multi level row grouping, Sortable columns icon, Column resize performance improvement |
 | [v1.5.0-preview1](v1.5.0-preview1.md) | July 7, 2026 | CellWithRow selection, drag selection, paste support, AOT, accessibility |
 | [v1.4.0-preview2](v1.4.0-preview2.md) | January 23, 2026 | Performance boost, SortMemberPath, double-tap events |
 | [v1.4.0-preview1](v1.4.0-preview1.md) | November 28, 2025 | Frozen columns, row details, column reordering, conditional styling |

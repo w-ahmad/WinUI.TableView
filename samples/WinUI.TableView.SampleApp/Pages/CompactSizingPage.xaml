@@ -1,0 +1,67 @@
+<Page x:Class="WinUI.TableView.SampleApp.Pages.CompactSizingPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:tv="using:WinUI.TableView"
+      xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
+      d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
+      mc:Ignorable="d">
+
+    <Grid>
+        <controls:SamplePresenter Header="Compact Sizing &amp; Fonts"
+                                  Description="Showcasing standard Fluent Compact sizing together with a unified FontFamily and FontSize that TableView propagates to every row, cell, and header.">
+            <controls:SamplePresenter.Example>
+                <tv:TableView x:Name="tableView"
+                              ItemsSource="{Binding Items}"
+                              AutoGeneratingColumn="{x:Bind local:ExampleModelColumnsHelper.OnAutoGeneratingColumns}" />
+            </controls:SamplePresenter.Example>
+            <controls:SamplePresenter.Options>
+                <StackPanel Spacing="16"
+                            MinWidth="200">
+                    <ToggleSwitch x:Name="compactSizing"
+                                  Header="Compact Sizing"
+                                  Toggled="OnCompactSizingToggled" />
+                    <ComboBox x:Name="fontFamily"
+                              Header="Font Family"
+                              HorizontalAlignment="Stretch"
+                              SelectedIndex="0"
+                              SelectionChanged="OnFontFamilyChanged">
+                        <x:String>Segoe UI Variable</x:String>
+                        <x:String>Cascadia Code</x:String>
+                        <x:String>Consolas</x:String>
+                        <x:String>Comic Sans MS</x:String>
+                    </ComboBox>
+                    <Slider Header="Font Size"
+                            Minimum="10"
+                            Maximum="24"
+                            Value="{Binding FontSize, Mode=TwoWay, ElementName=tableView}" />
+                    <Button Content="Reset"
+                            Click="OnResetClicked" />
+                </StackPanel>
+            </controls:SamplePresenter.Options>
+            <controls:SamplePresenter.Xaml>
+                <x:String xml:space="preserve">
+&lt;tv:TableView ItemsSource="{Binding Items}"
+    FontFamily="$(FontFamily)"
+    FontSize="$(FontSize)"
+    RowMinHeight="32"
+    HeaderRowMinHeight="28" /&gt;
+
+TableView's default style ties RowMinHeight to a ThemeResource,
+so an app can also get standard Fluent Compact sizing everywhere
+at once by merging the platform's compact density resources into
+Application.Resources.MergedDictionaries, instead of setting
+RowMinHeight/HeaderRowMinHeight directly as shown above.
+                </x:String>
+            </controls:SamplePresenter.Xaml>
+            <controls:SamplePresenter.Substitutions>
+                <controls:CodeSubstitution Key="FontFamily"
+                                           Value="{x:Bind tableView.FontFamily, Mode=OneWay}" />
+                <controls:CodeSubstitution Key="FontSize"
+                                           Value="{x:Bind tableView.FontSize, Mode=OneWay}" />
+            </controls:SamplePresenter.Substitutions>
+        </controls:SamplePresenter>
+    </Grid>
+</Page>

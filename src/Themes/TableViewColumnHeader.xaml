@@ -55,6 +55,16 @@
                             </VisualStateGroup>
                             <VisualStateGroup x:Name="SortStates">
                                 <VisualState x:Name="Unsorted" />
+                                <VisualState x:Name="Sortable">
+                                    <VisualState.Setters>
+                                        <Setter Target="SortIcon.Visibility"
+                                                Value="Visible" />
+                                        <Setter Target="SortIcon.Glyph"
+                                                Value="{ThemeResource SortIconUnsorted}" />
+                                        <Setter Target="SortIcon.Opacity"
+                                                Value="0.5" />
+                                    </VisualState.Setters>
+                                </VisualState>
                                 <VisualState x:Name="SortAscending">
                                     <VisualState.Setters>
                                         <Setter Target="SortIcon.Visibility"
