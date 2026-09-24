@@ -618,6 +618,14 @@ public partial class TableView
     public bool IsGrouped => _collectionView.GroupDescriptions.Count > 0;
 
     /// <summary>
+    /// Gets the collection of <see cref="Microsoft.UI.Xaml.Controls.GroupStyle"/> entries used to style group
+    /// headers, one per nesting level (the last entry is reused for any level beyond what's specified). This
+    /// used to come free from <c>ListViewBase</c>; it's re-declared here with the same get-only, populate-only
+    /// shape so existing <c>&lt;tv:TableView.GroupStyle&gt;</c> XAML keeps working unchanged.
+    /// </summary>
+    public IList<GroupStyle> GroupStyle => _groupStyle;
+
+    /// <summary>
     /// Gets or sets a value indicating whether columns can be grouped. This will override what is set on individual column.
     /// </summary>
     public bool CanGroupColumns
@@ -1090,15 +1098,12 @@ public partial class TableView
     /// <summary>
     /// Handles changes to the ShowGroupExpandCollapseButton property.
     /// </summary>
+    /// <remarks>
+    /// TODO: refresh realized TableViewGroupHeaderRow instances here once group headers are rehosted on the
+    /// ItemsRepeater (they are currently untracked - see the grouping rehosting follow-up).
+    /// </remarks>
     private static void OnShowGroupExpandCollapseButtonChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableView tableView)
-        {
-            foreach (var groupHeaderRow in tableView._groupHeaderRows)
-            {
-                groupHeaderRow.UpdateExpandCollapseButtonVisibility();
-            }
-        }
     }
 #endif
 

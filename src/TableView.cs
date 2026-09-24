@@ -58,6 +58,11 @@ public partial class TableView : Control
     private readonly List<TableViewCell> _resizingPreviewCells = [];
     private readonly List<TableViewCell> _resizingDownstreamCells = [];
     private readonly List<(Panel Panel, TranslateTransform Shift)> _resizingScrollableShifts = [];
+#if WINDOWS
+    // No longer free from ListViewBase now that TableView doesn't inherit it - re-declared purely so consumers
+    // populating TableView.GroupStyle (e.g. via GroupStyle.HeaderTemplate) keep working unchanged.
+    private readonly List<GroupStyle> _groupStyle = [];
+#endif
 #if !WINDOWS
     // Uno leaves the pressed row/cell stuck in their pointer states after a drag, so the drag start elements are
     // tracked to repair them when it ends. These moved here from the deleted Uno-only partial, whose reason for
@@ -422,7 +427,7 @@ public partial class TableView : Control
                 MakeSelection(shiftSlot, shiftKey: true, ctrlKey);
             }
 
-            return;
+            return true;
         }
 
         _lastDragCanvasPoint = null;
@@ -983,30 +988,32 @@ public partial class TableView : Control
             EnsureAutoColumns();
 #if WINDOWS
             ApplyStickyGroupHeadersSetting();
+#endif
         }
 
+#if WINDOWS
         // GroupStyle is a get-only collection, so it can only be populated (never Setter-assigned); this default
         // only applies when the consumer hasn't already added their own entry.
         if (GroupStyle.Count == 0 && DefaultGroupStyle is { } defaultGroupStyle)
         {
             GroupStyle.Add(defaultGroupStyle);
-#endif
         }
+#endif
 
         SetHeadersVisibility();
     }
 
 #if WINDOWS
     /// <summary>
-    /// Applies <see cref="AreStickyGroupHeadersEnabled"/> to the underlying <see cref="ItemsStackPanel"/>, if the
-    /// current <see cref="ItemsPanelRoot"/> is one.
+    /// Applies <see cref="AreStickyGroupHeadersEnabled"/> to the row host.
     /// </summary>
+    /// <remarks>
+    /// TODO: no-op until group headers are rehosted on the ItemsRepeater (see the grouping rehosting
+    /// follow-up) - the native <c>ItemsStackPanel.AreStickyGroupHeadersEnabled</c> this used to defer to no
+    /// longer applies now that rows are hosted by <see cref="TableViewRowsLayout"/> instead.
+    /// </remarks>
     private void ApplyStickyGroupHeadersSetting()
     {
-        if (ItemsPanelRoot is ItemsStackPanel panel)
-        {
-            panel.AreStickyGroupHeadersEnabled = AreStickyGroupHeadersEnabled;
-        }
     }
 #endif
 
