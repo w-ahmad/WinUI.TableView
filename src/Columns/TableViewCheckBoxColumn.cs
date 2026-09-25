@@ -9,9 +9,6 @@ namespace WinUI.TableView;
 /// Represents a column in a TableView that displays a CheckBox.
 /// </summary>
 [StyleTypedProperty(Property = nameof(ElementStyle), StyleTargetType = typeof(CheckBox))]
-#if WINDOWS
-[WinRT.GeneratedBindableCustomProperty]
-#endif
 public partial class TableViewCheckBoxColumn : TableViewBoundColumn
 {
     /// <summary>

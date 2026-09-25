@@ -9,9 +9,6 @@ namespace WinUI.TableView;
 /// </summary>
 [StyleTypedProperty(Property = nameof(ElementStyle), StyleTargetType = typeof(TextBlock))]
 [StyleTypedProperty(Property = nameof(EditingElementStyle), StyleTargetType = typeof(NumberBox))]
-#if WINDOWS
-[WinRT.GeneratedBindableCustomProperty]
-#endif
 public partial class TableViewNumberColumn : TableViewBoundColumn
 {
     /// <summary>

@@ -38,18 +38,37 @@ public class TableViewTimeColumnTests
     }
 
     [UITestMethod]
-    public void TableViewTimeColumn_GeneratesDisplayElement_WithFormatBindings()
+    public void TableViewTimeColumn_GeneratesDisplayElement_WithValueBindingAndFormat()
     {
         var column = new TableViewTimeColumn
         {
-            Binding = new Binding { Path = new PropertyPath(nameof(ColumnTestItem.AppointmentTime)) }
+            Binding = new Binding { Path = new PropertyPath(nameof(ColumnTestItem.AppointmentTime)) },
+            ClockIdentifier = "24HourClock"
         };
 
         var element = (TextBlock)column.GenerateElement(new TableViewCell(), new ColumnTestItem());
 
         Assert.IsNotNull(element.GetBindingExpression(DateTimeFormatHelper.ValueProperty));
-        Assert.IsNotNull(element.GetBindingExpression(DateTimeFormatHelper.FormatProperty));
+        Assert.AreEqual("24HourClock", DateTimeFormatHelper.GetFormat(element));
         Assert.AreEqual(new Thickness(12, 0, 12, 0), element.Margin);
+    }
+
+    [UITestMethod]
+    public void TableViewTimeColumn_RefreshElement_AppliesUpdatedClockIdentifier()
+    {
+        var column = new TableViewTimeColumn
+        {
+            Binding = new Binding { Path = new PropertyPath(nameof(ColumnTestItem.AppointmentTime)) },
+            ClockIdentifier = "12HourClock"
+        };
+        var cell = new TableViewCell();
+        var element = (TextBlock)column.GenerateElement(cell, new ColumnTestItem());
+        cell.Content = element;
+
+        column.ClockIdentifier = "24HourClock";
+        column.RefreshElement(cell, new ColumnTestItem());
+
+        Assert.AreEqual("24HourClock", DateTimeFormatHelper.GetFormat(element));
     }
 
     [UITestMethod]

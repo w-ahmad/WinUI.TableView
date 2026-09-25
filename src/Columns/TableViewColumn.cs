@@ -563,6 +563,17 @@ public abstract partial class TableViewColumn : DependencyObject
     }
 
     /// <summary>
+    /// Handles changes to the Header property.
+    /// </summary>
+    private static void OnHeaderChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableViewColumn column && column.HeaderControl is not null)
+        {
+            column.HeaderControl.Content = e.NewValue;
+        }
+    }
+
+    /// <summary>
     /// Handles changes to the CanFilter property.
     /// </summary>
     private static void OnCanFilterChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -622,7 +633,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// <summary>
     /// Identifies the Header dependency property.
     /// </summary>
-    public static readonly DependencyProperty HeaderProperty = DependencyProperty.Register(nameof(Header), typeof(object), typeof(TableViewColumn), new PropertyMetadata(null));
+    public static readonly DependencyProperty HeaderProperty = DependencyProperty.Register(nameof(Header), typeof(object), typeof(TableViewColumn), new PropertyMetadata(null, OnHeaderChanged));
 
     /// <summary>
     /// Identifies the Width dependency property.
