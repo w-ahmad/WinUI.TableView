@@ -499,6 +499,8 @@ public partial class TableViewColumnHeader : ContentControl
         if ((_resizeStarted || _resizePreviousStarted) && _resizingColumn is not null
             && _resizeTargetHeader is not null && _tableView is not null)
         {
+            if (!_resizingColumn.IsResizing) BeginResize(_resizingColumn);
+            
             var delta = e.GetCurrentPoint(_headerRow).Position.X - _resizeStartPointerX;
             var minWidth = _resizingColumn.MinWidth ?? _tableView.MinColumnWidth;
             var maxWidth = _resizingColumn.MaxWidth ?? _tableView.MaxColumnWidth;
@@ -569,7 +571,6 @@ public partial class TableViewColumnHeader : ContentControl
             _resizeStartingWidth = ActualWidth;
             _resizeStartPointerX = e.GetCurrentPoint(_headerRow).Position.X;
             _activeResizeMode = _tableView.ColumnResizeMode;
-            BeginResize(Column);
             CapturePointer(e.Pointer);
         }
         else if (IsSizingCursor && IsCursorInLeftResizeArea(e) && _tableView is not null
@@ -581,7 +582,6 @@ public partial class TableViewColumnHeader : ContentControl
             _resizeStartingWidth = header.ActualWidth;
             _resizeStartPointerX = e.GetCurrentPoint(_headerRow).Position.X;
             _activeResizeMode = _tableView.ColumnResizeMode;
-            BeginResize(header.Column);
             CapturePointer(e.Pointer);
         }
         else if (_tableView?.CanReorderColumns is true && Column?.CanReorder is true)
