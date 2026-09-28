@@ -18,20 +18,27 @@ public class TableViewHeaderRowTests
         // Frozen columns wider than the viewport let HorizontalOffset run past the scrollable
         // headers panel's own extent, which is what drives the clip width below zero.
         var tableView = await CreateTableViewAsync(frozenColumnCount: 2);
-        var panel = GetScrollableHeadersPanel(tableView);
+        try
+        {
+            var panel = GetScrollableHeadersPanel(tableView);
 
-        tableView.SetValue(TableView.HorizontalOffsetProperty, 5000d);
-        tableView.UpdateLayout();
+            tableView.SetValue(TableView.HorizontalOffsetProperty, 5000d);
+            tableView.UpdateLayout();
 
-        Assert.IsTrue(tableView.HorizontalOffset > panel.ActualWidth,
-            $"Precondition: the offset ({tableView.HorizontalOffset}) is past the panel's extent ({panel.ActualWidth})");
+            Assert.IsTrue(tableView.HorizontalOffset > panel.ActualWidth,
+                $"Precondition: the offset ({tableView.HorizontalOffset}) is past the panel's extent ({panel.ActualWidth})");
 
-        var clip = panel.Clip;
-        Assert.IsNotNull(clip, "A clip is applied once the headers are scrolled");
-        Assert.IsTrue(clip!.Rect.Width >= 0,
-            $"Header clip width must never be negative (was {clip.Rect.Width})");
-        Assert.IsTrue(clip.Rect.X >= 0 && clip.Rect.X <= panel.ActualWidth,
-            $"Header clip X must stay inside the panel's extent (was {clip.Rect.X} for a panel {panel.ActualWidth} wide)");
+            var clip = panel.Clip;
+            Assert.IsNotNull(clip, "A clip is applied once the headers are scrolled");
+            Assert.IsTrue(clip!.Rect.Width >= 0,
+                $"Header clip width must never be negative (was {clip.Rect.Width})");
+            Assert.IsTrue(clip.Rect.X >= 0 && clip.Rect.X <= panel.ActualWidth,
+                $"Header clip X must stay inside the panel's extent (was {clip.Rect.X} for a panel {panel.ActualWidth} wide)");
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
     }
 
     [UITestMethod]
