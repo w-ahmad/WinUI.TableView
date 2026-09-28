@@ -16,9 +16,6 @@ namespace WinUI.TableView;
 /// </summary>
 [StyleTypedProperty(Property = nameof(ElementStyle), StyleTargetType = typeof(TextBlock))]
 [StyleTypedProperty(Property = nameof(EditingElementStyle), StyleTargetType = typeof(TableViewDatePicker))]
-#if WINDOWS
-[WinRT.GeneratedBindableCustomProperty]
-#endif
 public partial class TableViewDateColumn : TableViewBoundColumn
 {
     /// <summary>
@@ -48,14 +45,19 @@ public partial class TableViewDateColumn : TableViewBoundColumn
             Margin = new Thickness(12, 0, 12, 0),
         };
 
+        textBlock.SetValue(DateTimeFormatHelper.FormatProperty, DateFormat);
         textBlock.SetBinding(DateTimeFormatHelper.ValueProperty, Binding);
-        textBlock.SetBinding(DateTimeFormatHelper.FormatProperty, new Binding
-        {
-            Path = new PropertyPath(nameof(DateFormat)),
-            Source = this
-        });
 
         return textBlock;
+    }
+
+    /// <inheritdoc/>
+    public override void RefreshElement(TableViewCell cell, object? dataItem)
+    {
+        if (cell.Content is TextBlock textBlock)
+        {
+            textBlock.SetValue(DateTimeFormatHelper.FormatProperty, DateFormat);
+        }
     }
 
     /// <summary>
@@ -263,5 +265,16 @@ public partial class TableViewDateColumn : TableViewBoundColumn
     /// <summary>
     /// Identifies the DateFormat dependency property.
     /// </summary>
-    public static readonly DependencyProperty DateFormatProperty = DependencyProperty.Register(nameof(DateFormat), typeof(string), typeof(TableViewDateColumn), new PropertyMetadata("shortdate"));
+    public static readonly DependencyProperty DateFormatProperty = DependencyProperty.Register(nameof(DateFormat), typeof(string), typeof(TableViewDateColumn), new PropertyMetadata("shortdate", OnDateFormatChanged));
+
+    /// <summary>
+    /// Handles changes to the DateFormat property.
+    /// </summary>
+    private static void OnDateFormatChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableViewDateColumn column)
+        {
+            column.OwningCollection?.HandleColumnPropertyChanged(column, nameof(DateFormat));
+        }
+    }
 }

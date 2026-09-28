@@ -47,7 +47,7 @@ public class TableViewDateColumnTests
     }
 
     [UITestMethod]
-    public void TableViewDateColumn_GeneratesDisplayElement_WithFormatBindings()
+    public void TableViewDateColumn_GeneratesDisplayElement_WithValueBindingAndFormat()
     {
         var column = new TableViewDateColumn
         {
@@ -58,8 +58,26 @@ public class TableViewDateColumnTests
         var element = (TextBlock)column.GenerateElement(new TableViewCell(), new ColumnTestItem());
 
         Assert.IsNotNull(element.GetBindingExpression(DateTimeFormatHelper.ValueProperty));
-        Assert.IsNotNull(element.GetBindingExpression(DateTimeFormatHelper.FormatProperty));
+        Assert.AreEqual("shortdate", DateTimeFormatHelper.GetFormat(element));
         Assert.AreEqual(new Thickness(12, 0, 12, 0), element.Margin);
+    }
+
+    [UITestMethod]
+    public void TableViewDateColumn_RefreshElement_AppliesUpdatedDateFormat()
+    {
+        var column = new TableViewDateColumn
+        {
+            Binding = new Binding { Path = new PropertyPath(nameof(ColumnTestItem.DueDate)) },
+            DateFormat = "shortdate"
+        };
+        var cell = new TableViewCell();
+        var element = (TextBlock)column.GenerateElement(cell, new ColumnTestItem());
+        cell.Content = element;
+
+        column.DateFormat = "longdate";
+        column.RefreshElement(cell, new ColumnTestItem());
+
+        Assert.AreEqual("longdate", DateTimeFormatHelper.GetFormat(element));
     }
 
     [UITestMethod]

@@ -1,6 +1,5 @@
 #if WINDOWS
 using Microsoft.UI.Xaml;
-using WinRT;
 
 namespace WinUI.TableView;
 
@@ -9,7 +8,6 @@ namespace WinUI.TableView;
 /// count, nesting level, and expanded/collapsed state. This is the object bound as a <see cref="CollectionViewGroup"/>'s
 /// <see cref="CollectionViewGroup.Group"/>.
 /// </summary>
-[GeneratedBindableCustomProperty]
 public partial class TableViewGroupInfo : DependencyObject
 {
 
@@ -40,12 +38,20 @@ public partial class TableViewGroupInfo : DependencyObject
     /// <summary>
     /// Gets the group's key, e.g. the value of the column/property being grouped by.
     /// </summary>
-    public object? Key { get; init; }
+    public object? Key
+    {
+        get => GetValue(KeyProperty);
+        init => SetValue(KeyProperty, value);
+    }
 
     /// <summary>
     /// Gets the number of items in this group (including all descendant subgroups/items, if any).
     /// </summary>
-    public int Count { get; init; }
+    public int Count
+    {
+        get => (int)GetValue(CountProperty);
+        init => SetValue(CountProperty, value);
+    }
 
     /// <summary>
     /// Gets the zero-based nesting level of this group among the active <see cref="GroupDescription"/> entries.
@@ -61,6 +67,16 @@ public partial class TableViewGroupInfo : DependencyObject
         get => (bool)GetValue(IsExpandedProperty);
         set => SetValue(IsExpandedProperty, value);
     }
+
+    /// <summary>
+    /// Identifies the <see cref="Key"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty KeyProperty = DependencyProperty.Register(nameof(Key), typeof(object), typeof(TableViewGroupInfo), new PropertyMetadata(null));
+
+    /// <summary>
+    /// Identifies the <see cref="Count"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty CountProperty = DependencyProperty.Register(nameof(Count), typeof(int), typeof(TableViewGroupInfo), new PropertyMetadata(0));
 
     /// <summary>
     /// Identifies the <see cref="IsExpanded"/> dependency property.

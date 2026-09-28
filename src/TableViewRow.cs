@@ -22,9 +22,6 @@ namespace WinUI.TableView;
 /// Represents a row in a TableView.
 /// </summary>
 
-#if WINDOWS
-[WinRT.GeneratedBindableCustomProperty]
-#endif
 public partial class TableViewRow : ListViewItem
 {
     private const string Selection_Background = "SelectionBackground";
@@ -335,6 +332,24 @@ public partial class TableViewRow : ListViewItem
         {
             EnsureEditingElementStyle(e.Column);
         }
+        else if (e.PropertyName is nameof(TableViewDateColumn.DateFormat) or nameof(TableViewTimeColumn.ClockIdentifier))
+        {
+            RefreshElements(e.Column);
+        }
+    }
+
+    /// <summary>
+    /// Refreshes the elements of the cells for the specified column.
+    /// </summary>
+    private void RefreshElements(TableViewColumn column)
+    {
+        foreach (var cell in Cells)
+        {
+            if (cell.Column == column)
+            {
+                cell.RefreshElement();
+            }
+        }
     }
 
     /// <summary>
@@ -375,20 +390,20 @@ public partial class TableViewRow : ListViewItem
 
                 cell.SetBinding(HeightProperty, new Binding
                 {
-                    Path = new PropertyPath($"{nameof(TableViewCell.TableView)}.{nameof(TableView.RowHeight)}"),
-                    RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
+                    Path = new PropertyPath(nameof(TableView.RowHeight)),
+                    Source = TableView
                 });
 
                 cell.SetBinding(MaxHeightProperty, new Binding
                 {
-                    Path = new PropertyPath($"{nameof(TableViewCell.TableView)}.{nameof(TableView.RowMaxHeight)}"),
-                    RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
+                    Path = new PropertyPath(nameof(TableView.RowMaxHeight)),
+                    Source = TableView
                 });
 
                 cell.SetBinding(MinHeightProperty, new Binding
                 {
-                    Path = new PropertyPath($"{nameof(TableViewCell.TableView)}.{nameof(TableView.RowMinHeight)}"),
-                    RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
+                    Path = new PropertyPath(nameof(TableView.RowMinHeight)),
+                    Source = TableView
                 });
 
                 RowPresenter.InsertCell(cell);

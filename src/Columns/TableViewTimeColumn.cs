@@ -13,9 +13,6 @@ namespace WinUI.TableView;
 /// </summary>
 [StyleTypedProperty(Property = nameof(ElementStyle), StyleTargetType = typeof(TextBlock))]
 [StyleTypedProperty(Property = nameof(EditingElementStyle), StyleTargetType = typeof(TableViewTimePicker))]
-#if WINDOWS
-[WinRT.GeneratedBindableCustomProperty]
-#endif
 public partial class TableViewTimeColumn : TableViewBoundColumn
 {
     /// <summary>
@@ -44,14 +41,19 @@ public partial class TableViewTimeColumn : TableViewBoundColumn
             Margin = new Thickness(12, 0, 12, 0),
         };
 
+        textBlock.SetValue(DateTimeFormatHelper.FormatProperty, ClockIdentifier);
         textBlock.SetBinding(DateTimeFormatHelper.ValueProperty, Binding);
-        textBlock.SetBinding(DateTimeFormatHelper.FormatProperty, new Binding
-        {
-            Path = new PropertyPath(nameof(ClockIdentifier)),
-            Source = this
-        });
 
         return textBlock;
+    }
+
+    /// <inheritdoc/>
+    public override void RefreshElement(TableViewCell cell, object? dataItem)
+    {
+        if (cell.Content is TextBlock textBlock)
+        {
+            textBlock.SetValue(DateTimeFormatHelper.FormatProperty, ClockIdentifier);
+        }
     }
 
     /// <summary>
@@ -165,7 +167,18 @@ public partial class TableViewTimeColumn : TableViewBoundColumn
     /// <summary>
     /// Identifies the ClockIdentifier dependency property.
     /// </summary>
-    public static readonly DependencyProperty ClockIdentifierProperty = DependencyProperty.Register(nameof(ClockIdentifier), typeof(string), typeof(TableViewTimeColumn), new PropertyMetadata(default));
+    public static readonly DependencyProperty ClockIdentifierProperty = DependencyProperty.Register(nameof(ClockIdentifier), typeof(string), typeof(TableViewTimeColumn), new PropertyMetadata(default, OnClockIdentifierChanged));
+
+    /// <summary>
+    /// Handles changes to the ClockIdentifier property.
+    /// </summary>
+    private static void OnClockIdentifierChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableViewTimeColumn column)
+        {
+            column.OwningCollection?.HandleColumnPropertyChanged(column, nameof(ClockIdentifier));
+        }
+    }
 
     /// <summary>
     /// Identifies the PlaceholderText dependency property.

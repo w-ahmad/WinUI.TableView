@@ -361,22 +361,24 @@ public partial class TableViewRowPresenter : Control
 
     internal void SetRowHeaderBindings()
     {
-        _rowHeader?.SetBinding(HeightProperty, new Binding
+        if (_rowHeader is null || TableView is null) return;
+
+        _rowHeader.SetBinding(HeightProperty, new Binding
         {
-            Path = new PropertyPath($"{nameof(TableViewRowHeader.TableView)}.{nameof(TableView.RowHeight)}"),
-            RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
+            Path = new PropertyPath(nameof(TableView.RowHeight)),
+            Source = TableView
         });
 
-        _rowHeader?.SetBinding(MaxHeightProperty, new Binding
+        _rowHeader.SetBinding(MaxHeightProperty, new Binding
         {
-            Path = new PropertyPath($"{nameof(TableViewRowHeader.TableView)}.{nameof(TableView.RowMaxHeight)}"),
-            RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
+            Path = new PropertyPath(nameof(TableView.RowMaxHeight)),
+            Source = TableView
         });
 
-        _rowHeader?.SetBinding(MinHeightProperty, new Binding
+        _rowHeader.SetBinding(MinHeightProperty, new Binding
         {
-            Path = new PropertyPath($"{nameof(TableViewRowHeader.TableView)}.{nameof(TableView.RowMinHeight)}"),
-            RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
+            Path = new PropertyPath(nameof(TableView.RowMinHeight)),
+            Source = TableView
         });
     }
 

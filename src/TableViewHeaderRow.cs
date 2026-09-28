@@ -255,13 +255,10 @@ public partial class TableViewHeaderRow : Control
         {
             foreach (var column in columns)
             {
-                var header = new TableViewColumnHeader { DataContext = column, Column = column };
+                var header = new TableViewColumnHeader { DataContext = column, Column = column, Content = column.Header };
                 column.HeaderControl = header;
 
                 InsertHeader(header);
-
-                header.SetBinding(ContentControl.ContentProperty,
-                                  new Binding { Path = new PropertyPath(nameof(TableViewColumn.Header)) });
             }
 
             CalculateHeaderWidths();

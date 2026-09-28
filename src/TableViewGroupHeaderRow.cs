@@ -38,6 +38,16 @@ public partial class TableViewGroupHeaderRow : ListViewHeaderItem
     /// </summary>
     internal TableView? TableView { get; set; }
 
+    /// <summary>
+    /// Gets the <see cref="TableViewGroupInfo"/> this row is the header for.
+    /// </summary>
+    /// <remarks>
+    /// Exposing it here also puts <see cref="TableViewGroupInfo"/> in the XAML type metadata generated for this
+    /// library, which is what lets <c>{Binding Key}</c>/<c>{Binding Count}</c> in a group header template resolve
+    /// under trimming/Native AOT without the type needing <c>WinRT.GeneratedBindableCustomProperty</c>.
+    /// </remarks>
+    public TableViewGroupInfo? GroupInfo => Content as TableViewGroupInfo;
+
     /// <inheritdoc/>
     protected override void OnApplyTemplate()
     {
@@ -52,7 +62,7 @@ public partial class TableViewGroupHeaderRow : ListViewHeaderItem
         EnsureGridLines();
         UpdateExpandCollapseButtonVisibility();
 
-        if (Content is TableViewGroupInfo groupInfo)
+        if (GroupInfo is { } groupInfo)
         {
             UpdateExpandCollapseVisualState(groupInfo.IsExpanded);
         }
@@ -101,7 +111,7 @@ public partial class TableViewGroupHeaderRow : ListViewHeaderItem
     /// </summary>
     private void OnExpandCollapseButtonClick(object sender, RoutedEventArgs e)
     {
-        if (Content is TableViewGroupInfo groupInfo)
+        if (GroupInfo is { } groupInfo)
         {
             groupInfo.IsExpanded = !groupInfo.IsExpanded;
             UpdateExpandCollapseVisualState(groupInfo.IsExpanded);
@@ -113,7 +123,7 @@ public partial class TableViewGroupHeaderRow : ListViewHeaderItem
     {
         base.OnContentChanged(oldContent, newContent);
 
-        if (Content is TableViewGroupInfo groupInfo)
+        if (GroupInfo is { } groupInfo)
         {
             _indentPlaceholder?.Width = groupInfo.Level * GroupIndentSize;
             UpdateExpandCollapseVisualState(groupInfo.IsExpanded);
