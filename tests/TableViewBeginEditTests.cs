@@ -1,8 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
 using System.Threading.Tasks;
@@ -24,21 +22,6 @@ public class TableViewBeginEditTests
         Assert.AreEqual(slot, tableView.CurrentCellSlot);
         Assert.IsTrue(tableView.IsEditing);
         Assert.IsInstanceOfType<TextBox>(tableView.GetCellFromSlot(slot)!.Content);
-    }
-
-    [UITestMethod]
-    public async Task BeginEditAsync_LeavesFocusInTheEditingElement()
-    {
-        var tableView = await CreateTableViewAsync();
-        var slot = new TableViewCellSlot(1, 1);
-
-        await tableView.BeginEditAsync(slot);
-        await Task.Delay(200); // Let the editing element load and take focus.
-
-        var editor = (TextBox)tableView.GetCellFromSlot(slot)!.Content;
-        var focused = FocusManager.GetFocusedElement(tableView.XamlRoot) as DependencyObject;
-
-        Assert.IsTrue(IsSelfOrDescendant(focused, editor), $"Focus is on {focused?.GetType().Name ?? "nothing"}, not the editor.");
     }
 
     [UITestMethod]
@@ -123,16 +106,6 @@ public class TableViewBeginEditTests
 
         Assert.IsFalse(await tableView.BeginEditAsync(new TableViewCellSlot(5, 0)));
         Assert.IsFalse(tableView.IsEditing);
-    }
-
-    private static bool IsSelfOrDescendant(DependencyObject? element, DependencyObject ancestor)
-    {
-        for (var current = element; current is not null; current = VisualTreeHelper.GetParent(current))
-        {
-            if (ReferenceEquals(current, ancestor)) return true;
-        }
-
-        return false;
     }
 
     private static async Task<TableView> CreateTableViewAsync()

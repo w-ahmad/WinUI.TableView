@@ -2267,9 +2267,9 @@ public partial class TableView : ListView
             cell?.ApplyCurrentCellState();
             cell?.Focus(FocusState.Programmatic);
 
-            // A BeginEditAsync call that moved the current cell starts its edit here, AFTER the cell has
-            // been scrolled into view and focused. Starting it any earlier would let the Focus call above
-            // take focus away from the editing element the moment it had received it.
+            // A BeginEditAsync call that moved the current cell starts its edit here, once the cell has
+            // been scrolled into view and focused, so that the editing element is the last thing to take
+            // focus rather than racing the Focus call above.
             if (_pendingEdit is { } pending && pending.Slot == newSlot.Value)
             {
                 _pendingEdit = null;
