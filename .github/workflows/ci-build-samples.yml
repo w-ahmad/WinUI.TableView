@@ -67,7 +67,9 @@ jobs:
           10.0.100
 
     - name: Restore Uno workloads
-      run: dotnet workload restore samples/WinUI.TableView.SampleApp.Uno/WinUI.TableView.SampleApp.Uno.csproj
+      run: |
+        dotnet workload restore samples/WinUI.TableView.SampleApp.Uno/WinUI.TableView.SampleApp.Uno.csproj
+        dotnet workload install android
 
     - name: Build Uno desktop sample app
       run: dotnet build samples/WinUI.TableView.SampleApp.Uno/WinUI.TableView.SampleApp.Uno.csproj -c Release -f net10.0-desktop -bl:artifacts/binlogs/build-uno-desktop.binlog
