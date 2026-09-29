@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Windows.Foundation;
 using WinUI.TableView.Extensions;
+using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
 
@@ -361,23 +362,9 @@ public partial class TableViewRowPresenter : Control
 
     internal void SetRowHeaderBindings()
     {
-        _rowHeader?.SetBinding(HeightProperty, new Binding
-        {
-            Path = new PropertyPath($"{nameof(TableViewRowHeader.TableView)}.{nameof(TableView.RowHeight)}"),
-            RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
-        });
-
-        _rowHeader?.SetBinding(MaxHeightProperty, new Binding
-        {
-            Path = new PropertyPath($"{nameof(TableViewRowHeader.TableView)}.{nameof(TableView.RowMaxHeight)}"),
-            RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
-        });
-
-        _rowHeader?.SetBinding(MinHeightProperty, new Binding
-        {
-            Path = new PropertyPath($"{nameof(TableViewRowHeader.TableView)}.{nameof(TableView.RowMinHeight)}"),
-            RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
-        });
+        _rowHeader?.SetBinding(HeightProperty, SharedResources.RowHeightBinding);
+        _rowHeader?.SetBinding(MaxHeightProperty, SharedResources.RowMaxHeightBinding);
+        _rowHeader?.SetBinding(MinHeightProperty, SharedResources.RowMinHeightBinding);
     }
 
     /// <summary>
@@ -404,7 +391,7 @@ public partial class TableViewRowPresenter : Control
                                                     && (TableView.RowDetailsTemplate is not null || TableView.RowDetailsTemplateSelector is not null);
 
                 _v_gridLine.Fill = TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
-                                   ? TableView.VerticalGridLinesStroke : new SolidColorBrush(Colors.Transparent);
+                                   ? TableView.VerticalGridLinesStroke : SharedResources.TransparentBrush;
                 _v_gridLine.Width = TableView.VerticalGridLinesStrokeThickness;
                 _v_gridLine.Visibility = vGridLinesVisibility && (areHeadersVisible || isMultiSelection || isDetailsToggleButtonVisible) ? Visibility.Visible : Visibility.Collapsed;
             }

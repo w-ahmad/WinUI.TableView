@@ -282,8 +282,8 @@ public partial class TableView : ListView
         var row = new TableViewRow { TableView = this };
 
         // Set bindings for FontFamily and FontSize to propagate from TableView to TableViewRow
-        row.SetBinding(FontFamilyProperty, new Binding { Path = new("TableView.FontFamily"), RelativeSource = new() { Mode = RelativeSourceMode.Self } });
-        row.SetBinding(FontSizeProperty, new Binding { Path = new("TableView.FontSize"), RelativeSource = new() { Mode = RelativeSourceMode.Self } });
+        row.SetBinding(FontFamilyProperty, SharedResources.FontFamilyBinding);
+        row.SetBinding(FontSizeProperty, SharedResources.FontSizeBinding);
 
         _rows.Add(row);
         return row;
