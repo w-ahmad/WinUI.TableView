@@ -40,6 +40,23 @@ public class TableViewBeginEditTests
     }
 
     [UITestMethod]
+    public async Task BeginEditAsync_OnTheCurrentVisibleCell_CompletesSynchronously()
+    {
+        var tableView = await CreateTableViewAsync();
+        var slot = new TableViewCellSlot(1, 0);
+        tableView.CurrentCellSlot = slot;
+        await Task.Delay(100);
+
+        // A caller handling a key or character event must know before its handler returns whether
+        // the edit began, as it does for F2; waiting on a scroll here would make that impossible.
+        var begin = tableView.BeginEditAsync(slot);
+
+        Assert.IsTrue(begin.IsCompleted, "BeginEditAsync on the current, realized cell did not complete synchronously.");
+        Assert.IsTrue(await begin);
+        Assert.IsTrue(tableView.IsEditing);
+    }
+
+    [UITestMethod]
     public async Task BeginEditAsync_CommitsTheEditInProgressOnAnotherCell()
     {
         var tableView = await CreateTableViewAsync();

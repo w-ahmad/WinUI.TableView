@@ -1090,8 +1090,9 @@ public partial class TableView : ListView
 
         if (CurrentCellSlot == slot)
         {
-            // Already current, so OnCurrentCellChanged will not run; the cell may still be out of view.
-            return TryBeginEdit(await ScrollCellIntoView(slot));
+            // Already current, so OnCurrentCellChanged will not run. A realized cell is edited directly,
+            // as F2 does, so the call completes synchronously; only a cell scrolled out of view waits.
+            return TryBeginEdit(GetCellFromSlot(slot) ?? await ScrollCellIntoView(slot));
         }
 
         var pending = new TaskCompletionSource<bool>();
