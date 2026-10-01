@@ -204,4 +204,28 @@
   <data name="SortGroupsByValue" xml:space="preserve">
     <value>Sort Groups by Value</value>
   </data>
+  <data name="TableViewControlType" xml:space="preserve">
+    <value>table view</value>
+    <comment>UI Automation localized control type of the TableView.</comment>
+  </data>
+  <data name="ColumnHeaderControlType" xml:space="preserve">
+    <value>column header</value>
+    <comment>UI Automation localized control type of a column header.</comment>
+  </data>
+  <data name="RowHeaderControlType" xml:space="preserve">
+    <value>row header</value>
+    <comment>UI Automation localized control type of a row header.</comment>
+  </data>
+  <data name="CellControlType" xml:space="preserve">
+    <value>cell</value>
+    <comment>UI Automation localized control type of a cell.</comment>
+  </data>
+  <data name="RowNumber" xml:space="preserve">
+    <value>Row {0}</value>
+    <comment>UI Automation name of a row; {0} is the one-based row number.</comment>
+  </data>
+  <data name="Row" xml:space="preserve">
+    <value>Row</value>
+    <comment>UI Automation name of a row whose index is not known.</comment>
+  </data>
 </root>

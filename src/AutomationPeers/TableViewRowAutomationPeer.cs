@@ -44,7 +44,7 @@ public partial class TableViewRowAutomationPeer : ListViewItemAutomationPeer, IE
         }
 
         var index = _owner.Index;
-        return index >= 0 ? $"Row {index + 1}" : "Row";
+        return index >= 0 ? TableViewLocalizedStrings.FormatRowNumber(index + 1) : TableViewLocalizedStrings.Row;
     }
 
     /// <inheritdoc/>

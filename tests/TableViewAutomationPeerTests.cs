@@ -423,4 +423,87 @@ public class TableViewAutomationPeerTests
 
         Assert.IsInstanceOfType(peer, typeof(TableViewRowHeaderAutomationPeer));
     }
+
+    // ─── Localized automation text ──────────────────────────────────────────
+    // Each test swaps the resource value for a sentinel, so it fails on a peer that returns an
+    // English literal even when the test runs under en-US, where the literal and the resource agree.
+
+    [UITestMethod]
+    public void TableViewAutomationPeer_LocalizedControlType_ComesFromResources()
+    {
+        AssertUsesResource(v => TableViewLocalizedStrings.TableViewControlType = v, () => TableViewLocalizedStrings.TableViewControlType,
+            () => new TableViewAutomationPeer(new TableView()).GetLocalizedControlType());
+    }
+
+    [UITestMethod]
+    public void TableViewColumnHeaderAutomationPeer_LocalizedControlType_ComesFromResources()
+    {
+        AssertUsesResource(v => TableViewLocalizedStrings.ColumnHeaderControlType = v, () => TableViewLocalizedStrings.ColumnHeaderControlType,
+            () => new TableViewColumnHeaderAutomationPeer(new TableViewColumnHeader()).GetLocalizedControlType());
+    }
+
+    [UITestMethod]
+    public void TableViewRowHeaderAutomationPeer_LocalizedControlType_ComesFromResources()
+    {
+        AssertUsesResource(v => TableViewLocalizedStrings.RowHeaderControlType = v, () => TableViewLocalizedStrings.RowHeaderControlType,
+            () => new TableViewRowHeaderAutomationPeer(new TableViewRowHeader()).GetLocalizedControlType());
+    }
+
+    [UITestMethod]
+    public void TableViewCellAutomationPeer_LocalizedControlType_ComesFromResources()
+    {
+        AssertUsesResource(v => TableViewLocalizedStrings.CellControlType = v, () => TableViewLocalizedStrings.CellControlType,
+            () => new TableViewCellAutomationPeer(new TableViewCell()).GetLocalizedControlType());
+    }
+
+    [UITestMethod]
+    public void TableViewRowAutomationPeer_NameWithoutIndex_ComesFromResources()
+    {
+        // Row.Index returns -1 when not in a list, so the name is the bare "Row" resource.
+        AssertUsesResource(v => TableViewLocalizedStrings.Row = v, () => TableViewLocalizedStrings.Row,
+            () => new TableViewRowAutomationPeer(new TableViewRow()).GetName());
+    }
+
+    [UITestMethod]
+    public void FormatRowNumber_UsesTheRowNumberResource()
+    {
+        var original = TableViewLocalizedStrings.RowNumber;
+        try
+        {
+            TableViewLocalizedStrings.RowNumber = "R#{0}";
+            Assert.AreEqual("R#3", TableViewLocalizedStrings.FormatRowNumber(3));
+        }
+        finally
+        {
+            TableViewLocalizedStrings.RowNumber = original;
+        }
+
+        StringAssert.Contains(TableViewLocalizedStrings.FormatRowNumber(3), "3");
+    }
+
+    [UITestMethod]
+    public void AutomationResources_AreNotEmpty()
+    {
+        Assert.IsFalse(string.IsNullOrEmpty(TableViewLocalizedStrings.TableViewControlType));
+        Assert.IsFalse(string.IsNullOrEmpty(TableViewLocalizedStrings.ColumnHeaderControlType));
+        Assert.IsFalse(string.IsNullOrEmpty(TableViewLocalizedStrings.RowHeaderControlType));
+        Assert.IsFalse(string.IsNullOrEmpty(TableViewLocalizedStrings.CellControlType));
+        Assert.IsFalse(string.IsNullOrEmpty(TableViewLocalizedStrings.Row));
+        StringAssert.Contains(TableViewLocalizedStrings.RowNumber, "{0}");
+    }
+
+    private static void AssertUsesResource(Action<string> set, Func<string> get, Func<string> read)
+    {
+        const string sentinel = "localized-sentinel";
+        var original = get();
+        try
+        {
+            set(sentinel);
+            Assert.AreEqual(sentinel, read());
+        }
+        finally
+        {
+            set(original);
+        }
+    }
 }
