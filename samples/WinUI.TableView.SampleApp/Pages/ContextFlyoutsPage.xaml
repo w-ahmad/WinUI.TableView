@@ -8,16 +8,10 @@
       xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
       xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
       xmlns:ui="using:CommunityToolkit.WinUI"
-      xmlns:converters="using:CommunityToolkit.WinUI.Converters"
       d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
       mc:Ignorable="d">
 
     <Grid>
-
-        <Grid.Resources>
-            <converters:StringFormatConverter x:Key="Formatter" />
-        </Grid.Resources>
-        
         <controls:SamplePresenter Header="Context Flyouts"
                                   Description="Showcasing how context flyouts can be attached to rows and cells.">
             <controls:SamplePresenter.Example>

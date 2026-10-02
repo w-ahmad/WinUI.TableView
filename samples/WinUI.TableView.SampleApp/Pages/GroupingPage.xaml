@@ -6,7 +6,7 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:tv="using:WinUI.TableView"
       xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
-      xmlns:ui="using:CommunityToolkit.WinUI"
+      xmlns:helpers="using:WinUI.TableView.SampleApp.Helpers"
       d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
       mc:Ignorable="d">
 
@@ -88,7 +88,7 @@
                     <ComboBox Header="DefaultGroupState"
                               HorizontalAlignment="Stretch"
                               SelectedItem="{Binding DefaultGroupState, Mode=TwoWay, ElementName=tableView}"
-                              ItemsSource="{ui:EnumValues Type=tv:TableViewGroupState}" />
+                              ItemsSource="{helpers:EnumValues Type=tv:TableViewGroupState}" />
                     <ToggleSwitch Header="ShowGroupExpandCollapseButton"
                                   OnContent="True"
                                   OffContent="False"
@@ -111,7 +111,7 @@
                             <TextBlock>
                                 <Run Text="Item count:" />
                                 <Run FontWeight="Bold"
-                                     Text="{Binding Items.Count}" />
+                                     Text="{x:Bind ViewModel.Items.Count, Mode=OneWay}" />
                             </TextBlock>
                             <TextBlock>
                                 <Run Text="Selected Id:" />
