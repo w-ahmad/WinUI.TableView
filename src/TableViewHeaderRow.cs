@@ -112,7 +112,12 @@ public partial class TableViewHeaderRow : Control
         {
             var frozenOffset = _frozenHeadersPanel.ActualOffset.X + _frozenHeadersPanel.ActualWidth;
             var headersOffset = -TableView.HorizontalOffset + frozenOffset;
-            var xClip = (headersOffset * -1) + frozenOffset;
+            // This reduces to TableView.HorizontalOffset, which is read live from the scroll viewer,
+            // while ActualWidth is left over from the previous arrange. Narrowing a column while the
+            // view is scrolled right can therefore leave the offset past the panel's own extent, which
+            // would give the clip below a zero or negative width - not a valid rectangle, and it hides
+            // every header. Clamp it into the panel's extent so the clip is always well formed.
+            var xClip = Math.Clamp((headersOffset * -1) + frozenOffset, 0, _scrollableHeadersPanel.ActualWidth);
 
             _scrollableHeadersPanel.Arrange(new Rect(headersOffset, 0, _scrollableHeadersPanel.ActualWidth, _scrollableHeadersPanel.ActualHeight));
             _scrollableHeadersPanel.Clip = headersOffset >= frozenOffset ? null :
