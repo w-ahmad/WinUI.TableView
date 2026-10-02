@@ -23,25 +23,25 @@ internal static class SharedResources
     internal static Binding FontFamilyBinding => field ??= new Binding { Path = new("TableView.FontFamily"), RelativeSource = new() { Mode = RelativeSourceMode.Self } };
 
     /// <summary>
-    /// Gets a binding to <see cref="FontSize"/>, shared by every cell and row header.
+    /// Gets a binding to <see cref="TableView.FontSize"/>, shared by every cell and row header.
     /// </summary>
     [field: ThreadStatic]
     internal static Binding FontSizeBinding => field ??= new Binding { Path = new("TableView.FontSize"), RelativeSource = new() { Mode = RelativeSourceMode.Self } };
 
     /// <summary>
-    /// Gets a binding to <see cref="RowHeight"/>, shared by every cell and row header.
+    /// Gets a binding to <see cref="TableView.RowHeight"/>, shared by every cell and row header.
     /// </summary>
     [field: ThreadStatic]
     internal static Binding RowHeightBinding => field ??= new Binding { Path = new("TableView.RowHeight"), RelativeSource = new() { Mode = RelativeSourceMode.Self } };
 
     /// <summary>
-    /// Gets a binding to <see cref="RowMinHeight"/>, shared by every cell and row header.
+    /// Gets a binding to <see cref="TableView.RowMinHeight"/>, shared by every cell and row header.
     /// </summary>
     [field: ThreadStatic] 
     internal static Binding RowMinHeightBinding => field ??= new Binding { Path = new("TableView.RowMinHeight"), RelativeSource = new() { Mode = RelativeSourceMode.Self } };
 
     /// <summary>
-    /// Gets a binding to <see cref="RowMaxHeight"/>, shared by every cell and row header.
+    /// Gets a binding to <see cref="TableView.RowMaxHeight"/>, shared by every cell and row header.
     /// </summary>
     [field: ThreadStatic] 
     internal static Binding RowMaxHeightBinding => field ??= new Binding { Path = new("TableView.RowMaxHeight"), RelativeSource = new() { Mode = RelativeSourceMode.Self } };

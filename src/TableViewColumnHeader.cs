@@ -157,7 +157,7 @@ public partial class TableViewColumnHeader : ContentControl
     /// Gets a value indicating whether this grouped column currently orders its groups by item count
     /// rather than by key.
     /// </summary>
-    private bool IsGroupSortedByCount => 
+    private bool IsGroupSortedByCount =>
         _tableView?.GroupDescriptions.OfType<ColumnGroupDescription>()
                                      .FirstOrDefault(x => x.Column == Column) is { SortMode: GroupSortMode.Count };
 
@@ -333,7 +333,7 @@ public partial class TableViewColumnHeader : ContentControl
     /// entirely by its group and always needs a direction, so it never lands on the cleared/unsorted state
     /// a three-state cycle's third click does. A grouped column that still has a leftover independent sort
     /// from before it was grouped keeps three-state cycling until that description is cleared (see
-    /// <see cref="HandOffToGroupDescription"/>), at which point it falls into the two-state case above.
+    /// HandOffToGroupDescription), at which point it falls into the two-state case above.
     /// </summary>
     private SD? GetNextSortDirection()
     {
@@ -501,7 +501,7 @@ public partial class TableViewColumnHeader : ContentControl
             && _resizeTargetHeader is not null && _tableView is not null)
         {
             if (!_resizingColumn.IsResizing) BeginResize(_resizingColumn);
-            
+
             var delta = e.GetCurrentPoint(_headerRow).Position.X - _resizeStartPointerX;
             var minWidth = _resizingColumn.MinWidth ?? _tableView.MinColumnWidth;
             var maxWidth = _resizingColumn.MaxWidth ?? _tableView.MaxColumnWidth;
