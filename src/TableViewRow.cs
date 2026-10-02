@@ -373,23 +373,9 @@ public partial class TableViewRow : ListViewItem
                     Width = column.ActualWidth
                 };
 
-                cell.SetBinding(HeightProperty, new Binding
-                {
-                    Path = new PropertyPath($"{nameof(TableViewCell.TableView)}.{nameof(TableView.RowHeight)}"),
-                    RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
-                });
-
-                cell.SetBinding(MaxHeightProperty, new Binding
-                {
-                    Path = new PropertyPath($"{nameof(TableViewCell.TableView)}.{nameof(TableView.RowMaxHeight)}"),
-                    RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
-                });
-
-                cell.SetBinding(MinHeightProperty, new Binding
-                {
-                    Path = new PropertyPath($"{nameof(TableViewCell.TableView)}.{nameof(TableView.RowMinHeight)}"),
-                    RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
-                });
+                cell.SetBinding(HeightProperty, SharedResources.RowHeightBinding);
+                cell.SetBinding(MaxHeightProperty, SharedResources.RowMaxHeightBinding);
+                cell.SetBinding(MinHeightProperty, SharedResources.RowMinHeightBinding);
 
                 RowPresenter.InsertCell(cell);
             }

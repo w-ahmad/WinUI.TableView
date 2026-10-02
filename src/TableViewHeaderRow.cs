@@ -13,6 +13,7 @@ using System.Linq;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using WinUI.TableView.Extensions;
+using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
 
@@ -265,8 +266,7 @@ public partial class TableViewHeaderRow : Control
 
                 InsertHeader(header);
 
-                header.SetBinding(ContentControl.ContentProperty,
-                                  new Binding { Path = new PropertyPath(nameof(TableViewColumn.Header)) });
+                header.SetBinding(ContentControl.ContentProperty, SharedResources.HeaderBinding);
             }
 
             CalculateHeaderWidths();
@@ -531,7 +531,7 @@ public partial class TableViewHeaderRow : Control
 
 
                 _v_gridLine.Fill = TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
-                                   ? TableView.VerticalGridLinesStroke : new SolidColorBrush(Colors.Transparent);
+                                   ? TableView.VerticalGridLinesStroke : SharedResources.TransparentBrush;
                 _v_gridLine.Width = TableView.VerticalGridLinesStrokeThickness;
                 _v_gridLine.Visibility = vGridLinesVisibility && (areHeadersVisible || isMultiSelection || isDetailsToggleButtonVisible) ? Visibility.Visible : Visibility.Collapsed;
             }

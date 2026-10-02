@@ -658,7 +658,7 @@ public partial class TableViewCell : ContentControl
         if (_v_gridLine is not null && TableView is not null)
         {
             _v_gridLine.Fill = TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
-                               ? TableView.VerticalGridLinesStroke : new SolidColorBrush(Colors.Transparent);
+                               ? TableView.VerticalGridLinesStroke : SharedResources.TransparentBrush;
             _v_gridLine.Width = TableView.VerticalGridLinesStrokeThickness;
             _v_gridLine.Visibility = TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
                                      || TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
