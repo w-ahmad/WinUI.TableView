@@ -328,7 +328,7 @@ public partial class TableViewColumnHeader : ContentControl
 
     /// <summary>
     /// Computes the next sort direction for a tap/invoke on this header. A grouped column with no
-    /// independent <see cref="ColumnSortDescription"/> of its own (<see cref="HasGroupSortCompanion"/>)
+    /// independent <see cref="ColumnSortDescription"/> of its own (HasGroupSortCompanion)
     /// cycles between just <see cref="SD.Ascending"/> and <see cref="SD.Descending"/> - its order is owned
     /// entirely by its group and always needs a direction, so it never lands on the cleared/unsorted state
     /// a three-state cycle's third click does. A grouped column that still has a leftover independent sort

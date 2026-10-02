@@ -1,4 +1,5 @@
 ﻿using Microsoft.UI;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
 
@@ -17,13 +18,13 @@ internal static class SharedResources
     internal static SolidColorBrush TransparentBrush => field ??= new(Colors.Transparent);
 
     /// <summary>
-    /// Gets a binding to <see cref="FontFamily"/>, shared by every cell and row header.
+    /// Gets a binding to <see cref="Control.FontFamily"/>, shared by every cell and row header.
     /// </summary>
     [field: ThreadStatic]
     internal static Binding FontFamilyBinding => field ??= new Binding { Path = new("TableView.FontFamily"), RelativeSource = new() { Mode = RelativeSourceMode.Self } };
 
     /// <summary>
-    /// Gets a binding to <see cref="TableView.FontSize"/>, shared by every cell and row header.
+    /// Gets a binding to <see cref="Control.FontSize"/>, shared by every cell and row header.
     /// </summary>
     [field: ThreadStatic]
     internal static Binding FontSizeBinding => field ??= new Binding { Path = new("TableView.FontSize"), RelativeSource = new() { Mode = RelativeSourceMode.Self } };
