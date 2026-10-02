@@ -12,7 +12,7 @@
     <WinUISDKReferences>false</WinUISDKReferences>
     <EnableMsixTooling>true</EnableMsixTooling>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <PublishAot>true</PublishAot>
+    <PublishAot Condition="'$(Platform)' != 'x86' and '$(RuntimeIdentifier)' != 'win-x86'">true</PublishAot>
     <CsWinRTAotWarningLevel>2</CsWinRTAotWarningLevel>
     <DefineConstants>
       DISABLE_XAML_GENERATED_BINDING_DEBUG_OUTPUT;
