@@ -50,6 +50,7 @@ public partial class TableView : ListView
     private TableViewCellSlotRange? _lastDragSelectionCellRange;
     private ItemIndexRange? _lastDragSelectionRowRange;
     private bool _cellStateDispatchPending;
+    private bool _alternateRowColorsPending;
     private readonly HashSet<int> _pendingCellStateRows = [];
     private TableViewColumn? _resizingColumn;
     private double _resizingOriginalWidth;
@@ -81,6 +82,7 @@ public partial class TableView : ListView
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
         SelectionChanged += TableView_SelectionChanged;
+        Items.VectorChanged += OnItemsVectorChanged;
         _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
 #if WINDOWS
         _collectionView.VectorChanged += OnCollectionViewVectorChanged;
@@ -158,6 +160,19 @@ public partial class TableView : ListView
 #else
     }
 #endif
+
+    /// <summary>
+    /// Handles the VectorChanged event of the items collection. Inserting or removing an item shifts the index of every
+    /// row after it, which flips their alternate colors without their containers being prepared again.
+    /// </summary>
+    private void OnItemsVectorChanged(IObservableVector<object> sender, IVectorChangedEventArgs args)
+    {
+        if (args.CollectionChange is CollectionChange.ItemInserted or CollectionChange.ItemRemoved &&
+            (AlternateRowBackground is not null || AlternateRowForeground is not null))
+        {
+            EnsureAlternateRowColors();
+        }
+    }
 
     /// <summary>
     /// Handles the SelectionChanged event of the TableView control.
@@ -244,6 +259,8 @@ public partial class TableView : ListView
                 }
 
                 row.TableView = this;
+                // A recycled row has no TableView while its content changes, so that pass can't restyle it.
+                row.EnsureAlternateColors();
                 row.EnsureCellsStyle(default, item);
 
                 _pendingCellStateRows.Add(row.Index);
@@ -2810,8 +2827,13 @@ public partial class TableView : ListView
     /// </summary>
     internal void EnsureAlternateRowColors()
     {
+        if (_alternateRowColorsPending) return;
+
+        _alternateRowColorsPending = true;
         DispatcherQueue.TryEnqueue(() =>
         {
+            _alternateRowColorsPending = false;
+
             foreach (var row in _rows)
             {
                 row.EnsureAlternateColors();
