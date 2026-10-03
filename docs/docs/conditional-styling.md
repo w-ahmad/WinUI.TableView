@@ -76,18 +76,24 @@ The predicate receives a [`TableViewConditionalCellStyleContext`](xref:WinUI.Tab
 
 ## Multiple conditional styles
 
-You can add multiple [`TableViewConditionalCellStyle`](xref:WinUI.TableView.TableViewConditionalCellStyle) entries. They are evaluated in order; if multiple predicates return `true`, the **last** matching style wins.
+You can add multiple [`TableViewConditionalCellStyle`](xref:WinUI.TableView.TableViewConditionalCellStyle) entries.
+
+Styles are evaluated in order. If multiple predicates return `true`, the
+**first matching style wins**.
+
+Column-level conditional styles are evaluated before TableView-level
+conditional styles, so column styles have higher priority.
 
 ```xml
 <tv:TableView.ConditionalCellStyles>
     <tv:TableViewConditionalCellStylesCollection>
-        <!-- Applied first (lower priority) -->
+        <!-- Evaluated first (higher priority) -->
         <tv:TableViewConditionalCellStyle Predicate="{x:Bind IsExpiringSoon}">
             <Style TargetType="tv:TableViewCell">
                 <Setter Property="Background" Value="#FFF9C4" />
             </Style>
         </tv:TableViewConditionalCellStyle>
-        <!-- Applied second (higher priority if both match) -->
+        <!-- Evaluated second if the first predicate does not match -->
         <tv:TableViewConditionalCellStyle Predicate="{x:Bind IsExpired}">
             <Style TargetType="tv:TableViewCell">
                 <Setter Property="Background" Value="#FFCDD2" />
