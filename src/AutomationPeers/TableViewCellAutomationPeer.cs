@@ -42,7 +42,7 @@ public partial class TableViewCellAutomationPeer : FrameworkElementAutomationPee
     /// <inheritdoc/>
     protected override string GetLocalizedControlTypeCore()
     {
-        return "cell";
+        return TableViewLocalizedStrings.CellControlType;
     }
 
     /// <inheritdoc/>
@@ -71,7 +71,7 @@ public partial class TableViewCellAutomationPeer : FrameworkElementAutomationPee
             : string.Empty;
 
         var rowIndex = _owner.Row?.Index ?? -1;
-        var rowDisplay = rowIndex >= 0 ? $"Row {rowIndex + 1}" : string.Empty;
+        var rowDisplay = rowIndex >= 0 ? TableViewLocalizedStrings.FormatRowNumber(rowIndex + 1) : string.Empty;
 
         var cellValue = _owner.Column is TableViewTemplateColumn
             ? string.Empty

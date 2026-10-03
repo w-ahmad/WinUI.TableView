@@ -1,5 +1,6 @@
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
+using System.Globalization;
 
 namespace WinUI.TableView;
 
@@ -47,6 +48,12 @@ internal partial class TableViewLocalizedStrings
         UngroupAll = GetValue(nameof(UngroupAll));
         SortGroupsByCount = GetValue(nameof(SortGroupsByCount));
         SortGroupsByValue = GetValue(nameof(SortGroupsByValue));
+        TableViewControlType = GetValue(nameof(TableViewControlType));
+        ColumnHeaderControlType = GetValue(nameof(ColumnHeaderControlType));
+        RowHeaderControlType = GetValue(nameof(RowHeaderControlType));
+        CellControlType = GetValue(nameof(CellControlType));
+        RowNumber = GetValue(nameof(RowNumber));
+        Row = GetValue(nameof(Row));
     }
 
     private static string GetValue(string name)
@@ -101,4 +108,18 @@ internal partial class TableViewLocalizedStrings
     public static string UngroupAll { get; set; }
     public static string SortGroupsByCount { get; set; }
     public static string SortGroupsByValue { get; set; }
+    public static string TableViewControlType { get; set; }
+    public static string ColumnHeaderControlType { get; set; }
+    public static string RowHeaderControlType { get; set; }
+    public static string CellControlType { get; set; }
+    public static string RowNumber { get; set; }
+    public static string Row { get; set; }
+
+    /// <summary>
+    /// Formats the UI Automation name of a row from its one-based number, e.g. "Row 3".
+    /// </summary>
+    public static string FormatRowNumber(int oneBasedRowNumber)
+    {
+        return string.Format(CultureInfo.CurrentCulture, RowNumber, oneBasedRowNumber);
+    }
 }
