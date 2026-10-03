@@ -40,7 +40,7 @@ Provide a `DataTemplate` via [`RowHeaderTemplate`](xref:WinUI.TableView.TableVie
 
 ![Custom row header with icon](../images/row-headers-custom.png)
 
-> **Note:** The `Tag` of the `TableViewRowHeader` is set to the row's 1-based index. Bind to it with `{Binding Tag, RelativeSource={RelativeSource Mode=TemplatedParent}}` for row numbers.
+> **Note:** The `Tag` of the `TableViewRowHeader` is always set to the row's number (see [Row numbering](#row-numbering) below), whether or not a custom `RowHeaderTemplate` is set. Bind to it with `{Binding Tag, RelativeSource={RelativeSource Mode=TemplatedParent}}` to incorporate the number into a custom template.
 
 ### Selecting a template per row
 
@@ -70,6 +70,25 @@ public class StatusHeaderSelector : DataTemplateSelector
     </tv:TableView.RowHeaderTemplateSelector>
 </tv:TableView>
 ```
+
+## Row numbering
+
+Set [`ShowRowNumbers`](xref:WinUI.TableView.TableView.ShowRowNumbers) to `true` to display each row's number at the very start of the row, in its own column ahead of the row header content and the row details expander toggle:
+
+```xml
+<tv:TableView ItemsSource="{x:Bind Products}" ShowRowNumbers="True" />
+```
+
+The row number is a real, stable position among all rows - it does not renumber when a [group](grouping.md) is collapsed and hides other rows, unlike a naively counted display position. It coexists with `RowHeaderTemplate`, `RowHeaderTemplateSelector`, and the row details expander toggle without taking space from any of them.
+
+Customize its appearance with these theme resources:
+
+| Resource | Type | Description |
+|---|---|---|
+| `TableViewRowNumberFontSize` | `double` | Font size of the row number text |
+| `TableViewRowNumberForeground` | `Brush` | Foreground brush of the row number text |
+| `TableViewRowNumberMargin` | `Thickness` | Margin around the row number text |
+| `TableViewRowNumberMinWidth` | `double` | Minimum width of the row number column |
 
 ## Sizing the row header
 

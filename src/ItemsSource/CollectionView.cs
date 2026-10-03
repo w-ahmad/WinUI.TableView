@@ -812,6 +812,15 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     }
 
     /// <summary>
+    /// Returns the item's position among <see cref="_groupingSourceItems"/> - the full filtered+sorted set,
+    /// in source order - unlike <see cref="IndexOf"/>, unaffected by items being hidden by a collapsed group.
+    /// </summary>
+    internal int IndexOfSourceItem(object? item)
+    {
+        return item is null ? -1 : _groupingSourceItems.IndexOf(item);
+    }
+
+    /// <summary>
     /// Inserts an item to the collection at the specified index.
     /// </summary>
     /// <param name="index">The zero-based index at which the item should be inserted.</param>
