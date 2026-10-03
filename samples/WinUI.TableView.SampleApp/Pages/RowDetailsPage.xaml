@@ -6,7 +6,7 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:tv="using:WinUI.TableView"
       xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
-      xmlns:ui="using:CommunityToolkit.WinUI"
+      xmlns:helpers="using:WinUI.TableView.SampleApp.Helpers"
       d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
       mc:Ignorable="d"
       DataContextChanged="OnDataContextChanged">
@@ -80,7 +80,7 @@
                               Header="Row Details Visibility Mode"
                               HorizontalAlignment="Stretch"
                               SelectedItem="{Binding RowDetailsVisibilityMode, Mode=TwoWay, ElementName=tableView}"
-                              ItemsSource="{ui:EnumValues Type=tv:TableViewRowDetailsVisibilityMode}" />
+                              ItemsSource="{helpers:EnumValues Type=tv:TableViewRowDetailsVisibilityMode}" />
                     <ToggleSwitch x:Name="areRowDetailsFrozen"
                                   Header="Freeze Row Details"
                                   IsOn="{Binding AreRowDetailsFrozen, Mode=TwoWay, ElementName=tableView}" />

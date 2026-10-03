@@ -4,6 +4,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace WinUI.TableView.SampleApp;
 
+#if WINDOWS
+[WinRT.GeneratedBindableCustomProperty]
+#endif
 public partial class SalesViewModel : ObservableObject
 {
     public async static Task InitializeItemsAsync()
