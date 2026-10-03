@@ -1,9 +1,12 @@
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Automation.Provider;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
+using System.Threading.Tasks;
 using WinUI.TableView.AutomationPeers;
 
 namespace WinUI.TableView.Tests;
@@ -490,6 +493,87 @@ public class TableViewAutomationPeerTests
         Assert.IsFalse(string.IsNullOrEmpty(TableViewLocalizedStrings.CellControlType));
         Assert.IsFalse(string.IsNullOrEmpty(TableViewLocalizedStrings.Row));
         StringAssert.Contains(TableViewLocalizedStrings.RowNumber, "{0}");
+    }
+
+    // The indexed names ("Row {n}") are only composed for a row that has an index, i.e. one realized in a
+    // loaded TableView. Each test swaps RowNumber for a sentinel and reads the peer, so it fails on a peer
+    // that composes the name from an English literal instead of FormatRowNumber.
+
+    [UITestMethod]
+    public async Task TableViewRowAutomationPeer_IndexedName_ComesFromResources()
+    {
+        var row = await RealizeSecondRowAsync();
+
+        AssertUsesRowNumberResource(() => new TableViewRowAutomationPeer(row).GetName(), expected: "R#2");
+    }
+
+    [UITestMethod]
+    public async Task TableViewRowHeaderAutomationPeer_IndexedName_ComesFromResources()
+    {
+        var row = await RealizeSecondRowAsync();
+        var rowHeader = new TableViewRowHeader { TableViewRow = row };
+
+        AssertUsesRowNumberResource(() => new TableViewRowHeaderAutomationPeer(rowHeader).GetName(), expected: "R#2");
+    }
+
+    [UITestMethod]
+    public async Task TableViewCellAutomationPeer_IndexedName_ComesFromResources()
+    {
+        var row = await RealizeSecondRowAsync();
+        Assert.IsTrue(row.Cells.Count > 0, "the realized row has no cells");
+        var cell = row.Cells[0];
+
+        // The cell's name also carries the column header and the value; only its row part is under test.
+        AssertUsesRowNumberResource(() => new TableViewCellAutomationPeer(cell).GetName(), expected: "R#2", whole: false);
+    }
+
+    private static void AssertUsesRowNumberResource(Func<string> read, string expected, bool whole = true)
+    {
+        var original = TableViewLocalizedStrings.RowNumber;
+        try
+        {
+            TableViewLocalizedStrings.RowNumber = "R#{0}";
+            var name = read();
+            if (whole)
+            {
+                Assert.AreEqual(expected, name);
+            }
+            else
+            {
+                StringAssert.Contains(name, expected);
+            }
+        }
+        finally
+        {
+            TableViewLocalizedStrings.RowNumber = original;
+        }
+    }
+
+    private static async Task<TableViewRow> RealizeSecondRowAsync()
+    {
+        var tableView = new TableView { AutoGenerateColumns = false };
+        tableView.Columns.Add(new TableViewTextColumn
+        {
+            Header = "Name",
+            Binding = new Binding { Path = new PropertyPath(nameof(IndexedNameItem.Name)) }
+        });
+        tableView.ItemsSource = new[]
+        {
+            new IndexedNameItem { Name = "A" },
+            new IndexedNameItem { Name = "B" },
+        };
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+
+        var row = tableView.ContainerFromIndex(1) as TableViewRow;
+        Assert.IsNotNull(row, "the second row was not realized");
+        Assert.AreEqual(1, row.Index, "the realized row reports no index, so no indexed name would be composed");
+        return row;
+    }
+
+    private sealed class IndexedNameItem
+    {
+        public string Name { get; set; } = string.Empty;
     }
 
     private static void AssertUsesResource(Action<string> set, Func<string> get, Func<string> read)
