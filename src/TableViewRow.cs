@@ -88,12 +88,14 @@ public partial class TableViewRow : ListViewItem
     private async void OnIsSelectedChanged()
     {
         EnsureLayout();
-        RowPresenter?.SetRowDetailsVisibility();
 #else
+    /// <inheritdoc/>
     protected async override void OnIsSelectedChanged()
     {
         base.OnIsSelectedChanged();
 #endif
+        RowPresenter?.SetRowDetailsVisibility();
+
         if (TableView?.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenSelected
             && (RowPresenter?.IsDetailsPanelVisible ?? false))
         {
