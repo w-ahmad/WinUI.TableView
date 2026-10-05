@@ -1136,7 +1136,7 @@ public partial class TableView : ListView
 #if WINDOWS
     /// <summary>
     /// Applies <see cref="AreStickyGroupHeadersEnabled"/> to the underlying <see cref="ItemsStackPanel"/>, if the
-    /// current <see cref="ItemsPanelRoot"/> is one.
+    /// current <see cref="ItemsControl.ItemsPanelRoot"/> is one.
     /// </summary>
     private void ApplyStickyGroupHeadersSetting()
     {

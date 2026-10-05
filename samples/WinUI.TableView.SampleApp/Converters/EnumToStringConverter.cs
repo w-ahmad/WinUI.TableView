@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static CommunityToolkit.WinUI.Animations.Expressions.ExpressionValues;
 
 namespace WinUI.TableView.SampleApp.Converters;
 

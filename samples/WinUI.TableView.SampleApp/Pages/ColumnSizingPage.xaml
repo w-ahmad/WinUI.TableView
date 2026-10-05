@@ -6,7 +6,7 @@
       xmlns:local="using:WinUI.TableView.SampleApp"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:tv="using:WinUI.TableView"
-      xmlns:ui="using:CommunityToolkit.WinUI"
+      xmlns:helpers="using:WinUI.TableView.SampleApp.Helpers"
       d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
       mc:Ignorable="d"
       DataContextChanged="OnDataContextChanged">
@@ -25,12 +25,12 @@
                               HorizontalAlignment="Stretch"
                               Header="Column Auto Width Mode"
                               SelectedItem="{Binding ColumnAutoWidthMode, Mode=TwoWay, ElementName=tableView}"
-                              ItemsSource="{ui:EnumValues Type=tv:TableViewColumnAutoWidthMode}" />
+                              ItemsSource="{helpers:EnumValues Type=tv:TableViewColumnAutoWidthMode}" />
                     <ComboBox x:Name="columnResizeMode"
                               HorizontalAlignment="Stretch"
                               Header="Column Resize Mode"
                               SelectedItem="{Binding ColumnResizeMode, Mode=TwoWay, ElementName=tableView}"
-                              ItemsSource="{ui:EnumValues Type=tv:TableViewColumnResizeMode}" />
+                              ItemsSource="{helpers:EnumValues Type=tv:TableViewColumnResizeMode}" />
                 </StackPanel>
             </controls:SamplePresenter.Options>
             <controls:SamplePresenter.Xaml>

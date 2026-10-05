@@ -234,9 +234,9 @@ public partial class TableViewCell : ContentControl
 
     /// <summary>
     /// Begins a live resize-drag preview for this cell: generously (re)measures its content once so
-    /// widening can freely reveal more of it, and creates this cell's own <see cref="Clip"/> geometry
+    /// widening can freely reveal more of it, and creates this cell's own <see cref="UIElement.Clip"/> geometry
     /// and gridline shift transform. These are per-cell instances (not shared across cells — WinUI
-    /// throws if the same <see cref="RectangleGeometry"/> is assigned as <see cref="Clip"/> on more
+    /// throws if the same <see cref="RectangleGeometry"/> is assigned as <see cref="UIElement.Clip"/> on more
     /// than one element at a time), mutated in place every frame by
     /// <see cref="UpdateResizePreviewClip"/>/<see cref="UpdateGridLineShift"/> — still no Measure/Arrange
     /// per frame, just not a single shared instance across every row.

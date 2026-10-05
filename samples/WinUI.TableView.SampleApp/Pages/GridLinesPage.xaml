@@ -6,8 +6,7 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:tv="using:WinUI.TableView"
       xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
-      xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
-      xmlns:ui="using:CommunityToolkit.WinUI"
+      xmlns:helpers="using:WinUI.TableView.SampleApp.Helpers"
       xmlns:converters="using:WinUI.TableView.SampleApp.Converters"
       d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
       mc:Ignorable="d">
@@ -25,19 +24,19 @@
                     <ComboBox Header="Header grid lines visibility"
                               HorizontalAlignment="Stretch"
                               SelectedItem="{Binding HeaderGridLinesVisibility, Mode=TwoWay, ElementName=tableView}"
-                              ItemsSource="{ui:EnumValues Type=tv:TableViewGridLinesVisibility}" />
+                              ItemsSource="{helpers:EnumValues Type=tv:TableViewGridLinesVisibility}" />
                     <ComboBox Header="Grid lines visibility"
                               HorizontalAlignment="Stretch"
                               SelectedItem="{Binding GridLinesVisibility, Mode=TwoWay, ElementName=tableView}"
-                              ItemsSource="{ui:EnumValues Type=tv:TableViewGridLinesVisibility}" />
+                              ItemsSource="{helpers:EnumValues Type=tv:TableViewGridLinesVisibility}" />
                     <StackPanel Spacing="8"
                                 Orientation="Horizontal">
                         <NumberBox Header="Horizontal grid lines"
                                    Minimum="0"
                                    SpinButtonPlacementMode="Inline"
                                    Value="{Binding HorizontalGridLinesStrokeThickness, Mode=TwoWay, ElementName=tableView}" />
-                        <toolkit:ColorPickerButton VerticalAlignment="Bottom"
-                                                   SelectedColor="{Binding HorizontalGridLinesStroke, Mode=TwoWay, ElementName=tableView, Converter={StaticResource ColorToBrush}}" />
+                        <controls:ColorPickerButton VerticalAlignment="Bottom"
+                                                   SelectedBrush="{Binding HorizontalGridLinesStroke, Mode=TwoWay, ElementName=tableView}" />
                     </StackPanel>
                     <StackPanel Spacing="8"
                                 Orientation="Horizontal">
@@ -45,8 +44,8 @@
                                    Minimum="0"
                                    SpinButtonPlacementMode="Inline"
                                    Value="{Binding VerticalGridLinesStrokeThickness, Mode=TwoWay, ElementName=tableView}" />
-                        <toolkit:ColorPickerButton VerticalAlignment="Bottom"
-                                                   SelectedColor="{Binding VerticalGridLinesStroke, Mode=TwoWay, ElementName=tableView, Converter={StaticResource ColorToBrush}}" />
+                        <controls:ColorPickerButton VerticalAlignment="Bottom"
+                                                   SelectedBrush="{Binding VerticalGridLinesStroke, Mode=TwoWay, ElementName=tableView}" />
                     </StackPanel>
                     <StackPanel Spacing="8"
                                 Orientation="Horizontal">
@@ -56,8 +55,8 @@
                                    Maximum="16"
                                    SpinButtonPlacementMode="Inline"
                                    ValueChanged="OnBorderThicknessChanged" />
-                        <toolkit:ColorPickerButton VerticalAlignment="Bottom"
-                                                   SelectedColor="{Binding BorderBrush, Mode=TwoWay, ElementName=tableView, Converter={StaticResource ColorToBrush}}" />
+                        <controls:ColorPickerButton VerticalAlignment="Bottom"
+                                                   SelectedBrush="{Binding BorderBrush, Mode=TwoWay, ElementName=tableView}" />
                     </StackPanel>
                     <Slider x:Name="cornerRadius"
                             Header="Corner Radius"

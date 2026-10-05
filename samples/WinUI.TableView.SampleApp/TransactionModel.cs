@@ -4,6 +4,9 @@ namespace WinUI.TableView.SampleApp;
 /// <summary>
 /// Represents a single transaction record from the CSV sample data.
 /// </summary>
+#if WINDOWS
+[WinRT.GeneratedBindableCustomProperty]
+#endif
 public partial class TransactionModel : ObservableObject
 {
     [ObservableProperty]

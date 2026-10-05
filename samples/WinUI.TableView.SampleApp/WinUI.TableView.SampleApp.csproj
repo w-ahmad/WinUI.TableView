@@ -12,6 +12,8 @@
     <WinUISDKReferences>false</WinUISDKReferences>
     <EnableMsixTooling>true</EnableMsixTooling>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PublishAot Condition="'$(Platform)' != 'x86' and '$(RuntimeIdentifier)' != 'win-x86'">true</PublishAot>
+    <CsWinRTAotWarningLevel>2</CsWinRTAotWarningLevel>
     <DefineConstants>
       DISABLE_XAML_GENERATED_BINDING_DEBUG_OUTPUT;
       DISABLE_XAML_GENERATED_BREAK_ON_UNHANDLED_EXCEPTION;
@@ -36,7 +38,6 @@
   <ItemGroup>
     <PackageReference Include="ColorCode.WinUI" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
-    <PackageReference Include="CommunityToolkit.WinUI.Controls.ColorPicker" />
     <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" />
     <PackageReference Include="Microsoft.WindowsAppSDK" />

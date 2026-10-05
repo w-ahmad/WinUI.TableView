@@ -3,6 +3,9 @@ using System.Collections.ObjectModel;
 
 namespace WinUI.TableView.SampleApp;
 
+#if WINDOWS
+[WinRT.GeneratedBindableCustomProperty]
+#endif
 public partial class ExampleViewModel : ObservableObject
 {
     public ExampleViewModel()
