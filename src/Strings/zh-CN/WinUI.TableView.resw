@@ -204,4 +204,28 @@
   <data name="SortGroupsByValue" xml:space="preserve">
     <value>按值排序分组</value>
   </data>
+  <data name="TableViewControlType" xml:space="preserve">
+    <value>表格视图</value>
+    <comment>UI Automation localized control type of the TableView.</comment>
+  </data>
+  <data name="ColumnHeaderControlType" xml:space="preserve">
+    <value>列标题</value>
+    <comment>UI Automation localized control type of a column header.</comment>
+  </data>
+  <data name="RowHeaderControlType" xml:space="preserve">
+    <value>行标题</value>
+    <comment>UI Automation localized control type of a row header.</comment>
+  </data>
+  <data name="CellControlType" xml:space="preserve">
+    <value>单元格</value>
+    <comment>UI Automation localized control type of a cell.</comment>
+  </data>
+  <data name="RowNumber" xml:space="preserve">
+    <value>第 {0} 行</value>
+    <comment>UI Automation name of a row; {0} is the one-based row number.</comment>
+  </data>
+  <data name="Row" xml:space="preserve">
+    <value>行</value>
+    <comment>UI Automation name of a row whose index is not known.</comment>
+  </data>
 </root>
