@@ -85,12 +85,40 @@ public partial class TableViewRow : ListViewItem
     /// <summary>
     /// Handles the IsSelected property changed.
     /// </summary>
-    private void OnIsSelectedChanged()
+    private async void OnIsSelectedChanged()
     {
         EnsureLayout();
-        RowPresenter?.SetRowDetailsVisibility();
-    }
+#else
+    /// <inheritdoc/>
+    protected async override void OnIsSelectedChanged()
+    {
+        base.OnIsSelectedChanged();
 #endif
+        RowPresenter?.SetRowDetailsVisibility();
+
+        if (TableView?.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenSelected
+            && (RowPresenter?.IsDetailsPanelVisible ?? false))
+        {
+            await ScrollIntoViewAfterDetailsPaneVisibility();
+        }
+    }
+
+    /// <summary>
+    /// Brings this row into view once the row details animation has had time to run. Skips the scroll if
+    /// the container was detached or recycled for different content while waiting.
+    /// </summary>
+    internal async Task ScrollIntoViewAfterDetailsPaneVisibility()
+    {
+        var content = Content;
+        var index = Index;
+
+        await Task.Delay(20);
+
+        if (TableView is not null && index >= 0 && Index == index && object.ReferenceEquals(Content, content))
+        {
+            await TableView.ScrollRowIntoView(index);
+        }
+    }
 
     /// <summary>
     /// Handles the Foreground property changed.
@@ -257,13 +285,18 @@ public partial class TableViewRow : ListViewItem
     /// </summary>
     private async void OnSizeChanged(object sender, SizeChangedEventArgs e)
     {
-        if (TableView?.CurrentCellSlot?.Row == Index)
+        // A height change (wrapped text, row details, ...) can push the current row out of view, so keep it
+        // visible vertically. The horizontal position is left alone: a width change, such as resizing a
+        // column, must not scroll the table to the current cell.
+        if (TableView is null || e.NewSize.Height == e.PreviousSize.Height) return;
+
+        if (TableView.CurrentCellSlot?.Row == Index || TableView.CurrentRowIndex == Index)
         {
-            _ = await TableView.ScrollCellIntoView(TableView.CurrentCellSlot.Value);
+            _ = await TableView.ScrollRowIntoView(Index);
         }
 
         // Update the row positions in the TableView after the size change.
-        TableView?.UpdateRowPositions();
+        TableView.UpdateRowPositions();
     }
 
     /// <summary>
