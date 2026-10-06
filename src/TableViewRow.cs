@@ -110,12 +110,13 @@ public partial class TableViewRow : ListViewItem
     internal async Task ScrollIntoViewAfterDetailsPaneVisibility()
     {
         var content = Content;
+        var index = Index;
 
         await Task.Delay(20);
 
-        if (TableView is not null && Index >= 0 && Equals(Content, content))
+        if (TableView is not null && index >= 0 && Index == index && object.ReferenceEquals(Content, content))
         {
-            await TableView.ScrollRowIntoView(Index);
+            await TableView.ScrollRowIntoView(index);
         }
     }
 
