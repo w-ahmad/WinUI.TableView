@@ -35,7 +35,7 @@ public partial class TableViewRowHeaderAutomationPeer : FrameworkElementAutomati
     /// <inheritdoc/>
     protected override string GetLocalizedControlTypeCore()
     {
-        return "row header";
+        return TableViewLocalizedStrings.RowHeaderControlType;
     }
 
     /// <inheritdoc/>
@@ -77,6 +77,6 @@ public partial class TableViewRowHeaderAutomationPeer : FrameworkElementAutomati
 
         // Fall back to the row index
         var rowIndex = _owner.TableViewRow?.Index ?? -1;
-        return rowIndex >= 0 ? $"Row {rowIndex + 1}" : base.GetNameCore();
+        return rowIndex >= 0 ? TableViewLocalizedStrings.FormatRowNumber(rowIndex + 1) : base.GetNameCore();
     }
 }

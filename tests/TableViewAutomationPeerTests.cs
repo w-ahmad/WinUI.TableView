@@ -1,9 +1,12 @@
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Automation.Provider;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
+using System.Threading.Tasks;
 using WinUI.TableView.AutomationPeers;
 
 namespace WinUI.TableView.Tests;
@@ -422,5 +425,169 @@ public class TableViewAutomationPeerTests
         var peer = FrameworkElementAutomationPeer.CreatePeerForElement(rowHeader);
 
         Assert.IsInstanceOfType(peer, typeof(TableViewRowHeaderAutomationPeer));
+    }
+
+    // ─── Localized automation text ──────────────────────────────────────────
+    // Each test swaps the resource value for a sentinel, so it fails on a peer that returns an
+    // English literal even when the test runs under en-US, where the literal and the resource agree.
+
+    [UITestMethod]
+    public void TableViewAutomationPeer_LocalizedControlType_ComesFromResources()
+    {
+        AssertUsesResource(v => TableViewLocalizedStrings.TableViewControlType = v, () => TableViewLocalizedStrings.TableViewControlType,
+            () => new TableViewAutomationPeer(new TableView()).GetLocalizedControlType());
+    }
+
+    [UITestMethod]
+    public void TableViewColumnHeaderAutomationPeer_LocalizedControlType_ComesFromResources()
+    {
+        AssertUsesResource(v => TableViewLocalizedStrings.ColumnHeaderControlType = v, () => TableViewLocalizedStrings.ColumnHeaderControlType,
+            () => new TableViewColumnHeaderAutomationPeer(new TableViewColumnHeader()).GetLocalizedControlType());
+    }
+
+    [UITestMethod]
+    public void TableViewRowHeaderAutomationPeer_LocalizedControlType_ComesFromResources()
+    {
+        AssertUsesResource(v => TableViewLocalizedStrings.RowHeaderControlType = v, () => TableViewLocalizedStrings.RowHeaderControlType,
+            () => new TableViewRowHeaderAutomationPeer(new TableViewRowHeader()).GetLocalizedControlType());
+    }
+
+    [UITestMethod]
+    public void TableViewCellAutomationPeer_LocalizedControlType_ComesFromResources()
+    {
+        AssertUsesResource(v => TableViewLocalizedStrings.CellControlType = v, () => TableViewLocalizedStrings.CellControlType,
+            () => new TableViewCellAutomationPeer(new TableViewCell()).GetLocalizedControlType());
+    }
+
+    [UITestMethod]
+    public void TableViewRowAutomationPeer_NameWithoutIndex_ComesFromResources()
+    {
+        // Row.Index returns -1 when not in a list, so the name is the bare "Row" resource.
+        AssertUsesResource(v => TableViewLocalizedStrings.Row = v, () => TableViewLocalizedStrings.Row,
+            () => new TableViewRowAutomationPeer(new TableViewRow()).GetName());
+    }
+
+    [UITestMethod]
+    public void FormatRowNumber_UsesTheRowNumberResource()
+    {
+        var original = TableViewLocalizedStrings.RowNumber;
+        try
+        {
+            TableViewLocalizedStrings.RowNumber = "R#{0}";
+            Assert.AreEqual("R#3", TableViewLocalizedStrings.FormatRowNumber(3));
+        }
+        finally
+        {
+            TableViewLocalizedStrings.RowNumber = original;
+        }
+
+        StringAssert.Contains(TableViewLocalizedStrings.FormatRowNumber(3), "3");
+    }
+
+    [UITestMethod]
+    public void AutomationResources_AreNotEmpty()
+    {
+        Assert.IsFalse(string.IsNullOrEmpty(TableViewLocalizedStrings.TableViewControlType));
+        Assert.IsFalse(string.IsNullOrEmpty(TableViewLocalizedStrings.ColumnHeaderControlType));
+        Assert.IsFalse(string.IsNullOrEmpty(TableViewLocalizedStrings.RowHeaderControlType));
+        Assert.IsFalse(string.IsNullOrEmpty(TableViewLocalizedStrings.CellControlType));
+        Assert.IsFalse(string.IsNullOrEmpty(TableViewLocalizedStrings.Row));
+        StringAssert.Contains(TableViewLocalizedStrings.RowNumber, "{0}");
+    }
+
+    // The indexed names ("Row {n}") are only composed for a row that has an index, i.e. one realized in a
+    // loaded TableView. Each test swaps RowNumber for a sentinel and reads the peer, so it fails on a peer
+    // that composes the name from an English literal instead of FormatRowNumber.
+
+    [UITestMethod]
+    public async Task TableViewRowAutomationPeer_IndexedName_ComesFromResources()
+    {
+        var row = await RealizeSecondRowAsync();
+
+        AssertUsesRowNumberResource(() => new TableViewRowAutomationPeer(row).GetName(), expected: "R#2");
+    }
+
+    [UITestMethod]
+    public async Task TableViewRowHeaderAutomationPeer_IndexedName_ComesFromResources()
+    {
+        var row = await RealizeSecondRowAsync();
+        var rowHeader = new TableViewRowHeader { TableViewRow = row };
+
+        AssertUsesRowNumberResource(() => new TableViewRowHeaderAutomationPeer(rowHeader).GetName(), expected: "R#2");
+    }
+
+    [UITestMethod]
+    public async Task TableViewCellAutomationPeer_IndexedName_ComesFromResources()
+    {
+        var row = await RealizeSecondRowAsync();
+        Assert.IsTrue(row.Cells.Count > 0, "the realized row has no cells");
+        var cell = row.Cells[0];
+
+        // The cell's name also carries the column header and the value; only its row part is under test.
+        AssertUsesRowNumberResource(() => new TableViewCellAutomationPeer(cell).GetName(), expected: "R#2", whole: false);
+    }
+
+    private static void AssertUsesRowNumberResource(Func<string> read, string expected, bool whole = true)
+    {
+        var original = TableViewLocalizedStrings.RowNumber;
+        try
+        {
+            TableViewLocalizedStrings.RowNumber = "R#{0}";
+            var name = read();
+            if (whole)
+            {
+                Assert.AreEqual(expected, name);
+            }
+            else
+            {
+                StringAssert.Contains(name, expected);
+            }
+        }
+        finally
+        {
+            TableViewLocalizedStrings.RowNumber = original;
+        }
+    }
+
+    private static async Task<TableViewRow> RealizeSecondRowAsync()
+    {
+        var tableView = new TableView { AutoGenerateColumns = false };
+        tableView.Columns.Add(new TableViewTextColumn
+        {
+            Header = "Name",
+            Binding = new Binding { Path = new PropertyPath(nameof(IndexedNameItem.Name)) }
+        });
+        tableView.ItemsSource = new[]
+        {
+            new IndexedNameItem { Name = "A" },
+            new IndexedNameItem { Name = "B" },
+        };
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+
+        var row = tableView.ContainerFromIndex(1) as TableViewRow;
+        Assert.IsNotNull(row, "the second row was not realized");
+        Assert.AreEqual(1, row.Index, "the realized row reports no index, so no indexed name would be composed");
+        return row;
+    }
+
+    private sealed class IndexedNameItem
+    {
+        public string Name { get; set; } = string.Empty;
+    }
+
+    private static void AssertUsesResource(Action<string> set, Func<string> get, Func<string> read)
+    {
+        const string sentinel = "localized-sentinel";
+        var original = get();
+        try
+        {
+            set(sentinel);
+            Assert.AreEqual(sentinel, read());
+        }
+        finally
+        {
+            set(original);
+        }
     }
 }
