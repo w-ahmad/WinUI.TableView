@@ -70,8 +70,8 @@ public partial class TableViewCellAutomationPeer : FrameworkElementAutomationPee
             ? TableViewRowAutomationPeer.GetColumnHeaderText(col)
             : string.Empty;
 
-        var rowIndex = _owner.Row?.Index ?? -1;
-        var rowDisplay = rowIndex >= 0 ? $"Row {rowIndex + 1}" : string.Empty;
+        var rowNumber = _owner.Row?.RowNumber ?? 0;
+        var rowDisplay = rowNumber > 0 ? $"Row {rowNumber}" : string.Empty;
 
         var cellValue = _owner.Column is TableViewTemplateColumn
             ? string.Empty
