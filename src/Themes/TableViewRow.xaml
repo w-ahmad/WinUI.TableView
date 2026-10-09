@@ -13,7 +13,8 @@
 
     <!--  One template for every platform. The row used to be a ListViewItem whose Windows template was the native
           ListViewItemPresenter, which meant the row's chrome had to be located by shape-matching inside it. The row
-          is a plain ContentControl now, so the parts it needs are named parts it owns.  -->
+          is a plain ContentControl now, so the parts it needs are named parts it owns. The style must not set
+          FontFamily or FontSize: rows inherit them from the TableView, and a setter here would cut that off.  -->
     <Style x:Key="DefaultTableViewRowStyle"
            TargetType="local:TableViewRow">
         <Setter Property="Background" Value="{ThemeResource TableViewRowBackground}" />

@@ -1,6 +1,5 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Data;
 using System;
 using System.Collections.Generic;
 using Windows.Foundation.Collections;
@@ -190,22 +189,7 @@ public partial class TableView
     /// </summary>
     internal TableViewRow CreateRow()
     {
-        var row = new TableViewRow { TableView = this };
-
-        // Propagate the text settings the way the old container-generation path did.
-        row.SetBinding(FontFamilyProperty, new Binding
-        {
-            Path = new PropertyPath($"{nameof(TableViewRow.TableView)}.{nameof(FontFamily)}"),
-            RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
-        });
-
-        row.SetBinding(FontSizeProperty, new Binding
-        {
-            Path = new PropertyPath($"{nameof(TableViewRow.TableView)}.{nameof(FontSize)}"),
-            RelativeSource = new RelativeSource { Mode = RelativeSourceMode.Self }
-        });
-
-        return row;
+        return new TableViewRow { TableView = this };
     }
 
     /// <summary>
