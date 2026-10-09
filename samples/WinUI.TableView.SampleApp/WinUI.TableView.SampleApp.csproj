@@ -19,6 +19,7 @@
       DISABLE_XAML_GENERATED_BREAK_ON_UNHANDLED_EXCEPTION;
       DISABLE_XAML_GENERATED_RESOURCE_REFERENCE_DEBUG_OUTPUT;
     </DefineConstants>
+    <UseTableViewNuGet Condition="'$(UseTableViewNuGet)' == ''">false</UseTableViewNuGet>
   </PropertyGroup>
 
   <ItemGroup>
@@ -45,8 +46,12 @@
     <PackageReference Include="ClosedXML" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(UseTableViewNuGet)' != 'true'">
     <ProjectReference Include="..\..\src\WinUI.TableView.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(UseTableViewNuGet)' == 'true'">
+    <PackageReference Include="WinUI.TableView" VersionOverride="$(TableViewPackageVersion)" />
   </ItemGroup>
 
   <!--
