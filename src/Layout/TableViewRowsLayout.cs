@@ -26,7 +26,7 @@ namespace WinUI.TableView.Layout;
 /// group's header pushes it up.
 /// </para>
 /// </remarks>
-internal sealed class TableViewRowsLayout : VirtualizingLayout
+internal sealed partial class TableViewRowsLayout : VirtualizingLayout
 {
     private int _firstRealizedIndex = -1;
     private int _lastRealizedIndex = -1;
