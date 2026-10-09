@@ -13,8 +13,9 @@ namespace WinUI.TableView.Layout;
 /// <remarks>
 /// The vertical extent is computed from <see cref="TableViewRowHeights"/> rather than from measured content, so a
 /// million-row table reports its height without touching a million rows, and the visible range is found by index
-/// arithmetic instead of a scan. Rows the measure pass does not ask for are recycled by the repeater, so the
-/// number of live row elements tracks the viewport height and not the item count.
+/// arithmetic instead of a scan. Rows leaving the realization window are recycled before the rows entering it are
+/// realized, so the number of live row elements tracks the viewport height and not the item count, even across a
+/// long jump.
 /// <para>
 /// Horizontal extent is computed from the column widths for the same reason: it no longer depends on which rows
 /// happen to be realized, so the horizontal scrollbar stops depending on scroll position.
@@ -32,6 +33,7 @@ internal sealed class TableViewRowsLayout : VirtualizingLayout
     private int _pinnedIndex = -1;
     private TableViewGroupHeaderRow? _pinnedHeader;
     private bool _hasMeasuredARow;
+    private bool _realizedIndexesMoved;
 
     /// <summary>
     /// Gets or sets the table this layout belongs to.
@@ -119,6 +121,8 @@ internal sealed class TableViewRowsLayout : VirtualizingLayout
 
         var rowMaxHeight = GetRowMaxHeight();
 
+        RecycleRowsLeavingTheWindow(context, first, last);
+
         for (var index = first; index <= last; index++)
         {
             var element = context.GetOrCreateElementAt(index);
@@ -129,6 +133,7 @@ internal sealed class TableViewRowsLayout : VirtualizingLayout
 
         _firstRealizedIndex = first;
         _lastRealizedIndex = last;
+        _realizedIndexesMoved = false;
         _pinnedIndex = FindPinnedIndex();
 
         if (_pinnedIndex >= 0 && (_pinnedIndex < first || _pinnedIndex > last))
@@ -200,6 +205,8 @@ internal sealed class TableViewRowsLayout : VirtualizingLayout
                 break;
         }
 
+        // The repeater has moved the realized rows to their new indexes, so the last window no longer names them.
+        _realizedIndexesMoved = true;
         InvalidateMeasure();
     }
 
@@ -210,6 +217,30 @@ internal sealed class TableViewRowsLayout : VirtualizingLayout
 
         _firstRealizedIndex = _lastRealizedIndex = _pinnedIndex = -1;
         Unpin();
+    }
+
+    /// <summary>
+    /// Recycles the rows of the last realization window that fall outside the new one. The repeater recycles whatever
+    /// a measure pass did not ask for, but only once the pass is over, so without this a jump to a distant offset
+    /// builds a new row for every index it realizes while the rows it is leaving are still held.
+    /// </summary>
+    private void RecycleRowsLeavingTheWindow(VirtualizingLayoutContext context, int first, int last)
+    {
+        if (_firstRealizedIndex < 0 || _realizedIndexesMoved)
+        {
+            return;
+        }
+
+        var end = Math.Min(_lastRealizedIndex, context.ItemCount - 1);
+
+        for (var index = _firstRealizedIndex; index <= end; index++)
+        {
+            // The pinned header is left to the repeater: it may stay pinned, which is only known after this pass.
+            if ((index < first || index > last) && index != _pinnedIndex)
+            {
+                context.RecycleElement(context.GetOrCreateElementAt(index));
+            }
+        }
     }
 
     /// <summary>

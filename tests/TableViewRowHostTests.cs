@@ -85,16 +85,22 @@ public class TableViewRowHostTests
     {
         var tableView = await CreateTableViewAsync(itemCount: 5_000);
 
+        // Start away from the top, so the cache above the viewport is realized too and both windows have one shape.
+        await ScrollToAsync(tableView, 2_000d);
+
         var before = RealizedRows(tableView).ToHashSet();
         Assert.IsTrue(before.Count > 0);
 
+        // Far enough that the two windows share no row, so every row at the new offset has to be one left behind.
         await ScrollToAsync(tableView, 4_000d);
 
         var after = RealizedRows(tableView).ToList();
 
         Assert.IsTrue(after.Count > 0, "rows should be realized at the new offset");
-        Assert.IsTrue(after.Any(before.Contains), "scrolling should reuse row elements rather than build new ones");
-        Assert.IsTrue(after.Count <= before.Count + 2, "the realized set should not grow while scrolling");
+        Assert.IsTrue(after.Where(x => x.Index >= 0).All(x => x.Index * 40d >= 2_000d + ViewportHeight), "the new window should not overlap the old one");
+        Assert.AreEqual(before.Count, after.Count, "the number of row elements should not change while scrolling");
+        Assert.IsTrue(after.All(before.Contains),
+            $"{after.Count(x => !before.Contains(x))} of {after.Count} rows were built new instead of reusing the rows scrolled away from");
 
         // Reused rows must be showing the items at their new position, not the ones they were built for.
         foreach (var row in after)
