@@ -209,12 +209,14 @@ public partial class TableView
         _rowElementFactory = new TableViewRowElementFactory(this);
         _visualRows = new TableViewVisualRows(_collectionView);
 
-        // A small cache keeps the realized row count close to the viewport. The repeater's default of two
-        // viewports either side would triple the number of live rows, and rows are not cheap elements.
+        // Half a viewport of rows is kept realized above and below the visible ones. Touch and touchpad panning
+        // keep moving the content while the UI thread is busy, during a garbage collection for instance, and the
+        // rows realized ahead are what stays on screen meanwhile. The repeater's default of a whole viewport each
+        // side would double the live rows, and every live row adds to what each garbage collection has to walk.
         repeater.HorizontalCacheLength = 0d;
-        repeater.VerticalCacheLength = 0.5d;
+        repeater.VerticalCacheLength = 1d;
         repeater.Layout = _rowsLayout;
-        repeater.ItemTemplate = _rowElementFactory;
+        repeater.ItemTemplate = _rowElementFactory.Shim;
         repeater.ItemsSource = _visualRows;
 
         repeater.ElementPrepared += OnRowElementPrepared;

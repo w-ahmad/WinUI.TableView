@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml;
+using System;
 using System.Collections.Generic;
 
 namespace WinUI.TableView.Layout;
@@ -12,8 +13,15 @@ namespace WinUI.TableView.Layout;
 /// element — each one builds a cell per visible column — which is exactly why they are pooled and reused rather
 /// than recreated as the viewport moves. Group headers get a pool of their own, since a header can never be
 /// reused as a data row or the other way round.
+/// <para>
+/// The repeater is not given this factory but <see cref="Shim"/>. A repeater holds its item template through a
+/// reference the garbage collector's reference tracking does not see, so whatever it is given acts as a root for
+/// as long as the repeater lives; and this factory leads back to the table, whose visual tree holds the repeater.
+/// Handed over directly, it kept every table alive after it was unloaded. The shim reaches the factory weakly, and
+/// the table owns the factory, so all of it is collected once the table is.
+/// </para>
 /// </remarks>
-internal sealed class TableViewRowElementFactory : IElementFactory
+internal sealed partial class TableViewRowElementFactory
 {
     private const int MaxPooledElements = 64;
 
@@ -27,9 +35,17 @@ internal sealed class TableViewRowElementFactory : IElementFactory
     public TableViewRowElementFactory(TableView tableView)
     {
         _tableView = tableView;
+        Shim = new WeakShim(this);
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets the element factory to give the repeater in place of this one.
+    /// </summary>
+    public IElementFactory Shim { get; }
+
+    /// <summary>
+    /// Returns a row for a data item, or a group header for a group, reusing a pooled one when there is one.
+    /// </summary>
     public UIElement GetElement(ElementFactoryGetArgs args)
     {
         if (args.Data is TableViewGroupInfo groupInfo)
@@ -51,7 +67,9 @@ internal sealed class TableViewRowElementFactory : IElementFactory
         return row;
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Takes back a row or group header the repeater no longer shows, pooling it for reuse.
+    /// </summary>
     public void RecycleElement(ElementFactoryRecycleArgs args)
     {
         switch (args.Element)
@@ -77,6 +95,31 @@ internal sealed class TableViewRowElementFactory : IElementFactory
                 }
 
                 break;
+        }
+    }
+
+    /// <summary>
+    /// The element factory the repeater holds: forwards to the table's factory without keeping it alive.
+    /// </summary>
+    private sealed partial class WeakShim(TableViewRowElementFactory owner) : IElementFactory
+    {
+        private readonly WeakReference<TableViewRowElementFactory> _owner = new(owner);
+
+        /// <inheritdoc/>
+        public UIElement GetElement(ElementFactoryGetArgs args)
+        {
+            // The repeater only asks while its table is alive, so the fallback is never shown; it only keeps the
+            // contract of always returning an element.
+            return _owner.TryGetTarget(out var owner) ? owner.GetElement(args) : new TableViewRow();
+        }
+
+        /// <inheritdoc/>
+        public void RecycleElement(ElementFactoryRecycleArgs args)
+        {
+            if (_owner.TryGetTarget(out var owner))
+            {
+                owner.RecycleElement(args);
+            }
         }
     }
 }

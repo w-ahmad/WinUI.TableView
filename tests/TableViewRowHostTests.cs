@@ -3,9 +3,11 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.Foundation;
@@ -112,6 +114,35 @@ public class TableViewRowHostTests
         }
 
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task UnloadedTable_IsCollected()
+    {
+        var table = await CreateScrollAndUnloadAsync();
+
+        // XAML lets go of an unloaded tree over the next few ticks, so allow a few rounds.
+        for (var round = 0; round < 10 && table.IsAlive; round++)
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+            await Task.Delay(100);
+        }
+
+        // A table that outlives its page keeps every row and cell alive with it, and each garbage collection then
+        // has to walk all of them, which is what made scrolling stall once a few pages had been visited.
+        Assert.IsFalse(table.IsAlive, "the unloaded table is still alive; something outside it keeps it rooted");
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static async Task<WeakReference> CreateScrollAndUnloadAsync()
+    {
+        var tableView = await CreateTableViewAsync(itemCount: 2_000);
+        await ScrollToAsync(tableView, 4_000d);
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+
+        return new WeakReference(tableView);
     }
 
     [UITestMethod]
