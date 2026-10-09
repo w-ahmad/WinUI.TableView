@@ -136,11 +136,6 @@ public partial class TableViewCell : ContentControl
                     return base.MeasureOverride(availableSize);
             }
 
-            #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860
-            element.MaxWidth = double.PositiveInfinity;
-            element.MaxHeight = double.PositiveInfinity;
-            #endregion
-
             // Skip the unconstrained auto-width measurement while the column is being manually
             // resized — it only feeds Column.DesiredWidth, which is irrelevant to a pixel-width drag,
             // and this cell doesn't get remeasured on every drag frame anyway (see BeginResizePreview).
@@ -163,47 +158,6 @@ public partial class TableViewCell : ContentControl
                     Column.DesiredWidth = Math.Max(Column.DesiredWidth, desiredWidth);
                 }
             }
-
-            #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860
-            // While a resize preview is active, the content was already generously (re)measured once
-            // in BeginResizePreview and must keep that width so Clip can freely reveal/hide it every
-            // frame without another Measure pass — using the live Column.ActualWidth here (which is
-            // intentionally frozen during the drag, see TableView.UpdateColumnResizePreview) would
-            // re-clamp the content straight back to the pre-drag size.
-            var contentWidth = _resizePreviewActive ? _resizePreviewWidth : Column.ActualWidth;
-            contentWidth -= element.Margin.Left;
-            contentWidth -= element.Margin.Right;
-            contentWidth -= Padding.Left;
-            contentWidth -= Padding.Right;
-            contentWidth -= BorderThickness.Left;
-            contentWidth -= BorderThickness.Right;
-            contentWidth -= _selectionBorder?.BorderThickness.Left ?? 0;
-            contentWidth -= _selectionBorder?.BorderThickness.Right ?? 0;
-            contentWidth -= _v_gridLine?.ActualWidth ?? 0d;
-
-            var height = Height is double.NaN ? double.PositiveInfinity : Height;
-            var contentHeight = Math.Min(height, MaxHeight);
-            contentHeight -= element.Margin.Top;
-            contentHeight -= element.Margin.Bottom;
-            contentHeight -= Padding.Top;
-            contentHeight -= Padding.Bottom;
-            contentHeight -= BorderThickness.Top;
-            contentHeight -= BorderThickness.Bottom;
-            contentHeight -= _selectionBorder?.BorderThickness.Top ?? 0;
-            contentHeight -= _selectionBorder?.BorderThickness.Bottom ?? 0;
-            contentHeight -= GetHorizontalGridlineHeight();
-
-            if (contentWidth < 0 || contentHeight < 0)
-            {
-                _contentPresenter.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                element.MaxWidth = contentWidth;
-                element.MaxHeight = contentHeight;
-                _contentPresenter.Visibility = Visibility.Visible;
-            }
-            #endregion
         }
 
         return base.MeasureOverride(availableSize);
@@ -260,8 +214,6 @@ public partial class TableViewCell : ContentControl
 
             if (element is not null)
             {
-                element.MaxWidth = maxPreviewWidth;
-                element.MaxHeight = double.PositiveInfinity;
                 element.Measure(new Size(maxPreviewWidth, double.PositiveInfinity));
 
                 var desiredWidth = element.DesiredSize.Width;
@@ -456,15 +408,6 @@ public partial class TableViewCell : ContentControl
         }
 
         return true;
-    }
-
-    /// <summary>
-    /// Gets the height of the horizontal gridlines/>.
-    /// </summary>
-    private double GetHorizontalGridlineHeight()
-    {
-        return TableView?.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Horizontal
-            ? TableView.HorizontalGridLinesStrokeThickness : 0d;
     }
 
     /// <inheritdoc/>
