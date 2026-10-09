@@ -5,7 +5,8 @@
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>x86;x64;ARM64</Platforms>
-    <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="'$(StorePackaging)' != 'true' and '$(RuntimeIdentifier)' == ''">win-$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture.ToString().ToLowerInvariant());</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="'$(StorePackaging)' == 'true'">win-x86;win-x64;win-arm64</RuntimeIdentifiers>
     <PublishProfile Condition="Exists('Properties\PublishProfiles\win-$(Platform).pubxml')">win-$(Platform).pubxml</PublishProfile>
     <ApplicationIcon>Assets/TableView.ico</ApplicationIcon>
     <UseWinUI>true</UseWinUI>
@@ -19,6 +20,7 @@
       DISABLE_XAML_GENERATED_BREAK_ON_UNHANDLED_EXCEPTION;
       DISABLE_XAML_GENERATED_RESOURCE_REFERENCE_DEBUG_OUTPUT;
     </DefineConstants>
+    <GenerateTemporaryStoreCertificate>True</GenerateTemporaryStoreCertificate>
     <UseTableViewNuGet Condition="'$(UseTableViewNuGet)' == ''">false</UseTableViewNuGet>
   </PropertyGroup>
 
