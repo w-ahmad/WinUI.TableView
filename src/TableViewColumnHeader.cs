@@ -14,6 +14,7 @@ using WinUI.TableView.Collections;
 using WinUI.TableView.Controls;
 using WinUI.TableView.Extensions;
 using SD = WinUI.TableView.SortDirection;
+using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
 
@@ -720,7 +721,7 @@ public partial class TableViewColumnHeader : ContentControl
         if (_v_gridLine is not null && _tableView is not null)
         {
             _v_gridLine.Fill = _tableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
-                               ? _tableView.VerticalGridLinesStroke : new SolidColorBrush(Colors.Transparent);
+                               ? _tableView.VerticalGridLinesStroke : SharedResources.TransparentBrush;
             _v_gridLine.Width = _tableView.VerticalGridLinesStrokeThickness;
             _v_gridLine.Visibility = _tableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
                                      || _tableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
