@@ -20,6 +20,8 @@
       DISABLE_XAML_GENERATED_BREAK_ON_UNHANDLED_EXCEPTION;
       DISABLE_XAML_GENERATED_RESOURCE_REFERENCE_DEBUG_OUTPUT;
     </DefineConstants>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <PackageType>None</PackageType>
     <GenerateTemporaryStoreCertificate>True</GenerateTemporaryStoreCertificate>
     <UseTableViewNuGet Condition="'$(UseTableViewNuGet)' == ''">false</UseTableViewNuGet>
   </PropertyGroup>
