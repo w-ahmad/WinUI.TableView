@@ -20,6 +20,8 @@ public partial class TableView
     private TableViewVisualRows? _visualRows;
     private readonly List<TableViewGroupHeaderRow> _groupHeaderRows = [];
     private bool _isLoadingMoreItems;
+    private bool _isIncrementalLoadQueued;
+    private TableViewRealizedRows? _realizedRows;
 
     /// <summary>
     /// Gets the items produced by the current sorting and filtering.
@@ -50,22 +52,25 @@ public partial class TableView
     /// </summary>
     internal List<UIElement> GetRealizedRowElements()
     {
-        var elements = new List<(int VisualIndex, UIElement Element)>(_rows.Count + _groupHeaderRows.Count);
+        return [.. RealizedRows.InOrder];
+    }
 
+    /// <summary>
+    /// Gets the realized rows and group headers in visual order, and where each one is.
+    /// </summary>
+    internal TableViewRealizedRows RealizedRows => _realizedRows ??= new(GetRealizedEntries, isInFlow: static element => element is not TableViewGroupHeaderRow { IsPinned: true });
+
+    private IEnumerable<(int VisualIndex, UIElement Element)> GetRealizedEntries()
+    {
         foreach (var row in _rows)
         {
-            elements.Add((row.VisualIndex, row));
+            yield return (row.VisualIndex, row);
         }
 
         foreach (var header in _groupHeaderRows)
         {
-            elements.Add((_rowsRepeater?.GetElementIndex(header) ?? -1, header));
+            yield return (header.VisualIndex, header);
         }
-
-        elements.RemoveAll(x => x.VisualIndex < 0);
-        elements.Sort((x, y) => x.VisualIndex.CompareTo(y.VisualIndex));
-
-        return elements.ConvertAll(x => x.Element);
     }
 
     /// <summary>
@@ -129,7 +134,7 @@ public partial class TableView
     {
         var visualIndex = GetVisualIndexFromItemIndex(index);
 
-        return visualIndex < 0 ? null : _rowsRepeater?.TryGetElement(visualIndex);
+        return visualIndex < 0 ? null : RealizedRows.Get(visualIndex);
     }
 
     /// <summary>
@@ -225,6 +230,8 @@ public partial class TableView
         repeater.ItemsSource = _visualRows;
 
         repeater.ElementPrepared += OnRowElementPrepared;
+
+        ConsiderLoadingMoreItems(-1);
         repeater.ElementClearing += OnRowElementClearing;
         repeater.ElementIndexChanged += OnRowElementIndexChanged;
     }
@@ -292,6 +299,7 @@ public partial class TableView
         }
 
         _rows.Clear();
+        _realizedRows?.Invalidate();
         _groupHeaderRows.Clear();
     }
 
@@ -302,12 +310,16 @@ public partial class TableView
     /// </summary>
     private void OnRowElementPrepared(ItemsRepeater sender, ItemsRepeaterElementPreparedEventArgs args)
     {
+        _realizedRows?.Invalidate();
+
         if (args.Element is TableViewRow row)
         {
             AttachRow(row, args.Index);
+            ConsiderLoadingMoreItems(args.Index);
         }
         else if (args.Element is TableViewGroupHeaderRow header)
         {
+            header.VisualIndex = args.Index;
             AttachGroupHeader(header);
         }
     }
@@ -317,9 +329,12 @@ public partial class TableView
     /// </summary>
     private void OnRowElementClearing(ItemsRepeater sender, ItemsRepeaterElementClearingEventArgs args)
     {
+        _realizedRows?.Invalidate();
+
         if (args.Element is TableViewGroupHeaderRow header)
         {
             _groupHeaderRows.Remove(header);
+            header.VisualIndex = -1;
             _rowsLayout?.OnElementCleared(header);
 
             return;
@@ -345,9 +360,15 @@ public partial class TableView
     /// </summary>
     private void OnRowElementIndexChanged(ItemsRepeater sender, ItemsRepeaterElementIndexChangedEventArgs args)
     {
+        _realizedRows?.Invalidate();
+
         if (args.Element is TableViewRow row)
         {
             AttachRow(row, args.NewIndex);
+        }
+        else if (args.Element is TableViewGroupHeaderRow header)
+        {
+            header.VisualIndex = args.NewIndex;
         }
     }
 
@@ -471,6 +492,12 @@ public partial class TableView
         }
 
         OnItemsChangedForSelection();
+
+        // An empty source realizes no rows to ask for its first page.
+        if (_collectionView.Count is 0)
+        {
+            ConsiderLoadingMoreItems(-1);
+        }
     }
 
     /// <summary>
@@ -549,22 +576,54 @@ public partial class TableView
     }
 
     /// <summary>
-    /// Called by the layout after each measure pass with the last visual row it realized and the visual row count.
+    /// Queues a request for more items when a realized row is close enough to the end of what is loaded.
     /// </summary>
-    internal void OnRowsRealized(int lastRealizedIndex, int rowCount)
+    /// <param name="realizedIndex">The visual index of a row just realized, or -1 to only check an empty source.</param>
+    /// <remarks>
+    /// Driven by how close the realized rows are to the end, never by the extent, so scrolling a long way does not pull
+    /// in the whole source. Called while the repeater prepares rows, inside a layout pass, so the request itself is
+    /// made later: a source that adds items at once would otherwise change the collection in the middle of a measure.
+    /// </remarks>
+    private void ConsiderLoadingMoreItems(int realizedIndex)
     {
-        RequestMoreItemsIfNeeded(lastRealizedIndex, rowCount);
+        // Nothing is shown, so nothing is close to the end, until the table is loaded with its row host.
+        if (_isIncrementalLoadQueued
+            || _isLoadingMoreItems
+            || _rowsRepeater is null
+            || !IsLoaded
+            || IncrementalLoadingTrigger is IncrementalLoadingTrigger.None
+            || !_collectionView.HasMoreItems)
+        {
+            return;
+        }
+
+        // An empty source that has more to give needs its first page unconditionally.
+        if (_collectionView.Count > 0)
+        {
+            var threshold = (int)Math.Round(IncrementalLoadingThreshold * Math.Max(1, CalculateAvailablePageSize()));
+
+            if (realizedIndex < VisualRowCount - 1 - threshold)
+            {
+                return;
+            }
+        }
+
+        _isIncrementalLoadQueued = true;
+        DispatcherQueue?.TryEnqueue(() =>
+        {
+            _isIncrementalLoadQueued = false;
+            LoadMoreItems();
+        });
     }
 
     /// <summary>
-    /// Asks the items source for more items when the realized range approaches the end of what is loaded.
+    /// Asks the items source for more items.
     /// </summary>
     /// <remarks>
-    /// Driven by how close the viewport is to the end, never by the layout asking for the extent, so scrolling a
-    /// long way does not pull in the whole source. <see cref="DataFetchSize"/> is read as a multiple of the rows a
-    /// viewport holds, matching how it behaved on a virtualizing panel.
+    /// <see cref="DataFetchSize"/> is read as a multiple of the rows a viewport holds, matching how it behaved on a
+    /// virtualizing panel.
     /// </remarks>
-    private async void RequestMoreItemsIfNeeded(int lastRealizedIndex, int rowCount)
+    private async void LoadMoreItems()
     {
         if (_isLoadingMoreItems
             || IncrementalLoadingTrigger is IncrementalLoadingTrigger.None
@@ -573,20 +632,7 @@ public partial class TableView
             return;
         }
 
-        var rowsPerViewport = Math.Max(1, CalculateAvailablePageSize());
-
-        // rowCount of 0 means an empty source that has more to give, which needs its first page unconditionally.
-        if (rowCount > 0 && lastRealizedIndex >= 0)
-        {
-            var threshold = (int)Math.Round(IncrementalLoadingThreshold * rowsPerViewport);
-
-            if (lastRealizedIndex < rowCount - 1 - threshold)
-            {
-                return;
-            }
-        }
-
-        var count = (uint)Math.Max(1, (int)Math.Round(DataFetchSize * rowsPerViewport));
+        var count = (uint)Math.Max(1, (int)Math.Round(DataFetchSize * Math.Max(1, CalculateAvailablePageSize())));
 
         _isLoadingMoreItems = true;
 
@@ -606,5 +652,8 @@ public partial class TableView
         {
             _isLoadingMoreItems = false;
         }
+
+        // Rows realized while this load ran did not ask for more; ask on their behalf.
+        ConsiderLoadingMoreItems(RealizedRows.LastVisualIndex);
     }
 }

@@ -99,9 +99,6 @@ internal sealed partial class TableViewRowsLayout : VirtualizingLayout
         {
             _firstRealizedIndex = _lastRealizedIndex = _pinnedIndex = -1;
 
-            // An incrementally loading source starts empty, so this is where its first page gets requested.
-            TableView?.OnRowsRealized(-1, 0);
-
             return new Size(rowWidth, 0d);
         }
 
@@ -145,8 +142,6 @@ internal sealed partial class TableViewRowsLayout : VirtualizingLayout
 
             RecordMeasuredHeight(_pinnedIndex, element);
         }
-
-        TableView?.OnRowsRealized(last, itemCount);
 
         return new Size(rowWidth, Heights.TotalHeight);
     }

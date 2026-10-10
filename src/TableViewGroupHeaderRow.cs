@@ -48,6 +48,11 @@ public partial class TableViewGroupHeaderRow : ContentControl
     internal TableView? TableView { get; set; }
 
     /// <summary>
+    /// Gets or sets the header's index in the flattened visual row sequence, or -1 when it is not realized.
+    /// </summary>
+    internal int VisualIndex { get; set; } = -1;
+
+    /// <summary>
     /// Gets the group this header currently shows.
     /// </summary>
     internal TableViewGroupInfo? GroupInfo => Content as TableViewGroupInfo;

@@ -937,16 +937,26 @@ public partial class TableView : Control
     /// <summary>
     /// Calculates how many rows should be able to fit within the actual height of the table without scrolling.
     /// </summary>
-    private int CalculateAvailablePageSize()
+    internal int CalculateAvailablePageSize()
     {
-        // Prefer the real viewport and the layout's measured row heights over assuming a uniform RowHeight.
-        if (_scrollViewer is { ViewportHeight: > 0 } scrollViewer && _rowsLayout is { } layout && VisualRowCount > 0)
+        // The viewport over the height of a row: the configured one, else the realized row at the top of the viewport.
+        if (_scrollViewer is { ViewportHeight: > 0 } scrollViewer && VisualRowCount > 0)
         {
-            var top = scrollViewer.VerticalOffset;
-            var first = layout.GetIndexAtOffset(top);
-            var last = layout.GetIndexAtOffset(top + scrollViewer.ViewportHeight);
+            var pageRowHeight = RowHeight;
 
-            return Math.Max(1, last - first);
+            if (double.IsNaN(pageRowHeight)
+                && RealizedRows.FindAtOffset(RowsViewportTop, out _) is >= 0 and var topRow
+                && RealizedRows.TryGetBounds(topRow, out _, out var height))
+            {
+                pageRowHeight = height;
+            }
+
+            if (double.IsNaN(pageRowHeight) || pageRowHeight <= 0d)
+            {
+                pageRowHeight = RowMinHeight;
+            }
+
+            return Math.Max(1, (int)(scrollViewer.ViewportHeight / pageRowHeight));
         }
 
         var rowHeight = double.IsNaN(RowHeight) ? RowMinHeight : RowHeight;
@@ -1096,6 +1106,7 @@ public partial class TableView : Control
 
         ResumeItemsSource();
         ResumeRowsHost();
+        ConsiderLoadingMoreItems(-1);
         EnsureAutoColumns();
         ApplyStickyGroupHeadersSetting();
     }
@@ -2665,24 +2676,29 @@ public partial class TableView : Control
     /// Returns the visual row index at a Y coordinate in drag-canvas space, or -1 when outside the rows.
     /// </summary>
     /// <remarks>
-    /// A binary search over the layout's row heights, and plain division when every row is the same height. This
-    /// replaces a scan over the realized rows that also required each row to cache its own transformed position.
+    /// Read from the realized rows, which always include the rows under the pointer and under a drag rectangle,
+    /// since both lie within the viewport. Below the last row there is no row; anywhere else short of an exact hit,
+    /// such as between rows, the nearest one is returned.
     /// </remarks>
-    private int GetVisualRowIndexAtCanvasY(double canvasY)
+    internal int GetVisualRowIndexAtCanvasY(double canvasY)
     {
-        if (_rowsLayout is null || _scrollViewer is null || VisualRowCount is 0 || canvasY < 0)
+        if (_scrollViewer is null || VisualRowCount is 0 || canvasY < 0)
         {
             return -1;
         }
 
-        var offset = canvasY + _scrollViewer.VerticalOffset;
+        var offset = canvasY + RowsViewportTop;
+        var visualIndex = RealizedRows.FindAtOffset(offset, out var exact);
 
-        if (offset >= _rowsLayout.TotalHeight)
+        if (!exact
+            && visualIndex == VisualRowCount - 1
+            && RealizedRows.TryGetBounds(visualIndex, out var top, out var height)
+            && offset >= top + height)
         {
             return -1;
         }
 
-        return _rowsLayout.GetIndexAtOffset(offset);
+        return visualIndex;
     }
 
     /// <summary>

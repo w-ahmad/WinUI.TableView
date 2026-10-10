@@ -188,9 +188,12 @@ public class TableViewCellContentLayoutTests
         var before = tableView.Columns[0].ActualWidth;
         items[3].Name = LongText;
 
-        // The column re-sizes after its header row's debounce.
-        await Task.Delay(500);
-        await WaitForLayoutAsync(tableView);
+        // The column re-sizes after its header row's debounce, which a busy test run can stretch.
+        for (var attempt = 0; attempt < 30 && tableView.Columns[0].ActualWidth <= before + 50; attempt++)
+        {
+            await Task.Delay(100);
+            await WaitForLayoutAsync(tableView);
+        }
 
         var cell = RealizedRows(tableView).First(x => x.Index == 3).Cells[0];
         Assert.IsTrue(tableView.Columns[0].ActualWidth > before + 50, $"the column stayed {tableView.Columns[0].ActualWidth}px wide");
