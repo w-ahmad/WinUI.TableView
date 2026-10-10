@@ -493,7 +493,8 @@ public partial class TableViewHeaderRow : Control
             else if (TableView.HeadersVisibility is TableViewHeadersVisibility.All)
             {
                 var rowHeaderWidth = TableView.RowHeaderWidth is double.NaN ? 0 : TableView.RowHeaderWidth;
-                TableView.CellsHorizontalOffset = Math.Max(TableView.RowHeaderMinWidth, rowHeaderWidth);
+                TableView.CellsHorizontalOffset = Math.Min(TableView.RowHeaderMaxWidth,
+                    Math.Max(TableView.RowHeaderMinWidth, rowHeaderWidth));
             }
             else
             {
