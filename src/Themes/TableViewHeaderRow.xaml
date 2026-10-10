@@ -178,7 +178,7 @@
 
                             <CheckBox x:Name="selectAllCheckBox"
                                       Padding="0"
-                                      Margin="10,0,0,0"
+                                      Margin="10,0,10,0"
                                       MinWidth="20"
                                       MinHeight="20"
                                       IsTabStop="False"

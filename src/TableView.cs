@@ -140,6 +140,8 @@ public partial class TableView : ListView
     /// </summary>
     private void OnCollectionViewVectorChanged(IObservableVector<object> sender, IVectorChangedEventArgs args)
     {
+        if (Items.Count == 0) _headerRow?.SetCellsHorizontalOffset();
+
         if (args.CollectionChange != CollectionChange.Reset) return;
 
         foreach (var row in _rows)
@@ -2791,6 +2793,7 @@ public partial class TableView : ListView
 
         UpdateHorizontalScrollBarMargin();
         _headerRow?.SetHeadersVisibility();
+        _headerRow?.SetCellsHorizontalOffset();
 
         foreach (var row in _rows)
         {
@@ -3021,7 +3024,7 @@ public partial class TableView : ListView
         if (_scrollViewer is null) return;
 
         var frozenColumns = Columns.VisibleColumns.Where(c => c.IsFrozen);
-        var offset = CellsHorizontalOffset + frozenColumns.Sum(c => c.ActualWidth);
+        var offset = (CellsHorizontalOffset is double.NaN ? 0 : CellsHorizontalOffset) + frozenColumns.Sum(c => c.ActualWidth);
         AttachedPropertiesHelper.SetFrozenColumnScrollBarSpace(_scrollViewer, offset);
     }
 }

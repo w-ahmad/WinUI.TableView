@@ -1342,6 +1342,7 @@ public partial class TableView
         {
             tableView.SetHeadersVisibility();
             tableView.UpdateHorizontalScrollBarMargin();
+            tableView._headerRow?.SetCellsHorizontalOffset();
         }
     }
 

@@ -478,6 +478,21 @@ public partial class TableViewHeaderRow : Control
     }
 
     /// <summary>
+    /// Sets the horizontal offset of the cells in the header row based on the TableView settings.
+    /// </summary>
+    internal void SetCellsHorizontalOffset()
+    {
+        // if there are no items, we want to reset the horizontal offset to NaN
+        // so that the header row corner can take up the desired width.
+        if (TableView?.Items.Count == 0)
+        {
+            TableView.CellsHorizontalOffset =
+                TableView.HeadersVisibility is TableViewHeadersVisibility.All || TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple }
+                ? double.NaN : 0;
+        }
+    }
+
+    /// <summary>
     /// Handles the SelectAllButton clicked event.
     /// </summary>
     private void OnSelectAllButtonClicked(object sender, TappedRoutedEventArgs e)
