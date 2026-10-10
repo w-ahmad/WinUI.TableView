@@ -6,9 +6,12 @@
       <Deploy />
     </Project>
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/WinUI.TableView.Tests.Uno/WinUI.TableView.Tests.Uno.csproj" />
+    <Project Path="tests/WinUI.TableView.Tests/WinUI.TableView.Tests.csproj">
+      <Platform Project="x64" />
+      <Deploy />
+    </Project>
+  </Folder>
   <Project Path="src/WinUI.TableView.csproj" />
-  <Project Path="tests/WinUI.TableView.Tests.csproj">
-    <Platform Project="x64" />
-    <Deploy />
-  </Project>
 </Solution>

@@ -11,6 +11,7 @@ on:
 
 jobs:
   build:
+    name: Build
     runs-on: windows-latest
     steps:
     - name: Checkout
@@ -33,31 +34,223 @@ jobs:
                 /p:Configuration=Release `
                 /p:Version=0.0.${{ github.run_number }}-dev
 
-    - name: Setup VSTest
-      uses: darenm/Setup-VSTest@v1.3
-
-    - name: Build Tests
-      run: |
-        msbuild /restore `
-                /t:Build tests/WinUI.TableView.Tests.csproj `
-                /p:Platform=x64 `
-                /p:Configuration=Release
-                
-    - name: Run Tests
-      run: |
-        vstest.console.exe `
-        tests\bin\x64\Release\net10.0-windows10.0.26100.0\WinUI.TableView.Tests.build.appxrecipe `
-        --logger:"console;verbosity=normal" `
-        /InIsolation
- 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: NuGet Packages
         path: artifacts/NuGet/Release
 
-  publish:
+  test-winui:
+    name: WinUI tests
     needs: build
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4.1.4
+
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5.0.1
+      with:
+        dotnet-version: 10.0.100
+
+    - name: Setup VSTest
+      uses: darenm/Setup-VSTest@v1.3
+
+    - name: Build tests
+      run: |
+        msbuild /restore `
+          /t:Build tests/WinUI.TableView.Tests/WinUI.TableView.Tests.csproj `
+          /p:Platform=x64 `
+          /p:Configuration=Release
+
+    - name: Run tests
+      run: |
+        vstest.console.exe `
+          tests\WinUI.TableView.Tests\bin\x64\Release\net10.0-windows10.0.26100.0\WinUI.TableView.Tests.build.appxrecipe `
+          --logger:"console;verbosity=normal" `
+          --logger:trx `
+          /InIsolation
+
+    - name: Upload test output
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: winui-test-results
+        path: TestResults
+
+  test-uno-desktop:
+    name: Uno Desktop tests
+    needs: build
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4.1.4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5.0.1
+      with:
+        dotnet-version: 10.0.100
+
+    - name: Run tests
+      shell: pwsh
+      run: |
+        python -m unittest discover -s tests/WinUI.TableView.Tests.Uno/ci -p test_*.py
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        dotnet run --project tests/WinUI.TableView.Tests.Uno/WinUI.TableView.Tests.Uno.csproj `
+          --configuration Release --framework net10.0-desktop `
+          -p:UnoTestTargetFramework=net10.0-desktop `
+          -- --exit-after-tests 2>&1 | Tee-Object -FilePath uno-desktop-tests.log
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        python tests/WinUI.TableView.Tests.Uno/ci/run_mobile_tests.py --check-log uno-desktop-tests.log
+
+    - name: Upload test output
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: uno-desktop-test-results
+        path: uno-desktop-tests.log
+
+  test-uno-wasm:
+    name: Uno WebAssembly tests
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4.1.4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5.0.1
+      with:
+        dotnet-version: 10.0.100
+
+    - name: Install WASM workload
+      run: dotnet workload install wasm-tools --version 10.0.100
+
+    - name: Build tests
+      run: |
+        dotnet build tests/WinUI.TableView.Tests.Uno/WinUI.TableView.Tests.Uno.csproj \
+          --configuration Release --framework net10.0-browserwasm \
+          -p:UnoTestTargetFramework=net10.0-browserwasm
+
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: npm
+        cache-dependency-path: tests/WinUI.TableView.Tests.Uno/package-lock.json
+
+    - name: Install browser test dependencies
+      working-directory: tests/WinUI.TableView.Tests.Uno
+      run: npm ci && npx playwright install --with-deps chromium
+
+    - name: Run tests in Chromium
+      working-directory: tests/WinUI.TableView.Tests.Uno
+      run: npm run test:wasm
+
+    - name: Upload test output
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: uno-wasm-test-results
+        path: tests/WinUI.TableView.Tests.Uno/test-results
+
+  test-uno-android:
+    name: Uno Android tests
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4.1.4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5.0.1
+      with:
+        dotnet-version: 10.0.100
+
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 21
+
+    - name: Install Android workload
+      run: dotnet workload install android --version 10.0.100
+
+    - name: Build tests
+      run: |
+        dotnet build tests/WinUI.TableView.Tests.Uno/WinUI.TableView.Tests.Uno.csproj \
+          --configuration Debug --framework net10.0-android \
+          -p:UnoTestTargetFramework=net10.0-android -p:AndroidPackageFormats=apk
+
+    - name: Enable KVM
+      run: |
+        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger --name-match=kvm
+
+    - name: Run tests in Android emulator
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: 35
+        target: google_apis
+        arch: x86_64
+        profile: pixel_c
+        disable-animations: true
+        script: python3 tests/WinUI.TableView.Tests.Uno/ci/run_mobile_tests.py android
+
+    - name: Upload test output
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: uno-android-test-results
+        path: tests/WinUI.TableView.Tests.Uno/test-results
+
+  test-uno-ios:
+    name: Uno iOS tests
+    needs: build
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4.1.4
+
+    - name: Select Xcode
+      run: sudo xcode-select --switch /Applications/Xcode_26.0.1.app
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5.0.1
+      with:
+        dotnet-version: 10.0.100
+
+    - name: Install iOS workload
+      run: dotnet workload install ios --version 10.0.100
+
+    - name: Build tests for simulator
+      run: |
+        if [ "$(uname -m)" = arm64 ]; then rid=iossimulator-arm64; else rid=iossimulator-x64; fi
+        dotnet build tests/WinUI.TableView.Tests.Uno/WinUI.TableView.Tests.Uno.csproj \
+          --configuration Debug --framework net10.0-ios \
+          -p:UnoTestTargetFramework=net10.0-ios -p:RuntimeIdentifier="$rid"
+
+    - name: Run tests in iOS simulator
+      run: python3 tests/WinUI.TableView.Tests.Uno/ci/run_mobile_tests.py ios
+
+    - name: Upload test output
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: uno-ios-test-results
+        path: tests/WinUI.TableView.Tests.Uno/test-results
+
+  publish:
+    needs: [build, test-winui, test-uno-desktop, test-uno-wasm, test-uno-android, test-uno-ios]
     runs-on: windows-latest
     environment: ci-nuget-publish
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

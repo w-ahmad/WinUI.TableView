@@ -1,0 +1,32 @@
+<Project Sdk="Uno.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>
+      $(NetVersion)-desktop;
+      $(NetVersion)-browserwasm;
+      $(NetVersion)-android;
+      $(NetVersion)-ios;
+    </TargetFrameworks>
+    <TargetFrameworks Condition="'$(UnoTestTargetFramework)' != ''">$(UnoTestTargetFramework)</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <UnoSingleProject>true</UnoSingleProject>
+    <AssemblyName>WinUI.TableView.Tests</AssemblyName>
+    <ApplicationTitle>WinUI.TableView.Tests</ApplicationTitle>
+    <ApplicationId>com.W.Ahmad.WinUI.TableView.Tests</ApplicationId>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+    <UnoFeatures Condition="'$(TargetFramework)' != '$(NetVersion)-browserwasm'">SkiaRenderer</UnoFeatures>
+    <UnoXamlResourcesTrimming>false</UnoXamlResourcesTrimming>
+    <PublishTrimmed>false</PublishTrimmed>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <TrimmerRootAssembly Include="$(AssemblyName)" />
+    <Compile Include="..\WinUI.TableView.Tests\*.cs"
+             Exclude="..\WinUI.TableView.Tests\UnitTestApp.xaml.cs;..\WinUI.TableView.Tests\UnitTestAppWindow.xaml.cs">
+      <Link>%(Filename)%(Extension)</Link>
+    </Compile>
+    <PackageReference Include="MSTest.TestFramework" />
+    <PackageReference Include="MSTest.TestAdapter" PrivateAssets="all" />
+    <ProjectReference Include="..\..\src\WinUI.TableView.csproj" />
+  </ItemGroup>
+</Project>
