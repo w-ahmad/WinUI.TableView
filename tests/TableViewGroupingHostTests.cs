@@ -133,7 +133,7 @@ public class TableViewGroupingHostTests
         await GroupAsync(tableView, TableViewGroupState.Expanded);
 
         var realized = tableView.Rows.Count + tableView.GroupHeaderRows.Count;
-        var maxExpected = (int)(ViewportHeight / 36d) + 12;
+        var maxExpected = GetMaxRealizedRows(tableView, ViewportHeight, 36d);
 
         Assert.IsTrue(realized > 0);
         Assert.IsTrue(realized <= maxExpected, $"{realized} elements realized for a {ViewportHeight}px viewport");
@@ -264,9 +264,10 @@ public class TableViewGroupingHostTests
         tableView.AreStickyGroupHeadersEnabled = true;
         await GroupAsync(tableView, TableViewGroupState.Expanded);
 
-        // Group A's header, its 1,000 rows, then group B's header.
+        // Group A's header, its 1,000 rows, then group B's header, realized just below A's last row.
         const int nextHeader = 1_001;
-        await ScrollToAsync(tableView, (nextHeader * 40d) - 300d);
+        await tableView.ScrollRowIntoView(999);
+        await WaitForScrollToSettleAsync(tableView);
 
         var sticky = tableView.StickyGroupHeader!;
         Assert.IsTrue(tableView.RealizedRows.TryGetBounds(nextHeader, out var nextTop, out _), "group B's header should be realized");
@@ -274,8 +275,12 @@ public class TableViewGroupingHostTests
         // Group B's header half a header below the top edge: the sticky header for A is half pushed out.
         await ScrollToAsync(tableView, nextTop - (sticky.ActualHeight / 2));
 
+        Assert.IsTrue(tableView.RealizedRows.TryGetBounds(nextHeader, out nextTop, out _));
+        var expected = nextTop - tableView.RowsViewportTop - sticky.ActualHeight;
+
         Assert.AreEqual("A", sticky.GroupInfo!.Key);
-        Assert.AreEqual(-sticky.ActualHeight / 2, ((Microsoft.UI.Xaml.Media.TranslateTransform)sticky.RenderTransform).Y, 1d);
+        Assert.IsTrue(expected < 0d && expected > -sticky.ActualHeight, $"group B's header should overlap the sticky header, by {-expected}px");
+        Assert.AreEqual(expected, ((Microsoft.UI.Xaml.Media.TranslateTransform)sticky.RenderTransform).Y, 1d);
 
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }
@@ -305,6 +310,52 @@ public class TableViewGroupingHostTests
     }
 
     [UITestMethod]
+    public async Task ScrollRowIntoView_FarAway_LandsUnderTheStickyHeader()
+    {
+        var tableView = await CreateTableViewAsync(CreateItems(3_000));
+        tableView.AreStickyGroupHeadersEnabled = true;
+        await GroupAsync(tableView, TableViewGroupState.Expanded);
+
+        await ScrollToAsync(tableView, 2_000d);
+        var stickyHeight = tableView.StickyGroupHeader!.ActualHeight;
+        await ScrollToAsync(tableView, GetScrollViewer(tableView).ScrollableHeight);
+
+        // Item 1,500 is in group B, far above the bottom, so it is not realized.
+        Assert.IsNull(tableView.ContainerFromIndex(1_500));
+
+        var row = await tableView.ScrollRowIntoView(1_500);
+        await WaitForScrollToSettleAsync(tableView);
+
+        Assert.IsNotNull(row);
+        Assert.AreSame(tableView.Items[1_500], row!.Content);
+        Assert.AreEqual("B", tableView.StickyGroupHeader.GroupInfo!.Key);
+        Assert.AreEqual(stickyHeight, row.ActualOffset.Y - tableView.RowsViewportTop, 1d,
+            "the row should stop just under the sticky header, not underneath it");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task LongGroupKey_DoesNotWidenTheRows()
+    {
+        var items = CreateItems(30);
+
+        // Groups are ordered by key, so this one stays first, where its header is realized.
+        foreach (var item in items.Where(x => x.Category is "A"))
+        {
+            item.Category = new string('A', 2_000);
+        }
+
+        var tableView = await CreateTableViewAsync(items);
+        await GroupAsync(tableView, TableViewGroupState.Expanded);
+
+        Assert.IsTrue(tableView.GroupHeaderRows.Any(x => x.GroupInfo!.Key is string { Length: 2_000 }), "the long key's header should be realized");
+        Assert.AreEqual(0d, GetScrollViewer(tableView).ScrollableWidth, 1d, "two 200px columns fit the 600px table, whatever the group key");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
     public async Task ScrollRowIntoView_FromAbove_StopsUnderTheStickyHeader()
     {
         var tableView = await CreateTableViewAsync(CreateItems(3_000));
@@ -312,9 +363,10 @@ public class TableViewGroupingHostTests
         await GroupAsync(tableView, TableViewGroupState.Expanded);
 
         // Item 1,500 is in group B, far below B's own header.
-        await ScrollToAsync(tableView, 60_000d);
+        await tableView.ScrollRowIntoView(1_500);
+        await WaitForScrollToSettleAsync(tableView);
         var target = tableView.ContainerFromIndex(1_500) as TableViewRow;
-        Assert.IsNotNull(target, "item 1,500 should be realized around this offset");
+        Assert.IsNotNull(target);
 
         // Leave the row half scrolled out of the top: B's sticky header covers it.
         await ScrollToAsync(tableView, target!.ActualOffset.Y + 20d);
@@ -461,24 +513,6 @@ public class TableViewGroupingHostTests
     private static T GetTemplatePart<T>(DependencyObject owner, string name) where T : FrameworkElement
     {
         return owner.FindDescendants().OfType<T>().First(x => x.Name == name);
-    }
-
-    /// <summary>
-    /// Waits for a scroll the table started itself to be applied: the offset moves only once the scroll is rendered.
-    /// </summary>
-    private static async Task WaitForScrollToSettleAsync(TableView tableView)
-    {
-        var scrollViewer = GetScrollViewer(tableView);
-        var offset = double.NaN;
-
-        for (int frame = 0, stableFrames = 0; frame < 100 && stableFrames < 3; frame++)
-        {
-            await Task.Delay(16);
-            await WaitForLayoutAsync(tableView);
-
-            stableFrames = scrollViewer.VerticalOffset == offset ? stableFrames + 1 : 0;
-            offset = scrollViewer.VerticalOffset;
-        }
     }
 
     private static bool IsStickyHeaderShown(TableView tableView)

@@ -88,20 +88,18 @@ public partial class TableView : Control
         _collectionView.VectorChanged += OnCollectionViewVectorChanged;
         _groupStyle.CollectionChanged += delegate { RefreshGroupHeaderTemplates(); };
         Columns.ColumnPropertyChanged += OnColumnPropertyChanged;
+        Columns.CollectionChanged += delegate { UpdateRowsMinWidth(); };
+        RegisterPropertyChangedCallback(CellsHorizontalOffsetProperty, delegate { UpdateRowsMinWidth(); });
     }
 
     /// <summary>
-    /// Re-runs the row layout when a column's width or visibility changes.
+    /// Keeps the rows' minimum width in step with a column's width or visibility.
     /// </summary>
-    /// <remarks>
-    /// Rows are measured against the width of the previous pass, so a wider column does not change their desired
-    /// size, and nothing else would tell the layout that the horizontal extent has changed.
-    /// </remarks>
     private void OnColumnPropertyChanged(object? sender, TableViewColumnPropertyChangedEventArgs e)
     {
         if (e.PropertyName is nameof(TableViewColumn.ActualWidth) or nameof(TableViewColumn.Visibility))
         {
-            _rowsRepeater?.InvalidateMeasure();
+            UpdateRowsMinWidth();
         }
     }
 
@@ -1027,6 +1025,7 @@ public partial class TableView : Control
         _dragRectangle = GetTemplateChild("DragRectangle") as Border;
         _scrollViewer?.Loaded += OnScrollViewerLoaded;
         _scrollViewer?.ViewChanged += OnScrollViewerViewChanged;
+        _scrollViewer?.SizeChanged += OnScrollViewerSizeChanged;
 
         if (GetTemplateChild("RowsRepeater") is ItemsRepeater rowsRepeater)
         {
@@ -1055,8 +1054,8 @@ public partial class TableView : Control
     /// </summary>
     /// <remarks>
     /// Deliberately empty of per-row work. Row positions used to be recomputed here with a visual-tree transform
-    /// walk per realized row on every scroll frame, purely to feed hit testing; hit testing now derives them from
-    /// the layout arithmetically, so scrolling costs nothing outside layout itself.
+    /// walk per realized row on every scroll frame, purely to feed hit testing; hit testing now reads them from the
+    /// realized rows when it needs them, so scrolling costs nothing outside layout itself.
     /// </remarks>
     private void OnScrollViewerViewChanged(object? sender, ScrollViewerViewChangedEventArgs e)
     {
@@ -1066,6 +1065,20 @@ public partial class TableView : Control
         if (AreStickyGroupHeadersActive || _stickyGroupHeader?.Visibility is Visibility.Visible)
         {
             UpdateStickyGroupHeader();
+        }
+    }
+
+    /// <summary>
+    /// Re-measures the group headers when the viewport's width changes, since they are measured no wider than it.
+    /// </summary>
+    private void OnScrollViewerSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (e.NewSize.Width != e.PreviousSize.Width)
+        {
+            foreach (var header in _groupHeaderRows)
+            {
+                header.InvalidateMeasure();
+            }
         }
     }
 
@@ -2564,10 +2577,14 @@ public partial class TableView : Control
     /// Scrolls the specified row into view.
     /// </summary>
     /// <param name="index">The index of the row to scroll into view.</param>
+    /// <remarks>
+    /// A realized row is scrolled to from where it is. Any other row is realized by the repeater where the layout
+    /// estimates it to be and brought into view from there, which is how a layout that only knows the heights of the
+    /// rows it has realized reaches a row far away.
+    /// </remarks>
     public async Task<TableViewRow?> ScrollRowIntoView(int index)
     {
-        if (_scrollViewer is null || _rowsRepeater is null || _rowsLayout is null
-            || index < 0 || index >= _collectionView.Count)
+        if (_scrollViewer is null || _rowsRepeater is null || index < 0 || index >= _collectionView.Count)
         {
             return null;
         }
@@ -2580,38 +2597,68 @@ public partial class TableView : Control
             return null;
         }
 
-        // The layout knows exactly where the row is without it having to be realized first, so the old
-        // realize-and-poll loop (and the fudge factor it needed) is gone.
-        var rowTop = _rowsLayout.GetOffsetOfIndex(visualIndex);
-        var rowHeight = _rowsLayout.GetHeightOfIndex(visualIndex);
-        var viewportTop = _scrollViewer.VerticalOffset;
-        var viewportHeight = _scrollViewer.ViewportHeight;
-        var target = viewportTop;
-
-        // A pinned group header covers the top of the viewport, so a row brought in from above has to stop just
+        // A sticky group header covers the top of the viewport, so a row brought in from above has to stop just
         // below it rather than underneath it.
         var topInset = AreStickyGroupHeadersActive && FindGroupHeaderAtOrBefore(visualIndex) is >= 0 and var header && header != visualIndex
             ? GetStickyGroupHeaderHeight(header)
             : 0d;
 
-        if (rowTop - topInset < viewportTop)
+        if (RealizedRows.Get(visualIndex) is TableViewRow realizedRow && RealizedRows.TryGetBounds(visualIndex, out var rowTop, out var rowHeight))
         {
-            target = rowTop - topInset;
-        }
-        else if (rowTop + rowHeight > viewportTop + viewportHeight)
-        {
-            target = rowTop + rowHeight - viewportHeight;
+            // The scroll viewer's content starts with the table's padding, above the rows.
+            rowTop += Padding.Top;
+
+            var viewportTop = _scrollViewer.VerticalOffset;
+            var viewportHeight = _scrollViewer.ViewportHeight;
+            var target = viewportTop;
+
+            if (rowTop - topInset < viewportTop)
+            {
+                target = rowTop - topInset;
+            }
+            else if (rowTop + rowHeight > viewportTop + viewportHeight)
+            {
+                target = rowTop + rowHeight - viewportHeight;
+            }
+
+            if (Math.Abs(target - viewportTop) > 0.5)
+            {
+                _scrollViewer.ChangeView(null, Math.Clamp(target, 0d, _scrollViewer.ScrollableHeight), null, true);
+
+                await Task.Yield();
+            }
+
+            return realizedRow;
         }
 
-        if (Math.Abs(target - viewportTop) > 0.5)
-        {
-            var maxOffset = Math.Max(0d, _rowsLayout.TotalHeight - viewportHeight);
-            _scrollViewer.ChangeView(null, Math.Clamp(target, 0d, maxOffset), null, true);
+        var firstVisible = RealizedRows.FindAtOffset(RowsViewportTop, out _);
+        var alignToTop = firstVisible < 0 || visualIndex < firstVisible;
 
-            await Task.Yield();
+        // The repeater realizes the row where the layout estimates it to be and holds it there, realizing nothing
+        // around it, until it is brought into view; it has to be laid out before it can be.
+        if (_rowsRepeater.GetOrCreateElement(visualIndex) is not TableViewRow row)
+        {
+            return null;
         }
 
-        return _rowsRepeater.GetOrCreateElement(visualIndex) as TableViewRow;
+        row.UpdateLayout();
+
+        var height = Math.Max(1d, row.ActualHeight);
+
+        // Above, the target reaches up over the sticky header. It is a single point across, at the current horizontal
+        // offset, so bringing it into view never scrolls the table sideways.
+        row.StartBringIntoView(new BringIntoViewOptions
+        {
+            AnimationDesired = false,
+            VerticalAlignmentRatio = alignToTop ? 0d : 1d,
+            TargetRect = alignToTop
+                ? new Rect(Math.Max(0d, _scrollViewer.HorizontalOffset - Padding.Left), -topInset, 1d, height + topInset)
+                : new Rect(Math.Max(0d, _scrollViewer.HorizontalOffset - Padding.Left), 0d, 1d, height)
+        });
+
+        await Task.Yield();
+
+        return row;
     }
 
     /// <summary>

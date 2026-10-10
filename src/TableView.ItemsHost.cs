@@ -9,13 +9,12 @@ using WinUI.TableView.Layout;
 namespace WinUI.TableView;
 
 /// <summary>
-/// Row hosting for <see cref="TableView"/>: the <see cref="ItemsRepeater"/>, the virtualizing layout, and the
-/// mapping between item indexes and visual row indexes.
+/// Row hosting for <see cref="TableView"/>: the <see cref="ItemsRepeater"/> with the stock <see cref="StackLayout"/>,
+/// and the mapping between item indexes and visual row indexes.
 /// </summary>
 public partial class TableView
 {
     private ItemsRepeater? _rowsRepeater;
-    private TableViewRowsLayout? _rowsLayout;
     private TableViewRowElementFactory? _rowElementFactory;
     private TableViewVisualRows? _visualRows;
     private readonly List<TableViewGroupHeaderRow> _groupHeaderRows = [];
@@ -58,7 +57,7 @@ public partial class TableView
     /// <summary>
     /// Gets the realized rows and group headers in visual order, and where each one is.
     /// </summary>
-    internal TableViewRealizedRows RealizedRows => _realizedRows ??= new(GetRealizedEntries, isInFlow: static element => element is not TableViewGroupHeaderRow { IsPinned: true });
+    internal TableViewRealizedRows RealizedRows => _realizedRows ??= new(GetRealizedEntries);
 
     private IEnumerable<(int VisualIndex, UIElement Element)> GetRealizedEntries()
     {
@@ -87,6 +86,11 @@ public partial class TableView
     /// Gets the top of the viewport in the row host's coordinates, which start below the template's padding.
     /// </summary>
     internal double RowsViewportTop => (_scrollViewer?.VerticalOffset ?? 0d) - Padding.Top;
+
+    /// <summary>
+    /// Gets the width of the viewport inside the table's padding.
+    /// </summary>
+    internal double RowsViewportWidth => Math.Max(0d, (_scrollViewer?.ViewportWidth ?? 0d) - Padding.Left - Padding.Right);
 
     /// <summary>
     /// Returns the visual index of the group header a visual row belongs to, or -1 when it belongs to none.
@@ -220,7 +224,6 @@ public partial class TableView
         DetachRowsHost();
 
         _rowsRepeater = repeater;
-        _rowsLayout = new TableViewRowsLayout { TableView = this };
         _rowElementFactory = new TableViewRowElementFactory(this);
         _visualRows = new TableViewVisualRows(_collectionView);
 
@@ -230,7 +233,10 @@ public partial class TableView
         // side would double the live rows, and every live row adds to what each garbage collection has to walk.
         repeater.HorizontalCacheLength = 0d;
         repeater.VerticalCacheLength = 1d;
-        repeater.Layout = _rowsLayout;
+
+        // The platform's own virtualizing layout: it realizes from an anchor, estimates the height of the rows it has
+        // not realized, recycles the rows it leaves behind, and runs natively, with no call into .NET per pass.
+        repeater.Layout = new StackLayout();
         repeater.ItemTemplate = _rowElementFactory.Shim;
         repeater.ItemsSource = _visualRows;
 
@@ -240,25 +246,58 @@ public partial class TableView
         repeater.ElementClearing += OnRowElementClearing;
         repeater.ElementIndexChanged += OnRowElementIndexChanged;
         repeater.LayoutUpdated += OnRowsRepeaterLayoutUpdated;
+
+        UpdateRowsMinWidth();
     }
 
     /// <summary>
-    /// Takes the layout off the repeater while the table is unloaded.
+    /// Keeps the rows at least as wide as the row header and the visible columns.
     /// </summary>
     /// <remarks>
-    /// An unloaded table can be collected, and the repeater can call into its layout after that; the layout is a .NET
-    /// object that went with the table, so the call fails inside the interop layer. Clearing the layout here makes the
-    /// repeater uninitialize it and recycle its rows while everything is still alive, and leaves it nothing to call
-    /// later. <see cref="ResumeRowsHost"/> puts it back when the table is loaded again.
+    /// The stack layout is as wide as the widest row it has realized, so without this floor the horizontal extent
+    /// would depend on which rows happen to be realized, and a table without rows could not scroll its column headers.
+    /// </remarks>
+    private void UpdateRowsMinWidth()
+    {
+        if (_rowsRepeater is null)
+        {
+            return;
+        }
+
+        var width = CellsHorizontalOffset;
+
+        foreach (var column in Columns.VisibleColumns)
+        {
+            if (column.ActualWidth is > 0d and var columnWidth)
+            {
+                width += columnWidth;
+            }
+        }
+
+        if (_rowsRepeater.MinWidth != width)
+        {
+            _rowsRepeater.MinWidth = width;
+        }
+    }
+
+    /// <summary>
+    /// Takes the items off the repeater while the table is unloaded.
+    /// </summary>
+    /// <remarks>
+    /// An unloaded table can be collected, and the repeater can call into the .NET objects it was given after that,
+    /// such as the items source it unsubscribes from or the factory it hands its rows back to; the call then fails
+    /// inside the interop layer. Clearing the items here recycles every row while everything is still alive, the way
+    /// the platform's own table lets go of its rows. <see cref="ResumeRowsHost"/> gives them back when the table is
+    /// loaded again.
     /// </remarks>
     private void SuspendRowsHost()
     {
         if (_rowsRepeater is not null)
         {
-            _rowsRepeater.Layout = null;
+            _rowsRepeater.ItemsSource = null;
         }
 
-        // Clearing the layout pooled every row; outside this callback, let them drop the items they showed.
+        // Clearing the items pooled every row; outside this callback, let them drop the items they showed.
         DispatcherQueue?.TryEnqueue(() =>
         {
             if (!IsLoaded)
@@ -269,13 +308,13 @@ public partial class TableView
     }
 
     /// <summary>
-    /// Gives the repeater its layout back when the table is loaded again.
+    /// Gives the repeater its items back when the table is loaded again.
     /// </summary>
     private void ResumeRowsHost()
     {
-        if (_rowsRepeater is not null && _rowsLayout is not null && _rowsRepeater.Layout is null)
+        if (_rowsRepeater is not null && _visualRows is not null && _rowsRepeater.ItemsSource is null)
         {
-            _rowsRepeater.Layout = _rowsLayout;
+            _rowsRepeater.ItemsSource = _visualRows;
         }
     }
 
@@ -297,7 +336,6 @@ public partial class TableView
         _rowsRepeater.Layout = null;
         _rowsRepeater.ItemTemplate = null;
         _rowsRepeater = null;
-        _rowsLayout = null;
         _rowElementFactory = null;
         _visualRows = null;
         foreach (var row in _rows)

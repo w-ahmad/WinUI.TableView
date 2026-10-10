@@ -104,12 +104,14 @@ public partial class TableViewCell : ContentControl
         _rootBorder = GetTemplateChild("RootBorder") as Border;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
 
-        // A new template starts in its default states.
+        // A new template starts in its default states; the row may have pushed the cell's own before it had one.
         _appliedSelected = null;
         _appliedCurrent = null;
 
         EnsureGridLines();
         EnsureStyle(Row?.Content);
+        ApplySelectionState();
+        ApplyCurrentVisualState();
     }
 
     /// <inheritdoc/>

@@ -34,6 +34,7 @@ public class TableViewRowHostTests
 
         var large = await CreateTableViewAsync(itemCount: 100_000);
         var largeRealized = RealizedRows(large).Count;
+        var maxExpected = GetMaxRealizedRows(large, ViewportHeight, 40d);
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(large);
 
         Assert.IsTrue(smallRealized > 0, "some rows should be realized");
@@ -42,8 +43,7 @@ public class TableViewRowHostTests
         Assert.IsTrue(largeRealized <= smallRealized + 2,
             $"realized rows grew with the item count: {smallRealized} for 200 items vs {largeRealized} for 100,000");
 
-        // And the realized count has to stay in the region the viewport can actually show.
-        var maxExpected = (int)(ViewportHeight / 40d) + 12;
+        // And the realized count has to stay in the region the viewport and its cache cover.
         Assert.IsTrue(largeRealized <= maxExpected,
             $"{largeRealized} rows realized for a {ViewportHeight}px viewport, expected at most {maxExpected}");
     }

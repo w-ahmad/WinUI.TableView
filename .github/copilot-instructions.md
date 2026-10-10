@@ -127,7 +127,7 @@ The project supports both WinUI 3 and Uno Platform. When writing platform-specif
 
 ### Core Components
 
-1. **TableView**: Main control derived from `Control`; owns row virtualization (`Layout/TableViewRowsLayout`), the flattened visual row sequence (`ItemsSource/TableViewVisualRows`) and row selection (`Selection/TableViewSelectionModel`)
+1. **TableView**: Main control derived from `Control`; owns the row host (an `ItemsRepeater` with the stock `StackLayout`), the flattened visual row sequence (`ItemsSource/TableViewVisualRows`) and row selection (`Selection/TableViewSelectionModel`)
 2. **TableViewColumn Types**:
    - TableViewTextColumn
    - TableViewCheckBoxColumn

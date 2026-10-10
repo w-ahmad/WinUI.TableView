@@ -38,22 +38,20 @@ public class TableViewRealizedRowsTests
     }
 
     [UITestMethod]
-    public void FindAtOffset_SkipsElementsThatAreNotLaidOutOrNotInFlow()
+    public void FindAtOffset_SkipsElementsThatAreNotLaidOut()
     {
         var hidden = new Border();
-        var pinned = new Border();
         var bounds = new Dictionary<UIElement, (double, double)>
         {
             [new Border()] = (0, 40),
-            [hidden] = (-10_040, 0),
-            [pinned] = (0, 32)
+            [hidden] = (-10_040, 0)
         };
-        var entries = new List<(int, UIElement)> { (0, bounds.Keys.First()), (7, hidden), (3, pinned) };
-        var rows = new TableViewRealizedRows(() => entries, element => bounds[element], element => element != pinned);
+        var entries = new List<(int, UIElement)> { (0, bounds.Keys.First()), (7, hidden) };
+        var rows = new TableViewRealizedRows(() => entries, element => bounds[element]);
 
-        Assert.AreEqual(0, rows.FindAtOffset(10, out _), "the pinned element drawn over row 0 must not win");
+        Assert.AreEqual(0, rows.FindAtOffset(-10_040, out var exact), "a zero-sized element kept out of view must not win");
+        Assert.IsFalse(exact);
         Assert.IsFalse(rows.TryGetBounds(7, out _, out _), "a zero-sized element has no usable bounds");
-        Assert.IsFalse(rows.TryGetBounds(3, out _, out _), "an element drawn out of flow has no usable bounds");
     }
 
     [UITestMethod]

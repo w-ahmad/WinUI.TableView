@@ -17,7 +17,6 @@ internal sealed class TableViewRealizedRows
 {
     private readonly Func<IEnumerable<(int VisualIndex, UIElement Element)>> _source;
     private readonly Func<UIElement, (double Top, double Height)> _bounds;
-    private readonly Func<UIElement, bool> _isInFlow;
     private List<(int VisualIndex, UIElement Element)>? _entries;
 
     /// <summary>
@@ -25,17 +24,12 @@ internal sealed class TableViewRealizedRows
     /// </summary>
     /// <param name="source">The realized elements and their visual indexes, in any order.</param>
     /// <param name="bounds">An element's top and height in the row host's coordinates.</param>
-    /// <param name="isInFlow">
-    /// Whether an element sits where its visual index puts it; one drawn somewhere else does not count for offsets.
-    /// </param>
     public TableViewRealizedRows(
         Func<IEnumerable<(int VisualIndex, UIElement Element)>> source,
-        Func<UIElement, (double Top, double Height)>? bounds = null,
-        Func<UIElement, bool>? isInFlow = null)
+        Func<UIElement, (double Top, double Height)>? bounds = null)
     {
         _source = source;
         _bounds = bounds ?? (static element => (element.ActualOffset.Y, element.ActualSize.Y));
-        _isInFlow = isInFlow ?? (static _ => true);
     }
 
     /// <summary>
@@ -107,7 +101,7 @@ internal sealed class TableViewRealizedRows
     /// </summary>
     public bool TryGetBounds(int visualIndex, out double top, out double height)
     {
-        if (Get(visualIndex) is { } element && _isInFlow(element))
+        if (Get(visualIndex) is { } element)
         {
             (top, height) = _bounds(element);
             return height > 0d;
@@ -132,11 +126,6 @@ internal sealed class TableViewRealizedRows
 
         foreach (var (visualIndex, element) in Entries)
         {
-            if (!_isInFlow(element))
-            {
-                continue;
-            }
-
             var (top, height) = _bounds(element);
 
             // A zero height is an element the repeater keeps but does not show, such as a focused row out of view.

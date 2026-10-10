@@ -3,6 +3,8 @@ using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Shapes;
+using System;
+using Windows.Foundation;
 using WinUI.TableView.AutomationPeers;
 
 namespace WinUI.TableView;
@@ -72,6 +74,23 @@ public partial class TableViewGroupHeaderRow : ContentControl
                 VisualStates.GoToState(this, false, value ? VisualStates.StatePinned : VisualStates.StateUnpinned);
             }
         }
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Rows are measured at an unbounded width, and the rows' width is the table's horizontal extent. A header spans
+    /// the viewport, so it is measured no wider than that: a long group key must not make the table scroll sideways.
+    /// </remarks>
+    protected override Size MeasureOverride(Size availableSize)
+    {
+        if (double.IsInfinity(availableSize.Width) && TableView?.RowsViewportWidth is > 0d and var viewportWidth)
+        {
+            availableSize.Width = viewportWidth;
+        }
+
+        var size = base.MeasureOverride(availableSize);
+
+        return double.IsInfinity(availableSize.Width) ? size : new Size(Math.Min(size.Width, availableSize.Width), size.Height);
     }
 
     /// <inheritdoc/>

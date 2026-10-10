@@ -22,6 +22,43 @@ internal static class TableViewRowHostTestHelpers
     }
 
     /// <summary>
+    /// Returns the repeater hosting the table's rows.
+    /// </summary>
+    public static ItemsRepeater GetRowsRepeater(TableView tableView)
+    {
+        return tableView.FindDescendants().OfType<ItemsRepeater>().First(x => x.Name is "RowsRepeater");
+    }
+
+    /// <summary>
+    /// Returns the most rows of a given height the repeater should hold for a viewport: the viewport and the cache
+    /// kept around it, which is a multiple of the viewport split between both sides, plus the rows cut by the edges.
+    /// </summary>
+    public static int GetMaxRealizedRows(TableView tableView, double viewportHeight, double rowHeight)
+    {
+        var cacheLength = GetRowsRepeater(tableView).VerticalCacheLength;
+
+        return (int)System.Math.Ceiling(viewportHeight * (1d + cacheLength) / rowHeight) + 4;
+    }
+
+    /// <summary>
+    /// Waits for a scroll the table started itself to be applied: the offset moves only once the scroll is rendered.
+    /// </summary>
+    public static async Task WaitForScrollToSettleAsync(TableView tableView)
+    {
+        var scrollViewer = GetScrollViewer(tableView);
+        var offset = double.NaN;
+
+        for (int frame = 0, stableFrames = 0; frame < 100 && stableFrames < 3; frame++)
+        {
+            await Task.Delay(16);
+            await WaitForLayoutAsync(tableView);
+
+            stableFrames = scrollViewer.VerticalOffset == offset ? stableFrames + 1 : 0;
+            offset = scrollViewer.VerticalOffset;
+        }
+    }
+
+    /// <summary>
     /// Scrolls the rows area to a vertical offset and lets the row host realize the new viewport.
     /// </summary>
     public static async Task ScrollToAsync(TableView tableView, double verticalOffset)
@@ -63,14 +100,11 @@ internal static class TableViewRowHostTestHelpers
     }
 
     /// <summary>
-    /// Returns whether the repeater has realized an element at a vertical position in its own coordinates. A pinned
-    /// group header does not count: it is arranged at the viewport top before the rows have caught up.
+    /// Returns whether the repeater has realized an element at a vertical position in its own coordinates.
     /// </summary>
     private static bool IsRealizedAt(TableView tableView, double top)
     {
-        return GetRealizedElements(tableView).Any(x => x is not TableViewGroupHeaderRow { IsPinned: true }
-                                                       && x.ActualOffset.Y <= top
-                                                       && x.ActualOffset.Y + x.ActualSize.Y > top);
+        return GetRealizedElements(tableView).Any(x => x.ActualOffset.Y <= top && x.ActualOffset.Y + x.ActualSize.Y > top);
     }
 
     /// <summary>
@@ -78,7 +112,7 @@ internal static class TableViewRowHostTestHelpers
     /// </summary>
     private static IEnumerable<UIElement> GetRealizedElements(TableView tableView)
     {
-        var repeater = tableView.FindDescendants().OfType<ItemsRepeater>().First(x => x.Name is "RowsRepeater");
+        var repeater = GetRowsRepeater(tableView);
 
         return Enumerable.Range(0, VisualTreeHelper.GetChildrenCount(repeater))
                          .Select(i => (UIElement)VisualTreeHelper.GetChild(repeater, i))
