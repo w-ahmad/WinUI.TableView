@@ -23,8 +23,6 @@ namespace WinUI.TableView.Layout;
 /// </remarks>
 internal sealed partial class TableViewRowElementFactory
 {
-    private const int MaxPooledElements = 64;
-
     private readonly TableView _tableView;
     private readonly Stack<TableViewRow> _rowPool = new();
     private readonly Stack<TableViewGroupHeaderRow> _groupHeaderPool = new();
@@ -58,13 +56,43 @@ internal sealed partial class TableViewRowElementFactory
             return header;
         }
 
-        var row = _rowPool.Count > 0 ? _rowPool.Pop() : _tableView.CreateRow();
+        TableViewRow row;
+
+        if (_rowPool.Count > 0)
+        {
+            row = _rowPool.Pop();
+        }
+        else
+        {
+            row = _tableView.CreateRow();
+            CreatedRowCount++;
+        }
+
         row.TableView = _tableView;
 
         // Assigning Content is what drives cell creation on a new row and cell refresh on a reused one.
         row.Content = args.Data;
 
         return row;
+    }
+
+    /// <summary>
+    /// Gets the number of rows the factory has created, as opposed to taken from its pool.
+    /// </summary>
+    internal int CreatedRowCount { get; private set; }
+
+    /// <summary>
+    /// Lets pooled rows drop the items they last showed, so those items are not kept alive.
+    /// </summary>
+    /// <remarks>
+    /// Must not run inside a repeater callback: clearing a row's content rebuilds its cells.
+    /// </remarks>
+    internal void ReleasePooledContent()
+    {
+        foreach (var row in _rowPool)
+        {
+            row.Content = null;
+        }
     }
 
     /// <summary>
@@ -75,12 +103,11 @@ internal sealed partial class TableViewRowElementFactory
         switch (args.Element)
         {
             case TableViewRow row:
+                // Every row the repeater lets go of is pooled. The pool can only grow to the most rows the table has
+                // shown at once, and a row left out of it would stay one of the repeater's children, still listening
+                // to the table's columns, without ever being shown again.
                 row.PrepareForRecycle();
-
-                if (_rowPool.Count < MaxPooledElements)
-                {
-                    _rowPool.Push(row);
-                }
+                _rowPool.Push(row);
 
                 break;
 
@@ -88,11 +115,7 @@ internal sealed partial class TableViewRowElementFactory
                 // Drop the group so a pooled header does not keep a stale TableViewGroupInfo (and through it the
                 // CollectionView) alive, and so its next group always arrives as a content change.
                 header.Content = null;
-
-                if (_groupHeaderPool.Count < MaxPooledElements)
-                {
-                    _groupHeaderPool.Push(header);
-                }
+                _groupHeaderPool.Push(header);
 
                 break;
         }

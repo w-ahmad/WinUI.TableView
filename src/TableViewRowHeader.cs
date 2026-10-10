@@ -42,7 +42,12 @@ public partial class TableViewRowHeader : ContentControl
             element?.Measure(availableSize: new Size(double.PositiveInfinity, double.PositiveInfinity));
 
             var desiredWidth = GetContentDesiredWidth(element);
-            TableView?.SetValue(TableView.RowHeaderActualWidthProperty, desiredWidth);
+
+            // Every row header measures on every pass, and the shared width rarely changes.
+            if (TableView is not null && desiredWidth != TableView.RowHeaderActualWidth)
+            {
+                TableView.SetValue(TableView.RowHeaderActualWidthProperty, desiredWidth);
+            }
         }
 
         return base.MeasureOverride(availableSize);

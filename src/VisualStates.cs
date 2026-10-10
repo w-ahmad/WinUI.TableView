@@ -415,6 +415,30 @@ internal static class VisualStates
     /// true to use transitions when updating the visual state, false to
     /// snap directly to the new visual state.
     /// </param>
+    /// <param name="stateName">
+    /// The state to transition into.
+    /// </param>
+    /// <remarks>
+    /// Separate from the <c>params</c> overload so the calls made for every row the table shows do not allocate an
+    /// array each.
+    /// </remarks>
+    public static void GoToState(Control control, bool useTransitions, string stateName)
+    {
+        Debug.Assert(control != null, "Expected non-null control.");
+
+        VisualStateManager.GoToState(control, stateName, useTransitions);
+    }
+
+    /// <summary>
+    /// Use VisualStateManager to change the visual state of the control.
+    /// </summary>
+    /// <param name="control">
+    /// Control whose visual state is being changed.
+    /// </param>
+    /// <param name="useTransitions">
+    /// true to use transitions when updating the visual state, false to
+    /// snap directly to the new visual state.
+    /// </param>
     /// <param name="stateNames">
     /// Ordered list of state names and fallback states to transition into.
     /// Only the first state to be found will be used.

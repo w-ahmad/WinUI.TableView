@@ -37,6 +37,8 @@ public partial class TableViewRowPresenter : Control
     private long? _detailsPanelVisibilityCallbackToken;
     private RectangleGeometry? _detailsPanelClip;
     private RectangleGeometry? _scrollableCellsClip;
+    private TableViewCell[]? _cells;
+    private double _lastCellsHorizontalOffset = double.NaN;
 
     private const double MultiSelectInset = 44d;
 
@@ -73,6 +75,7 @@ public partial class TableViewRowPresenter : Control
         _detailsPresenter = GetTemplateChild("DetailsPresenter") as ContentPresenter;
         _detailsToggleButton = GetTemplateChild("DetailsToggleButton") as ToggleButton;
         _indentPlaceholder = GetTemplateChild("IndentPlaceholder") as Border;
+        _cells = null;
 
         TableViewRow = this.FindAscendant<TableViewRow>();
         TableView = TableViewRow?.TableView;
@@ -97,7 +100,19 @@ public partial class TableViewRowPresenter : Control
         SetRowDetailsVisibility();
         SetRowDetailsTemplate();
         SetGroupIndent();
+        IsTemplateApplied = true;
+
+        // A new row is prepared before this template exists, so its per-item visuals are applied now.
+        if (TableViewRow is { VisualIndex: >= 0 } row)
+        {
+            TableView?.ApplyRowVisuals(row);
+        }
     }
+
+    /// <summary>
+    /// Gets a value indicating whether the presenter's template has been applied.
+    /// </summary>
+    internal bool IsTemplateApplied { get; private set; }
 
     /// <summary>
     /// Indents this row's cells for the active grouping depth by setting a left margin on
@@ -192,9 +207,14 @@ public partial class TableViewRowPresenter : Control
                 // RootPanel is arranged at x = left above, so left + the gridline offset within RootPanel is
                 // the same value a TransformToVisual(this) walk produced — without walking the visual tree
                 // once per visible row per arrange pass.
-                var offset = _v_gridLine.Visibility is Visibility.Visible ? left + _v_gridLine.ActualOffset.X : 0d;
+                var offset = Math.Max(0, _v_gridLine.Visibility is Visibility.Visible ? left + _v_gridLine.ActualOffset.X : 0d);
 
-                TableView.SetValue(TableView.CellsHorizontalOffsetProperty, Math.Max(0, offset));
+                // Every row arranges on every scroll frame, and they all compute the same value.
+                if (offset != _lastCellsHorizontalOffset)
+                {
+                    _lastCellsHorizontalOffset = offset;
+                    TableView.SetValue(TableView.CellsHorizontalOffsetProperty, offset);
+                }
             }
         }
 
@@ -251,7 +271,7 @@ public partial class TableViewRowPresenter : Control
     /// </summary>
     internal void SetRowDetailsVisibility()
     {
-        EnsureGridLines();
+        EnsurePresenterGridLines();
 
         var mode = TableView?.RowDetailsVisibilityMode;
         var hasTemplate = TableView?.RowDetailsTemplate is not null || TableView?.RowDetailsTemplateSelector is not null;
@@ -377,7 +397,7 @@ public partial class TableViewRowPresenter : Control
                 _rowHeader.Visibility = Visibility.Collapsed;
             }
 
-            EnsureGridLines();
+            EnsurePresenterGridLines();
         }
     }
 
@@ -389,9 +409,24 @@ public partial class TableViewRowPresenter : Control
     }
 
     /// <summary>
-    /// Ensures grid lines are applied to the cells.
+    /// Ensures grid lines are applied to the presenter and its cells.
     /// </summary>
     internal void EnsureGridLines()
+    {
+        if (TableView is null) return;
+
+        EnsurePresenterGridLines();
+
+        foreach (var cell in Cells)
+        {
+            cell.EnsureGridLines();
+        }
+    }
+
+    /// <summary>
+    /// Ensures the presenter's own horizontal and vertical grid lines are applied, leaving the cells' alone.
+    /// </summary>
+    private void EnsurePresenterGridLines()
     {
         if (TableView is null) return;
 
@@ -416,11 +451,6 @@ public partial class TableViewRowPresenter : Control
                 _v_gridLine.Width = TableView.VerticalGridLinesStrokeThickness;
                 _v_gridLine.Visibility = vGridLinesVisibility && (areHeadersVisible || isMultiSelection || isDetailsToggleButtonVisible) ? Visibility.Visible : Visibility.Collapsed;
             }
-        }
-
-        foreach (var cell in Cells)
-        {
-            cell.EnsureGridLines();
         }
     }
 
@@ -457,7 +487,27 @@ public partial class TableViewRowPresenter : Control
             _scrollableCellsPanel.Children.Insert(index, cell);
         }
 
+        _cells = null;
         cell.EnsureStyle(TableViewRow?.Content);
+    }
+
+    /// <summary>
+    /// Adds cells to the presenter in the order given, which must be the visible column order.
+    /// </summary>
+    /// <remarks>
+    /// Building a row this way is linear in the number of columns, where inserting cell by cell looks each
+    /// column's position up among the visible columns.
+    /// </remarks>
+    internal void AppendCells(IEnumerable<TableViewCell> cells)
+    {
+        foreach (var cell in cells)
+        {
+            var panel = cell.Column?.IsFrozen is true ? _frozenCellsPanel : _scrollableCellsPanel;
+            panel?.Children.Add(cell);
+            cell.EnsureStyle(TableViewRow?.Content);
+        }
+
+        _cells = null;
     }
 
     /// <summary>
@@ -474,6 +524,8 @@ public partial class TableViewRowPresenter : Control
         {
             _scrollableCellsPanel.Children.Remove(cell);
         }
+
+        _cells = null;
     }
 
     /// <summary>
@@ -524,14 +576,42 @@ public partial class TableViewRowPresenter : Control
     {
         _frozenCellsPanel?.Children.Clear();
         _scrollableCellsPanel?.Children.Clear();
+        _cells = null;
     }
 
     /// <summary>
     /// Gets the list of cells in the presenter.
     /// </summary>
-    public IReadOnlyList<TableViewCell> Cells =>
-        [.. _frozenCellsPanel?.Children.OfType<TableViewCell>() ?? [],
-         .. _scrollableCellsPanel?.Children.OfType<TableViewCell>() ?? []];
+    /// <remarks>
+    /// Kept until the cells change, since it is read several times for every row the table shows. A change builds
+    /// a new list rather than altering this one, so a caller enumerating it is not disturbed.
+    /// </remarks>
+    public IReadOnlyList<TableViewCell> Cells => _cells ??= CollectCells();
+
+    /// <summary>
+    /// Collects the cells of the frozen and then the scrollable panel, in display order.
+    /// </summary>
+    private TableViewCell[] CollectCells()
+    {
+        var cells = new List<TableViewCell>((_frozenCellsPanel?.Children.Count ?? 0) + (_scrollableCellsPanel?.Children.Count ?? 0));
+        AddCellsOf(_frozenCellsPanel, cells);
+        AddCellsOf(_scrollableCellsPanel, cells);
+
+        return [.. cells];
+
+        static void AddCellsOf(Panel? panel, List<TableViewCell> cells)
+        {
+            if (panel is null) return;
+
+            foreach (var child in panel.Children)
+            {
+                if (child is TableViewCell cell)
+                {
+                    cells.Add(cell);
+                }
+            }
+        }
+    }
 
     /// <summary>
     /// Gets the panel hosting scrollable (non-frozen) cells. Used to shift the whole scrollable

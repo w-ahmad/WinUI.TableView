@@ -2811,7 +2811,7 @@ public partial class TableView : Control
             {
                 if (cell.Column is { } cellColumn && targetColumns.Contains(cellColumn))
                 {
-                    cell.InvalidateMeasure();
+                    cell.InvalidateAutoWidth();
                 }
             }
         }

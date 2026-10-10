@@ -192,9 +192,6 @@ public partial class TableViewRow : ContentControl
         _selectionIndicator = GetTemplateChild("SelectionIndicator") as Border;
 
         UpdateVisualStates(useTransitions: false);
-
-        // A new row is prepared before its template is applied, when there is no presenter to color yet.
-        EnsureAlternateColors();
     }
 
     /// <inheritdoc/>
@@ -329,14 +326,22 @@ public partial class TableViewRow : ContentControl
     /// <summary>
     /// Clears the per-item state so the row can be reused for a different item.
     /// </summary>
+    /// <remarks>
+    /// <see cref="IsSelected"/> is left alone: the row is given its next item's selection when it is prepared, and
+    /// clearing it here would replay the selection visuals of every selected row that scrolls back in.
+    /// </remarks>
     internal void PrepareForRecycle()
     {
         _isPointerOver = false;
         _isPressed = false;
-        IsSelected = false;
         Index = -1;
         VisualIndex = -1;
     }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the row is in the table's list of realized rows.
+    /// </summary>
+    internal bool IsAttached { get; set; }
 
     /// <summary>
     /// Handles the Loaded event.
@@ -379,7 +384,15 @@ public partial class TableViewRow : ContentControl
         {
             RowPresenter.ClearCells();
 
-            AddCells(TableView.Columns.VisibleColumns);
+            var columns = TableView.Columns.VisibleColumns;
+            var cells = new TableViewCell[columns.Count];
+
+            for (var i = 0; i < columns.Count; i++)
+            {
+                cells[i] = CreateCell(columns[i], i);
+            }
+
+            RowPresenter.AppendCells(cells);
             _ensureCells = false;
         }
     }
@@ -482,22 +495,30 @@ public partial class TableViewRow : ContentControl
         {
             foreach (var column in columns)
             {
-                var cell = new TableViewCell
-                {
-                    Row = this,
-                    Column = column,
-                    TableView = TableView,
-                    Index = TableView.Columns.VisibleColumns.IndexOf(column),
-                    Width = column.ActualWidth
-                };
-
-                cell.SetBinding(HeightProperty, SharedResources.RowHeightBinding);
-                cell.SetBinding(MaxHeightProperty, SharedResources.RowMaxHeightBinding);
-                cell.SetBinding(MinHeightProperty, SharedResources.RowMinHeightBinding);
-
-                RowPresenter.InsertCell(cell);
+                RowPresenter.InsertCell(CreateCell(column, TableView.Columns.VisibleColumns.IndexOf(column)));
             }
         }
+    }
+
+    /// <summary>
+    /// Creates the cell this row shows for a column.
+    /// </summary>
+    private TableViewCell CreateCell(TableViewColumn column, int index)
+    {
+        var cell = new TableViewCell
+        {
+            Row = this,
+            Column = column,
+            TableView = TableView,
+            Index = index,
+            Width = column.ActualWidth
+        };
+
+        cell.SetBinding(HeightProperty, SharedResources.RowHeightBinding);
+        cell.SetBinding(MaxHeightProperty, SharedResources.RowMaxHeightBinding);
+        cell.SetBinding(MinHeightProperty, SharedResources.RowMinHeightBinding);
+
+        return cell;
     }
 
     /// <summary>
@@ -585,11 +606,14 @@ public partial class TableViewRow : ContentControl
     /// </summary>
     internal void EnsureCellsStyle(TableViewColumn? column = null, object? dataItem = null)
     {
-        var cells = Cells.Where(x => column is null || x.Column == column);
+        var item = dataItem ?? Content;
 
-        foreach (var cell in cells)
+        foreach (var cell in Cells)
         {
-            cell.EnsureStyle(dataItem ?? Content);
+            if (column is null || cell.Column == column)
+            {
+                cell.EnsureStyle(item);
+            }
         }
     }
 
@@ -598,10 +622,28 @@ public partial class TableViewRow : ContentControl
     /// </summary>
     internal void ApplyCurrentCellState(TableViewCellSlot slot)
     {
-        if (slot.Column >= 0 && slot.Column < Cells.Count)
+        var cells = Cells;
+
+        if (slot.Column >= 0 && slot.Column < cells.Count)
         {
-            var cell = Cells[slot.Column];
-            cell.ApplyCurrentCellState();
+            cells[slot.Column].ApplyCurrentCellState();
+        }
+    }
+
+    /// <summary>
+    /// Brings every cell's selected and current visual state up to date, without moving focus.
+    /// </summary>
+    /// <remarks>
+    /// Used while the row is prepared for an item, which happens inside a layout pass, where moving focus is not
+    /// allowed. Covers every cell rather than only the current one, so a row that was in the pool while the current
+    /// cell moved does not keep showing it.
+    /// </remarks>
+    internal void ApplyCellStates()
+    {
+        foreach (var cell in Cells)
+        {
+            cell.ApplySelectionState();
+            cell.ApplyCurrentVisualState();
         }
     }
 
@@ -672,9 +714,18 @@ public partial class TableViewRow : ContentControl
     {
         if (d is TableViewRow row)
         {
-            row.UpdateVisualStates();
-            row.EnsureLayout();
-            row.RowPresenter?.SetRowDetailsVisibility();
+            row.UpdateVisualStates(useTransitions: row._animateSelection);
+
+            if (row.IsSelected)
+            {
+                row.EnsureLayout();
+            }
+
+            // Only this mode's details depend on the selection.
+            if (row.TableView?.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenSelected)
+            {
+                row.RowPresenter?.SetRowDetailsVisibility();
+            }
 
             if (row._animateSelection
                 && row.TableView?.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenSelected

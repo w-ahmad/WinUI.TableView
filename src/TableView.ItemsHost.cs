@@ -74,6 +74,11 @@ public partial class TableView
     internal bool AreStickyGroupHeadersActive => AreStickyGroupHeadersEnabled && _visualRows?.HasGroups is true;
 
     /// <summary>
+    /// Gets the factory that creates and pools the row host's rows.
+    /// </summary>
+    internal TableViewRowElementFactory? RowElementFactory => _rowElementFactory;
+
+    /// <summary>
     /// Gets the top of the viewport in the row host's coordinates, which start below the template's padding.
     /// </summary>
     internal double RowsViewportTop => (_scrollViewer?.VerticalOffset ?? 0d) - Padding.Top;
@@ -239,6 +244,15 @@ public partial class TableView
         {
             _rowsRepeater.Layout = null;
         }
+
+        // Clearing the layout pooled every row; outside this callback, let them drop the items they showed.
+        DispatcherQueue?.TryEnqueue(() =>
+        {
+            if (!IsLoaded)
+            {
+                _rowElementFactory?.ReleasePooledContent();
+            }
+        });
     }
 
     /// <summary>
@@ -272,6 +286,11 @@ public partial class TableView
         _rowsLayout = null;
         _rowElementFactory = null;
         _visualRows = null;
+        foreach (var row in _rows)
+        {
+            row.IsAttached = false;
+        }
+
         _rows.Clear();
         _groupHeaderRows.Clear();
     }
@@ -316,6 +335,7 @@ public partial class TableView
         CommitEditIfEditing(row);
 
         _rows.Remove(row);
+        row.IsAttached = false;
         row.VisualIndex = -1;
         row.Index = -1;
     }
@@ -343,21 +363,44 @@ public partial class TableView
         row.Index = itemIndex;
         row.SetSelectionState(itemIndex >= 0 && _rowSelection.Contains(itemIndex), animate: false);
 
-        if (!_rows.Contains(row))
+        if (!row.IsAttached)
         {
+            row.IsAttached = true;
             _rows.Add(row);
         }
 
+        // A new row has no template yet; its presenter applies the visuals once it has one.
+        if (row.RowPresenter?.IsTemplateApplied is true)
+        {
+            ApplyRowVisuals(row);
+        }
+    }
+
+    /// <summary>
+    /// Brings a row's per-item visuals up to date: cell styles, alternate colors, details pane, group indent,
+    /// template selectors and cell states.
+    /// </summary>
+    /// <remarks>
+    /// Runs while the repeater prepares the row, inside a layout pass, so it never moves focus.
+    /// </remarks>
+    internal void ApplyRowVisuals(TableViewRow row)
+    {
         row.EnsureCellsStyle(default, row.Content);
         row.EnsureAlternateColors();
         row.RowPresenter?.ApplyDetailsPaneState(row.Content);
         row.RowPresenter?.SetGroupIndent();
-        row.ApplyCellsSelectionState();
 
-        if (CurrentCellSlot.HasValue)
+        if (RowHeaderTemplateSelector is not null)
         {
-            row.ApplyCurrentCellState(CurrentCellSlot.Value);
+            row.RowPresenter?.SetRowHeaderTemplate();
         }
+
+        if (RowDetailsTemplateSelector is not null)
+        {
+            row.RowPresenter?.SetRowDetailsTemplate();
+        }
+
+        row.ApplyCellStates();
     }
 
     /// <summary>

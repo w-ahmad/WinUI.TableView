@@ -2,6 +2,7 @@ using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
@@ -33,6 +34,11 @@ public partial class TableViewCell : ContentControl
     private object? _uneditedValue;
     private RoutedEventArgs? _editingArgs;
     private IList<TableViewConditionalCellStyle>? _cellStyles;
+    private bool? _appliedSelected;
+    private bool? _appliedCurrent;
+    private bool _hasAppliedStyle;
+    private bool _autoWidthDirty = true;
+    private Style? _appliedStyle;
     private bool _resizePreviewActive;
     private double _resizePreviewWidth;
     private double _resizePreviewMaxWidth;
@@ -98,6 +104,10 @@ public partial class TableViewCell : ContentControl
         _rootBorder = GetTemplateChild("RootBorder") as Border;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
 
+        // A new template starts in its default states.
+        _appliedSelected = null;
+        _appliedCurrent = null;
+
         EnsureGridLines();
         EnsureStyle(Row?.Content);
     }
@@ -114,15 +124,35 @@ public partial class TableViewCell : ContentControl
 
         void OnContentLoaded(object sender, RoutedEventArgs e)
         {
+            // The template's content exists only now, so the width it wants is measured in the next layout pass.
             ((ContentControl)sender).Loaded -= OnContentLoaded;
-            Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            InvalidateAutoWidth();
         }
     }
 
+    /// <summary>
+    /// Has the next measure pass measure the cell's content at its natural width again, for the column's auto width.
+    /// </summary>
+    internal void InvalidateAutoWidth()
+    {
+        _autoWidthDirty = true;
+        InvalidateMeasure();
+    }
+
     /// <inheritdoc/>
+    /// <remarks>
+    /// The content is measured at the column's width, once. Only an auto-width column whose cells count towards its
+    /// width (<see cref="TableViewColumnAutoWidthMode.Cells"/> or <see cref="TableViewColumnAutoWidthMode.Both"/>)
+    /// also needs the width the content would take unconstrained, and only when that can have changed: the content is
+    /// new, or it fills the cell, so it may be clipped. Measuring every cell twice used to make every row the table
+    /// showed cost double.
+    /// </remarks>
     protected override Size MeasureOverride(Size availableSize)
     {
-        if (TableView is not null && Column is not null && Row is not null && _contentPresenter is not null && Content is FrameworkElement element)
+        if (TableView is not null && Column is not null && Row is not null && _contentPresenter is not null && Content is FrameworkElement element
+            && !Column.IsResizing
+            && Column.Width.IsAuto
+            && (Column.ColumnAutoWidthMode ?? TableView.ColumnAutoWidthMode) is TableViewColumnAutoWidthMode.Cells or TableViewColumnAutoWidthMode.Both)
         {
             if (Column is TableViewTemplateColumn)
             {
@@ -136,31 +166,53 @@ public partial class TableViewCell : ContentControl
                     return base.MeasureOverride(availableSize);
             }
 
-            // Skip the unconstrained auto-width measurement while the column is being manually
-            // resized — it only feeds Column.DesiredWidth, which is irrelevant to a pixel-width drag,
-            // and this cell doesn't get remeasured on every drag frame anyway (see BeginResizePreview).
-            if (!Column.IsResizing)
+            if (!_autoWidthDirty)
             {
-                element.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                var size = base.MeasureOverride(availableSize);
+                var givenWidth = LayoutInformation.GetAvailableSize(element).Width;
 
-                var autoSizeMode = Column.ColumnAutoWidthMode ?? TableView.ColumnAutoWidthMode;
-                if (autoSizeMode is TableViewColumnAutoWidthMode.Cells or TableViewColumnAutoWidthMode.Both)
+                if (double.IsInfinity(givenWidth))
                 {
-                    var desiredWidth = element.DesiredSize.Width;
-                    desiredWidth += Padding.Left;
-                    desiredWidth += Padding.Right;
-                    desiredWidth += BorderThickness.Left;
-                    desiredWidth += BorderThickness.Right;
-                    desiredWidth += _selectionBorder?.BorderThickness.Right ?? 0;
-                    desiredWidth += _selectionBorder?.BorderThickness.Left ?? 0;
-                    desiredWidth += _v_gridLine?.ActualWidth ?? 0d;
+                    // Measured without a width limit already: what it took is what it wants.
+                    RecordDesiredWidth(element.DesiredSize.Width);
+                    return size;
+                }
 
-                    Column.DesiredWidth = Math.Max(Column.DesiredWidth, desiredWidth);
+                // Content that takes less than the width it was given is not clipped, so it wants no more.
+                if (element.DesiredSize.Width < givenWidth - 0.5)
+                {
+                    return size;
                 }
             }
+
+            _autoWidthDirty = false;
+            element.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            RecordDesiredWidth(element.DesiredSize.Width);
         }
 
         return base.MeasureOverride(availableSize);
+    }
+
+    /// <summary>
+    /// Widens the column's auto width to fit content of the given width.
+    /// </summary>
+    private void RecordDesiredWidth(double contentWidth)
+    {
+        Column!.DesiredWidth = Math.Max(Column.DesiredWidth, contentWidth + GetChromeWidth());
+    }
+
+    /// <summary>
+    /// Gets the width the cell's padding, borders and grid line take around its content.
+    /// </summary>
+    private double GetChromeWidth()
+    {
+        return Padding.Left
+               + Padding.Right
+               + BorderThickness.Left
+               + BorderThickness.Right
+               + (_selectionBorder?.BorderThickness.Left ?? 0)
+               + (_selectionBorder?.BorderThickness.Right ?? 0)
+               + (_v_gridLine?.ActualWidth ?? 0d);
     }
 
     /// <inheritdoc/>
@@ -505,6 +557,19 @@ public partial class TableViewCell : ContentControl
     {
         Column?.EndCellEditing(this, Row?.Content, editAction, _uneditedValue);
         SetElement();
+
+#if !WINDOWS
+        if (IsCurrent)
+        {
+            DispatcherQueue.TryEnqueue(async () =>
+            {
+                await Task.Delay(20);
+                Focus(FocusState.Pointer);
+            });
+        }
+#endif
+
+        DispatcherQueue.TryEnqueue(InvalidateMeasure);
     }
 
     /// <summary>
@@ -520,16 +585,7 @@ public partial class TableViewCell : ContentControl
         }
 
         Content = element;
-
-#if !WINDOWS
-        DispatcherQueue.TryEnqueue(async () =>
-        {
-            await Task.Delay(20);
-            Focus(FocusState.Pointer);
-        });
-#endif
-
-        DispatcherQueue.TryEnqueue(InvalidateMeasure);
+        _autoWidthDirty = true;
     }
 
     /// <summary>
@@ -545,8 +601,27 @@ public partial class TableViewCell : ContentControl
     /// </summary>
     internal void ApplySelectionState()
     {
-        var stateName = IsSelected ? VisualStates.StateSelected : VisualStates.StateUnselected;
-        VisualStates.GoToState(this, false, stateName);
+        var isSelected = IsSelected;
+
+        if (_appliedSelected != isSelected)
+        {
+            _appliedSelected = isSelected;
+            VisualStates.GoToState(this, false, isSelected ? VisualStates.StateSelected : VisualStates.StateUnselected);
+        }
+    }
+
+    /// <summary>
+    /// Shows whether the cell is the current cell, without moving focus.
+    /// </summary>
+    internal void ApplyCurrentVisualState()
+    {
+        var isCurrent = IsCurrent;
+
+        if (_appliedCurrent != isCurrent)
+        {
+            _appliedCurrent = isCurrent;
+            VisualStates.GoToState(this, false, isCurrent ? VisualStates.StateCurrent : VisualStates.StateRegular);
+        }
     }
 
     /// <summary>
@@ -554,8 +629,7 @@ public partial class TableViewCell : ContentControl
     /// </summary>
     internal async void ApplyCurrentCellState(bool skipFocus = false)
     {
-        var stateName = IsCurrent ? VisualStates.StateCurrent : VisualStates.StateRegular;
-        VisualStates.GoToState(this, false, stateName);
+        ApplyCurrentVisualState();
 
         if (IsCurrent && !skipFocus)
         {
@@ -618,8 +692,31 @@ public partial class TableViewCell : ContentControl
             .. Column?.ConditionalCellStyles ?? [], // Column styles have first priority
             .. TableView?.ConditionalCellStyles ?? []]; // TableView styles have second priority
 
-        Style = _cellStyles.FirstOrDefault(c => c.Predicate?.Invoke(new(Column!, item)) is true)?
-                          .Style ?? Column?.CellStyle ?? TableView?.CellStyle;
+        Style? style = null;
+
+        if (_cellStyles.Count > 0)
+        {
+            var context = new TableViewConditionalCellStyleContext(Column!, item);
+
+            foreach (var cellStyle in _cellStyles)
+            {
+                if (cellStyle.Predicate?.Invoke(context) is true)
+                {
+                    style = cellStyle.Style;
+                    break;
+                }
+            }
+        }
+
+        style ??= Column?.CellStyle ?? TableView?.CellStyle;
+
+        // Rows are restyled for every item they show; setting the same style again still costs a call into XAML.
+        if (!_hasAppliedStyle || !ReferenceEquals(_appliedStyle, style))
+        {
+            _hasAppliedStyle = true;
+            _appliedStyle = style;
+            Style = style;
+        }
     }
 
     /// <summary>

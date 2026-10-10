@@ -155,6 +155,51 @@ public class TableViewCellContentLayoutTests
     }
 
     [UITestMethod]
+    public async Task FixedWidthColumn_DoesNotMeasureItsCellsUnconstrained()
+    {
+        var tableView = await CreateTableViewAsync(new GridLength(80));
+        await ScrollToAsync(tableView, 200d);
+
+        var column = tableView.Columns[0];
+        var headerWidth = column.HeaderControl!.CachedDesiredWidth ?? 0d;
+
+        // A fixed width never uses the width the cells want, so only the header should have reported one.
+        Assert.AreEqual(headerWidth, column.DesiredWidth, 0.5, "cells of a fixed-width column were measured at their natural width");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task AutoWidthColumn_GrowsWhenAnItemsTextGrowsInPlace()
+    {
+        var items = new ObservableCollection<NotifyingItem>(Enumerable.Range(0, 20).Select(i => new NotifyingItem { Name = "Short" }));
+        var tableView = new TableView { Width = 600, Height = 300, AutoGenerateColumns = false, ColumnAutoWidthMode = TableViewColumnAutoWidthMode.Cells };
+        tableView.Columns.Add(new TableViewTextColumn
+        {
+            Header = "Name",
+            Width = GridLength.Auto,
+            Binding = new Binding { Path = new PropertyPath(nameof(NotifyingItem.Name)) }
+        });
+        tableView.ItemsSource = items;
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        await WaitForLayoutAsync(tableView);
+
+        var before = tableView.Columns[0].ActualWidth;
+        items[3].Name = LongText;
+
+        // The column re-sizes after its header row's debounce.
+        await Task.Delay(500);
+        await WaitForLayoutAsync(tableView);
+
+        var cell = RealizedRows(tableView).First(x => x.Index == 3).Cells[0];
+        Assert.IsTrue(tableView.Columns[0].ActualWidth > before + 50, $"the column stayed {tableView.Columns[0].ActualWidth}px wide");
+        Assert.IsFalse(((TextBlock)cell.Content).IsTextTrimmed, "the longer text should fit the widened column");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
     public async Task RowHeaderContent_KeepsItsOwnMaxWidth()
     {
         var tableView = await CreateTableViewAsync(new GridLength(200), configure: tableView =>
@@ -275,4 +320,22 @@ public class TableViewCellContentLayoutTests
 
         return tableView;
     }
+}
+
+/// <summary>
+/// An item that reports changes to its name. Public, because the binding engine observes only public types.
+/// </summary>
+public sealed class NotifyingItem : System.ComponentModel.INotifyPropertyChanged
+{
+    public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+
+    public string Name
+    {
+        get;
+        set
+        {
+            field = value;
+            PropertyChanged?.Invoke(this, new(nameof(Name)));
+        }
+    } = string.Empty;
 }
