@@ -106,10 +106,18 @@
                                               HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
                                               VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
 
-                            <Rectangle x:Name="HorizontalGridLine"
-                                       Grid.Row="1"
-                                       Grid.ColumnSpan="3"
-                                       HorizontalAlignment="Stretch" />
+                            <!--  The grid line is the bottom edge of a border as tall as the row, with the space below the content
+                                  kept for it. Far down a very long table, positions are kept to whole even pixels or coarser, and an
+                                  element only a pixel tall ends up with no height at all and is not drawn.  -->
+                            <Border x:Name="HorizontalGridLineSpace"
+                                    Grid.Row="1"
+                                    Grid.ColumnSpan="3"
+                                    IsHitTestVisible="False" />
+
+                            <Border x:Name="HorizontalGridLine"
+                                    Grid.RowSpan="2"
+                                    Grid.ColumnSpan="3"
+                                    IsHitTestVisible="False" />
                         </Grid>
                     </Border>
                 </ControlTemplate>

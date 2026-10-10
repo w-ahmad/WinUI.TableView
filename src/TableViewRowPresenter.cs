@@ -29,7 +29,9 @@ public partial class TableViewRowPresenter : Control
     private StackPanel? _scrollableCellsPanel;
     private StackPanel? _frozenCellsPanel;
     private Rectangle? _v_gridLine;
-    private Rectangle? _h_gridLine;
+    private Border? _h_gridLine;
+    private FrameworkElement? _h_gridLineSpace;
+    private Rectangle? _detailsGridLine;
     private Panel? _detailsPanel;
     private ContentPresenter? _detailsPresenter;
     private ToggleButton? _detailsToggleButton;
@@ -70,7 +72,9 @@ public partial class TableViewRowPresenter : Control
         _scrollableCellsPanel = GetTemplateChild("ScrollableCellsPanel") as StackPanel;
         _frozenCellsPanel = GetTemplateChild("FrozenCellsPanel") as StackPanel;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
-        _h_gridLine = GetTemplateChild("HorizontalGridLine") as Rectangle;
+        _h_gridLine = GetTemplateChild("HorizontalGridLine") as Border;
+        _detailsGridLine = GetTemplateChild("DetailsGridLine") as Rectangle;
+        _h_gridLineSpace = GetTemplateChild("HorizontalGridLineSpace") as FrameworkElement;
         _detailsPanel = GetTemplateChild("DetailsPanel") as Panel;
         _detailsPresenter = GetTemplateChild("DetailsPresenter") as ContentPresenter;
         _detailsToggleButton = GetTemplateChild("DetailsToggleButton") as ToggleButton;
@@ -432,10 +436,26 @@ public partial class TableViewRowPresenter : Control
 
         if (_h_gridLine is not null)
         {
-            _h_gridLine.Fill = TableView.HorizontalGridLinesStroke;
-            _h_gridLine.Height = TableView.HorizontalGridLinesStrokeThickness;
-            _h_gridLine.Visibility = TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Horizontal
-                                     ? Visibility.Visible : Visibility.Collapsed;
+            var thickness = TableView.HorizontalGridLinesStrokeThickness;
+            var visibility = TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Horizontal
+                             ? Visibility.Visible : Visibility.Collapsed;
+
+            _h_gridLine.BorderBrush = TableView.HorizontalGridLinesStroke;
+            _h_gridLine.BorderThickness = new Thickness(0, 0, 0, thickness);
+            _h_gridLine.Visibility = visibility;
+
+            if (_h_gridLineSpace is not null)
+            {
+                _h_gridLineSpace.Height = thickness;
+                _h_gridLineSpace.Visibility = visibility;
+            }
+
+            if (_detailsGridLine is not null)
+            {
+                _detailsGridLine.Fill = TableView.HorizontalGridLinesStroke;
+                _detailsGridLine.Height = thickness;
+                _detailsGridLine.Visibility = visibility;
+            }
 
             if (_v_gridLine is not null)
             {

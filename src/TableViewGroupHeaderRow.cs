@@ -32,7 +32,8 @@ public partial class TableViewGroupHeaderRow : ContentControl
 
     private Button? _expandCollapseButton;
     private Border? _indentPlaceholder;
-    private Rectangle? _h_gridLine;
+    private Border? _h_gridLine;
+    private FrameworkElement? _h_gridLineSpace;
     private bool _isPinned;
 
     /// <summary>
@@ -102,7 +103,8 @@ public partial class TableViewGroupHeaderRow : ContentControl
         _expandCollapseButton = GetTemplateChild("ExpandCollapseButton") as Button;
         _expandCollapseButton?.Click += OnExpandCollapseButtonClick;
         _indentPlaceholder = GetTemplateChild("IndentPlaceholder") as Border;
-        _h_gridLine = GetTemplateChild("HorizontalGridLine") as Rectangle;
+        _h_gridLine = GetTemplateChild("HorizontalGridLine") as Border;
+        _h_gridLineSpace = GetTemplateChild("HorizontalGridLineSpace") as FrameworkElement;
 
         EnsureGridLines();
         UpdateExpandCollapseButtonVisibility();
@@ -135,8 +137,9 @@ public partial class TableViewGroupHeaderRow : ContentControl
     {
         if (_h_gridLine is null || TableView is null) return;
 
-        _h_gridLine.Fill = TableView.HorizontalGridLinesStroke;
-        _h_gridLine.Height = TableView.HorizontalGridLinesStrokeThickness;
+        _h_gridLine.BorderBrush = TableView.HorizontalGridLinesStroke;
+        _h_gridLine.BorderThickness = new Thickness(0, 0, 0, TableView.HorizontalGridLinesStrokeThickness);
+        _h_gridLineSpace?.Height = TableView.HorizontalGridLinesStrokeThickness;
     }
 
     /// <summary>

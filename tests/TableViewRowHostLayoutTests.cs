@@ -1,12 +1,15 @@
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using static WinUI.TableView.Tests.TableViewRowHostTestHelpers;
 
@@ -192,6 +195,58 @@ public class TableViewRowHostLayoutTests
         Assert.AreSame(tableView.Items[0], ((TableViewRow)tableView.RealizedRows.Get(0)!).Content);
 
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task HorizontalGridLines_AreDrawn_FarDownAMillionRows()
+    {
+        // Past 2^24 pixels, positions are kept to whole even pixels or coarser, which a one pixel tall element does not
+        // survive.
+        var tableView = await CreateTableViewAsync(CreateItems(1_000_000), rowHeight: double.NaN);
+        tableView.HorizontalGridLinesStroke = new SolidColorBrush(Colors.Red);
+        await WaitForLayoutAsync(tableView);
+
+        var scrollViewer = GetScrollViewer(tableView);
+
+        foreach (var offset in new[] { 0d, 17_500_000d, 34_000_000d, scrollViewer.ScrollableHeight })
+        {
+            await ScrollToAsync(tableView, offset);
+            await Task.Delay(50);
+
+            var lines = await CountRedLinesAsync(tableView);
+            Assert.IsTrue(lines >= 8, $"{lines} grid lines drawn at {scrollViewer.VerticalOffset:N0}px");
+        }
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    /// <summary>
+    /// Counts the red horizontal lines crossing the middle of a rendering of the table, the header row's included.
+    /// </summary>
+    private static async Task<int> CountRedLinesAsync(TableView tableView)
+    {
+        var bitmap = new RenderTargetBitmap();
+        await bitmap.RenderAsync(tableView);
+
+        var pixels = (await bitmap.GetPixelsAsync()).ToArray();
+        var x = bitmap.PixelWidth / 2;
+        var lines = 0;
+        var wasRed = false;
+
+        for (var y = 0; y < bitmap.PixelHeight; y++)
+        {
+            var i = ((y * bitmap.PixelWidth) + x) * 4; // BGRA
+            var isRed = pixels[i + 2] > 180 && pixels[i + 1] < 90 && pixels[i] < 90;
+
+            if (isRed && !wasRed)
+            {
+                lines++;
+            }
+
+            wasRed = isRed;
+        }
+
+        return lines;
     }
 
     private static void AssertFullyInView(TableView tableView, TableViewRow row)
