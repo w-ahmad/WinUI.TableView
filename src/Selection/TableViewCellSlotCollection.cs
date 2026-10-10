@@ -18,7 +18,7 @@ namespace WinUI.TableView.Selection;
 /// by subtracting a new range from the existing selection before adding it.
 /// </para>
 /// </remarks>
-internal sealed class TableViewCellSlotCollection : IList<TableViewCellSlot>
+internal sealed partial class TableViewCellSlotCollection : IList<TableViewCellSlot>
 {
     private readonly IEnumerable<TableViewCellSlotRange> _ranges;
 

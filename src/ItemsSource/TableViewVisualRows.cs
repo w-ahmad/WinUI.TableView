@@ -26,7 +26,7 @@ namespace WinUI.TableView;
 /// shape <c>ItemsSourceView</c> recognises on both Windows App SDK and Uno.
 /// </para>
 /// </remarks>
-internal sealed class TableViewVisualRows : IList, INotifyCollectionChanged
+internal sealed partial class TableViewVisualRows : IList, INotifyCollectionChanged
 {
     private readonly CollectionView _collectionView;
 

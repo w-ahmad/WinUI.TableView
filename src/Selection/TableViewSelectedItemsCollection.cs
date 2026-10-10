@@ -17,7 +17,7 @@ namespace WinUI.TableView.Selection;
 /// selection change are: changing them would not change the selection, so they refuse rather than ignore it.
 /// </para>
 /// </remarks>
-internal sealed class TableViewSelectedItemsCollection : IList<object>
+internal sealed partial class TableViewSelectedItemsCollection : IList<object>
 {
     private readonly TableViewSelectionModel _model;
     private readonly Func<int, object?> _itemAt;
