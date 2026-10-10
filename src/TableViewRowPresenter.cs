@@ -286,9 +286,15 @@ public partial class TableViewRowPresenter : Control
     /// <summary>
     /// Handles the Tapped event of the details toggle button.
     /// </summary>
-    private void OnDetailsToggleButtonTapped(object sender, TappedRoutedEventArgs e)
+    private async void OnDetailsToggleButtonTapped(object sender, TappedRoutedEventArgs e)
     {
-        ToggleDetailsPane(TableViewRow?.Content, _detailsToggleButton!.IsChecked ?? false);
+        var isVisible = _detailsToggleButton!.IsChecked ?? false;
+        ToggleDetailsPane(TableViewRow?.Content, isVisible);
+
+        if (isVisible && TableViewRow is not null)
+        {
+            await TableViewRow.ScrollIntoViewAfterDetailsPaneVisibility();
+        }
     }
 
     /// <summary>
@@ -560,7 +566,7 @@ public partial class TableViewRowPresenter : Control
     /// <see cref="TableViewRowDetailsVisibilityMode.VisibleWhenExpanded"/>.
     /// </summary>
     /// <param name="visible"><see langword="true"/> to expand; <see langword="false"/> to collapse.</param>
-    internal void ShowDetailPane(bool visible)
+    internal async void ShowDetailPane(bool visible)
     {
         if (TableView?.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded)
         {
@@ -570,6 +576,11 @@ public partial class TableViewRowPresenter : Control
             }
 
             ToggleDetailsPane(TableViewRow?.Content, visible);
+
+            if (visible && TableViewRow is not null)
+            {
+                await TableViewRow.ScrollIntoViewAfterDetailsPaneVisibility();
+            }
         }
     }
 }

@@ -1,0 +1,23 @@
+<UserControl x:Class="WinUI.TableView.SampleApp.Controls.ColorPickerButton"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <DropDownButton Padding="6"
+                    AutomationProperties.Name="Pick a color">
+        <Border Width="24"
+                Height="24"
+                CornerRadius="4"
+                BorderThickness="1"
+                BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                Background="{x:Bind SelectedBrush, Mode=OneWay}" />
+        <DropDownButton.Flyout>
+            <Flyout Placement="Bottom"
+                    Opening="OnFlyoutOpening">
+                <ColorPicker x:Name="colorPicker"
+                             IsAlphaEnabled="True"
+                             IsMoreButtonVisible="True"
+                             ColorChanged="OnColorChanged" />
+            </Flyout>
+        </DropDownButton.Flyout>
+    </DropDownButton>
+</UserControl>

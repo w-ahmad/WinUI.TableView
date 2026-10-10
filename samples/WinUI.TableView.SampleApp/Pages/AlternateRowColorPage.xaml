@@ -6,7 +6,6 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:tv="using:WinUI.TableView"
       xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
-      xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
       xmlns:ui="using:CommunityToolkit.WinUI"
       xmlns:converters="using:WinUI.TableView.SampleApp.Converters"
       d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
@@ -28,14 +27,14 @@
                     <TextBlock Text="Alternate row background" />
                     <StackPanel Spacing="8"
                                 Orientation="Horizontal">
-                        <toolkit:ColorPickerButton SelectedColor="{Binding AlternateRowBackground, Mode=TwoWay, ElementName=tableView, Converter={StaticResource ColorToBrush}}" />
+                        <controls:ColorPickerButton SelectedBrush="{Binding AlternateRowBackground, Mode=TwoWay, ElementName=tableView}" />
                         <Button Content="Reset"
                                 Click="ResetBackground" />
                     </StackPanel>
                     <TextBlock Text="Alternate row foreground" />
                     <StackPanel Spacing="8"
                                 Orientation="Horizontal">
-                        <toolkit:ColorPickerButton SelectedColor="{Binding AlternateRowForeground, Mode=TwoWay, ElementName=tableView, Converter={StaticResource ColorToBrush}}" />
+                        <controls:ColorPickerButton SelectedBrush="{Binding AlternateRowForeground, Mode=TwoWay, ElementName=tableView}" />
                         <Button Content="Reset"
                                 Click="ResetForeground" />
                     </StackPanel>

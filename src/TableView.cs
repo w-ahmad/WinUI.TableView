@@ -51,6 +51,7 @@ public partial class TableView : Control
     private TableViewCellSlotRange? _lastDragSelectionCellRange;
     private ItemIndexRange? _lastDragSelectionRowRange;
     private bool _cellStateDispatchPending;
+    private bool _alternateRowColorsPending;
     private readonly HashSet<int> _pendingCellStateRows = [];
     private bool _allCellStatesPending;
     private List<TableViewCellSlotRange> _previousSelectedCellRanges = [];
@@ -86,6 +87,22 @@ public partial class TableView : Control
         _collectionView.ViewResetting += OnCollectionViewResetting;
         _collectionView.VectorChanged += OnCollectionViewVectorChanged;
         _groupStyle.CollectionChanged += delegate { RefreshGroupHeaderTemplates(); };
+        Columns.ColumnPropertyChanged += OnColumnPropertyChanged;
+    }
+
+    /// <summary>
+    /// Re-runs the row layout when a column's width or visibility changes.
+    /// </summary>
+    /// <remarks>
+    /// Rows are measured against the width of the previous pass, so a wider column does not change their desired
+    /// size, and nothing else would tell the layout that the horizontal extent has changed.
+    /// </remarks>
+    private void OnColumnPropertyChanged(object? sender, TableViewColumnPropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(TableViewColumn.ActualWidth) or nameof(TableViewColumn.Visibility))
+        {
+            _rowsRepeater?.InvalidateMeasure();
+        }
     }
 
     /// <summary>
@@ -2756,8 +2773,13 @@ public partial class TableView : Control
     /// </summary>
     internal void EnsureAlternateRowColors()
     {
+        if (_alternateRowColorsPending) return;
+
+        _alternateRowColorsPending = true;
         DispatcherQueue.TryEnqueue(() =>
         {
+            _alternateRowColorsPending = false;
+
             foreach (var row in _rows)
             {
                 row.EnsureAlternateColors();

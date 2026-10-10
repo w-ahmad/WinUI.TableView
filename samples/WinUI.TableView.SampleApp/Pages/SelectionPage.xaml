@@ -7,7 +7,7 @@
       xmlns:tv="using:WinUI.TableView"
       xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
       xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
-      xmlns:ui="using:CommunityToolkit.WinUI"
+      xmlns:helpers="using:WinUI.TableView.SampleApp.Helpers"
       xmlns:converters="using:WinUI.TableView.SampleApp.Converters"
       d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
       mc:Ignorable="d">
@@ -27,11 +27,12 @@
                     <ComboBox x:Name="selectionModes"
                               Header="Selection Mode"
                               HorizontalAlignment="Stretch"
-                              SelectedItem="{Binding SelectionMode, Mode=TwoWay, ElementName=tableView, Converter={StaticResource EnumToString}}" />
+                              SelectedItem="{x:Bind tableView.SelectionMode, Mode=OneWay, Converter={StaticResource EnumToString}}"
+                              SelectionChanged="OnSelectionModeChanged" />
                     <ComboBox Header="Selection Unit"
                               HorizontalAlignment="Stretch"
                               SelectedItem="{Binding SelectionUnit, Mode=TwoWay, ElementName=tableView}"
-                              ItemsSource="{ui:EnumValues Type=tv:TableViewSelectionUnit}" />
+                              ItemsSource="{helpers:EnumValues Type=tv:TableViewSelectionUnit}" />
                     <ToggleSwitch Header="IsReadOnly"
                                   OnContent="True"
                                   OffContent="False"

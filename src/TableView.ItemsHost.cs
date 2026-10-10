@@ -341,7 +341,7 @@ public partial class TableView
         row.TableView = this;
         row.VisualIndex = visualIndex;
         row.Index = itemIndex;
-        row.IsSelected = itemIndex >= 0 && _rowSelection.Contains(itemIndex);
+        row.SetSelectionState(itemIndex >= 0 && _rowSelection.Contains(itemIndex), animate: false);
 
         if (!_rows.Contains(row))
         {

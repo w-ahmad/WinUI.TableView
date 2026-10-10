@@ -70,12 +70,12 @@
                             Click="OnSetItemsSourceCliced" />
                     <TextBlock>
                         <Run Text="Total items:" />
-                        <Run Text="{Binding TransacationsData.Count}" />
+                        <Run Text="{x:Bind ViewModel.TransacationsData.Count, Mode=OneWay}" />
                     </TextBlock>
 
                     <TextBlock>
                         <Run Text="Items in view:" />
-                        <Run Text="{Binding CollectionView.Count, ElementName=tableView}" />
+                        <Run x:Name="itemsInView" />
                     </TextBlock>
                 </StackPanel>
             </controls:SamplePresenter.Options>

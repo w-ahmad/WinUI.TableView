@@ -6,7 +6,7 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:tv="using:WinUI.TableView"
       xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
-      xmlns:ui="using:CommunityToolkit.WinUI"
+      xmlns:helpers="using:WinUI.TableView.SampleApp.Helpers"
       d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
       mc:Ignorable="d">
 
@@ -36,7 +36,7 @@
                               Header="Headers Visibility"
                               HorizontalAlignment="Stretch"
                               SelectedItem="{Binding HeadersVisibility, Mode=TwoWay, ElementName=tableView}"
-                              ItemsSource="{ui:EnumValues Type=tv:TableViewHeadersVisibility}" />
+                              ItemsSource="{helpers:EnumValues Type=tv:TableViewHeadersVisibility}" />
                     <TextBlock Text="Scroll the table horizontally to see the row headers stay frozen while column headers and cells scroll."
                                TextWrapping="Wrap"
                                Opacity="0.7" />

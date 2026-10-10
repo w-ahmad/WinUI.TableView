@@ -38,6 +38,7 @@ public partial class TableViewRow : ContentControl
     private bool _ensureCells = true;
     private bool _isPointerOver;
     private bool _isPressed;
+    private bool _animateSelection = true;
     private Brush? _cellPresenterBackground;
     private Brush? _cellPresenterForeground;
 
@@ -141,6 +142,44 @@ public partial class TableViewRow : ContentControl
         e.Handled = TableView?.ShowRowContext(this, position) is true;
     }
 
+    /// <summary>
+    /// Sets <see cref="IsSelected"/> for the row.
+    /// </summary>
+    /// <remarks>
+    /// Preparing a row for an item shows the selection that item already has, so <paramref name="animate"/> is false
+    /// there: unlike a selection the user just made, it must not bring the row's details into view.
+    /// </remarks>
+    internal void SetSelectionState(bool isSelected, bool animate)
+    {
+        _animateSelection = animate;
+
+        try
+        {
+            IsSelected = isSelected;
+        }
+        finally
+        {
+            _animateSelection = true;
+        }
+    }
+
+    /// <summary>
+    /// Brings this row into view once the row details animation has had time to run. Skips the scroll if
+    /// the container was detached or recycled for different content while waiting.
+    /// </summary>
+    internal async Task ScrollIntoViewAfterDetailsPaneVisibility()
+    {
+        var content = Content;
+        var index = Index;
+
+        await Task.Delay(20);
+
+        if (TableView is not null && index >= 0 && Index == index && object.ReferenceEquals(Content, content))
+        {
+            await TableView.ScrollRowIntoView(index);
+        }
+    }
+
     /// <inheritdoc/>
     protected override void OnApplyTemplate()
     {
@@ -153,6 +192,9 @@ public partial class TableViewRow : ContentControl
         _selectionIndicator = GetTemplateChild("SelectionIndicator") as Border;
 
         UpdateVisualStates(useTransitions: false);
+
+        // A new row is prepared before its template is applied, when there is no presenter to color yet.
+        EnsureAlternateColors();
     }
 
     /// <inheritdoc/>
@@ -633,6 +675,13 @@ public partial class TableViewRow : ContentControl
             row.UpdateVisualStates();
             row.EnsureLayout();
             row.RowPresenter?.SetRowDetailsVisibility();
+
+            if (row._animateSelection
+                && row.TableView?.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenSelected
+                && (row.RowPresenter?.IsDetailsPanelVisible ?? false))
+            {
+                _ = row.ScrollIntoViewAfterDetailsPaneVisibility();
+            }
         }
     }
 

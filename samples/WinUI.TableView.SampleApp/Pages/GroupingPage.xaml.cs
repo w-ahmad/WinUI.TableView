@@ -34,8 +34,12 @@ public sealed partial class GroupingPage : Page
         }
     }
 
+    private ExampleViewModel? ViewModel => DataContext as ExampleViewModel;
+
     private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
     {
+        Bindings.Update();
+
         if (DataContext is not ExampleViewModel viewModel) return;
 
         ReseedData(viewModel);
