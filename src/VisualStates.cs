@@ -42,6 +42,21 @@ internal static class VisualStates
     public const string StatePressedSelected = "PressedSelected";
 
     /// <summary>
+    /// Selection indicator hidden state.
+    /// </summary>
+    public const string StateSelectionIndicatorHidden = "SelectionIndicatorHidden";
+
+    /// <summary>
+    /// Selection indicator shown state.
+    /// </summary>
+    public const string StateSelectionIndicatorShown = "SelectionIndicatorShown";
+
+    /// <summary>
+    /// Selection indicator pressed state.
+    /// </summary>
+    public const string StateSelectionIndicatorPressed = "SelectionIndicatorPressed";
+
+    /// <summary>
     /// Identifies the "Enabled" state.
     /// </summary>
     public const string StateEnabled = "Enabled";

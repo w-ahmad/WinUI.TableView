@@ -581,9 +581,10 @@ public partial class TableViewCell : ContentControl
     {
         var element = Column?.GenerateElement(this, Row?.Content);
 
-        if (element is not null && Column is TableViewBoundColumn { ElementStyle: { } } boundColumn)
+        if (element is not null && Column is TableViewBoundColumn boundColumn
+            && (boundColumn.ElementStyle ?? boundColumn.DefaultElementStyle) is { } style)
         {
-            element.Style = boundColumn.ElementStyle;
+            element.Style = style;
         }
 
         Content = element;

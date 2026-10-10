@@ -413,5 +413,7 @@ internal sealed class HostItem
 
     public string Category { get; set; } = string.Empty;
 
+    public bool IsChecked { get; set; }
+
     public override string ToString() => Name;
 }

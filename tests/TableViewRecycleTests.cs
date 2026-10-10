@@ -119,6 +119,26 @@ public class TableViewRecycleTests
     }
 
     [UITestMethod]
+    public async Task SelectingARow_ShowsItsHighlightAtOnce_WhileTheIndicatorGrowsIn()
+    {
+        var tableView = await CreateTableViewAsync(itemCount: 50);
+        tableView.SelectionMode = ListViewSelectionMode.Multiple;
+        await WaitForLayoutAsync(tableView);
+
+        tableView.SelectRange(new ItemIndexRange(2, 1));
+        await Task.Delay(50);
+
+        var row = RealizedRows(tableView).First(x => x.Index == 2);
+        var check = row.FindDescendants().OfType<FontIcon>().First(x => x.Name == "MultiSelectCheck");
+        var scale = (ScaleTransform)row.FindDescendants().OfType<Border>().First(x => x.Name is "SelectionIndicator").RenderTransform;
+
+        Assert.IsTrue(scale.ScaleY < 1d, "the indicator should still be growing in");
+        Assert.AreEqual(1d, check.Opacity, "the rest of the selection should not wait for the indicator");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
     public async Task ScrollingAfterWarmUp_CreatesNoRows()
     {
         var tableView = await CreateTableViewAsync(itemCount: 5_000);
@@ -187,6 +207,67 @@ public class TableViewRecycleTests
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }
 
+    [UITestMethod]
+    public async Task MultiSelectCheck_IsShownAtOnce_OnReusedRows()
+    {
+        var tableView = CreateTableView(itemCount: 2_000);
+        tableView.SelectionMode = ListViewSelectionMode.Multiple;
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        await WaitForLayoutAsync(tableView);
+
+        // The first thousand items are selected; scrolling to the boundary reuses rows on both sides of it.
+        tableView.SelectRange(new ItemIndexRange(0, 1_000));
+        await ScrollToAsync(tableView, 1_000 * 41d - 200d);
+
+        var rows = RealizedRows(tableView);
+        Assert.IsTrue(rows.Any(x => x.IsSelected) && rows.Any(x => !x.IsSelected), "rows on both sides of the selection should be realized");
+
+        foreach (var row in rows)
+        {
+            var check = row.FindDescendants().OfType<FontIcon>().First(x => x.Name == "MultiSelectCheck");
+            Assert.AreEqual(row.IsSelected ? 1d : 0d, check.Opacity, $"row {row.Index}");
+        }
+
+        Assert.IsFalse(rows.SelectMany(x => x.FindDescendants()).OfType<AnimatedIcon>().Any(), "a row should draw no animated icon");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task CheckBoxCells_ShowTheirValueAtOnce_UnlessGivenAnElementStyle()
+    {
+        var tableView = CreateTableView(itemCount: 2_000);
+        var column = new TableViewCheckBoxColumn { Header = "Checked", Binding = new Binding { Path = new PropertyPath(nameof(HostItem.IsChecked)) } };
+        tableView.Columns.Add(column);
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        await WaitForLayoutAsync(tableView);
+        await ScrollToAsync(tableView, 20_000d);
+
+        Assert.IsNotNull(column.DefaultElementStyle);
+
+        foreach (var row in RealizedRows(tableView))
+        {
+            var checkBox = (CheckBox)row.Cells[2].Content;
+            var glyph = checkBox.FindDescendants().OfType<FontIcon>().First(x => x.Name == "CheckGlyph");
+
+            Assert.AreSame(column.DefaultElementStyle, checkBox.Style);
+            Assert.AreEqual(((HostItem)row.Content).IsChecked ? 1d : 0d, glyph.Opacity, $"row {row.Index}");
+        }
+
+        Assert.IsFalse(RealizedRows(tableView).SelectMany(x => x.FindDescendants()).OfType<AnimatedIcon>().Any(), "a check box cell should draw no animated icon");
+
+        var style = new Style(typeof(CheckBox));
+        style.Setters.Add(new Setter(FrameworkElement.MarginProperty, new Thickness(2)));
+        column.ElementStyle = style;
+        await WaitForLayoutAsync(tableView);
+
+        Assert.IsTrue(RealizedRows(tableView).All(row => ReferenceEquals(((CheckBox)row.Cells[2].Content).Style, style)), "the column's own style should win");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
     private static string? GetCurrentState(Control control, string groupName)
     {
         var root = (FrameworkElement)VisualTreeHelper.GetChild(control, 0);
@@ -245,7 +326,7 @@ public class TableViewRecycleTests
         });
 
         tableView.ItemsSource = new ObservableCollection<HostItem>(
-            Enumerable.Range(0, itemCount).Select(i => new HostItem { Id = i, Name = $"Item {i}", Category = "A" }));
+            Enumerable.Range(0, itemCount).Select(i => new HostItem { Id = i, Name = $"Item {i}", Category = "A", IsChecked = i % 3 is 0 }));
 
         return tableView;
     }

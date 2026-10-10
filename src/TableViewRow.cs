@@ -317,6 +317,12 @@ public partial class TableViewRow : ContentControl
         };
 
         VisualStates.GoToState(this, useTransitions, state);
+        VisualStates.GoToState(this, useTransitions, (IsSelected, _isPressed) switch
+        {
+            (true, true) => VisualStates.StateSelectionIndicatorPressed,
+            (true, _) => VisualStates.StateSelectionIndicatorShown,
+            _ => VisualStates.StateSelectionIndicatorHidden
+        });
         VisualStates.GoToState(this, useTransitions, IsEnabled ? VisualStates.StateEnabled : VisualStates.StateDisabled);
         VisualStates.GoToState(this, useTransitions, TableView is { SelectionMode: ListViewSelectionMode.Multiple }
             ? VisualStates.StateMultiSelectEnabled
@@ -583,7 +589,7 @@ public partial class TableViewRow : ContentControl
                 && cell.Column is TableViewBoundColumn boundColumn
                 && (TableView?.IsEditing is false || TableView?.CurrentCellSlot != cell.Slot))
             {
-                element.Style = boundColumn.ElementStyle;
+                element.Style = boundColumn.ElementStyle ?? boundColumn.DefaultElementStyle;
             }
         }
     }

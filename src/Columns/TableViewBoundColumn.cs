@@ -49,6 +49,11 @@ public abstract class TableViewBoundColumn : TableViewColumn
     }
 
     /// <summary>
+    /// Gets the style given to a cell's element when <see cref="ElementStyle"/> is not set.
+    /// </summary>
+    internal virtual Style? DefaultElementStyle => null;
+
+    /// <summary>
     /// Handles changes to the ElementStyle property.
     /// </summary>
     private static void OnElementStyleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
