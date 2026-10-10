@@ -1078,6 +1078,7 @@ public partial class TableView : Control
         }
 
         ResumeItemsSource();
+        ResumeRowsHost();
         EnsureAutoColumns();
         ApplyStickyGroupHeadersSetting();
     }
@@ -1096,6 +1097,7 @@ public partial class TableView : Control
         }
 
         SuspendItemsSource();
+        SuspendRowsHost();
     }
 
     /// <summary>

@@ -146,6 +146,76 @@ public class TableViewRowHostTests
     }
 
     [UITestMethod]
+    public async Task CollectedTables_AreNotCalledBackIntoByTheRepeater()
+    {
+        // A repeater that calls into the layout of a table that has been collected fails inside the interop layer
+        // with a NullReferenceException, which the debugger reports even when nothing crashes.
+        var interopFailures = new List<string>();
+
+        void OnFirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
+        {
+            if (e.Exception is NullReferenceException && e.Exception.StackTrace?.Contains("ComWrappers") is true)
+            {
+                interopFailures.Add(e.Exception.StackTrace);
+            }
+        }
+
+        AppDomain.CurrentDomain.FirstChanceException += OnFirstChanceException;
+
+        try
+        {
+            for (var i = 0; i < 3; i++)
+            {
+                await CreateScrollAndUnloadAsync();
+            }
+
+            for (var round = 0; round < 5; round++)
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+                await Task.Delay(100);
+            }
+
+            var tableView = await CreateTableViewAsync(itemCount: 2_000);
+            await ScrollToAsync(tableView, 2_000d);
+            await ScrollToAsync(tableView, 0d);
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+        finally
+        {
+            AppDomain.CurrentDomain.FirstChanceException -= OnFirstChanceException;
+        }
+
+        Assert.AreEqual(0, interopFailures.Count, "a collected table was called back into: " + string.Join(" --- ", interopFailures));
+    }
+
+    [UITestMethod]
+    public async Task ReloadedTable_RealizesItsRowsAgain()
+    {
+        var tableView = await CreateTableViewAsync(itemCount: 2_000);
+        await ScrollToAsync(tableView, 2_000d);
+
+        // Unloading takes the layout off the repeater, which recycles every row; loading again has to bring them back.
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        await WaitForLayoutAsync(tableView);
+        await ScrollToAsync(tableView, 4_000d);
+
+        var rows = RealizedRows(tableView).Where(x => x.Index >= 0).ToList();
+        Assert.IsTrue(rows.Count > 0, "the reloaded table should realize rows");
+        Assert.IsTrue(rows.Any(x => x.Index * 40d >= 4_000d - 40d && x.Index * 40d <= 4_000d + ViewportHeight), "the rows should be the ones at the new offset");
+
+        foreach (var row in rows)
+        {
+            Assert.AreSame(tableView.Items[row.Index], row.Content, $"row {row.Index} shows the wrong item");
+            Assert.AreEqual(tableView.Columns.VisibleColumns.Count, row.Cells.Count);
+        }
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
     public async Task SelectingALargeRange_DoesNotRealizeRows()
     {
         var tableView = await CreateTableViewAsync(itemCount: 100_000);

@@ -225,6 +225,34 @@ public partial class TableView
     }
 
     /// <summary>
+    /// Takes the layout off the repeater while the table is unloaded.
+    /// </summary>
+    /// <remarks>
+    /// An unloaded table can be collected, and the repeater can call into its layout after that; the layout is a .NET
+    /// object that went with the table, so the call fails inside the interop layer. Clearing the layout here makes the
+    /// repeater uninitialize it and recycle its rows while everything is still alive, and leaves it nothing to call
+    /// later. <see cref="ResumeRowsHost"/> puts it back when the table is loaded again.
+    /// </remarks>
+    private void SuspendRowsHost()
+    {
+        if (_rowsRepeater is not null)
+        {
+            _rowsRepeater.Layout = null;
+        }
+    }
+
+    /// <summary>
+    /// Gives the repeater its layout back when the table is loaded again.
+    /// </summary>
+    private void ResumeRowsHost()
+    {
+        if (_rowsRepeater is not null && _rowsLayout is not null && _rowsRepeater.Layout is null)
+        {
+            _rowsRepeater.Layout = _rowsLayout;
+        }
+    }
+
+    /// <summary>
     /// Disconnects the current row host.
     /// </summary>
     private void DetachRowsHost()
