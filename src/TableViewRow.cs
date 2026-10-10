@@ -304,6 +304,20 @@ public partial class TableViewRow : ContentControl
     /// Drives the row's visual states. <c>SelectorItem</c> used to do this; now that the row is a plain
     /// <see cref="ContentControl"/> it owns the state machine.
     /// </summary>
+    /// <summary>
+    /// Brings the row's visual states in line with its selection, pointer and the table's selection mode, without
+    /// transitions.
+    /// </summary>
+    internal void RefreshVisualStates()
+    {
+        UpdateVisualStates(useTransitions: false);
+    }
+
+    /// <summary>
+    /// Gets or sets the table's selection mode version the row's layout was last brought in line with.
+    /// </summary>
+    internal int SelectionModeVersion { get; set; }
+
     private void UpdateVisualStates(bool useTransitions = true)
     {
         var state = (IsSelected, _isPressed, _isPointerOver) switch

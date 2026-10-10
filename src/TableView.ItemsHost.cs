@@ -21,6 +21,7 @@ public partial class TableView
     private bool _isLoadingMoreItems;
     private bool _isIncrementalLoadQueued;
     private TableViewRealizedRows? _realizedRows;
+    private int _selectionModeVersion;
 
     /// <summary>
     /// Gets the items produced by the current sorting and filtering.
@@ -477,6 +478,13 @@ public partial class TableView
             row.RowPresenter?.SetRowDetailsTemplate();
         }
 
+        // A pooled row missed any change of selection mode, and still shows the pointer state it was released in.
+        if (row.SelectionModeVersion != _selectionModeVersion)
+        {
+            ApplySelectionModeLayout(row);
+        }
+
+        row.RefreshVisualStates();
         row.ApplyCellStates();
     }
 

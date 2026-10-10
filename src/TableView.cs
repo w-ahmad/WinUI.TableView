@@ -427,7 +427,8 @@ public partial class TableView : Control
             || canvasPoint.Value.Y < 0                                                  // Skip selection when the pointer is in the column header area (above the scroll canvas)
             || !pointerPoint.Properties.IsLeftButtonPressed                             // Skip selection when the left mouse button is not pressed
             || (pressedElement == this && !ShowDragRectangle)                           // Skip selection when the pointer is not over a Cell or Row, and ShowDragRectangle is false.
-            || (pressedElement != this && canvasPoint.Value.X < CellsHorizontalOffset)) // Skip selection when the pointer is in the row header area (and not on the TableView)
+            // || (pressedElement != this && canvasPoint.Value.X < CellsHorizontalOffset)  // Skip selection when the pointer is in the row header area (and not on the TableView)
+            ) 
         {
             return false;
         }
@@ -2808,11 +2809,24 @@ public partial class TableView : Control
         UpdateHorizontalScrollBarMargin();
         _headerRow?.SetHeadersVisibility();
 
+        // Pooled rows catch up when they are reused; see ApplyRowVisuals.
+        _selectionModeVersion++;
+
         foreach (var row in _rows)
         {
-            row.EnsureLayout();
-            row.RowPresenter?.SetRowHeaderVisibility();
+            ApplySelectionModeLayout(row);
+            row.RefreshVisualStates();
         }
+    }
+
+    /// <summary>
+    /// Lays a row out for the table's selection mode, such as with room for its check box in multiple selection.
+    /// </summary>
+    private void ApplySelectionModeLayout(TableViewRow row)
+    {
+        row.SelectionModeVersion = _selectionModeVersion;
+        row.EnsureLayout();
+        row.RowPresenter?.SetRowHeaderVisibility();
     }
 
     /// <summary>

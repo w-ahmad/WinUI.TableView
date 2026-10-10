@@ -268,6 +268,44 @@ public class TableViewRecycleTests
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }
 
+    [UITestMethod]
+    public async Task SelectionModeChange_ReachesRealizedAndPooledRows()
+    {
+        var tableView = await CreateTableViewAsync(itemCount: 2_000);
+
+        // Realized rows switch at once; rows pooled meanwhile catch up when they are reused further down.
+        tableView.SelectionMode = ListViewSelectionMode.Multiple;
+        await WaitForLayoutAsync(tableView);
+        AssertSelectionModeVisuals(tableView, VisualStates.StateMultiSelectEnabled, "multiple");
+
+        await ScrollToAsync(tableView, 20_000d);
+        AssertSelectionModeVisuals(tableView, VisualStates.StateMultiSelectEnabled, "multiple, scrolled");
+
+        tableView.SelectionMode = ListViewSelectionMode.Extended;
+        await WaitForLayoutAsync(tableView);
+        AssertSelectionModeVisuals(tableView, VisualStates.StateMultiSelectDisabled, "extended");
+
+        await ScrollToAsync(tableView, 0d);
+        AssertSelectionModeVisuals(tableView, VisualStates.StateMultiSelectDisabled, "extended, scrolled back");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    private static void AssertSelectionModeVisuals(TableView tableView, string expectedState, string when)
+    {
+        var rows = RealizedRows(tableView);
+        Assert.IsTrue(rows.Count > 0);
+
+        foreach (var row in rows)
+        {
+            Assert.AreEqual(expectedState, GetCurrentState(row, VisualStates.GroupMultiSelect), $"{when}: row {row.Index}");
+
+            // The cells start where the header row's corner ends.
+            var cellsLeft = row.Cells[0].TransformToVisual(row).TransformPoint(default).X;
+            Assert.AreEqual(tableView.CellsHorizontalOffset, cellsLeft, 2d, $"{when}: row {row.Index}'s cells are out of line with the header");
+        }
+    }
+
     private static string? GetCurrentState(Control control, string groupName)
     {
         var root = (FrameworkElement)VisualTreeHelper.GetChild(control, 0);
