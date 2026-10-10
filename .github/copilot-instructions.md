@@ -40,7 +40,8 @@
 │   ├── TableView.cs              # Main TableView control
 │   └── WinUI.TableView.csproj    # Project file
 ├── tests/                        # Unit tests
-│   └── WinUI.TableView.Tests.csproj
+│   ├── WinUI.TableView.Tests/      # WinUI host and shared test sources
+│   └── WinUI.TableView.Tests.Uno/  # Uno host linking shared test sources
 ├── docs/                         # Documentation (DocFX)
 ├── .github/                      # GitHub configuration
 │   ├── workflows/                # CI/CD workflows
@@ -72,12 +73,12 @@ msbuild /restore /t:Build,Pack src/WinUI.TableView.csproj /p:Configuration=Relea
 
 **Build Tests**:
 ```bash
-msbuild /restore /t:Build tests/WinUI.TableView.Tests.csproj /p:Platform=x64 /p:Configuration=Release /p:OutputPath=build
+msbuild /restore /t:Build tests/WinUI.TableView.Tests/WinUI.TableView.Tests.csproj /p:Platform=x64 /p:Configuration=Release /p:OutputPath=build
 ```
 
 **Run Tests**:
 ```bash
-vstest.console.exe tests\build\WinUI.TableView.Tests.build.appxrecipe --logger:"console;verbosity=normal" /InIsolation
+vstest.console.exe tests\WinUI.TableView.Tests\build\WinUI.TableView.Tests.build.appxrecipe --logger:"console;verbosity=normal" /InIsolation
 ```
 
 **Note**: Tests are WinUI 3 app tests and require Windows with visual UI. They run on x64 platform only.

@@ -51,7 +51,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\src\WinUI.TableView.csproj" />
+    <ProjectReference Include="..\..\src\WinUI.TableView.csproj" />
   </ItemGroup>
 
   <!-- 

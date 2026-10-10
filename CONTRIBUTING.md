@@ -36,6 +36,43 @@ Before creating a Pull Request, please start a Discussion or open an Issue to de
 
 ---
 
+## 🧪 Running Tests
+
+The test projects live in `tests/WinUI.TableView.Tests` and `tests/WinUI.TableView.Tests.Uno`, mirroring the sample project layout. The Uno test app links the same test source files as the WinUI test host. Run the suite on Uno Desktop with:
+
+```powershell
+dotnet run --project tests\WinUI.TableView.Tests.Uno\WinUI.TableView.Tests.Uno.csproj --configuration Debug --framework net10.0-desktop -- --exit-after-tests
+```
+
+To build the shared tests for another Uno target, run the following command with `net10.0-browserwasm`, `net10.0-android`, or `net10.0-ios` as the framework:
+
+```powershell
+dotnet build tests\WinUI.TableView.Tests.Uno\WinUI.TableView.Tests.Uno.csproj --configuration Debug --framework net10.0-browserwasm
+```
+
+Both `[TestMethod]` and `[UITestMethod]` are discoverable as MSTest methods on Uno. The Uno app runs both kinds of tests on its UI thread; use the app command above to execute the suite.
+
+Tests for features not implemented by Uno are excluded with `#if WINDOWS`. The current Uno suite includes 336 tests versus 378 on WinUI (including the shared test-discovery regression test). The 42 Windows-only tests cover grouping, `SelectRange`, and row-realization-dependent resizing.
+
+### CI execution
+
+`ci-build.yml` first builds and packs the library for all its targets in an independent build job. WinUI, Uno Desktop, WebAssembly, Android, and iOS test jobs depend on that build and then run in parallel. NuGet publishing waits for the build and all five test jobs to pass. Each Uno job fails if the test host reports failures, executes no tests, or does not finish.
+
+WebAssembly tests use Uno's browser DOM renderer and run in headless Chromium. The Skia browser renderer in the pinned Uno version throws during startup before a window is available; Desktop, Android, and iOS retain Skia. After building the Release WASM target, run:
+
+```powershell
+cd tests\WinUI.TableView.Tests.Uno
+npm ci
+npx playwright install chromium
+npm run test:wasm
+```
+
+Android and iOS jobs build Debug test apps and execute them on a tablet emulator/simulator. With the matching app built and Android's `adb` or macOS's `xcrun` available, run `python tests/WinUI.TableView.Tests.Uno/ci/run_mobile_tests.py android` or `python3 tests/WinUI.TableView.Tests.Uno/ci/run_mobile_tests.py ios`. The iOS job pins the .NET 10.0.100 workload set and Xcode 26.0.1 and uses an iOS 26.0 iPad simulator.
+
+CI passes `-p:UnoTestTargetFramework=<framework>` to limit restore and build to that Uno target without changing the library's target frameworks. Console logs and WASM JUnit results are uploaded as job artifacts.
+
+---
+
 ## 🧪 Testing Dev Packages
 
 When you open a pull request, our CI pipeline automatically builds and publishes a dev package to NuGet.org after a successful build. This allows you to test your changes before they are merged.
