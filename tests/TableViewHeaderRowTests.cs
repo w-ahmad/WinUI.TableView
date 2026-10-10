@@ -78,7 +78,7 @@ public class TableViewHeaderRowTests
             tableView.HeadersVisibility = TableViewHeadersVisibility.Rows;
 
             Assert.AreEqual(0d, tableView.CellsHorizontalOffset,
-                "An empty table without row headers must clear the stale header offset");
+                "An empty table without column headers or multiple selection must clear the stale header offset");
         }
         finally
         {
@@ -123,14 +123,19 @@ public class TableViewHeaderRowTests
         try
         {
             Assert.AreEqual(1, tableView.Items.Count, "Precondition: the table has one item");
+            tableView.RowHeaderWidth = 72;
+            tableView.RowHeaderMinWidth = 36;
+            await Task.Yield();
+            tableView.UpdateLayout();
             tableView.CellsHorizontalOffset = 42;
 
             items.RemoveAt(0);
-            await Task.Delay(100);
+            await Task.Yield();
+            tableView.UpdateLayout();
 
             Assert.AreEqual(0, tableView.Items.Count, "Precondition: the table is empty");
-            Assert.IsTrue(double.IsNaN(tableView.CellsHorizontalOffset),
-                $"Removing the last item must reset the header offset for the empty table (was {tableView.CellsHorizontalOffset})");
+            Assert.AreEqual(72d, tableView.CellsHorizontalOffset, 0.01,
+                "Removing the last item must reset the header offset to the configured row-header width");
         }
         finally
         {
@@ -143,7 +148,8 @@ public class TableViewHeaderRowTests
     {
         var tableView = await CreateTableViewAsync(
             frozenColumnCount: 1,
-            items: Array.Empty<HeaderRowTestItem>());
+            items: Array.Empty<HeaderRowTestItem>(),
+            selectionMode: ListViewSelectionMode.Multiple);
 
         try
         {
@@ -151,7 +157,7 @@ public class TableViewHeaderRowTests
             tableView.HeadersVisibility = TableViewHeadersVisibility.All;
 
             Assert.IsTrue(double.IsNaN(tableView.CellsHorizontalOffset),
-                "Precondition: an empty table with visible column headers uses an unconstrained corner width");
+                "Precondition: an empty table with multiple selection uses an unconstrained corner width");
             var scrollViewer = tableView.FindDescendant<ScrollViewer>();
             Assert.IsNotNull(scrollViewer, "Precondition: the table's scroll viewer is in the visual tree");
 
@@ -168,6 +174,51 @@ public class TableViewHeaderRowTests
         {
             await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
         }
+    }
+
+    [UITestMethod]
+    public void EmptyTable_HeaderOffsetUsesConfiguredRowHeaderWidth()
+    {
+        var tableView = new TableView
+        {
+            SelectionMode = ListViewSelectionMode.Single,
+            HeadersVisibility = TableViewHeadersVisibility.All,
+            RowHeaderMinWidth = 36
+        };
+        var headerRow = new TableViewHeaderRow { TableView = tableView };
+
+        foreach (var (width, expectedOffset) in new[]
+        {
+            (double.NaN, 36d),
+            (24d, 36d),
+            (72d, 72d)
+        })
+        {
+            tableView.RowHeaderWidth = width;
+            tableView.CellsHorizontalOffset = 42;
+
+            headerRow.SetCellsHorizontalOffset();
+
+            Assert.AreEqual(expectedOffset, tableView.CellsHorizontalOffset, 0.01,
+                $"The empty-table offset must honor RowHeaderWidth ({width}) and RowHeaderMinWidth");
+        }
+    }
+
+    [UITestMethod]
+    public void PopulatedTable_HeaderOffsetIsPreserved()
+    {
+        var tableView = new TableView
+        {
+            ItemsSource = new[] { new HeaderRowTestItem { Name = "Alpha" } }
+        };
+        var headerRow = new TableViewHeaderRow { TableView = tableView };
+        Assert.AreEqual(1, tableView.Items.Count, "Precondition: the table has one item");
+        tableView.CellsHorizontalOffset = 42;
+
+        headerRow.SetCellsHorizontalOffset();
+
+        Assert.AreEqual(42d, tableView.CellsHorizontalOffset,
+            "A populated table must retain its row-measured offset");
     }
 
     [UITestMethod]
