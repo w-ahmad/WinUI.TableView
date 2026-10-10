@@ -3,9 +3,13 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using WinUI.TableView.Extensions;
+using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView.Tests;
 
@@ -59,6 +63,136 @@ public class TableViewHeaderRowTests
         Assert.AreEqual(panel.ActualWidth - offset, clip.Rect.Width, 0.01, "Clip width is the unscrolled remainder");
     }
 
+    [UITestMethod]
+    public async Task EmptyTable_HeaderOffsetResets_WhenHeadersVisibilityChanges()
+    {
+        var tableView = await CreateTableViewAsync(
+            frozenColumnCount: 0,
+            items: Array.Empty<HeaderRowTestItem>(),
+            selectionMode: ListViewSelectionMode.Single);
+
+        try
+        {
+            tableView.CellsHorizontalOffset = 42;
+
+            tableView.HeadersVisibility = TableViewHeadersVisibility.Rows;
+
+            Assert.AreEqual(0d, tableView.CellsHorizontalOffset,
+                "An empty table without row headers must clear the stale header offset");
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
+    [UITestMethod]
+    public async Task EmptyTable_HeaderOffsetResets_WhenSelectionUnitChanges()
+    {
+        var tableView = await CreateTableViewAsync(
+            frozenColumnCount: 0,
+            items: Array.Empty<HeaderRowTestItem>(),
+            selectionMode: ListViewSelectionMode.Multiple,
+            selectionUnit: TableViewSelectionUnit.Cell,
+            headersVisibility: TableViewHeadersVisibility.Rows);
+
+        try
+        {
+            tableView.CellsHorizontalOffset = 42;
+
+            tableView.SelectionUnit = TableViewSelectionUnit.CellOrRow;
+
+            Assert.IsTrue(double.IsNaN(tableView.CellsHorizontalOffset),
+                "An empty table in multiple-selection mode must use an unconstrained corner width");
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
+    [UITestMethod]
+    public async Task EmptyTable_HeaderOffsetResets_WhenLastItemIsRemoved()
+    {
+        var items = new ObservableCollection<HeaderRowTestItem>
+        {
+            new() { Name = "Alpha" }
+        };
+        var tableView = await CreateTableViewAsync(frozenColumnCount: 0, items: items);
+
+        try
+        {
+            Assert.AreEqual(1, tableView.Items.Count, "Precondition: the table has one item");
+            tableView.CellsHorizontalOffset = 42;
+
+            items.RemoveAt(0);
+            await Task.Delay(100);
+
+            Assert.AreEqual(0, tableView.Items.Count, "Precondition: the table is empty");
+            Assert.IsTrue(double.IsNaN(tableView.CellsHorizontalOffset),
+                $"Removing the last item must reset the header offset for the empty table (was {tableView.CellsHorizontalOffset})");
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
+    [UITestMethod]
+    public async Task EmptyTable_NaNHeaderOffsetDoesNotAffectFrozenColumnScrollBarSpace()
+    {
+        var tableView = await CreateTableViewAsync(
+            frozenColumnCount: 1,
+            items: Array.Empty<HeaderRowTestItem>());
+
+        try
+        {
+            tableView.HeadersVisibility = TableViewHeadersVisibility.Columns;
+            tableView.HeadersVisibility = TableViewHeadersVisibility.All;
+
+            Assert.IsTrue(double.IsNaN(tableView.CellsHorizontalOffset),
+                "Precondition: an empty table with visible column headers uses an unconstrained corner width");
+            var scrollViewer = tableView.FindDescendant<ScrollViewer>();
+            Assert.IsNotNull(scrollViewer, "Precondition: the table's scroll viewer is in the visual tree");
+
+            tableView.UpdateHorizontalScrollBarMargin();
+
+            var expectedSpace = tableView.Columns.VisibleColumns
+                .Where(column => column.IsFrozen)
+                .Sum(column => column.ActualWidth);
+            Assert.IsTrue(expectedSpace > 0, "Precondition: the frozen column has a measured width");
+            Assert.AreEqual(expectedSpace, AttachedPropertiesHelper.GetFrozenColumnScrollBarSpace(scrollViewer!),
+                0.01, "Scrollbar space must remain finite and include the frozen column width");
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
+    [UITestMethod]
+    public async Task SelectAllCheckBox_HasSymmetricHorizontalMargin()
+    {
+        var tableView = await CreateTableViewAsync(
+            frozenColumnCount: 0,
+            items: Array.Empty<HeaderRowTestItem>(),
+            selectionMode: ListViewSelectionMode.Multiple);
+
+        try
+        {
+            var checkBox = tableView.FindDescendants()
+                .OfType<CheckBox>()
+                .FirstOrDefault(element => element.Name is "selectAllCheckBox");
+            Assert.IsNotNull(checkBox, "Precondition: the select-all checkbox is in the header template");
+            Assert.AreEqual(checkBox!.Margin.Left, checkBox.Margin.Right, 0.01,
+                "The select-all checkbox should have symmetric horizontal spacing");
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
     private static StackPanel GetScrollableHeadersPanel(TableView tableView)
     {
         var headerRow = tableView.FindDescendants().OfType<TableViewHeaderRow>().FirstOrDefault();
@@ -72,12 +206,30 @@ public class TableViewHeaderRowTests
 
     private static async Task<TableView> CreateTableViewAsync(int frozenColumnCount)
     {
+        return await CreateTableViewAsync(frozenColumnCount, new[]
+        {
+            new HeaderRowTestItem { Name = "Alpha" },
+            new HeaderRowTestItem { Name = "Beta" },
+            new HeaderRowTestItem { Name = "Gamma" }
+        });
+    }
+
+    private static async Task<TableView> CreateTableViewAsync(
+        int frozenColumnCount,
+        IEnumerable<HeaderRowTestItem> items,
+        ListViewSelectionMode selectionMode = ListViewSelectionMode.Extended,
+        TableViewSelectionUnit selectionUnit = TableViewSelectionUnit.CellOrRow,
+        TableViewHeadersVisibility headersVisibility = TableViewHeadersVisibility.All)
+    {
         var tableView = new TableView
         {
             Width = 250,
             Height = 300,
             AutoGenerateColumns = false,
-            FrozenColumnCount = frozenColumnCount
+            FrozenColumnCount = frozenColumnCount,
+            SelectionMode = selectionMode,
+            SelectionUnit = selectionUnit,
+            HeadersVisibility = headersVisibility
         };
 
         for (var i = 0; i < 5; i++)
@@ -90,12 +242,7 @@ public class TableViewHeaderRowTests
             });
         }
 
-        tableView.ItemsSource = new[]
-        {
-            new HeaderRowTestItem { Name = "Alpha" },
-            new HeaderRowTestItem { Name = "Beta" },
-            new HeaderRowTestItem { Name = "Gamma" }
-        };
+        tableView.ItemsSource = items;
 
         await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
 
