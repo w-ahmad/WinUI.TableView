@@ -2791,9 +2791,9 @@ public partial class TableView : ListView
         _shouldThrowBaseProeprtyChangedException = false;
         base.SelectionMode = SelectionUnit is TableViewSelectionUnit.Cell ? ListViewSelectionMode.None : SelectionMode;
 
-        UpdateHorizontalScrollBarMargin();
         _headerRow?.SetHeadersVisibility();
         _headerRow?.SetCellsHorizontalOffset();
+        UpdateHorizontalScrollBarMargin();
 
         foreach (var row in _rows)
         {
