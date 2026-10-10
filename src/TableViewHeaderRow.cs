@@ -482,13 +482,23 @@ public partial class TableViewHeaderRow : Control
     /// </summary>
     internal void SetCellsHorizontalOffset()
     {
-        // if there are no items, we want to reset the horizontal offset to NaN
+        // if there are no items, we want to reset the horizontal offset
         // so that the header row corner can take up the desired width.
         if (TableView?.Items.Count == 0)
         {
-            TableView.CellsHorizontalOffset =
-                TableView.HeadersVisibility is TableViewHeadersVisibility.All || TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple }
-                ? double.NaN : 0;
+            if (TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple })
+            {
+                TableView.CellsHorizontalOffset = double.NaN;
+            }
+            else if (TableView.HeadersVisibility is TableViewHeadersVisibility.All)
+            {
+                var rowHeaderWidth = TableView.RowHeaderWidth is double.NaN ? 0 : TableView.RowHeaderWidth;
+                TableView.CellsHorizontalOffset = Math.Max(TableView.RowHeaderMinWidth, rowHeaderWidth);
+            }
+            else
+            {
+                TableView.CellsHorizontalOffset = 0;
+            }
         }
     }
 
