@@ -181,7 +181,7 @@ public static class DataFaker
     {
         var seed = AvatarSeeds[_random.Next(AvatarSeeds.Length)];
         var id = _random.Next(1, 100);
-        return $"https://api.dicebear.com/7.x/avataaars/svg?seed={seed}{id}";
+        return $"https://api.dicebear.com/7.x/avataaars/png?seed={seed}{id}";
     }
 
     public static string ZipCode()
