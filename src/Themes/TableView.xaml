@@ -355,6 +355,12 @@
                                         Margin="{TemplateBinding Padding}" />
                 <Grid Grid.RowSpan="2"
                       Grid.ColumnSpan="2" />
+                <!--  Hosts the sticky group header: over the rows, under the scrollbars, in viewport coordinates.  -->
+                <Grid x:Name="StickyGroupHeaderHost"
+                      Grid.RowSpan="2"
+                      Grid.ColumnSpan="2"
+                      VerticalAlignment="Top"
+                      win:AutomationProperties.AccessibilityView="Raw" />
                 <Grid Grid.Column="1"
                       Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
                       win:Padding="{ThemeResource ScrollViewerScrollBarMargin}">

@@ -133,7 +133,8 @@ public partial class TableViewGroupHeaderRow : ContentControl
         var showButton = TableView?.ShowGroupExpandCollapseButton != false;
         _expandCollapseButton.Opacity = showButton ? 1 : 0;
         _expandCollapseButton.IsHitTestVisible = showButton;
-        _expandCollapseButton.IsTabStop = showButton;
+        // The sticky header is a copy drawn over the rows; keyboard users reach the header in the rows.
+        _expandCollapseButton.IsTabStop = showButton && !IsPinned;
     }
 
     /// <summary>
@@ -163,6 +164,14 @@ public partial class TableViewGroupHeaderRow : ContentControl
 
         UpdateGroupVisuals(useTransitions: false);
         UpdateExpandCollapseButtonVisibility();
+    }
+
+    /// <summary>
+    /// Brings the indent and the expanded or collapsed state up to date with the group shown, without transitions.
+    /// </summary>
+    internal void RefreshGroupVisuals()
+    {
+        UpdateGroupVisuals(useTransitions: false);
     }
 
     /// <summary>

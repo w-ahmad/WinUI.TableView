@@ -218,7 +218,7 @@ public class TableViewGroupingHostTests
     }
 
     [UITestMethod]
-    public async Task StickyGroupHeader_IsPinnedToTheViewportTop_ForTheGroupBeingScrolled()
+    public async Task StickyGroupHeader_ShowsTheGroupAtTheViewportTop()
     {
         var tableView = await CreateTableViewAsync(CreateItems(3_000));
         tableView.AreStickyGroupHeadersEnabled = true;
@@ -226,19 +226,19 @@ public class TableViewGroupingHostTests
 
         var scrollViewer = GetScrollViewer(tableView);
 
-        Assert.IsFalse(tableView.GroupHeaderRows.Any(x => x.IsPinned), "nothing is pinned before scrolling");
+        Assert.IsFalse(IsStickyHeaderShown(tableView), "at the top, the first group's own header is in view");
 
         await ScrollToAsync(tableView, 2_000d);
-        AssertPinned(tableView, scrollViewer, "A");
+        AssertStickyHeader(tableView, scrollViewer, "A");
 
         // Halfway down, the second of three equally sized groups is at the top.
         await ScrollToAsync(tableView, scrollViewer.ExtentHeight / 2);
-        AssertPinned(tableView, scrollViewer, "B");
+        AssertStickyHeader(tableView, scrollViewer, "B");
 
         tableView.AreStickyGroupHeadersEnabled = false;
         await WaitForLayoutAsync(tableView);
 
-        Assert.IsFalse(tableView.GroupHeaderRows.Any(x => x.IsPinned), "turning the feature off unpins the header");
+        Assert.IsFalse(IsStickyHeaderShown(tableView), "turning the feature off hides the sticky header");
 
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }
@@ -249,10 +249,84 @@ public class TableViewGroupingHostTests
         var tableView = await CreateTableViewAsync(CreateItems(3_000));
         await GroupAsync(tableView, TableViewGroupState.Expanded);
 
-        var scrollViewer = GetScrollViewer(tableView);
         await ScrollToAsync(tableView, 2_000d);
 
+        Assert.IsFalse(IsStickyHeaderShown(tableView));
         Assert.IsFalse(tableView.GroupHeaderRows.Any(x => x.IsPinned));
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task StickyGroupHeader_IsPushedUpByTheNextGroupsHeader()
+    {
+        var tableView = await CreateTableViewAsync(CreateItems(3_000));
+        tableView.AreStickyGroupHeadersEnabled = true;
+        await GroupAsync(tableView, TableViewGroupState.Expanded);
+
+        // Group A's header, its 1,000 rows, then group B's header.
+        const int nextHeader = 1_001;
+        await ScrollToAsync(tableView, (nextHeader * 40d) - 300d);
+
+        var sticky = tableView.StickyGroupHeader!;
+        Assert.IsTrue(tableView.RealizedRows.TryGetBounds(nextHeader, out var nextTop, out _), "group B's header should be realized");
+
+        // Group B's header half a header below the top edge: the sticky header for A is half pushed out.
+        await ScrollToAsync(tableView, nextTop - (sticky.ActualHeight / 2));
+
+        Assert.AreEqual("A", sticky.GroupInfo!.Key);
+        Assert.AreEqual(-sticky.ActualHeight / 2, ((Microsoft.UI.Xaml.Media.TranslateTransform)sticky.RenderTransform).Y, 1d);
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task StickyGroupHeader_Button_CollapsesTheGroupItShows()
+    {
+        var tableView = await CreateTableViewAsync(CreateItems(3_000));
+        tableView.AreStickyGroupHeadersEnabled = true;
+        await GroupAsync(tableView, TableViewGroupState.Expanded);
+
+        await ScrollToAsync(tableView, 2_000d);
+        var group = tableView.StickyGroupHeader!.GroupInfo!;
+        Assert.AreEqual("A", group.Key);
+
+        var button = GetTemplatePart<Button>(tableView.StickyGroupHeader, "ExpandCollapseButton");
+        Assert.IsFalse(button.IsTabStop, "keyboard users reach the header in the rows, not the one drawn over them");
+
+        new ButtonAutomationPeer(button).Invoke();
+        await WaitForScrollToSettleAsync(tableView);
+
+        Assert.IsFalse(group.IsExpanded);
+        Assert.IsFalse(IsStickyHeaderShown(tableView) && Equals(tableView.StickyGroupHeader.GroupInfo?.Key, "A"),
+            "a collapsed group has no rows left to keep its header stuck");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task ScrollRowIntoView_FromAbove_StopsUnderTheStickyHeader()
+    {
+        var tableView = await CreateTableViewAsync(CreateItems(3_000));
+        tableView.AreStickyGroupHeadersEnabled = true;
+        await GroupAsync(tableView, TableViewGroupState.Expanded);
+
+        // Item 1,500 is in group B, far below B's own header.
+        await ScrollToAsync(tableView, 60_000d);
+        var target = tableView.ContainerFromIndex(1_500) as TableViewRow;
+        Assert.IsNotNull(target, "item 1,500 should be realized around this offset");
+
+        // Leave the row half scrolled out of the top: B's sticky header covers it.
+        await ScrollToAsync(tableView, target!.ActualOffset.Y + 20d);
+        var stickyHeight = tableView.StickyGroupHeader!.ActualHeight;
+        Assert.AreEqual("B", tableView.StickyGroupHeader.GroupInfo!.Key);
+
+        var row = await tableView.ScrollRowIntoView(1_500);
+        await WaitForScrollToSettleAsync(tableView);
+
+        Assert.AreSame(target, row);
+        Assert.AreEqual(stickyHeight, row!.ActualOffset.Y - tableView.RowsViewportTop, 1d,
+            "the row should stop just under the sticky header, not underneath it");
 
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }
@@ -322,8 +396,8 @@ public class TableViewGroupingHostTests
 
         await ScrollToAsync(tableView, 2_000d);
 
-        var pinned = tableView.GroupHeaderRows.Single(x => x.IsPinned);
-        Assert.IsNotNull(GetTemplatePart<Border>(pinned, "PinnedBackground").Background, "a pinned header is backed by an opaque fill");
+        Assert.IsNotNull(GetTemplatePart<Border>(tableView.StickyGroupHeader!, "PinnedBackground").Background, "the sticky header is backed by an opaque fill");
+        Assert.IsTrue(tableView.GroupHeaderRows.All(x => GetTemplatePart<Border>(x, "PinnedBackground").Background is null), "headers in the rows are never pinned");
 
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }
@@ -389,17 +463,38 @@ public class TableViewGroupingHostTests
         return owner.FindDescendants().OfType<T>().First(x => x.Name == name);
     }
 
-    private static void AssertPinned(TableView tableView, ScrollViewer scrollViewer, string expectedKey)
+    /// <summary>
+    /// Waits for a scroll the table started itself to be applied: the offset moves only once the scroll is rendered.
+    /// </summary>
+    private static async Task WaitForScrollToSettleAsync(TableView tableView)
     {
-        var pinned = tableView.GroupHeaderRows.Where(x => x.IsPinned).ToList();
+        var scrollViewer = GetScrollViewer(tableView);
+        var offset = double.NaN;
 
-        Assert.AreEqual(1, pinned.Count, "exactly one header should be pinned");
-        Assert.AreEqual(expectedKey, pinned[0].GroupInfo!.Key);
+        for (int frame = 0, stableFrames = 0; frame < 100 && stableFrames < 3; frame++)
+        {
+            await Task.Delay(16);
+            await WaitForLayoutAsync(tableView);
 
-        // Compared in the scrolled content's coordinates: the scroll offset itself is applied by the ScrollViewer
-        // outside layout, so a transform up to the ScrollViewer does not reliably include it.
-        Assert.AreEqual(scrollViewer.VerticalOffset, pinned[0].ActualOffset.Y, 1d,
-            "the pinned header should be arranged at the top of the viewport");
+            stableFrames = scrollViewer.VerticalOffset == offset ? stableFrames + 1 : 0;
+            offset = scrollViewer.VerticalOffset;
+        }
+    }
+
+    private static bool IsStickyHeaderShown(TableView tableView)
+    {
+        return tableView.StickyGroupHeader is { Visibility: Visibility.Visible };
+    }
+
+    private static void AssertStickyHeader(TableView tableView, ScrollViewer scrollViewer, string expectedKey)
+    {
+        Assert.IsTrue(IsStickyHeaderShown(tableView), "the sticky header should be shown");
+        Assert.AreEqual(expectedKey, tableView.StickyGroupHeader!.GroupInfo!.Key);
+        Assert.IsFalse(tableView.GroupHeaderRows.Any(x => x.IsPinned), "headers in the rows are never pinned");
+
+        // The sticky header is not in the scrolled content, so its position in the viewport is direct.
+        var top = tableView.StickyGroupHeader.TransformToVisual(scrollViewer).TransformPoint(default).Y;
+        Assert.AreEqual(0d, top, 1d, "the sticky header should be at the top of the viewport");
     }
 
     private static CollectionView CreateGroupedView(TableViewGroupState defaultGroupState, params string[] properties)

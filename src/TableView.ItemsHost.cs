@@ -124,6 +124,11 @@ public partial class TableView
                 header.ContentTemplate = GetGroupHeaderTemplate(groupInfo, header);
             }
         }
+
+        if (_stickyGroupHeader?.GroupInfo is { } stickyGroup)
+        {
+            _stickyGroupHeader.ContentTemplate = GetGroupHeaderTemplate(stickyGroup, _stickyGroupHeader);
+        }
     }
 
     /// <summary>
@@ -234,6 +239,7 @@ public partial class TableView
         ConsiderLoadingMoreItems(-1);
         repeater.ElementClearing += OnRowElementClearing;
         repeater.ElementIndexChanged += OnRowElementIndexChanged;
+        repeater.LayoutUpdated += OnRowsRepeaterLayoutUpdated;
     }
 
     /// <summary>
@@ -284,6 +290,7 @@ public partial class TableView
         }
 
         _rowsRepeater.ElementPrepared -= OnRowElementPrepared;
+        _rowsRepeater.LayoutUpdated -= OnRowsRepeaterLayoutUpdated;
         _rowsRepeater.ElementClearing -= OnRowElementClearing;
         _rowsRepeater.ElementIndexChanged -= OnRowElementIndexChanged;
         _rowsRepeater.ItemsSource = null;
@@ -325,6 +332,18 @@ public partial class TableView
     }
 
     /// <summary>
+    /// Moves the sticky group header after the rows have been laid out, since the group at the top can change without
+    /// a scroll, such as when one is expanded or collapsed.
+    /// </summary>
+    private void OnRowsRepeaterLayoutUpdated(object? sender, object e)
+    {
+        if (AreStickyGroupHeadersActive || _stickyGroupHeader?.Visibility is Visibility.Visible)
+        {
+            UpdateStickyGroupHeader();
+        }
+    }
+
+    /// <summary>
     /// Releases a row as it leaves the realized range.
     /// </summary>
     private void OnRowElementClearing(ItemsRepeater sender, ItemsRepeaterElementClearingEventArgs args)
@@ -335,7 +354,6 @@ public partial class TableView
         {
             _groupHeaderRows.Remove(header);
             header.VisualIndex = -1;
-            _rowsLayout?.OnElementCleared(header);
 
             return;
         }
@@ -488,6 +506,9 @@ public partial class TableView
                 }
 
                 _visualRows?.Reset();
+
+                // A group expanded or collapsed keeps its header object, so the sticky one is not shown anew.
+                _stickyGroupHeader?.RefreshGroupVisuals();
                 break;
         }
 

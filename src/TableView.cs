@@ -1043,15 +1043,11 @@ public partial class TableView : Control
     }
 
     /// <summary>
-    /// Applies <see cref="AreStickyGroupHeadersEnabled"/> to the row host.
+    /// Applies <see cref="AreStickyGroupHeadersEnabled"/> to the sticky group header.
     /// </summary>
-    /// <remarks>
-    /// Pinning is decided by <see cref="Layout.TableViewRowsLayout"/> on every layout pass, so turning it on or off
-    /// only needs one.
-    /// </remarks>
     private void ApplyStickyGroupHeadersSetting()
     {
-        _rowsRepeater?.InvalidateMeasure();
+        UpdateStickyGroupHeader();
     }
 
     /// <summary>
@@ -1066,10 +1062,10 @@ public partial class TableView : Control
     {
         SetValue(VerticalOffsetProperty, _scrollViewer?.VerticalOffset ?? 0d);
 
-        // A pinned group header moves with the viewport, and which header is pinned can change on any scroll.
-        if (AreStickyGroupHeadersActive)
+        // Which group is at the top, and how far the next header pushes its sticky header up, change on any scroll.
+        if (AreStickyGroupHeadersActive || _stickyGroupHeader?.Visibility is Visibility.Visible)
         {
-            _rowsRepeater?.InvalidateMeasure();
+            UpdateStickyGroupHeader();
         }
     }
 
@@ -1083,6 +1079,11 @@ public partial class TableView : Control
         var yScrollBar = _scrollViewer?.FindDescendant<ScrollBar>(sb => sb.Name is "VerticalScrollBar");
 
         scrollPresenter?.PointerWheelChanged += OnScrollContentPresenterPointerWheelChanged;
+
+        if (_scrollViewer is not null)
+        {
+            AttachStickyGroupHeaderHost(_scrollViewer);
+        }
 
         yScrollBar?.ValueChanged += (_, _) => SetValue(VerticalOffsetProperty, yScrollBar.Value);
 
@@ -1126,6 +1127,7 @@ public partial class TableView : Control
 
         SuspendItemsSource();
         SuspendRowsHost();
+        HideStickyGroupHeader(releaseGroup: true);
     }
 
     /// <summary>
@@ -2588,8 +2590,8 @@ public partial class TableView : Control
 
         // A pinned group header covers the top of the viewport, so a row brought in from above has to stop just
         // below it rather than underneath it.
-        var topInset = AreStickyGroupHeadersActive && FindGroupHeaderAtOrBefore(visualIndex) is >= 0 and var header
-            ? _rowsLayout.GetHeightOfIndex(header)
+        var topInset = AreStickyGroupHeadersActive && FindGroupHeaderAtOrBefore(visualIndex) is >= 0 and var header && header != visualIndex
+            ? GetStickyGroupHeaderHeight(header)
             : 0d;
 
         if (rowTop - topInset < viewportTop)
@@ -2782,6 +2784,8 @@ public partial class TableView : Control
         {
             groupHeaderRow.EnsureGridLines();
         }
+
+        _stickyGroupHeader?.EnsureGridLines();
     }
 
     /// <summary>

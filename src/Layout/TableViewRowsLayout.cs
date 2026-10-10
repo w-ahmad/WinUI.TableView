@@ -20,18 +20,11 @@ namespace WinUI.TableView.Layout;
 /// Horizontal extent is computed from the column widths for the same reason: it no longer depends on which rows
 /// happen to be realized, so the horizontal scrollbar stops depending on scroll position.
 /// </para>
-/// <para>
-/// Sticky group headers are placed here too: the header of the group at the top of the viewport is kept realized
-/// even once it has scrolled out, and arranged at the viewport's top edge over the rows beneath it until the next
-/// group's header pushes it up.
-/// </para>
 /// </remarks>
 internal sealed partial class TableViewRowsLayout : VirtualizingLayout
 {
     private int _firstRealizedIndex = -1;
     private int _lastRealizedIndex = -1;
-    private int _pinnedIndex = -1;
-    private TableViewGroupHeaderRow? _pinnedHeader;
     private bool _hasMeasuredARow;
     private bool _realizedIndexesMoved;
 
@@ -72,18 +65,7 @@ internal sealed partial class TableViewRowsLayout : VirtualizingLayout
     {
         Heights.Reset(rowCount);
         _hasMeasuredARow = false;
-        _firstRealizedIndex = _lastRealizedIndex = _pinnedIndex = -1;
-    }
-
-    /// <summary>
-    /// Forgets an element the repeater is recycling, so a header that was pinned does not stay drawn on top.
-    /// </summary>
-    public void OnElementCleared(UIElement element)
-    {
-        if (ReferenceEquals(element, _pinnedHeader))
-        {
-            Unpin();
-        }
+        _firstRealizedIndex = _lastRealizedIndex = -1;
     }
 
     /// <inheritdoc/>
@@ -97,7 +79,7 @@ internal sealed partial class TableViewRowsLayout : VirtualizingLayout
 
         if (itemCount is 0)
         {
-            _firstRealizedIndex = _lastRealizedIndex = _pinnedIndex = -1;
+            _firstRealizedIndex = _lastRealizedIndex = -1;
 
             return new Size(rowWidth, 0d);
         }
@@ -131,17 +113,6 @@ internal sealed partial class TableViewRowsLayout : VirtualizingLayout
         _firstRealizedIndex = first;
         _lastRealizedIndex = last;
         _realizedIndexesMoved = false;
-        _pinnedIndex = FindPinnedIndex();
-
-        if (_pinnedIndex >= 0 && (_pinnedIndex < first || _pinnedIndex > last))
-        {
-            // The pinned header has scrolled out of the realization window, so it has to be asked for explicitly:
-            // anything the measure pass does not ask for is recycled.
-            var element = context.GetOrCreateElementAt(_pinnedIndex);
-            element.Measure(new Size(rowWidth, rowMaxHeight));
-
-            RecordMeasuredHeight(_pinnedIndex, element);
-        }
 
         return new Size(rowWidth, Heights.TotalHeight);
     }
@@ -160,23 +131,9 @@ internal sealed partial class TableViewRowsLayout : VirtualizingLayout
 
         for (var index = _firstRealizedIndex; index <= _lastRealizedIndex && index < itemCount; index++)
         {
-            if (index == _pinnedIndex)
-            {
-                continue;
-            }
-
             var element = context.GetOrCreateElementAt(index);
 
             element.Arrange(new Rect(0d, Heights.GetOffset(index), rowWidth, Heights.GetHeight(index)));
-        }
-
-        if (_pinnedIndex >= 0 && _pinnedIndex < itemCount)
-        {
-            ArrangePinnedHeader(context.GetOrCreateElementAt(_pinnedIndex), rowWidth);
-        }
-        else
-        {
-            Unpin();
         }
 
         return finalSize;
@@ -210,8 +167,7 @@ internal sealed partial class TableViewRowsLayout : VirtualizingLayout
     {
         base.UninitializeForContextCore(context);
 
-        _firstRealizedIndex = _lastRealizedIndex = _pinnedIndex = -1;
-        Unpin();
+        _firstRealizedIndex = _lastRealizedIndex = -1;
     }
 
     /// <summary>
@@ -230,78 +186,10 @@ internal sealed partial class TableViewRowsLayout : VirtualizingLayout
 
         for (var index = _firstRealizedIndex; index <= end; index++)
         {
-            // The pinned header is left to the repeater: it may stay pinned, which is only known after this pass.
-            if ((index < first || index > last) && index != _pinnedIndex)
+            if (index < first || index > last)
             {
                 context.RecycleElement(context.GetOrCreateElementAt(index));
             }
-        }
-    }
-
-    /// <summary>
-    /// Returns the visual index of the group header to pin to the top of the viewport, or -1 when none should be:
-    /// the header of the group the first visible row belongs to, once that header has scrolled out of view.
-    /// </summary>
-    private int FindPinnedIndex()
-    {
-        if (TableView is not { AreStickyGroupHeadersActive: true } tableView)
-        {
-            return -1;
-        }
-
-        var viewportTop = tableView.RowsViewportTop;
-
-        if (viewportTop <= 0d || viewportTop >= Heights.TotalHeight)
-        {
-            return -1;
-        }
-
-        var header = tableView.FindGroupHeaderAtOrBefore(Heights.GetIndexAt(viewportTop));
-
-        // A header starting exactly at the top edge is already where a pinned one would be drawn.
-        return header >= 0 && Heights.GetOffset(header) < viewportTop ? header : -1;
-    }
-
-    /// <summary>
-    /// Arranges the pinned header at the top edge of the viewport, pushed up by the next group's header as that
-    /// one arrives, and drawn over the rows scrolling beneath it.
-    /// </summary>
-    private void ArrangePinnedHeader(UIElement element, double rowWidth)
-    {
-        var height = Heights.GetHeight(_pinnedIndex);
-        var top = TableView?.RowsViewportTop ?? 0d;
-
-        if (TableView?.FindGroupHeaderAfter(_pinnedIndex) is >= 0 and var next)
-        {
-            top = Math.Min(top, Heights.GetOffset(next) - height);
-        }
-
-        top = Math.Max(top, Heights.GetOffset(_pinnedIndex));
-        element.Arrange(new Rect(0d, top, rowWidth, height));
-
-        if (!ReferenceEquals(element, _pinnedHeader))
-        {
-            Unpin();
-
-            if (element is TableViewGroupHeaderRow header)
-            {
-                _pinnedHeader = header;
-                header.IsPinned = true;
-                Canvas.SetZIndex(header, 1);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Returns the pinned header, if any, to the normal flow of rows.
-    /// </summary>
-    private void Unpin()
-    {
-        if (_pinnedHeader is { } header)
-        {
-            _pinnedHeader = null;
-            header.IsPinned = false;
-            Canvas.SetZIndex(header, 0);
         }
     }
 

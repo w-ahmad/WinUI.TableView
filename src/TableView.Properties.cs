@@ -1119,6 +1119,8 @@ public partial class TableView
             {
                 groupHeaderRow.UpdateExpandCollapseButtonVisibility();
             }
+
+            tableView._stickyGroupHeader?.UpdateExpandCollapseButtonVisibility();
         }
     }
 
