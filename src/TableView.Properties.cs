@@ -1341,8 +1341,8 @@ public partial class TableView
         if (d is TableView tableView)
         {
             tableView.SetHeadersVisibility();
-            tableView.UpdateHorizontalScrollBarMargin();
             tableView._headerRow?.SetCellsHorizontalOffset();
+            tableView.UpdateHorizontalScrollBarMargin();
         }
     }
 
