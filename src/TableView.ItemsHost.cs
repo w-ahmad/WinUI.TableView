@@ -228,12 +228,13 @@ public partial class TableView
         _rowElementFactory = new TableViewRowElementFactory(this);
         _visualRows = new TableViewVisualRows(_collectionView);
 
-        // Half a viewport of rows is kept realized above and below the visible ones. Touch and touchpad panning
-        // keep moving the content while the UI thread is busy, during a garbage collection for instance, and the
-        // rows realized ahead are what stays on screen meanwhile. The repeater's default of a whole viewport each
-        // side would double the live rows, and every live row adds to what each garbage collection has to walk.
+        // About a viewport of rows is kept realized above and below the visible ones, the repeater's default and
+        // the platform's own table's choice. Touch and touchpad panning keep moving the content while the UI thread
+        // is busy, during a garbage collection for instance, and the rows realized ahead are what stays on screen
+        // meanwhile; a fling outruns half a viewport within a few frames. Scrolling realizes rows at the rate they
+        // come into view whatever the cache, so the cost of the larger cache is only the rows it keeps alive.
         repeater.HorizontalCacheLength = 0d;
-        repeater.VerticalCacheLength = 1d;
+        repeater.VerticalCacheLength = 2d;
 
         // The platform's own virtualizing layout: it realizes from an anchor, estimates the height of the rows it has
         // not realized, recycles the rows it leaves behind, and runs natively, with no call into .NET per pass.
