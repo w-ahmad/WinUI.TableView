@@ -69,6 +69,8 @@ npm run test:wasm
 
 Android and iOS jobs build Debug test apps and execute them on a tablet emulator/simulator. With the matching app built and Android's `adb` or macOS's `xcrun` available, run `python tests/WinUI.TableView.Tests.Uno/ci/run_mobile_tests.py android` or `python3 tests/WinUI.TableView.Tests.Uno/ci/run_mobile_tests.py ios`. The iOS job pins the .NET 10.0.100 workload set and Xcode 26.0.1 and uses an iOS 26.0 iPad simulator.
 
+The Android test app embeds managed assemblies in its APK, including in Debug, so it can run after a standalone `adb install` without IDE fast deployment. Its native application creates the Uno test host and supplies the splash screen's AppCompat theme. The iOS test app enables the SDK's required `PublishTrimmed` pipeline but uses `MtouchLink=None` to preserve all assemblies and reflection-discovered tests.
+
 CI passes `-p:UnoTestTargetFramework=<framework>` to limit restore and build to that Uno target without changing the library's target frameworks. Console logs and WASM JUnit results are uploaded as job artifacts.
 
 ---

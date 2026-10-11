@@ -16,7 +16,16 @@
     <ApplicationVersion>1</ApplicationVersion>
     <UnoFeatures Condition="'$(TargetFramework)' != '$(NetVersion)-browserwasm'">SkiaRenderer</UnoFeatures>
     <UnoXamlResourcesTrimming>false</UnoXamlResourcesTrimming>
-    <PublishTrimmed>false</PublishTrimmed>
+    <PublishTrimmed Condition="'$(TargetFramework)' != '$(NetVersion)-ios'">false</PublishTrimmed>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(NetVersion)-android'">
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(NetVersion)-ios'">
+    <PublishTrimmed>true</PublishTrimmed>
+    <MtouchLink>None</MtouchLink>
   </PropertyGroup>
 
   <ItemGroup>
