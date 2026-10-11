@@ -2635,6 +2635,7 @@ public partial class TableView : Control
         var firstVisible = RealizedRows.FindAtOffset(RowsViewportTop, out _);
         var alignToTop = firstVisible < 0 || visualIndex < firstVisible;
 
+#if WINDOWS
         // The repeater realizes the row where the layout estimates it to be and holds it there, realizing nothing
         // around it, until it is brought into view; it has to be laid out before it can be.
         if (_rowsRepeater.GetOrCreateElement(visualIndex) is not TableViewRow row)
@@ -2660,7 +2661,74 @@ public partial class TableView : Control
         await Task.Yield();
 
         return row;
+#else
+        return await ScrollToUnrealizedRowAsync(visualIndex, alignToTop, topInset);
+#endif
     }
+
+#if !WINDOWS
+    /// <summary>
+    /// Scrolls to a row that is not realized, where Uno's repeater cannot be asked to realize it out of view.
+    /// </summary>
+    /// <remarks>
+    /// Uno's repeater, like WinUI's, pins an element realized out of view at the origin, but its bring-into-view does
+    /// not then move the scroll viewer to where the row belongs. So the scroll viewer is moved to where the realized
+    /// rows suggest the row is, which realizes the rows there, and again from those until the row is realized and
+    /// its real position can be scrolled to.
+    /// </remarks>
+    private async Task<TableViewRow?> ScrollToUnrealizedRowAsync(int visualIndex, bool alignToTop, double topInset)
+    {
+        if (_scrollViewer is null || _rowsRepeater is null)
+        {
+            return null;
+        }
+
+        for (var attempt = 0; attempt < 10; attempt++)
+        {
+            if (RealizedRows.Get(visualIndex) is TableViewRow row && RealizedRows.TryGetBounds(visualIndex, out var rowTop, out var rowHeight))
+            {
+                rowTop += Padding.Top;
+
+                var target = alignToTop ? rowTop - topInset : rowTop + rowHeight - _scrollViewer.ViewportHeight;
+
+                if (Math.Abs(Math.Clamp(target, 0d, _scrollViewer.ScrollableHeight) - _scrollViewer.VerticalOffset) <= 0.5)
+                {
+                    return row;
+                }
+
+                // Rows measured on the way replace the estimated heights, so the row may not stay where it was seen;
+                // look again after each move until it does.
+                _scrollViewer.ChangeView(null, Math.Clamp(target, 0d, _scrollViewer.ScrollableHeight), null, true);
+
+                await Task.Delay(32);
+
+                continue;
+            }
+
+            var nearest = RealizedRows.FindAtOffset(RowsViewportTop, out _);
+
+            if (nearest < 0 || !RealizedRows.TryGetBounds(nearest, out var nearestTop, out var nearestHeight))
+            {
+                // No row is realized yet, as the table has not been laid out, so there is nothing to go by.
+                UpdateLayout();
+
+                await Task.Delay(16);
+
+                continue;
+            }
+
+            // Rows not realized are estimated to be as tall as the one the viewport starts at.
+            var estimate = nearestTop + Padding.Top + ((visualIndex - nearest) * Math.Max(1d, nearestHeight));
+            var estimatedTarget = alignToTop ? estimate - topInset : estimate + nearestHeight - _scrollViewer.ViewportHeight;
+
+            _scrollViewer.ChangeView(null, Math.Clamp(estimatedTarget, 0d, _scrollViewer.ScrollableHeight), null, true);
+
+            await Task.Delay(32);
+        }
+
+        return RealizedRows.Get(visualIndex) as TableViewRow;
+    }
+#endif
 
     /// <summary>
     /// Brings the given item into view.
