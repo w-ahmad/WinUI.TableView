@@ -20,7 +20,13 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:TableViewCell">
-                    <Grid BorderBrush="{TemplateBinding BorderBrush}"
+                    <!--  The background is what makes the whole cell hit-testable, where its content and layers draw nothing.
+                          The selection and background layers are not here: the cell adds them, named SelectionBorder and
+                          BackgroundBorder, when it is selected, current or has a background (see TableViewCellLayers.xaml).
+                          A template that has parts of those names keeps drawing them itself through its visual states.  -->
+                    <Grid x:Name="CellLayersRoot"
+                          Background="Transparent"
+                          BorderBrush="{TemplateBinding BorderBrush}"
                           BorderThickness="{TemplateBinding BorderThickness}"
                           CornerRadius="{TemplateBinding CornerRadius}">
                         <Grid.ColumnDefinitions>
@@ -39,32 +45,14 @@
                                 </VisualState>
                             </VisualStateGroup>
                             <VisualStateGroup x:Name="SelectionStates">
-                                <VisualState x:Name="Selected">
-                                    <VisualState.Setters>
-                                        <Setter Target="SelectionBorder.Background"
-                                                Value="{ThemeResource TableViewCellBackgroundSelected}" />
-                                    </VisualState.Setters>
-                                </VisualState>
+                                <VisualState x:Name="Selected" />
                                 <VisualState x:Name="Unselected" />
                             </VisualStateGroup>
                             <VisualStateGroup x:Name="CurrentStates">
                                 <VisualState x:Name="Regular" />
-                                <VisualState x:Name="Current">
-                                    <VisualState.Setters>
-                                        <Setter Target="SelectionBorder.BorderBrush"
-                                                Value="{ThemeResource TableViewCellSelectionBrush}" />
-                                    </VisualState.Setters>
-                                </VisualState>
+                                <VisualState x:Name="Current" />
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
-
-                        <Border x:Name="BackgroundBorder"
-                                Background="{TemplateBinding Background}"
-                                CornerRadius="{ThemeResource TableViewRowCellSelectionBorderCornerRadius}" />
-
-                        <Border x:Name="SelectionBorder"
-                                BorderThickness="{ThemeResource TableViewCellSelectionBorderThickness}"
-                                CornerRadius="{ThemeResource TableViewRowCellSelectionBorderCornerRadius}" />
 
                         <Border x:Name="RootBorder"
                                 CornerRadius="{ThemeResource TableViewRowCellSelectionBorderCornerRadius}">

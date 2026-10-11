@@ -1,0 +1,52 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/Resources.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <!--
+        The layers a cell draws behind its content, which the default cell template does not contain: a cell needs
+        them only while it is selected, current or has a background of its own, and a table creates a cell for every
+        column of every row it shows, so each element left out of the template saves a lot of work as it fills with
+        rows. The cell adds a layer when it first needs it and picks one of these styles for it; the styles refer to the
+        same resources the template's visual states used to.
+    -->
+    <Style x:Key="TableViewCellBackgroundLayerStyle"
+           TargetType="Border">
+        <Setter Property="CornerRadius"
+                Value="{ThemeResource TableViewRowCellSelectionBorderCornerRadius}" />
+    </Style>
+
+    <Style x:Key="TableViewCellSelectionLayerStyle"
+           TargetType="Border">
+        <Setter Property="BorderThickness"
+                Value="{ThemeResource TableViewCellSelectionBorderThickness}" />
+        <Setter Property="CornerRadius"
+                Value="{ThemeResource TableViewRowCellSelectionBorderCornerRadius}" />
+    </Style>
+
+    <Style x:Key="TableViewCellSelectedLayerStyle"
+           BasedOn="{StaticResource TableViewCellSelectionLayerStyle}"
+           TargetType="Border">
+        <Setter Property="Background"
+                Value="{ThemeResource TableViewCellBackgroundSelected}" />
+    </Style>
+
+    <Style x:Key="TableViewCellCurrentLayerStyle"
+           BasedOn="{StaticResource TableViewCellSelectionLayerStyle}"
+           TargetType="Border">
+        <Setter Property="BorderBrush"
+                Value="{ThemeResource TableViewCellSelectionBrush}" />
+    </Style>
+
+    <Style x:Key="TableViewCellSelectedCurrentLayerStyle"
+           BasedOn="{StaticResource TableViewCellSelectionLayerStyle}"
+           TargetType="Border">
+        <Setter Property="Background"
+                Value="{ThemeResource TableViewCellBackgroundSelected}" />
+        <Setter Property="BorderBrush"
+                Value="{ThemeResource TableViewCellSelectionBrush}" />
+    </Style>
+
+</ResourceDictionary>

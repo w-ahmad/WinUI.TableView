@@ -27,9 +27,12 @@ namespace WinUI.TableView;
 public partial class TableViewCell : ContentControl
 {
     private ContentPresenter? _contentPresenter;
+    private Panel? _layersRoot;
     private Border? _selectionBorder;
     private Border? _backgroundBorder;
     private Border? _rootBorder;
+    private bool _templateHasSelectionLayer;
+    private bool _templateHasBackgroundLayer;
     private Rectangle? _v_gridLine;
     private object? _uneditedValue;
     private RoutedEventArgs? _editingArgs;
@@ -53,6 +56,7 @@ public partial class TableViewCell : ContentControl
     {
         DefaultStyleKey = typeof(TableViewCell);
         Loaded += OnLoaded;
+        RegisterPropertyChangedCallback(BackgroundProperty, delegate { UpdateBackgroundLayer(); });
 #if WINDOWS
         ContextRequested += OnContextRequested;
 #endif
@@ -99,10 +103,16 @@ public partial class TableViewCell : ContentControl
         base.OnApplyTemplate();
 
         _contentPresenter = GetTemplateChild("Content") as ContentPresenter;
+        _layersRoot = GetTemplateChild("CellLayersRoot") as Panel;
         _selectionBorder = GetTemplateChild("SelectionBorder") as Border;
         _backgroundBorder = GetTemplateChild("BackgroundBorder") as Border;
         _rootBorder = GetTemplateChild("RootBorder") as Border;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
+
+        // A template that has these parts draws them through its own visual states. Without them, and with a root to
+        // put them in, the cell adds them itself when it needs them.
+        _templateHasSelectionLayer = _selectionBorder is not null;
+        _templateHasBackgroundLayer = _backgroundBorder is not null;
 
         // A new template starts in its default states; the row may have pushed the cell's own before it had one.
         _appliedSelected = null;
@@ -110,6 +120,7 @@ public partial class TableViewCell : ContentControl
 
         EnsureGridLines();
         EnsureStyle(Row?.Content);
+        UpdateBackgroundLayer();
         ApplySelectionState();
         ApplyCurrentVisualState();
     }
@@ -212,8 +223,8 @@ public partial class TableViewCell : ContentControl
                + Padding.Right
                + BorderThickness.Left
                + BorderThickness.Right
-               + (_selectionBorder?.BorderThickness.Left ?? 0)
-               + (_selectionBorder?.BorderThickness.Right ?? 0)
+               + SelectionBorderThickness.Left
+               + SelectionBorderThickness.Right
                + (_v_gridLine?.ActualWidth ?? 0d);
     }
 
@@ -277,8 +288,8 @@ public partial class TableViewCell : ContentControl
                 desiredWidth += Padding.Right;
                 desiredWidth += BorderThickness.Left;
                 desiredWidth += BorderThickness.Right;
-                desiredWidth += _selectionBorder?.BorderThickness.Left ?? 0;
-                desiredWidth += _selectionBorder?.BorderThickness.Right ?? 0;
+                desiredWidth += SelectionBorderThickness.Left;
+                desiredWidth += SelectionBorderThickness.Right;
                 desiredWidth += _v_gridLine?.ActualWidth ?? 0d;
 
                 _resizePreviewWidth = Math.Min(maxPreviewWidth, Math.Max(ActualWidth, desiredWidth));
@@ -610,6 +621,7 @@ public partial class TableViewCell : ContentControl
         {
             _appliedSelected = isSelected;
             VisualStates.GoToState(this, false, isSelected ? VisualStates.StateSelected : VisualStates.StateUnselected);
+            UpdateSelectionLayer();
         }
     }
 
@@ -624,6 +636,7 @@ public partial class TableViewCell : ContentControl
         {
             _appliedCurrent = isCurrent;
             VisualStates.GoToState(this, false, isCurrent ? VisualStates.StateCurrent : VisualStates.StateRegular);
+            UpdateSelectionLayer();
         }
     }
 
