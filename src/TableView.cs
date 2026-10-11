@@ -140,8 +140,6 @@ public partial class TableView : ListView
     /// </summary>
     private void OnCollectionViewVectorChanged(IObservableVector<object> sender, IVectorChangedEventArgs args)
     {
-        if (Items.Count == 0) _headerRow?.SetCellsHorizontalOffset();
-
         if (args.CollectionChange != CollectionChange.Reset) return;
 
         foreach (var row in _rows)
@@ -165,10 +163,17 @@ public partial class TableView : ListView
 
     /// <summary>
     /// Handles the VectorChanged event of the items collection. Inserting or removing an item shifts the index of every
-    /// row after it, which flips their alternate colors without their containers being prepared again.
+    /// row after it, which flips their alternate colors without their containers being prepared again. Also synchronizes
+    /// the empty-table header offset and horizontal scrollbar space.
     /// </summary>
     private void OnItemsVectorChanged(IObservableVector<object> sender, IVectorChangedEventArgs args)
     {
+        if (Items.Count == 0)
+        {
+            _headerRow?.SetCellsHorizontalOffset();
+            UpdateHorizontalScrollBarMargin();
+        }
+
         if (args.CollectionChange is CollectionChange.ItemInserted or CollectionChange.ItemRemoved &&
             (AlternateRowBackground is not null || AlternateRowForeground is not null))
         {

@@ -64,6 +64,28 @@ public class TableViewHeaderRowTests
     }
 
     [UITestMethod]
+    public async Task EmptyTable_HeaderOffsetIsInitialized_WhenLoadedWithConfiguredRowHeaderWidth()
+    {
+        var tableView = await CreateTableViewAsync(
+            frozenColumnCount: 0,
+            items: Array.Empty<HeaderRowTestItem>(),
+            selectionMode: ListViewSelectionMode.Single,
+            rowHeaderWidth: 72,
+            rowHeaderMinWidth: 36);
+
+        try
+        {
+            Assert.AreEqual(72d, tableView.CellsHorizontalOffset, 0.01,
+                "The initial empty table must honor the row-header width without a property change");
+            AssertScrollBarSpace(tableView);
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
+    [UITestMethod]
     public async Task EmptyTable_HeaderOffsetResets_WhenHeadersVisibilityChanges()
     {
         var tableView = await CreateTableViewAsync(
@@ -144,6 +166,40 @@ public class TableViewHeaderRowTests
     }
 
     [UITestMethod]
+    public async Task EmptyTable_HeaderOffsetAndScrollBarSpaceReset_WhenLastItemIsRemovedInMultipleSelection()
+    {
+        var items = new ObservableCollection<HeaderRowTestItem>
+        {
+            new() { Name = "Alpha" }
+        };
+        var tableView = await CreateTableViewAsync(
+            frozenColumnCount: 1,
+            items: items,
+            selectionMode: ListViewSelectionMode.Multiple);
+
+        try
+        {
+            Assert.AreEqual(1, tableView.Items.Count, "Precondition: the table has one item");
+            Assert.IsTrue(double.IsFinite(tableView.CellsHorizontalOffset) && tableView.CellsHorizontalOffset > 0,
+                "Precondition: the populated table has a measured row-header offset");
+            AssertScrollBarSpace(tableView);
+
+            items.RemoveAt(0);
+            await Task.Yield();
+            tableView.UpdateLayout();
+
+            Assert.AreEqual(0, tableView.Items.Count, "The collection notification must empty the table");
+            Assert.IsTrue(double.IsNaN(tableView.CellsHorizontalOffset),
+                "Removing the last item must restore the unconstrained multiple-selection corner width");
+            AssertScrollBarSpace(tableView);
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
+    [UITestMethod]
     public async Task EmptyTable_NaNHeaderOffsetDoesNotAffectFrozenColumnScrollBarSpace()
     {
         var tableView = await CreateTableViewAsync(
@@ -153,22 +209,22 @@ public class TableViewHeaderRowTests
 
         try
         {
-            tableView.HeadersVisibility = TableViewHeadersVisibility.Columns;
-            tableView.HeadersVisibility = TableViewHeadersVisibility.All;
-
             Assert.IsTrue(double.IsNaN(tableView.CellsHorizontalOffset),
-                "Precondition: an empty table with multiple selection uses an unconstrained corner width");
-            var scrollViewer = tableView.FindDescendant<ScrollViewer>();
-            Assert.IsNotNull(scrollViewer, "Precondition: the table's scroll viewer is in the visual tree");
-
-            tableView.UpdateHorizontalScrollBarMargin();
+                "The initial empty table with multiple selection must use an unconstrained corner width");
 
             var expectedSpace = tableView.Columns.VisibleColumns
                 .Where(column => column.IsFrozen)
                 .Sum(column => column.ActualWidth);
             Assert.IsTrue(expectedSpace > 0, "Precondition: the frozen column has a measured width");
-            Assert.AreEqual(expectedSpace, AttachedPropertiesHelper.GetFrozenColumnScrollBarSpace(scrollViewer!),
-                0.01, "Scrollbar space must remain finite and include the frozen column width");
+            AssertScrollBarSpace(tableView);
+
+            var cornerPanel = tableView.FindDescendant<Panel>(element => element.Name is "CornerButtonPanel");
+            var checkBox = tableView.FindDescendant<CheckBox>(element => element.Name is "selectAllCheckBox");
+            Assert.IsNotNull(cornerPanel, "The corner panel must be in the header template");
+            Assert.IsNotNull(checkBox, "The select-all checkbox must be in the header template");
+            Assert.AreEqual(Visibility.Visible, checkBox!.Visibility);
+            Assert.IsTrue(cornerPanel!.ActualWidth >= checkBox.ActualWidth + checkBox.Margin.Left + checkBox.Margin.Right,
+                "The initial corner width must accommodate the select-all checkbox and both margins");
         }
         finally
         {
@@ -244,6 +300,17 @@ public class TableViewHeaderRowTests
         }
     }
 
+    private static void AssertScrollBarSpace(TableView tableView)
+    {
+        var scrollViewer = tableView.FindDescendant<ScrollViewer>();
+        Assert.IsNotNull(scrollViewer, "The table's scroll viewer must be in the visual tree");
+
+        var expectedSpace = (double.IsNaN(tableView.CellsHorizontalOffset) ? 0 : tableView.CellsHorizontalOffset)
+            + tableView.Columns.VisibleColumns.Where(column => column.IsFrozen).Sum(column => column.ActualWidth);
+        Assert.AreEqual(expectedSpace, AttachedPropertiesHelper.GetFrozenColumnScrollBarSpace(scrollViewer!),
+            0.01, "Scrollbar reserve must reflect the current row-header offset and frozen column widths");
+    }
+
     private static StackPanel GetScrollableHeadersPanel(TableView tableView)
     {
         var headerRow = tableView.FindDescendants().OfType<TableViewHeaderRow>().FirstOrDefault();
@@ -270,7 +337,9 @@ public class TableViewHeaderRowTests
         IEnumerable<HeaderRowTestItem> items,
         ListViewSelectionMode selectionMode = ListViewSelectionMode.Extended,
         TableViewSelectionUnit selectionUnit = TableViewSelectionUnit.CellOrRow,
-        TableViewHeadersVisibility headersVisibility = TableViewHeadersVisibility.All)
+        TableViewHeadersVisibility headersVisibility = TableViewHeadersVisibility.All,
+        double rowHeaderWidth = double.NaN,
+        double rowHeaderMinWidth = 16)
     {
         var tableView = new TableView
         {
@@ -280,7 +349,9 @@ public class TableViewHeaderRowTests
             FrozenColumnCount = frozenColumnCount,
             SelectionMode = selectionMode,
             SelectionUnit = selectionUnit,
-            HeadersVisibility = headersVisibility
+            HeadersVisibility = headersVisibility,
+            RowHeaderWidth = rowHeaderWidth,
+            RowHeaderMinWidth = rowHeaderMinWidth
         };
 
         for (var i = 0; i < 5; i++)

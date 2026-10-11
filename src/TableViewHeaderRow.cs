@@ -101,6 +101,8 @@ public partial class TableViewHeaderRow : Control
         SetExportOptionsVisibility();
         SetCornerButtonState();
         SetHeadersVisibility();
+        SetCellsHorizontalOffset();
+        TableView.UpdateHorizontalScrollBarMargin();
         EnsureGridLines();
     }
 
