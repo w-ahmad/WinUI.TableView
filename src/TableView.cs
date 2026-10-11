@@ -161,18 +161,20 @@ public partial class TableView : ListView
     /// </summary>
     private void OnCollectionViewVectorChanged(IObservableVector<object> sender, IVectorChangedEventArgs args)
     {
-#if WINDOWS
-        if (args.CollectionChange != CollectionChange.Reset) return;
-
-        foreach (var row in _rows)
+        if (_collectionView.Count == 0)
         {
-            row.RowPresenter?.SetGroupIndent();
-        } 
+            _headerRow?.SetCellsHorizontalOffset();
+            UpdateHorizontalScrollBarMargin();
+        }
+#if WINDOWS
+        if (args.CollectionChange == CollectionChange.Reset)
+        {
+            foreach (var row in _rows)
+            {
+                row.RowPresenter?.SetGroupIndent();
+            }
+        }
 #endif
-        if (_collectionView.Count > 0) return;
-
-        _headerRow?.SetCellsHorizontalOffset();
-        UpdateHorizontalScrollBarMargin();
     }
 
     /// <summary>
