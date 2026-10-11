@@ -38,6 +38,7 @@
 
   <ItemGroup>
     <None Remove="Package.Debug.appxmanifest" />
+    <Content Update="Assets\TableView.ico" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

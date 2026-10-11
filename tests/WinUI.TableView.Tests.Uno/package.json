@@ -1,0 +1,10 @@
+{
+  "name": "winui-tableview-uno-tests",
+  "private": true,
+  "scripts": {
+    "test:wasm": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.0"
+  }
+}

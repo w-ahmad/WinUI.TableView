@@ -17,6 +17,7 @@ namespace WinUI.TableView.Tests;
 [TestClass]
 public class TableViewGroupingSortTests
 {
+#if WINDOWS
     [UITestMethod]
     public async Task ClearAllSorting_DoesNotClear_AGroupedColumnsSortDirection()
     {
@@ -37,6 +38,7 @@ public class TableViewGroupingSortTests
         Assert.AreEqual(SortDirection.Ascending, categoryColumn.SortDirection);
         Assert.IsTrue(collectionView.GroupDescriptions.OfType<ColumnGroupDescription>().Any(x => x.Column == categoryColumn));
     }
+#endif
 
     [UITestMethod]
     public async Task ClearAllSorting_Clears_AnUngroupedColumnsSortDirection()

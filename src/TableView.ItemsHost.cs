@@ -266,7 +266,8 @@ public partial class TableView
             return;
         }
 
-        var width = CellsHorizontalOffset;
+        // The offset is NaN while the header row's corner is left to take the width it asks for.
+        var width = double.IsNaN(CellsHorizontalOffset) ? 0d : CellsHorizontalOffset;
 
         foreach (var column in Columns.VisibleColumns)
         {
@@ -561,9 +562,13 @@ public partial class TableView
 
         OnItemsChangedForSelection();
 
-        // An empty source realizes no rows to ask for its first page.
         if (_collectionView.Count is 0)
         {
+            // With no rows to measure, the header row's corner takes the width it asks for.
+            _headerRow?.SetCellsHorizontalOffset();
+            UpdateHorizontalScrollBarMargin();
+
+            // An empty source realizes no rows to ask for its first page.
             ConsiderLoadingMoreItems(-1);
         }
     }

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace WinUI.TableView.Tests;
 
+#if WINDOWS
 /// <summary>
 /// Covers row selection, cell selection, and <see cref="TableView.ScrollRowIntoView(int)"/>, both ungrouped
 /// and grouped. <see cref="TableView.Items"/> is pruned by grouping - a collapsed group's items are removed
@@ -269,3 +270,4 @@ public class TableViewGroupingSelectionTests
         public int Value { get; set; }
     }
 }
+#endif

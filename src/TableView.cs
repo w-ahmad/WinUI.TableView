@@ -2806,8 +2806,9 @@ public partial class TableView : Control
     /// </summary>
     private void RefreshSelectionModeVisuals()
     {
-        UpdateHorizontalScrollBarMargin();
         _headerRow?.SetHeadersVisibility();
+        _headerRow?.SetCellsHorizontalOffset();
+        UpdateHorizontalScrollBarMargin();
 
         // Pooled rows catch up when they are reused; see ApplyRowVisuals.
         _selectionModeVersion++;
@@ -3038,7 +3039,7 @@ public partial class TableView : Control
         if (_scrollViewer is null) return;
 
         var frozenColumns = Columns.VisibleColumns.Where(c => c.IsFrozen);
-        var offset = CellsHorizontalOffset + frozenColumns.Sum(c => c.ActualWidth);
+        var offset = (CellsHorizontalOffset is double.NaN ? 0 : CellsHorizontalOffset) + frozenColumns.Sum(c => c.ActualWidth);
         AttachedPropertiesHelper.SetFrozenColumnScrollBarSpace(_scrollViewer, offset);
     }
 }

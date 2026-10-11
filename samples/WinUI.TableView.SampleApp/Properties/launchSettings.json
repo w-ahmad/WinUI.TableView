@@ -2,11 +2,11 @@
   "profiles": {
     "WinUI.TableView.SampleApp (Unpackaged)": {
       "commandName": "Project",
-      "nativeDebugging": true
+      // "nativeDebugging": true
     },
     "WinUI.TableView.SampleApp (Package)": {
       "commandName": "MsixPackage",
-      "nativeDebugging": true
+      // "nativeDebugging": true
     }
   }
 }
