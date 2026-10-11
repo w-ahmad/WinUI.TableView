@@ -233,8 +233,13 @@ public partial class TableView
         // is busy, during a garbage collection for instance, and the rows realized ahead are what stays on screen
         // meanwhile; a fling outruns half a viewport within a few frames. Scrolling realizes rows at the rate they
         // come into view whatever the cache, so the cost of the larger cache is only the rows it keeps alive.
+        //
+        // In a browser those rows cost far more, since creating one takes a few hundred milliseconds when the runtime
+        // interprets the code and the table creates every row the cache asks for as it loads and as it is first
+        // scrolled: with the cache at 1 a 5,000 row table is up in about 9 s rather than 13 s and its first 5,000 pixels
+        // of scrolling take about half as long. Rows are then reused at the same cost whatever the cache.
         repeater.HorizontalCacheLength = 0d;
-        repeater.VerticalCacheLength = 2d;
+        repeater.VerticalCacheLength = OperatingSystem.IsBrowser() ? 1d : 2d;
 
         // The platform's own virtualizing layout: it realizes from an anchor, estimates the height of the rows it has
         // not realized, recycles the rows it leaves behind, and runs natively, with no call into .NET per pass.
