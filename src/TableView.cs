@@ -84,6 +84,7 @@ public partial class TableView : ListView
         SelectionChanged += TableView_SelectionChanged;
         Items.VectorChanged += OnItemsVectorChanged;
         _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
+        _collectionView.VectorChanged += OnCollectionViewItemsVectorChanged;
 #if WINDOWS
         _collectionView.VectorChanged += OnCollectionViewVectorChanged;
         _collectionView.PropertyChanging += OnCollectionViewPropertyChanging;
@@ -163,23 +164,29 @@ public partial class TableView : ListView
 
     /// <summary>
     /// Handles the VectorChanged event of the items collection. Inserting or removing an item shifts the index of every
-    /// row after it, which flips their alternate colors without their containers being prepared again. Also synchronizes
-    /// the empty-table header offset and horizontal scrollbar space.
+    /// row after it, which flips their alternate colors without their containers being prepared again.
     /// </summary>
     private void OnItemsVectorChanged(IObservableVector<object> sender, IVectorChangedEventArgs args)
     {
-        if (Items.Count == 0)
-        {
-            _headerRow?.SetCellsHorizontalOffset();
-            UpdateHorizontalScrollBarMargin();
-        }
-
         if (args.CollectionChange is CollectionChange.ItemInserted or CollectionChange.ItemRemoved &&
             (AlternateRowBackground is not null || AlternateRowForeground is not null))
         {
             EnsureAlternateRowColors();
         }
     }
+
+    /// <summary>
+    /// Synchronizes the header offset when the collection view becomes empty.
+    /// </summary>
+    private void OnCollectionViewItemsVectorChanged(IObservableVector<object> sender, IVectorChangedEventArgs args)
+    {
+        if (!HasNoItems) return;
+
+        _headerRow?.SetCellsHorizontalOffset();
+        UpdateHorizontalScrollBarMargin();
+    }
+
+    internal bool HasNoItems => _collectionView.Count == 0;
 
     /// <summary>
     /// Handles the SelectionChanged event of the TableView control.
