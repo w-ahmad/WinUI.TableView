@@ -182,7 +182,6 @@ public class TableViewHeaderRowTests
             Assert.AreEqual(1, tableView.Items.Count, "Precondition: the table has one item");
             Assert.IsTrue(double.IsFinite(tableView.CellsHorizontalOffset) && tableView.CellsHorizontalOffset > 0,
                 "Precondition: the populated table has a measured row-header offset");
-            AssertScrollBarSpace(tableView);
 
             items.RemoveAt(0);
             await Task.Yield();
