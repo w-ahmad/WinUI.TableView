@@ -1,3 +1,4 @@
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
@@ -152,7 +153,7 @@ public class TableViewHeaderRowTests
             tableView.CellsHorizontalOffset = 42;
 
             items.RemoveAt(0);
-            await Task.Yield();
+            await DrainDispatcherQueueAsync();
             tableView.UpdateLayout();
 
             Assert.AreEqual(0, tableView.Items.Count, "Precondition: the table is empty");
@@ -184,7 +185,7 @@ public class TableViewHeaderRowTests
                 "Precondition: the populated table has a measured row-header offset");
 
             items.RemoveAt(0);
-            await Task.Yield();
+            await DrainDispatcherQueueAsync();
             tableView.UpdateLayout();
 
             Assert.AreEqual(0, tableView.Items.Count, "The collection notification must empty the table");
@@ -308,6 +309,15 @@ public class TableViewHeaderRowTests
             + tableView.Columns.VisibleColumns.Where(column => column.IsFrozen).Sum(column => column.ActualWidth);
         Assert.AreEqual(expectedSpace, AttachedPropertiesHelper.GetFrozenColumnScrollBarSpace(scrollViewer!),
             0.01, "Scrollbar reserve must reflect the current row-header offset and frozen column widths");
+    }
+
+    private static Task DrainDispatcherQueueAsync()
+    {
+        var completion = new TaskCompletionSource<object?>();
+
+        DispatcherQueue.GetForCurrentThread().TryEnqueue(DispatcherQueuePriority.Low, () => completion.SetResult(null));
+
+        return completion.Task;
     }
 
     private static StackPanel GetScrollableHeadersPanel(TableView tableView)
