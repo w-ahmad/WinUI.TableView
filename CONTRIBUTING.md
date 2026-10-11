@@ -52,7 +52,9 @@ dotnet build tests\WinUI.TableView.Tests.Uno\WinUI.TableView.Tests.Uno.csproj --
 
 Both `[TestMethod]` and `[UITestMethod]` are discoverable as MSTest methods on Uno. The Uno app runs both kinds of tests on its UI thread; use the app command above to execute the suite.
 
-Tests that depend on behaviour only the WinUI platform has are excluded with `#if WINDOWS`. The Uno suite runs the same tests as WinUI apart from those few: how text that overflows its cell is measured, and an unloaded table being collected (a table with columns is not collected on Uno, as before the row host). Grouping and row selection run on both.
+Tests that depend on behaviour only the WinUI platform has are excluded with `#if WINDOWS`. The Uno suite runs the same tests as WinUI apart from those few: how text that overflows its cell is measured, and an unloaded table being collected (a table with columns is not collected on Uno, as before the row host), and, in the browser only, reading pixels back with `RenderTargetBitmap`, which the DOM renderer cannot do. Grouping and row selection run on both.
+
+To run only some tests, add `--filter=<text>` after the `--` in the desktop command above, or `?--filter=<text>` to the page address in the browser. It runs the tests whose `Class.Method` name contains the text.
 
 ### CI execution
 

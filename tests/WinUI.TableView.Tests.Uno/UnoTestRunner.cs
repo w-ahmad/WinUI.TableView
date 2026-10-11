@@ -8,7 +8,7 @@ namespace WinUI.TableView.Tests;
 
 internal static class UnoTestRunner
 {
-    internal static async Task RunAsync(UnitTestAppWindow window, bool exitAfterTests)
+    internal static async Task RunAsync(UnitTestAppWindow window, bool exitAfterTests, string? launchArguments = null)
     {
         await Task.Yield();
 
@@ -25,7 +25,10 @@ internal static class UnoTestRunner
 
         // --filter=<text> runs only the tests whose Class.Method name contains the text.
         var filter = Environment.GetCommandLineArgs()
+            .Concat((launchArguments ?? string.Empty).TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
+            .Select(Uri.UnescapeDataString)
             .FirstOrDefault(arg => arg.StartsWith("--filter=", StringComparison.Ordinal))?["--filter=".Length..];
+        WriteMessage($"Launch arguments: '{launchArguments}', filter: '{filter}'");
 
         if (!string.IsNullOrEmpty(filter))
         {

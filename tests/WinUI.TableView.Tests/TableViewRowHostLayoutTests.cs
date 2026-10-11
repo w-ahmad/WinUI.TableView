@@ -197,6 +197,8 @@ public class TableViewRowHostLayoutTests
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }
 
+#if !__WASM__
+    // The browser renderer cannot capture pixels: a RenderTargetBitmap there is empty.
     [UITestMethod]
     public async Task HorizontalGridLines_AreDrawn_FarDownAMillionRows()
     {
@@ -219,6 +221,7 @@ public class TableViewRowHostLayoutTests
 
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }
+#endif
 
     /// <summary>
     /// Counts the red horizontal lines crossing the middle of a rendering of the table, the header row's included.
