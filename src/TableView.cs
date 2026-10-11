@@ -84,9 +84,8 @@ public partial class TableView : ListView
         SelectionChanged += TableView_SelectionChanged;
         Items.VectorChanged += OnItemsVectorChanged;
         _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
-        _collectionView.VectorChanged += OnCollectionViewItemsVectorChanged;
-#if WINDOWS
         _collectionView.VectorChanged += OnCollectionViewVectorChanged;
+#if WINDOWS
         _collectionView.PropertyChanging += OnCollectionViewPropertyChanging;
         _collectionView.PropertyChanged += OnCollectionViewPropertyChanged;
         ChoosingGroupHeaderContainer += OnChoosingGroupHeaderContainer;
@@ -131,24 +130,6 @@ public partial class TableView : ListView
         }
     }
 
-    /// <summary>
-    /// Refreshes every currently realized row's group indent on a Reset - covers a regroup/collapse/expand
-    /// toggle, which changes GroupDescriptions.Count or which rows are visible without necessarily going
-    /// through PrepareContainerForItemOverride for rows that were already realized. Also re-targets
-    /// <see cref="CurrentCellSlot"/> at the same underlying item - toggling any group reshuffles every
-    /// index after it, so the row a previously-set current cell points at can silently become a different
-    /// item once other groups expand or collapse around it.
-    /// </summary>
-    private void OnCollectionViewVectorChanged(IObservableVector<object> sender, IVectorChangedEventArgs args)
-    {
-        if (args.CollectionChange != CollectionChange.Reset) return;
-
-        foreach (var row in _rows)
-        {
-            row.RowPresenter?.SetGroupIndent();
-        }
-    }
-
     private void OnChoosingGroupHeaderContainer(ListViewBase sender, ChoosingGroupHeaderContainerEventArgs args)
     {
         if (args.GroupHeaderContainer is not TableViewGroupHeaderRow)
@@ -176,17 +157,23 @@ public partial class TableView : ListView
     }
 
     /// <summary>
-    /// Synchronizes the header offset when the collection view becomes empty.
+    /// Handles the VectorChanged event of the CollectionView. When the collection is reset, it updates the group indent for each row.
     /// </summary>
-    private void OnCollectionViewItemsVectorChanged(IObservableVector<object> sender, IVectorChangedEventArgs args)
+    private void OnCollectionViewVectorChanged(IObservableVector<object> sender, IVectorChangedEventArgs args)
     {
-        if (!HasNoItems) return;
+#if WINDOWS
+        if (args.CollectionChange != CollectionChange.Reset) return;
+
+        foreach (var row in _rows)
+        {
+            row.RowPresenter?.SetGroupIndent();
+        } 
+#endif
+        if (_collectionView.Count > 0) return;
 
         _headerRow?.SetCellsHorizontalOffset();
         UpdateHorizontalScrollBarMargin();
     }
-
-    internal bool HasNoItems => _collectionView.Count == 0;
 
     /// <summary>
     /// Handles the SelectionChanged event of the TableView control.

@@ -486,7 +486,7 @@ public partial class TableViewHeaderRow : Control
     {
         // if there are no items, we want to reset the horizontal offset
         // so that the header row corner can take up the desired width.
-        if (TableView?.HasNoItems is true)
+        if (TableView?.CollectionView.Count == 0)
         {
             if (TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple })
             {
