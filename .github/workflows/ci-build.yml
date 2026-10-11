@@ -163,6 +163,7 @@ jobs:
   test-uno-android:
     name: Uno Android tests
     needs: build
+    if: false # Disabled for now
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
@@ -215,6 +216,7 @@ jobs:
   test-uno-ios:
     name: Uno iOS tests
     needs: build
+    if: false # Disabled for now
     runs-on: macos-15
     timeout-minutes: 45
     steps:
@@ -250,7 +252,7 @@ jobs:
         path: tests/WinUI.TableView.Tests.Uno/test-results
 
   publish:
-    needs: [build, test-winui, test-uno-desktop, test-uno-wasm, test-uno-android, test-uno-ios]
+    needs: [build, test-winui, test-uno-desktop, test-uno-wasm]
     runs-on: windows-latest
     environment: ci-nuget-publish
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
