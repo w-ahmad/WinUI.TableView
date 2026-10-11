@@ -308,7 +308,6 @@ public class CollectionViewTests
         Assert.AreEqual(0, view.Count);
     }
 
-#if WINDOWS
     [UITestMethod]
     public void Single_Group_Description_Groups_Items()
     {
@@ -888,7 +887,6 @@ public class CollectionViewTests
     {
         return new GroupDescription(null, valueDelegate: item => ((TestItem)item!).Name);
     }
-#endif
 
     private static ObservableCollection<TestItem> CreateItems(int count)
     {

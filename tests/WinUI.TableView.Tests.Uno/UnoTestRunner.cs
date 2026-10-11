@@ -23,6 +23,17 @@ internal static class UnoTestRunner
             .ThenBy(test => test.Method.Name, StringComparer.Ordinal)
             .ToList();
 
+        // --filter=<text> runs only the tests whose Class.Method name contains the text.
+        var filter = Environment.GetCommandLineArgs()
+            .FirstOrDefault(arg => arg.StartsWith("--filter=", StringComparison.Ordinal))?["--filter=".Length..];
+
+        if (!string.IsNullOrEmpty(filter))
+        {
+            testMethods = testMethods
+                .Where(test => $"{test.Type.Name}.{test.Method.Name}".Contains(filter, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+
         foreach (var (type, method) in testMethods)
         {
             WriteMessage($"RUN {type.Name}.{method.Name}");

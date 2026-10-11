@@ -22,6 +22,19 @@ internal static class TableViewRowHostTestHelpers
     }
 
     /// <summary>
+    /// Returns the root element of the template a content control shows. Uno only exposes it on the presenter inside
+    /// the control.
+    /// </summary>
+    public static UIElement? GetTemplateRoot(ContentControl control)
+    {
+#if WINDOWS
+        return control.ContentTemplateRoot;
+#else
+        return control.FindDescendant<ContentPresenter>()?.ContentTemplateRoot;
+#endif
+    }
+
+    /// <summary>
     /// Returns the repeater hosting the table's rows.
     /// </summary>
     public static ItemsRepeater GetRowsRepeater(TableView tableView)

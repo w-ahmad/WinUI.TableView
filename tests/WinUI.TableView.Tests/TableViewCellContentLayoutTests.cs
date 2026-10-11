@@ -34,7 +34,12 @@ public class TableViewCellContentLayoutTests
         foreach (var cell in RealizedRows(tableView).Select(row => row.Cells[0]))
         {
             var text = (TextBlock)cell.Content;
-            var bounds = text.TransformToVisual(cell).TransformBounds(new Rect(0, 0, text.ActualWidth, text.ActualHeight));
+            var textWidth = text.ActualWidth;
+#if !WINDOWS
+            // Uno reports the width of the slot, margins included, as the actual width.
+            textWidth -= text.Margin.Left + text.Margin.Right;
+#endif
+            var bounds = text.TransformToVisual(cell).TransformBounds(new Rect(0, 0, textWidth, text.ActualHeight));
 
             Assert.IsTrue(text.IsTextTrimmed, "the text should have been measured at the cell's width and trimmed");
             Assert.IsTrue(bounds.Left >= 0d && bounds.Right <= cell.ActualWidth + 0.5d,
@@ -44,6 +49,8 @@ public class TableViewCellContentLayoutTests
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }
 
+#if WINDOWS
+    // Uno limits what a text block reports measuring to the space it was given, so text never shows as overflowing.
     [UITestMethod]
     public async Task OverflowingText_DoesNotDrawOverNeighbouringCells()
     {
@@ -69,6 +76,7 @@ public class TableViewCellContentLayoutTests
 
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }
+#endif
 
     [UITestMethod]
     public async Task ContentMaxSize_FromElementStyle_IsKept_ThroughLayoutAndAResizePreview()
@@ -218,7 +226,7 @@ public class TableViewCellContentLayoutTests
         foreach (var row in RealizedRows(tableView))
         {
             var header = row.FindDescendants().OfType<TableViewRowHeader>().First();
-            var text = (TextBlock)header.ContentTemplateRoot;
+            var text = (TextBlock)TableViewRowHostTestHelpers.GetTemplateRoot(header)!;
 
             Assert.AreEqual(30d, text.MaxWidth, $"row {row.Index}'s header content should keep its MaxWidth");
             Assert.AreEqual(18d, text.MaxHeight, $"row {row.Index}'s header content should keep its MaxHeight");

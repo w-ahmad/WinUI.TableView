@@ -178,7 +178,7 @@ public class TableViewRecycleTests
         {
             var cell = row.Cells[2];
             Assert.AreSame(elements[row], cell.Content, $"row {row.Index}'s template cell built a new element");
-            Assert.AreEqual(((HostItem)row.Content).Name, ((TextBlock)((ContentControl)cell.Content).ContentTemplateRoot).Text);
+            Assert.AreEqual(((HostItem)row.Content).Name, ((TextBlock)TableViewRowHostTestHelpers.GetTemplateRoot((ContentControl)cell.Content)!).Text);
         }
 
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);

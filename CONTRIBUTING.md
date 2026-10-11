@@ -52,7 +52,7 @@ dotnet build tests\WinUI.TableView.Tests.Uno\WinUI.TableView.Tests.Uno.csproj --
 
 Both `[TestMethod]` and `[UITestMethod]` are discoverable as MSTest methods on Uno. The Uno app runs both kinds of tests on its UI thread; use the app command above to execute the suite.
 
-Tests for features not implemented by Uno are excluded with `#if WINDOWS`. The current Uno suite includes 336 tests versus 378 on WinUI (including the shared test-discovery regression test). The 42 Windows-only tests cover grouping, `SelectRange`, and row-realization-dependent resizing.
+Tests that depend on behaviour only the WinUI platform has are excluded with `#if WINDOWS`. The Uno suite runs the same tests as WinUI apart from those few: how text that overflows its cell is measured, and an unloaded table being collected (a table with columns is not collected on Uno, as before the row host). Grouping and row selection run on both.
 
 ### CI execution
 
