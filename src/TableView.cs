@@ -84,8 +84,8 @@ public partial class TableView : ListView
         SelectionChanged += TableView_SelectionChanged;
         Items.VectorChanged += OnItemsVectorChanged;
         _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
-#if WINDOWS
         _collectionView.VectorChanged += OnCollectionViewVectorChanged;
+#if WINDOWS
         _collectionView.PropertyChanging += OnCollectionViewPropertyChanging;
         _collectionView.PropertyChanged += OnCollectionViewPropertyChanged;
         ChoosingGroupHeaderContainer += OnChoosingGroupHeaderContainer;
@@ -130,24 +130,6 @@ public partial class TableView : ListView
         }
     }
 
-    /// <summary>
-    /// Refreshes every currently realized row's group indent on a Reset - covers a regroup/collapse/expand
-    /// toggle, which changes GroupDescriptions.Count or which rows are visible without necessarily going
-    /// through PrepareContainerForItemOverride for rows that were already realized. Also re-targets
-    /// <see cref="CurrentCellSlot"/> at the same underlying item - toggling any group reshuffles every
-    /// index after it, so the row a previously-set current cell points at can silently become a different
-    /// item once other groups expand or collapse around it.
-    /// </summary>
-    private void OnCollectionViewVectorChanged(IObservableVector<object> sender, IVectorChangedEventArgs args)
-    {
-        if (args.CollectionChange != CollectionChange.Reset) return;
-
-        foreach (var row in _rows)
-        {
-            row.RowPresenter?.SetGroupIndent();
-        }
-    }
-
     private void OnChoosingGroupHeaderContainer(ListViewBase sender, ChoosingGroupHeaderContainerEventArgs args)
     {
         if (args.GroupHeaderContainer is not TableViewGroupHeaderRow)
@@ -172,6 +154,27 @@ public partial class TableView : ListView
         {
             EnsureAlternateRowColors();
         }
+    }
+
+    /// <summary>
+    /// Handles the VectorChanged event of the CollectionView. When the collection is reset, it updates the group indent for each row.
+    /// </summary>
+    private void OnCollectionViewVectorChanged(IObservableVector<object> sender, IVectorChangedEventArgs args)
+    {
+        if (_collectionView.Count == 0)
+        {
+            _headerRow?.SetCellsHorizontalOffset();
+            UpdateHorizontalScrollBarMargin();
+        }
+#if WINDOWS
+        if (args.CollectionChange == CollectionChange.Reset)
+        {
+            foreach (var row in _rows)
+            {
+                row.RowPresenter?.SetGroupIndent();
+            }
+        }
+#endif
     }
 
     /// <summary>
@@ -2789,8 +2792,9 @@ public partial class TableView : ListView
         _shouldThrowBaseProeprtyChangedException = false;
         base.SelectionMode = SelectionUnit is TableViewSelectionUnit.Cell ? ListViewSelectionMode.None : SelectionMode;
 
-        UpdateHorizontalScrollBarMargin();
         _headerRow?.SetHeadersVisibility();
+        _headerRow?.SetCellsHorizontalOffset();
+        UpdateHorizontalScrollBarMargin();
 
         foreach (var row in _rows)
         {
@@ -3021,7 +3025,7 @@ public partial class TableView : ListView
         if (_scrollViewer is null) return;
 
         var frozenColumns = Columns.VisibleColumns.Where(c => c.IsFrozen);
-        var offset = CellsHorizontalOffset + frozenColumns.Sum(c => c.ActualWidth);
+        var offset = (CellsHorizontalOffset is double.NaN ? 0 : CellsHorizontalOffset) + frozenColumns.Sum(c => c.ActualWidth);
         AttachedPropertiesHelper.SetFrozenColumnScrollBarSpace(_scrollViewer, offset);
     }
 }
