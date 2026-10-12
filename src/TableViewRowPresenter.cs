@@ -379,6 +379,32 @@ public partial class TableViewRowPresenter : Control
     }
 
     /// <summary>
+    /// Brings the row header's widths up to date with the table's, changing nothing when they already are.
+    /// </summary>
+    /// <remarks>
+    /// The table tells the rows it has attached when the header width changes, so a row that is pooled when it does,
+    /// as the repeater keeps the rows that leave the viewport for reuse, is not told, and would show its next item
+    /// with the width it had before. A row calls this as it is prepared for an item, which is more often than the
+    /// width changes, so this only touches the header when something differs.
+    /// </remarks>
+    internal void SyncRowHeaderWidth()
+    {
+        if (_rowHeader is null || TableView is null)
+        {
+            return;
+        }
+
+        var headerWidth = TableView.RowHeaderWidth is double.NaN ? TableView.RowHeaderActualWidth : TableView.RowHeaderWidth;
+
+        if (_rowHeader.Width != headerWidth
+            || _rowHeader.MinWidth != TableView.RowHeaderMinWidth
+            || _rowHeader.MaxWidth != TableView.RowHeaderMaxWidth)
+        {
+            SetRowHeaderWidth();
+        }
+    }
+
+    /// <summary>
     /// Sets the visibility of the row header based on the TableView settings.
     /// </summary>
     internal void SetRowHeaderVisibility()

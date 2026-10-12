@@ -474,6 +474,7 @@ public partial class TableView
         row.EnsureAlternateColors();
         row.RowPresenter?.ApplyDetailsPaneState(row.Content);
         row.RowPresenter?.SetGroupIndent();
+        row.RowPresenter?.SyncRowHeaderWidth();
 
         if (RowHeaderTemplateSelector is not null)
         {
