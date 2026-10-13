@@ -1,5 +1,4 @@
 ﻿using Microsoft.UI.Xaml;
-using Microsoft.VisualStudio.TestPlatform.TestExecutor;
 using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
 using System;
 
@@ -38,14 +37,25 @@ public partial class UnitTestApp : Application
     /// Invoked when the application is launched.
     /// </summary>
     /// <param name="args">Details about the launch request and process.</param>
-    protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
+    protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
-        MainWindow.Activate();
+        // The generated WinUI entry point returns void; preserve failures for dotnet test.
+        Environment.ExitCode = 1;
+        try
+        {
+            MainWindow.Activate();
+            UITestMethodAttribute.DispatcherQueue = MainWindow.DispatcherQueue;
 
-        UITestMethodAttribute.DispatcherQueue = MainWindow.DispatcherQueue;
-
-        UnitTestClient.CreateDefaultUI();
-
-        UnitTestClient.Run(Environment.CommandLine);
+            Environment.ExitCode = await MicrosoftTestingPlatformApplication.RunAsync(Environment.GetCommandLineArgs()[1..]);
+        }
+        catch (Exception exception)
+        {
+            Console.Error.WriteLine(exception);
+        }
+        finally
+        {
+            _window?.Close();
+            Exit();
+        }
     }
 }

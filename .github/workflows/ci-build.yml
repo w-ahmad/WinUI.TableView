@@ -49,31 +49,18 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4.1.4
 
-    - name: Setup MSBuild.exe
-      uses: microsoft/setup-msbuild@v2
-
     - name: Setup .NET
       uses: actions/setup-dotnet@v5.0.1
       with:
         dotnet-version: 10.0.100
 
-    - name: Setup VSTest
-      uses: darenm/Setup-VSTest@v1.3
-
-    - name: Build tests
-      run: |
-        msbuild /restore `
-          /t:Build tests/WinUI.TableView.Tests/WinUI.TableView.Tests.csproj `
-          /p:Platform=x64 `
-          /p:Configuration=Release
-
     - name: Run tests
+      shell: pwsh
       run: |
-        vstest.console.exe `
-          tests\WinUI.TableView.Tests\bin\x64\Release\net10.0-windows10.0.26100.0\WinUI.TableView.Tests.build.appxrecipe `
-          --logger:"console;verbosity=normal" `
-          --logger:trx `
-          /InIsolation
+        dotnet test --project tests/WinUI.TableView.Tests/WinUI.TableView.Tests.csproj `
+          --configuration Release --arch x64 `
+          --report-trx --results-directory "$env:GITHUB_WORKSPACE/TestResults/winui" `
+          --timeout 20m
 
     - name: Upload test output
       if: always()
