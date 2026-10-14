@@ -187,7 +187,7 @@ public partial class TableViewRowPresenter : Control
             // positioned purely by HeaderColumn's width (see TableViewRowPresenter.xaml's ColumnDefinitions),
             // so it never depends on any data column's width and is safe to skip recomputing (via a real
             // TransformToVisual walk, on every visible row) during a resize drag.
-            if (TableView is not null && !TableView.IsColumnResizing && _v_gridLine is not null)
+            if (TableView.CollectionView.Count > 0 && !TableView.IsColumnResizing && _v_gridLine is not null)
             {
                 var transform = _v_gridLine.TransformToVisual(this);
                 var relativePosition = transform.TransformPoint(new Point(0, 0));

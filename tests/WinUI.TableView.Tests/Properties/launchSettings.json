@@ -1,8 +1,5 @@
 {
   "profiles": {
-    "WinUI.TableView.Tests (Package)": {
-      "commandName": "MsixPackage"
-    },
     "WinUI.TableView.Tests (Unpackaged)": {
       "commandName": "Project"
     }
