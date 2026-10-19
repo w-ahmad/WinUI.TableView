@@ -191,6 +191,10 @@
                                 <VisualStateGroup.Transitions>
                                     <VisualTransition To="SelectionIndicatorShown">
                                         <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="SelectionIndicator"
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             Duration="0"
+                                                             To="1" />
                                             <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SelectionIndicatorScale"
                                                                            Storyboard.TargetProperty="ScaleY">
                                                 <SplineDoubleKeyFrame KeyTime="0:0:0.35"
@@ -205,6 +209,10 @@
 
                                 <VisualState x:Name="SelectionIndicatorShown">
                                     <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionIndicator"
+                                                         Storyboard.TargetProperty="Opacity"
+                                                         Duration="0"
+                                                         To="1" />
                                         <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SelectionIndicatorScale"
                                                                        Storyboard.TargetProperty="ScaleY">
                                             <DiscreteDoubleKeyFrame KeyTime="0"
@@ -215,6 +223,10 @@
 
                                 <VisualState x:Name="SelectionIndicatorPressed">
                                     <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionIndicator"
+                                                         Storyboard.TargetProperty="Opacity"
+                                                         Duration="0"
+                                                         To="1" />
                                         <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SelectionIndicatorScale"
                                                                        Storyboard.TargetProperty="ScaleY">
                                             <SplineDoubleKeyFrame KeyTime="0:0:0.1"
@@ -299,7 +311,10 @@
                                                   Width="Auto" />
                             </Grid.ColumnDefinitions>
 
+                            <!--  Transparent rather than only scaled away while hidden: the renderers skip a transparent
+                                  element, while one scaled to nothing is still walked and drawn every frame the rows move.  -->
                             <Border x:Name="SelectionIndicator"
+                                    Opacity="0"
                                     Margin="4,0,0,0"
                                     Width="3"
                                     Height="16"

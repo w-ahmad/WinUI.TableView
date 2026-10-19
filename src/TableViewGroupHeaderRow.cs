@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Shapes;
 using System;
 using Windows.Foundation;
 using WinUI.TableView.AutomationPeers;
+using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
 
@@ -137,8 +138,7 @@ public partial class TableViewGroupHeaderRow : ContentControl
     {
         if (_h_gridLine is null || TableView is null) return;
 
-        _h_gridLine.BorderBrush = TableView.HorizontalGridLinesStroke;
-        _h_gridLine.BorderThickness = new Thickness(0, 0, 0, TableView.HorizontalGridLinesStrokeThickness);
+        GridLineSprite.SetBottomEdge(_h_gridLine, TableView.HorizontalGridLinesStroke, TableView.HorizontalGridLinesStrokeThickness);
         _h_gridLineSpace?.Height = TableView.HorizontalGridLinesStrokeThickness;
     }
 

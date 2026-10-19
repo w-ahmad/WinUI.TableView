@@ -239,6 +239,11 @@ public partial class TableView : Control
                 _resizingScrollableShifts.Add((scrollablePanel, shift));
             }
         }
+
+#if !WINDOWS
+        // The preview slides cells sideways without layout, so cells out of view now can come into view.
+        UpdateRenderCulling();
+#endif
     }
 
     /// <summary>

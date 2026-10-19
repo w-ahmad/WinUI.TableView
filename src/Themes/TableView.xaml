@@ -100,7 +100,11 @@
                                           win:AutomationProperties.AccessibilityView="Raw"
                                           Template="{StaticResource TableViewScrollViewerTemplate}">
                                 <Border Padding="{TemplateBinding Padding}">
-                                    <ItemsRepeater x:Name="RowsRepeater" />
+                                    <ItemsRepeater x:Name="RowsRepeater" >
+                                        <ItemsRepeater.Layout>
+                                            <StackLayout x:Name="RowsRepeaterLayout" />
+                                        </ItemsRepeater.Layout>
+                                    </ItemsRepeater>
                                 </Border>
                             </ScrollViewer>
 

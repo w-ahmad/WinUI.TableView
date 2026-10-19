@@ -41,6 +41,8 @@
                                     <VisualState.Setters>
                                         <Setter Target="RootBorder.Background"
                                                 Value="{ThemeResource TableViewCellBackgroundPointerOver}" />
+                                        <Setter Target="RootBorder.CornerRadius"
+                                                Value="{ThemeResource TableViewRowCellSelectionBorderCornerRadius}" />
                                     </VisualState.Setters>
                                 </VisualState>
                             </VisualStateGroup>
@@ -54,8 +56,9 @@
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
 
-                        <Border x:Name="RootBorder"
-                                CornerRadius="{ThemeResource TableViewRowCellSelectionBorderCornerRadius}">
+                        <!--  Rounded only while it draws the pointer-over background: rounded corners also clip the content
+                              to a rounded shape, which a renderer works out again for every frame the rows move.  -->
+                        <Border x:Name="RootBorder">
                             <ContentPresenter x:Name="Content"
                                               Margin="{TemplateBinding Padding}"
                                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}"

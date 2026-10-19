@@ -378,7 +378,7 @@ public partial class TableView
 
     /// <summary>
     /// Moves the sticky group header after the rows have been laid out, since the group at the top can change without
-    /// a scroll, such as when one is expanded or collapsed.
+    /// a scroll, such as when one is expanded or collapsed. Cells can have moved into or out of view sideways too.
     /// </summary>
     private void OnRowsRepeaterLayoutUpdated(object? sender, object e)
     {
@@ -386,6 +386,10 @@ public partial class TableView
         {
             UpdateStickyGroupHeader();
         }
+
+#if !WINDOWS
+        UpdateRenderCulling();
+#endif
     }
 
     /// <summary>

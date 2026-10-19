@@ -117,6 +117,14 @@ public partial class TableViewCell : ContentControl
         // A new template starts in its default states; the row may have pushed the cell's own before it had one.
         _appliedSelected = null;
         _appliedCurrent = null;
+#if !WINDOWS
+        // The new template's presenter starts visible; the next culling pass defers it again if need be.
+        if (_isContentLayoutDeferred)
+        {
+            _isContentLayoutDeferred = false;
+            ClearValue(MinHeightProperty);
+        }
+#endif
 
         EnsureGridLines();
         EnsureStyle(Row?.Content);
@@ -142,6 +150,53 @@ public partial class TableViewCell : ContentControl
             InvalidateAutoWidth();
         }
     }
+
+#if !WINDOWS
+    private bool _isContentLayoutDeferred;
+
+    /// <summary>
+    /// Leaves the cell out of rendering while it is out of view, and its content out of layout until the cell is
+    /// nearly in view, so text no one sees is not shaped when a row is reused (see <see cref="TableView.UpdateRenderCulling"/>).
+    /// </summary>
+    /// <param name="isInView">Whether any of the cell is inside the viewport.</param>
+    /// <param name="isNearView">Whether any of the cell is inside the viewport or the margin around it.</param>
+    internal void UpdateRenderCulling(bool isInView, bool isNearView)
+    {
+        ElementVisuals.SetInView(this, isInView);
+
+        if (_contentPresenter is null)
+        {
+            return;
+        }
+
+        // A column sized by its cells needs every cell's natural width, seen or not.
+        var defer = !isNearView
+            && !(Column is { Width.IsAuto: true }
+                 && (Column.ColumnAutoWidthMode ?? TableView?.ColumnAutoWidthMode)
+                    is TableViewColumnAutoWidthMode.Cells or TableViewColumnAutoWidthMode.Both);
+
+        if (_isContentLayoutDeferred != defer)
+        {
+            _isContentLayoutDeferred = defer;
+
+            if (defer)
+            {
+                // Keeps an auto-height row at its height while the content that gave it is out of layout.
+                if (ActualHeight > 0)
+                {
+                    MinHeight = ActualHeight;
+                }
+
+                _contentPresenter.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                _contentPresenter.Visibility = Visibility.Visible;
+                ClearValue(MinHeightProperty);
+            }
+        }
+    }
+#endif
 
     /// <summary>
     /// Has the next measure pass measure the cell's content at its natural width again, for the column's auto width.
@@ -689,8 +744,8 @@ public partial class TableViewCell : ContentControl
     {
         if (_v_gridLine is not null && TableView is not null)
         {
-            _v_gridLine.Fill = TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
-                               ? TableView.VerticalGridLinesStroke : SharedResources.TransparentBrush;
+            GridLineSprite.SetFill(_v_gridLine, TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                                                ? TableView.VerticalGridLinesStroke : SharedResources.TransparentBrush);
             _v_gridLine.Width = TableView.VerticalGridLinesStrokeThickness;
             _v_gridLine.Visibility = TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
                                      || TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical

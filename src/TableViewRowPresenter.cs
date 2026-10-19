@@ -131,6 +131,60 @@ public partial class TableViewRowPresenter : Control
         _indentPlaceholder?.Width = GetGroupIndent();
     }
 
+#if !WINDOWS
+    /// <summary>
+    /// Shows the cells in view and hides the scrollable cells scrolled out of view sideways (see
+    /// <see cref="TableView.UpdateRenderCulling"/>).
+    /// </summary>
+    /// <param name="viewportWidth">The width of the table's viewport.</param>
+    /// <param name="cullCells">Whether to hide the cells out of view, rather than show every cell.</param>
+    internal void UpdateCellsRenderCulling(double viewportWidth, bool cullCells)
+    {
+        if (_scrollableCellsPanel is null || _frozenCellsPanel is null || TableView is null)
+        {
+            return;
+        }
+
+        // A cell that was hidden while it scrolled can have been moved among the frozen ones since.
+        foreach (var cell in _frozenCellsPanel.Children)
+        {
+            SetCellInView(cell, isInView: true, isNearView: true);
+        }
+
+        // The scrollable panel is arranged at the frozen cells' right edge less the horizontal offset, and clipped there
+        // (see ArrangeOverride), so in its own coordinates the part in view starts at the offset and is as wide as the
+        // viewport right of the frozen cells.
+        var left = TableView is { SelectionMode: ListViewSelectionMode.Multiple } ? MultiSelectInset : 0d;
+        var start = TableView.HorizontalOffset;
+        var end = start + viewportWidth - left - (_frozenCellsPanel.ActualOffset.X + _frozenCellsPanel.ActualWidth);
+
+        // Content lays out just before its column scrolls into view, not on the frame it appears.
+        const double LayoutLead = 200d;
+
+        foreach (var cell in _scrollableCellsPanel.Children)
+        {
+            var x = cell.ActualOffset.X;
+            var right = x + cell.ActualSize.X;
+            SetCellInView(
+                cell,
+                isInView: !cullCells || (right >= start && x <= end),
+                isNearView: !cullCells || (right >= start - LayoutLead && x <= end + LayoutLead));
+        }
+
+        static void SetCellInView(UIElement element, bool isInView, bool isNearView)
+        {
+            if (element is TableViewCell cell)
+            {
+                cell.UpdateRenderCulling(isInView, isNearView);
+            }
+            else
+            {
+                ElementVisuals.SetInView(element, isInView);
+            }
+        }
+    }
+#endif
+
     /// <summary>
     /// Handles size changes in the row details panel.
     /// </summary>
@@ -466,8 +520,7 @@ public partial class TableViewRowPresenter : Control
             var visibility = TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Horizontal
                              ? Visibility.Visible : Visibility.Collapsed;
 
-            _h_gridLine.BorderBrush = TableView.HorizontalGridLinesStroke;
-            _h_gridLine.BorderThickness = new Thickness(0, 0, 0, thickness);
+            GridLineSprite.SetBottomEdge(_h_gridLine, TableView.HorizontalGridLinesStroke, thickness);
             _h_gridLine.Visibility = visibility;
 
             if (_h_gridLineSpace is not null)
@@ -492,8 +545,8 @@ public partial class TableViewRowPresenter : Control
                 var isDetailsToggleButtonVisible = TableView.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded
                                                     && (TableView.RowDetailsTemplate is not null || TableView.RowDetailsTemplateSelector is not null);
 
-                _v_gridLine.Fill = TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
-                                   ? TableView.VerticalGridLinesStroke : SharedResources.TransparentBrush;
+                GridLineSprite.SetFill(_v_gridLine, TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                                                    ? TableView.VerticalGridLinesStroke : SharedResources.TransparentBrush);
                 _v_gridLine.Width = TableView.VerticalGridLinesStrokeThickness;
                 _v_gridLine.Visibility = vGridLinesVisibility && (areHeadersVisible || isMultiSelection || isDetailsToggleButtonVisible) ? Visibility.Visible : Visibility.Collapsed;
             }
