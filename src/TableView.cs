@@ -83,6 +83,9 @@ public partial class TableView : Control
 
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
+#if WINDOWS
+        PreviewKeyDown += OnPreviewKeyDown;
+#endif
         _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
         _collectionView.ViewResetting += OnCollectionViewResetting;
         _collectionView.VectorChanged += OnCollectionViewVectorChanged;
@@ -373,6 +376,8 @@ public partial class TableView : Control
     /// <inheritdoc/>
     protected override void OnKeyDown(KeyRoutedEventArgs e)
     {
+        if (e.Handled) return;
+
         var shiftKey = KeyboardHelper.IsShiftKeyDown();
         var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
 
@@ -384,6 +389,31 @@ public partial class TableView : Control
 
         HandleNavigations(e, shiftKey, ctrlKey);
     }
+
+#if WINDOWS
+    /// <summary>
+    /// Handles arrows before the row ScrollViewer consumes them while bubbling.
+    /// Editing controls retain their own arrow-key behavior.
+    /// </summary>
+    private void OnPreviewKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Handled || IsEditing
+            || e.Key is not (VirtualKey.Left or VirtualKey.Right or VirtualKey.Up or VirtualKey.Down))
+        {
+            return;
+        }
+
+        // Header controls and other controls outside the rows keep their own keyboard behavior.
+        if (e.OriginalSource is not FrameworkElement source
+            || (source != this && source is not (TableViewCell or TableViewRow)
+                && source.FindAscendant<TableViewRow>() is null))
+        {
+            return;
+        }
+
+        HandleNavigations(e, KeyboardHelper.IsShiftKeyDown(), KeyboardHelper.IsCtrlKeyDown());
+    }
+#endif
 
     /// <inheritdoc/>
     protected override void OnPointerPressed(PointerRoutedEventArgs e)
