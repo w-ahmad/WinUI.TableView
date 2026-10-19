@@ -3049,7 +3049,8 @@ public partial class TableView : Control
 
         if (RowContextFlyout is not null && !eventArgs.Handled)
         {
-#if !WINDOWS
+#if !WINDOWS && !NET10_0_OR_GREATER
+            // Uno 6 flyouts do not inherit their target's DataContext; Uno 7 dropped the property.
             RowContextFlyout.DataContext = row.Content;
 #endif
             RowContextFlyout.ShowAt(row.RowPresenter, new FlyoutShowOptions
@@ -3077,7 +3078,8 @@ public partial class TableView : Control
 
         if (CellContextFlyout is not null && !eventArgs.Handled)
         {
-#if !WINDOWS
+#if !WINDOWS && !NET10_0_OR_GREATER
+            // Uno 6 flyouts do not inherit their target's DataContext; Uno 7 dropped the property.
             CellContextFlyout.DataContext = cell.Row?.Content;
 #endif
             CellContextFlyout.ShowAt(cell, new FlyoutShowOptions

@@ -227,7 +227,7 @@ public partial class TableViewCell : ContentControl
 #if WINDOWS
                 if (element is ContentControl { ContentTemplateRoot: FrameworkElement root })
 #else
-                if (element.FindDescendant<ContentPresenter>() is { ContentTemplateRoot: FrameworkElement root })
+                if (element.FindDescendant<ContentPresenter>()?.GetContentTemplateRoot() is { } root)
 #endif
                     element = root;
                 else
@@ -325,7 +325,7 @@ public partial class TableViewCell : ContentControl
 #if WINDOWS
                 if (element is ContentControl { ContentTemplateRoot: FrameworkElement root })
 #else
-                if (element.FindDescendant<ContentPresenter>() is { ContentTemplateRoot: FrameworkElement root })
+                if (element.FindDescendant<ContentPresenter>()?.GetContentTemplateRoot() is { } root)
 #endif
                     element = root;
                 else

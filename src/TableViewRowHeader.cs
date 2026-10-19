@@ -42,7 +42,7 @@ public partial class TableViewRowHeader : ContentControl
             var element = ContentTemplateRoot as FrameworkElement;
 #else
             // Uno only exposes the template's root on the presenter that realizes it.
-            var element = _contentPresenter.ContentTemplateRoot as FrameworkElement;
+            var element = _contentPresenter.GetContentTemplateRoot();
 #endif
             element?.Measure(availableSize: new Size(double.PositiveInfinity, double.PositiveInfinity));
 

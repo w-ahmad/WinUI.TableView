@@ -55,14 +55,16 @@
   </PropertyGroup>
 
   <ItemGroup>   
+    <!-- The settings page stays out on Uno 7: the CommunityToolkit settings controls are built against the 'Uno'
+         assembly that Uno 7 no longer ships (unoplatform/uno#24297). SettingsPageStub.cs stands in for the class. -->
     <Page Include="..\WinUI.TableView.SampleApp\**\*.xaml"
-          Exclude="..\WinUI.TableView.SampleApp\bin\**\*.xaml;..\WinUI.TableView.SampleApp\obj\**\*.xaml">
+          Exclude="..\WinUI.TableView.SampleApp\bin\**\*.xaml;..\WinUI.TableView.SampleApp\obj\**\*.xaml;..\WinUI.TableView.SampleApp\SettingsPage.xaml">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    
+
     <Compile Include="..\WinUI.TableView.SampleApp\**\*.cs"
-             Exclude="..\WinUI.TableView.SampleApp\bin\**\*.cs;..\WinUI.TableView.SampleApp\obj\**\*.cs">
+             Exclude="..\WinUI.TableView.SampleApp\bin\**\*.cs;..\WinUI.TableView.SampleApp\obj\**\*.cs;..\WinUI.TableView.SampleApp\SettingsPage.xaml.cs">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
       <DependentUpon>%(RecursiveDir)%(Filename)</DependentUpon>
     </Compile>
@@ -87,7 +89,6 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" />
-    <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" />
     <PackageReference Include="ClosedXML" />
   </ItemGroup>
 

@@ -2,7 +2,7 @@
   <ItemGroup>
     <PackageVersion Include="ClosedXML" Version="0.105.0" />
     <PackageVersion Include="ColorCode.WinUI" Version="2.0.15" />
-    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.2.251219" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="9.0.4" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
@@ -12,7 +12,10 @@
     <PackageVersion Include="Microsoft.WindowsAppSDK.WinUI" Version="1.8.260528001" />
     <PackageVersion Include="MSTest.TestAdapter" Version="3.9.3" />
     <PackageVersion Include="MSTest.TestFramework" Version="3.9.3" />
+    <!-- Uno 6.3+ requires .NET 9 or later; retain the last .NET 8-compatible stable release. -->
     <PackageVersion Include="Uno.WinUI" Version="6.2.87" Condition="$([MSBuild]::VersionLessThan($([MSBuild]::GetTargetFrameworkVersion('$(TargetFramework)')), 'v9.0'))" />
-    <PackageVersion Include="Uno.WinUI" Version="6.5.237" Condition="!$([MSBuild]::VersionLessThan($([MSBuild]::GetTargetFrameworkVersion('$(TargetFramework)')), 'v9.0'))" />
+    <!-- Uno 7 requires .NET 10 or later; retain the last .NET 9-compatible stable release. -->
+    <PackageVersion Include="Uno.WinUI" Version="6.7.135" Condition="!$([MSBuild]::VersionLessThan($([MSBuild]::GetTargetFrameworkVersion('$(TargetFramework)')), 'v9.0')) and $([MSBuild]::VersionLessThan($([MSBuild]::GetTargetFrameworkVersion('$(TargetFramework)')), 'v10.0'))" />
+    <PackageVersion Include="Uno.WinUI" Version="7.0.0-dev.2347" Condition="!$([MSBuild]::VersionLessThan($([MSBuild]::GetTargetFrameworkVersion('$(TargetFramework)')), 'v10.0'))" />
   </ItemGroup>
 </Project>

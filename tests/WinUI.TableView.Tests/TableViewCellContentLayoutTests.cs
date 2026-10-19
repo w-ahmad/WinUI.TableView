@@ -41,7 +41,13 @@ public class TableViewCellContentLayoutTests
 #endif
             var bounds = text.TransformToVisual(cell).TransformBounds(new Rect(0, 0, textWidth, text.ActualHeight));
 
+#if WINDOWS
+            // Uno's Skia text engine stopped reporting IsTextTrimmed in 6.7 — a bare 80px TextBlock with
+            // CharacterEllipsis and long text reports false too — so the flag is only asserted on Windows.
             Assert.IsTrue(text.IsTextTrimmed, "the text should have been measured at the cell's width and trimmed");
+#endif
+            Assert.IsTrue(text.ActualWidth <= cell.ActualWidth + 0.5d,
+                $"the text should have been measured at the cell's width, not its own ({text.ActualWidth}px in a {cell.ActualWidth}px cell)");
             Assert.IsTrue(bounds.Left >= 0d && bounds.Right <= cell.ActualWidth + 0.5d,
                 $"the text spans {bounds.Left}..{bounds.Right} in a {cell.ActualWidth}px wide cell");
         }

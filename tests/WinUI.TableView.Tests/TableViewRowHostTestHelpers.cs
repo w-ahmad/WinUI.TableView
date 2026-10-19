@@ -30,7 +30,7 @@ internal static class TableViewRowHostTestHelpers
 #if WINDOWS
         return control.ContentTemplateRoot;
 #else
-        return control.FindDescendant<ContentPresenter>()?.ContentTemplateRoot;
+        return control.FindDescendant<ContentPresenter>()?.GetContentTemplateRoot();
 #endif
     }
 

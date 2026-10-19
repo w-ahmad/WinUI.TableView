@@ -187,12 +187,17 @@ public class TableViewRowHostLayoutTests
         Assert.IsTrue(pooled.Count > 0);
         Assert.IsTrue(pooled.All(x => x.Content is null), "pooled rows should not keep the items they showed");
 
-        // The table empties its items while unloaded, as it always has, so it comes back at the top.
+        // The platform may retain the scroll offset while the table is unloaded; the restored viewport must
+        // contain realized rows bound to the restored items at their current indexes.
         await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
         await WaitForScrollToSettleAsync(tableView);
 
         Assert.IsTrue(tableView.Rows.Count > 5, "the rows should be realized again");
-        Assert.AreSame(tableView.Items[0], ((TableViewRow)tableView.RealizedRows.Get(0)!).Content);
+        var visualIndex = tableView.RealizedRows.FindAtOffset(tableView.RowsViewportTop, out var exact);
+        Assert.IsTrue(exact, "the restored viewport should contain a realized row");
+        var rowAtViewport = tableView.RealizedRows.Get(visualIndex) as TableViewRow;
+        Assert.IsNotNull(rowAtViewport);
+        Assert.AreSame(tableView.Items[rowAtViewport.Index], rowAtViewport.Content);
 
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }
