@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.Foundation;
 using WinUI.TableView.Extensions;
@@ -379,16 +380,21 @@ public class TableViewCellVisualsTests
         var column = tableView.Columns[0];
         var cellContentWidth = ((FrameworkElement)cell.Content).DesiredSize.Width;
 
-        // The selection border's thickness on both sides and the vertical grid line, around the content and its margin.
+        // The selection border's thickness on both sides and the vertical grid line, around the content and its
+        // margin. How much of the margin the content's desired size reports moved between Uno releases, so the
+        // chrome is bounded rather than exact: at least the layers' widths, at most them plus the margin.
         var chrome = column.ActualWidth - cellContentWidth;
         Assert.IsTrue(column.ActualWidth >= cellContentWidth, $"the column ({column.ActualWidth}px) is narrower than its content ({cellContentWidth}px)");
-        Assert.AreEqual(ExpectedChrome, chrome, 0.5d, $"the column is {column.ActualWidth}px wide for {cellContentWidth}px of content");
+        Assert.IsTrue(chrome >= MinimumChrome - 0.5d && chrome <= ExpectedChrome + 0.5d, $"the column is {column.ActualWidth}px wide for {cellContentWidth}px of content");
 
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }
 
     // What the cell added around its content before its layers became lazy, the same on every platform.
     private const double ExpectedChrome = 13d;
+
+    // The selection border's two sides and the vertical grid line, with nothing of the content's margin.
+    private const double MinimumChrome = 5d;
 
     private static Border? Layer(TableViewCell cell, string name)
     {
@@ -403,6 +409,131 @@ public class TableViewCellVisualsTests
             SolidColorBrush solid => solid.Opacity > 0d && solid.Color.A > 0,
             _ => true
         };
+    }
+
+    [UITestMethod]
+    public async Task EveryRealizedCell_InheritsItsRowsItem()
+    {
+        var tableView = CreateTableView(itemCount: 500);
+
+        // Enough columns that most are out of view sideways, as the sample pages have.
+        for (var extra = 0; extra < 8; extra++)
+        {
+            tableView.Columns.Add(new TableViewTextColumn
+            {
+                Header = $"Extra {extra}",
+                Width = new GridLength(150),
+                Binding = new Binding { Path = new PropertyPath(nameof(HostItem.Name)) }
+            });
+        }
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        await WaitForLayoutAsync(tableView);
+        var scrollViewer = GetScrollViewer(tableView);
+
+        // Recycle rows a few times, in both directions, and move the columns in view sideways.
+        foreach (var (vertical, horizontal) in new[] { (3000d, 0d), (9000d, 600d), (1500d, 0d) })
+        {
+            scrollViewer.ChangeView(horizontal, vertical, null, disableAnimation: true);
+            await WaitForLayoutAsync(tableView);
+            await Task.Delay(100);
+            await WaitForLayoutAsync(tableView);
+
+            foreach (var row in RealizedRows(tableView))
+            {
+                foreach (var cell in row.Cells)
+                {
+                    Assert.AreSame(row.Content, cell.DataContext,
+                        $"cell {row.Index},{cell.Slot.Column} at {vertical}/{horizontal} inherits {cell.DataContext?.GetType().Name} instead of its row's item");
+                }
+            }
+        }
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task CellContextFlyout_LeavesTheCellsTextVisible()
+    {
+        var tableView = await CreateTableViewAsync(itemCount: 50);
+        tableView.ForceRowOrCellSelectionOnContextRequested = true;
+        tableView.CellContextFlyout = new MenuFlyout { Items = { new MenuFlyoutItem { Text = "Copy" } } };
+        // The sample's pattern: the opening handler tags the items with the clicked slot. Tagging the cell element
+        // itself must stay out of the samples: on Uno it moves the cell's DataContext inheritance to the menu item.
+        tableView.CellContextFlyoutOpening += (_, e) =>
+        {
+            foreach (var item in ((MenuFlyout)e.Flyout!).Items)
+            {
+                item.Tag = e.Slot;
+            }
+        };
+        await WaitForLayoutAsync(tableView);
+
+        // What the cell does when it is right-clicked.
+        var cell = GetCell(tableView, 4, 0);
+        var expectedContext = cell.DataContext;
+        tableView.MakeSelection(cell.Slot, false);
+        var shown = tableView.ShowCellContext(cell, new Point(10, 10));
+        await WaitForLayoutAsync(tableView);
+        await Task.Delay(100);
+        await WaitForLayoutAsync(tableView);
+
+        Assert.IsTrue(shown, "the context flyout did not open");
+
+        var text = cell.FindDescendants().OfType<TextBlock>().FirstOrDefault();
+
+        Assert.IsNotNull(text, "the cell lost its text element");
+        Assert.AreSame(expectedContext, cell.DataContext,
+            $"the cell inherits {cell.DataContext?.GetType().Name} instead of its row's item after the flyout opened");
+        Assert.AreEqual("Item 4", text.Text);
+        Assert.AreEqual(Visibility.Visible, text.Visibility);
+        Assert.IsTrue(text.ActualWidth > 0, $"the text has no width ({text.ActualWidth})");
+
+        tableView.CellContextFlyout.Hide();
+        await WaitForLayoutAsync(tableView);
+        await Task.Delay(100);
+
+#if !__WASM__
+        // The cell interior should still render its text once the flyout is gone.
+        var bitmap = new Microsoft.UI.Xaml.Media.Imaging.RenderTargetBitmap();
+        await bitmap.RenderAsync(tableView);
+        var pixels = (await bitmap.GetPixelsAsync()).ToArray();
+        Assert.IsFalse(IsUniform(tableView, bitmap, pixels, cell), "the right-clicked cell rendered without its text");
+#endif
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    /// <summary>
+    /// Returns whether every rendered pixel inside a cell, a few pixels in from its edges, is the same: a cell showing
+    /// text is not uniform.
+    /// </summary>
+    private static bool IsUniform(TableView tableView, Microsoft.UI.Xaml.Media.Imaging.RenderTargetBitmap bitmap, byte[] pixels, TableViewCell cell)
+    {
+        const double inset = 5d;
+
+        var scale = bitmap.PixelWidth / tableView.ActualWidth;
+        var bounds = cell.TransformToVisual(tableView).TransformBounds(new Rect(0, 0, cell.ActualWidth, cell.ActualHeight));
+        var left = (int)((bounds.Left + inset) * scale);
+        var right = (int)((bounds.Right - inset) * scale);
+        var top = (int)((bounds.Top + inset) * scale);
+        var bottom = (int)((bounds.Bottom - inset) * scale);
+        var first = PixelAt(left, top);
+
+        for (var y = top; y < bottom; y++)
+        {
+            for (var x = left; x < right; x++)
+            {
+                if (PixelAt(x, y) != first)
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+
+        uint PixelAt(int x, int y) => System.BitConverter.ToUInt32(pixels, ((y * bitmap.PixelWidth) + x) * 4);
     }
 
     private static TableViewCell GetCell(TableView tableView, int row, int column)
