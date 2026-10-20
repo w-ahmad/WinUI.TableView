@@ -1,12 +1,13 @@
 # Tools
 
-Scripts that build the sample app for each target the way users get it and open it for manual testing, plus the recorder for the WebAssembly AOT profile.
+Scripts that build the sample app for each target the way users get it and open it for manual testing, the Store package build, and the recorder for the WebAssembly AOT profile.
 
 | Script | Target | Result |
 | --- | --- | --- |
 | [`publish-and-serve-wasm.ps1`](publish-and-serve-wasm.ps1) | WebAssembly | Release publish with profile-guided AOT, served at http://127.0.0.1:8096 |
 | [`publish-and-open-uno-desktop.ps1`](publish-and-open-uno-desktop.ps1) | Uno desktop (Skia) | Release publish, opened |
 | [`publish-and-open-winui.ps1`](publish-and-open-winui.ps1) | WinUI (Windows App SDK) | Native AOT publish, opened |
+| [`build-store-package.ps1`](build-store-package.ps1) | WinUI (Microsoft Store) | A `.msixupload` bundle of the sample against a released NuGet package |
 | [`record-aot-profile.cjs`](record-aot-profile.cjs) | WebAssembly | A fresh `Platforms/WebAssembly/aot.profile` for the Uno sample |
 
 The scripts find the repository from their own location, so they work from any folder. Everything they produce goes under `artifacts/`, which git ignores. The target framework comes from `NetVersion` in `Directory.Build.props`, so nothing needs editing when it changes.
@@ -82,6 +83,23 @@ $env:TABLEVIEW_FRAME_LOG = "$env:TEMP\tableview-frames.csv"
 ```
 
 Both "publish and open" scripts first close a copy of the app already running from their output folder, because its files are locked while it runs. Security software that scans launched programs can keep the `.exe` open for a few minutes after the app has closed; the scripts then say what they are waiting for and carry on once it is released (or give up after five minutes; `-Out` publishes to a fresh folder instead). After opening the app they wait for its window and report an error if it exits during startup.
+
+## Build the Store package
+
+```powershell
+.\tools\build-store-package.ps1 1.5.1
+```
+
+Builds the `.msixupload` bundle (x86, x64 and ARM64) of the sample app for the Microsoft Store, referencing the given **released** WinUI.TableView package from NuGet rather than the library project, so the Store app is what users of that package version get. The version is also written into `Package.appxmanifest` (as `1.5.1.0`; the Store requires a fourth component of 0) for the duration of the build only, and the manifest is restored afterwards. The sample's `bin` and `obj` folders are removed first, because switching between a project reference and a package reference leaves restore assets behind that break the build.
+
+Upload the `.msixupload` it reports to the app's submission in Partner Center.
+
+| Option | Effect |
+| --- | --- |
+| `-Configuration <name>` | Build configuration (default `Release`) |
+| `-OutputDirectory <dir>` | Where the bundle goes (default `artifacts\store`) |
+
+It needs Visual Studio with the Windows App SDK workload, which provides the MSBuild packaging targets; the .NET SDK alone cannot produce a Store bundle.
 
 ## Record the WebAssembly AOT profile
 
