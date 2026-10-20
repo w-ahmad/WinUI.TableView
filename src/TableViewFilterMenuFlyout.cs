@@ -62,7 +62,12 @@ public partial class TableViewFilterMenuFlyout : Flyout
         var presenter = (FlyoutPresenter)sender;
         var okButton = presenter.FindDescendant<Button>(b => b.Name is "OkButton");
         var cancelButton = presenter.FindDescendant<Button>(b => b.Name is "CancelButton");
-        var menuPresenter = presenter.FindDescendant<MenuFlyoutPresenter>();
+
+        // Found by name and used as an ItemsControl: under Native AOT the wrapper CsWinRT creates for an
+        // element that only XAML constructed can be a base class of its runtime class when the exact
+        // projection is not in the app's type map, and a search for MenuFlyoutPresenter walked past it -
+        // the flyout then showed no menu commands at all.
+        var menuPresenter = presenter.FindDescendant<ItemsControl>(x => x.Name is "MenuItemsPresenter");
         menuPresenter?.ItemsSource = Items;
 
         _filterItemsControl = presenter.FindDescendant<TableViewFilterItemsControl>();

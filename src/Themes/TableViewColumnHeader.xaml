@@ -200,7 +200,8 @@
                                                                             <RowDefinition Height="*" />
                                                                             <RowDefinition Height="Auto" />
                                                                         </Grid.RowDefinitions>
-                                                                        <MenuFlyoutPresenter Background="Transparent"
+                                                                        <MenuFlyoutPresenter x:Name="MenuItemsPresenter"
+                                                                                             Background="Transparent"
                                                                                              SystemBackdrop="{x:Null}"
                                                                                              Padding="0"
                                                                                              CornerRadius="0"
