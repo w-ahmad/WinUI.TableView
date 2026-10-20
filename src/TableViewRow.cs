@@ -205,12 +205,17 @@ public partial class TableViewRow : ListViewItem
     /// <inheritdoc/>
     protected override Size ArrangeOverride(Size finalSize)
     {
-        finalSize = base.ArrangeOverride(finalSize);
+        if (_itemPresenter is null)
+        {
+            finalSize = base.ArrangeOverride(finalSize);
+        }
+        else
+        {
+            var cornerRadius = _itemPresenter.CornerRadius;
+            var left = Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft);
 
-        var cornerRadius = _itemPresenter?.CornerRadius ?? new();
-        var left = Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft);
-
-        _itemPresenter?.Arrange(new Rect(-left, 0, _itemPresenter.ActualWidth + left, _itemPresenter.ActualHeight));
+            _itemPresenter.Arrange(new(-left, 0, finalSize.Width + left, finalSize.Height));
+        }
 
         // Position feeds drag-selection hit testing only; a column-width change never moves a row
         // relative to the drag canvas, so recomputing it (a visual-tree transform walk) on every
