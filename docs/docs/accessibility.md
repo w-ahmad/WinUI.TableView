@@ -64,7 +64,7 @@ When [`RowDetailsVisibilityMode`](xref:WinUI.TableView.TableView.RowDetailsVisib
 
 ### TableView
 
-Uses [`AutomationProperties.Name`](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.automation.automationproperties.name) if set; otherwise inherits from the base `ListView` peer.
+Uses [`AutomationProperties.Name`](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.automation.automationproperties.name) if set; otherwise the peer's default name applies, so set one for every table a screen reader user will meet.
 
 ```xml
 <tv:TableView AutomationProperties.Name="Products table" />

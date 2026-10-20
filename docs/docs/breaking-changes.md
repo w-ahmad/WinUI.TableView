@@ -2,7 +2,7 @@
 
 `TableView` used to derive from `ListView`, which is where its row virtualization, container generation, row
 selection storage and the Windows row visual came from. It now derives from `Control` and hosts its rows in an
-`ItemsRepeater` with a virtualizing layout it owns.
+`ItemsRepeater` with the platform's virtualizing `StackLayout`, creating, recycling and positioning the rows itself.
 
 This is a deliberate, semver-major change. It exists because the base class had become the limit: hit testing during
 drag selection scanned every item on every pointer-move frame, row positions were maintained with a visual-tree
@@ -41,8 +41,10 @@ do not depend on the base class.
 | `SelectedValue`, `SelectedValuePath` | inherited | **removed** | Read the value from `SelectedItem` |
 | `Columns.VisibleColumns` | a fresh list per read | a cached read-only list | It was never meaningful to mutate it; attempting to now throws instead of silently mutating a copy |
 | `TableViewGroupHeaderRow` base class | `ListViewHeaderItem` | `ContentControl` | Its template parts, visual states and theme resources are unchanged. Restyle it with an implicit style targeting `TableViewGroupHeaderRow` |
+| `TableViewAutomationPeer` and `TableViewRowAutomationPeer` base classes | `ListViewAutomationPeer`, `ListViewItemAutomationPeer` | `FrameworkElementAutomationPeer` | Only matters if you derive from these peers. They implement the same patterns themselves (see [Accessibility](accessibility.md)), and `TableViewGroupHeaderRow` now has a peer of its own, `TableViewGroupHeaderRowAutomationPeer` |
+| `WinUI.TableView.Primitives.ListViewItemPresenter` | the row chrome on Windows | **removed** | It existed only to be the `ListViewItem`'s presenter. The row's chrome is now part of the `TableViewRow` template; restyle the row with an implicit style targeting `TableViewRow` |
 | `GroupStyle` | inherited from `ListViewBase` | declared on `TableView` | XAML populating `<tv:TableView.GroupStyle>` is unchanged. Entries now apply per nesting level (the last one is reused for deeper levels), `DefaultGroupStyle` is used while the collection is empty instead of being copied into it, and `HeaderContainerStyle` is not applied |
-| `TableViewCell` default template | had `BackgroundBorder` and `SelectionBorder` parts | has neither | The cell adds a `Border` of each name, behind its content and drawn with the same resources and visuals, the first time it has a visible `Background`, is selected or is current. This keeps the default template to the four elements every cell needs, which makes a row cheaper to create. A template of your own that has parts of those names keeps drawing them itself through its `Selected`, `Current` and other visual states, and the cell adds nothing to it |
+| `TableViewCell` default template | had `BackgroundBorder` and `SelectionBorder` parts, and visual state groups for pointer-over, selection and the current cell | has neither | The cell adds a `Border` of each name, behind its content and drawn with the same resources and visuals, the first time it has a visible `Background`, is selected or is current, and styles its `RootBorder` itself while the pointer is over it. This keeps the default template to the four elements every cell needs, which makes a row cheaper to create. A template of your own keeps working the old way: one that has parts of those names keeps drawing them through its `Selected`, `Current` and other visual states, and one that defines `CommonStates` is driven through `PointerOver` and `Normal` as before; the cell adds nothing to either |
 | Selection across a view rebuild | cleared by some rebuilds (header sorting, grouping), left on shifted indexes by others | always cleared | Anything that rebuilds the view (sorting, grouping, expanding or collapsing a group, a source reset) clears row and cell selection first, with `SelectionChanged` reporting the removed items |
 
 ### Row drag-reorder
@@ -59,9 +61,11 @@ Grouping keeps its public API — `GroupDescriptions`, `GroupStyle`, `DefaultGro
 `AreStickyGroupHeadersEnabled`, `ShowGroupExpandCollapseButton`, `UngroupAll`, `RefreshGrouping`, the `Grouping` event
 and the column header's **Group** commands — but group headers are now rows of the table's own row host rather than
 `ListView` group containers. That is what makes them virtualized like any other row, and what lets grouping run on
-**every Uno Platform target** instead of only on Windows. Sticky group headers are implemented by the row layout
-rather than by `ItemsStackPanel`, and draw an opaque background (`TableViewGroupHeaderRowPinnedBackground`) while
-pinned.
+**every Uno Platform target** instead of only on Windows. A sticky group header is no longer `ItemsStackPanel`
+pinning a group's own container: it is a separate header drawn over the top of the rows inside the scroll viewer,
+showing the group the first visible row is in once that group's header has scrolled away. It draws an opaque
+background (`TableViewGroupHeaderRowPinnedBackground`), and it is left out of the automation tree and the tab
+order, so the header among the rows stays the one keyboard and screen reader users reach.
 
 ## Fixed along the way
 

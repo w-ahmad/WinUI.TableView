@@ -4,9 +4,10 @@ WinUI.TableView is a data grid control for WinUI and Uno Platform applications. 
 
 ## Architecture
 
-`TableView` derives from `Control` and owns its own row hosting: rows live in an `ItemsRepeater` driven by a
-TableView-specific virtualizing layout. That means the control — not a base class — decides which rows exist,
-where they are, how selection is stored, and how a point on screen maps to a row and column.
+`TableView` derives from `Control` and owns its own row hosting: rows live in an `ItemsRepeater` with the
+platform's virtualizing `StackLayout`, and the control creates, recycles and prepares every row itself. That means
+the control — not a base class — decides what a row is, how selection is stored, and how a point on screen maps
+to a row and column.
 
 ```
 TableView (derives from Control)

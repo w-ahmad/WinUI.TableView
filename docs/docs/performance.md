@@ -1,13 +1,13 @@
 ﻿# Performance guidance
 
-`TableView` hosts its rows in an `ItemsRepeater` with a virtualizing layout it owns, so only the rows currently visible on screen exist as elements. The following guidance helps you get the best performance when working with large datasets.
+`TableView` hosts its rows in a virtualizing `ItemsRepeater`, so only the rows currently visible on screen exist as elements. The following guidance helps you get the best performance when working with large datasets.
 
 ## Row virtualization
 
 Row virtualization is always active and needs no configuration. Only the rows in the visible viewport plus a small
 cache exist as elements; scrolling recycles them rather than creating more.
 
-The layout computes the scroll extent from the row heights arithmetically instead of measuring rows, so the cost of
+The layout estimates the scroll extent from the rows it has realized instead of measuring every row, so the cost of
 scrolling, of jumping to a distant row, and of reporting the extent are all independent of how many items there
 are. Concretely, with the same viewport size, 1,000 items and 1,000,000 items realize the same number of row
 elements.

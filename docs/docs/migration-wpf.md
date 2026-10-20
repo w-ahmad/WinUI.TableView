@@ -61,7 +61,7 @@ This guide helps developers who are migrating a WPF application to WinUI 3 and n
 | [`CellEditEnded`](xref:WinUI.TableView.TableView.CellEditEnded) | [`CellEditEnded`](xref:WinUI.TableView.TableView.CellEditEnded) | Fires after commit or cancel. |
 | [`Sorting`](xref:WinUI.TableView.TableView.Sorting) | [`Sorting`](xref:WinUI.TableView.TableView.Sorting) | Same purpose. Set `Handled = true` for custom sort. |
 | *(no equivalent)* | [`Grouping`](xref:WinUI.TableView.TableView.Grouping) | WPF DataGrid has no grouping event. Fires before a column's group/ungroup action runs. |
-| `SelectionChanged` | `SelectionChanged` (inherited) + [`CellSelectionChanged`](xref:WinUI.TableView.TableView.CellSelectionChanged) | `SelectionChanged` is from `ListView`. [`CellSelectionChanged`](xref:WinUI.TableView.TableView.CellSelectionChanged) is new. |
+| `SelectionChanged` | [`SelectionChanged`](xref:WinUI.TableView.TableView.SelectionChanged) + [`CellSelectionChanged`](xref:WinUI.TableView.TableView.CellSelectionChanged) | `SelectionChanged` reports row selection changes. [`CellSelectionChanged`](xref:WinUI.TableView.TableView.CellSelectionChanged) is new. |
 | [`CurrentCellChanged`](xref:WinUI.TableView.TableView.CurrentCellChanged) | [`CurrentCellChanged`](xref:WinUI.TableView.TableView.CurrentCellChanged) | Similar. |
 | `CopyingRowClipboardContent` | [`CopyToClipboard`](xref:WinUI.TableView.TableView.CopyToClipboard) | Renamed. Set `Handled = true` for custom content. |
 | [`ColumnReordered`](xref:WinUI.TableView.TableView.ColumnReordered) | [`ColumnReordered`](xref:WinUI.TableView.TableView.ColumnReordered) | Same purpose. |
