@@ -72,6 +72,15 @@ Two gaps in the toolchain are handled for you:
 
 x86 isn't offered: the sample turns Native AOT off for x86.
 
+### Frame log
+
+To measure scrolling on Windows, set `TABLEVIEW_FRAME_LOG` to a file path before opening the published app, use it, and read the CSV it leaves: a row per rendered frame with the elapsed time, the interval since the previous frame, how much total GC pause time grew in that interval, and the collection counts per generation. A long interval with a matching pause delta is a GC stall; one without is UI-thread work. The file is appended in chunks, so stop interacting for a moment before reading it.
+
+```powershell
+$env:TABLEVIEW_FRAME_LOG = "$env:TEMP\tableview-frames.csv"
+.\tools\publish-and-open-winui.ps1 -NoPublish
+```
+
 Both "publish and open" scripts first close a copy of the app already running from their output folder, because its files are locked while it runs. Security software that scans launched programs can keep the `.exe` open for a few minutes after the app has closed; the scripts then say what they are waiting for and carry on once it is released (or give up after five minutes; `-Out` publishes to a fresh folder instead). After opening the app they wait for its window and report an error if it exits during startup.
 
 ## Record the WebAssembly AOT profile

@@ -12,6 +12,9 @@ namespace WinUI.TableView.SampleApp;
 public sealed partial class MainWindow : Window
 {
     private bool _canNavigate = true;
+#if WINDOWS
+    private int _navigationGcGeneration;
+#endif
 
     public MainWindow()
     {
@@ -116,6 +119,21 @@ public sealed partial class MainWindow : Window
         }
 
         _canNavigate = true;
+
+#if WINDOWS
+        // The page left behind is thousands of XAML objects, and WinUI reacts to that memory pressure by
+        // inducing a gen2 collection on its own schedule, whose reference-tracker phase suspends the process
+        // for hundreds of milliseconds - measured landing in the middle of the first scroll on the new page.
+        // Collecting once the new page has settled takes the same pause while nothing is moving. Another
+        // navigation within the delay supersedes this one.
+        var generation = ++_navigationGcGeneration;
+        await Task.Delay(500);
+
+        if (generation == _navigationGcGeneration)
+        {
+            GC.Collect();
+        }
+#endif
     }
 
 }
