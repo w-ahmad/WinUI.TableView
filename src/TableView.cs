@@ -1816,9 +1816,10 @@ public partial class TableView : Control
     }
 
     /// <summary>
-    /// Selects all rows or cells in the TableView.
+    /// Selects all rows or cells in the TableView, as <kbd>Ctrl</kbd>+<kbd>A</kbd> does, according to
+    /// <see cref="SelectionUnit"/>.
     /// </summary>
-    internal void SelectAll()
+    public void SelectAll()
     {
         if (IsEditing)
         {
