@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.Foundation;
+using WinUI.TableView.AutomationPeers;
 using WinUI.TableView.Extensions;
 using static WinUI.TableView.Tests.TableViewRowHostTestHelpers;
 
@@ -318,6 +319,165 @@ public class TableViewRowHostTests
         Assert.IsTrue(source.LoadCount > 0, "the source should be asked for its first page");
         Assert.IsTrue(source.Count < CountingIncrementalSource.MaxItems,
             $"the whole source was pulled in: {source.Count} of {CountingIncrementalSource.MaxItems}");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task GridPattern_GetItem_RealizesAnOffScreenRow()
+    {
+        var tableView = await CreateTableViewAsync(itemCount: 2_000);
+        var peer = new TableViewAutomationPeer(tableView);
+        Assert.IsNull(tableView.ContainerFromIndex(1_500), "row 1,500 starts out unrealized");
+
+        // A row created for this call has no cells until it is laid out, which is what used to make this null.
+        var provider = peer.GetItem(1_500, 1);
+
+        Assert.IsNotNull(provider, "the Grid pattern should reach a cell of an off-screen row");
+        var row = tableView.ContainerFromIndex(1_500) as TableViewRow;
+        Assert.IsNotNull(row, "the row should have been realized for the cell");
+        Assert.AreEqual(tableView.Columns.VisibleColumns.Count, row.Cells.Count);
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task HorizontalExtent_ComesFromTheColumns_NotFromTheRealizedRows()
+    {
+        var tableView = await CreateTableViewAsync(itemCount: 2_000);
+        tableView.Columns[1].Width = new GridLength(600);
+        await WaitForLayoutAsync(tableView);
+
+        var scrollViewer = GetScrollViewer(tableView);
+        var extent = scrollViewer.ScrollableWidth;
+        Assert.IsTrue(extent > 0d, "800px of columns in a 600px table should scroll sideways");
+
+        // Realizing a different set of rows far down must not change what the columns add up to.
+        await ScrollToAsync(tableView, 40_000d);
+
+        Assert.AreEqual(extent, scrollViewer.ScrollableWidth, 1d, "the horizontal extent should not follow the realized rows");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task RecycledRow_CommitsTheEditItWasShowing()
+    {
+        var items = CreateItems(2_000);
+        var tableView = new TableView
+        {
+            Width = 600,
+            Height = ViewportHeight,
+            RowHeight = 40,
+            AutoGenerateColumns = false,
+            SelectionMode = ListViewSelectionMode.Extended
+        };
+
+        tableView.Columns.Add(new TableViewTextColumn
+        {
+            Header = "Name",
+            Width = new GridLength(200),
+            Binding = new Binding { Path = new PropertyPath(nameof(HostItem.Name)), Mode = BindingMode.TwoWay }
+        });
+
+        tableView.ItemsSource = items;
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        await WaitForLayoutAsync(tableView);
+
+        tableView.CurrentCellSlot = new TableViewCellSlot(0, 0);
+        var cell = RealizedRows(tableView).First(x => x.Index == 0).Cells[0];
+        cell.PrepareForEdit(new RoutedEventArgs());
+        await WaitForLayoutAsync(tableView);
+        Assert.IsTrue(tableView.IsEditing, "the cell should be editing");
+        ((TextBox)cell.Content).Text = "Edited";
+
+        // Scrolling far away recycles row 0, which has to commit the edit it was showing rather than drop it.
+        await ScrollToAsync(tableView, 40_000d);
+
+        Assert.IsFalse(tableView.IsEditing, "the edit should have ended with the row");
+        Assert.AreEqual("Edited", items[0].Name, "the edit should have been committed, not dropped");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task SelectionModeNone_DropsTheRowSelection()
+    {
+        var tableView = await CreateTableViewAsync(itemCount: 50);
+        tableView.SelectRange(new ItemIndexRange(5, 10));
+        var removed = 0;
+        tableView.SelectionChanged += (_, e) => removed += e.RemovedItems.Count;
+
+        tableView.SelectionMode = ListViewSelectionMode.None;
+
+        Assert.AreEqual(0, tableView.SelectedItems.Count);
+        Assert.AreEqual(-1, tableView.SelectedIndex);
+        Assert.AreEqual(10, removed, "SelectionChanged should report the rows the mode dropped");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task SelectionModeSingle_KeepsOnlyTheSelectedIndex()
+    {
+        var tableView = await CreateTableViewAsync(itemCount: 50);
+        tableView.SelectRange(new ItemIndexRange(5, 10));
+        var kept = tableView.SelectedIndex;
+        Assert.IsTrue(kept >= 5 && kept <= 14, "precondition: the selected index is one of the selected rows");
+
+        tableView.SelectionMode = ListViewSelectionMode.Single;
+
+        Assert.AreEqual(1, tableView.SelectedItems.Count);
+        Assert.AreEqual(kept, tableView.SelectedIndex);
+        Assert.IsTrue(tableView.IsRowSelected(kept));
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task UnloadingAndReloading_KeepsTheSelection()
+    {
+        var items = CreateItems(2_000);
+        var tableView = await CreateTableViewAsync(items);
+        tableView.SelectRange(new ItemIndexRange(100, 50));
+        var changes = 0;
+        tableView.SelectionChanged += (_, _) => changes++;
+
+        // Unloading swaps an empty source in and loading swaps the real one back; neither is a rebuild of the view
+        // the selection was made on.
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        await WaitForLayoutAsync(tableView);
+
+        Assert.AreEqual(50, tableView.SelectedItems.Count, "the selection should survive an unload and reload");
+        Assert.IsTrue(tableView.IsRowSelected(120));
+        Assert.AreEqual(0, changes, "nothing changed, so SelectionChanged should not have fired");
+
+        // A source that changed size while unloaded has moved the indexes, and the selection is cleared as any
+        // rebuild of the view clears it.
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        items.RemoveAt(0);
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        await WaitForLayoutAsync(tableView);
+
+        Assert.AreEqual(0, tableView.SelectedItems.Count, "indexes into a source that shrank cannot be trusted");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task SelectAll_WithCellUnit_SelectsEveryCellAsOneRectangle()
+    {
+        var tableView = await CreateTableViewAsync(itemCount: 1_000);
+        tableView.SelectionUnit = TableViewSelectionUnit.Cell;
+
+        tableView.SelectAll();
+
+        var range = tableView.SelectedCellRanges.Single();
+        Assert.AreEqual(0, range.FirstRow);
+        Assert.AreEqual(0, range.FirstColumn);
+        Assert.AreEqual(999, range.LastRow);
+        Assert.AreEqual(tableView.Columns.VisibleColumns.Count - 1, range.LastColumn);
 
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }

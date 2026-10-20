@@ -35,6 +35,9 @@ public partial class TableView : Control
     private RowDefinition? _headerRowDefinition;
     private bool _ensureColumns = true;
     private bool _isItemsSourceSuspended;
+    private int _suspendedItemCount;
+    // Half of MinValue, so subtracting it from a tick count cannot overflow into "recent".
+    private long _lastIntermediateViewChange = long.MinValue / 2;
     private readonly List<TableViewRow> _rows = [];
     private readonly CollectionView _collectionView = [];
     private Border? _dragRectangle;
@@ -445,6 +448,32 @@ public partial class TableView : Control
         EndDragSelection();
     }
 
+    /// <inheritdoc/>
+    protected override void OnPointerCaptureLost(PointerRoutedEventArgs e)
+    {
+        base.OnPointerCaptureLost(e);
+
+        EndDragSelectionOnCaptureLost();
+    }
+
+    /// <summary>
+    /// Ends a drag selection whose pointer capture was lost, such as to a window switch or a cancelled touch.
+    /// </summary>
+    /// <remarks>
+    /// On Windows the pressed row captures the pointer and handles the loss itself; on the other platforms the table
+    /// captures it (see <see cref="OnAnyPointerPressed"/>), so without this the table stayed in drag selection and
+    /// the rows stayed looking pressed.
+    /// </remarks>
+    internal void EndDragSelectionOnCaptureLost()
+    {
+        foreach (var row in _rows)
+        {
+            row.ResetPointerState();
+        }
+
+        EndDragSelection();
+    }
+
     /// <summary>
     /// Handles pointer-pressed for all cases, including when elements sets <c>e.Handled = true</c>.
     /// </summary>
@@ -462,7 +491,6 @@ public partial class TableView : Control
             || canvasPoint.Value.Y < 0                                                  // Skip selection when the pointer is in the column header area (above the scroll canvas)
             || !pointerPoint.Properties.IsLeftButtonPressed                             // Skip selection when the left mouse button is not pressed
             || (pressedElement == this && !ShowDragRectangle)                           // Skip selection when the pointer is not over a Cell or Row, and ShowDragRectangle is false.
-            // || (pressedElement != this && canvasPoint.Value.X < CellsHorizontalOffset)  // Skip selection when the pointer is in the row header area (and not on the TableView)
             )
         {
             return false;
@@ -1109,9 +1137,6 @@ public partial class TableView : Control
         }
     }
 
-    // Half of MinValue, so subtracting it from a tick count cannot overflow into "recent".
-    private long _lastIntermediateViewChange = long.MinValue / 2;
-
     /// <summary>
     /// Gets a value indicating whether the view is in the middle of a scroll: a wheel animation, panning or a
     /// fling that has not settled yet.
@@ -1211,9 +1236,12 @@ public partial class TableView : Control
             return;
         }
 
+        // Suspended first, so the empty view the swap builds is not taken for a rebuild that clears the selection:
+        // the selection is kept for the same items coming back when the control is loaded again.
+        _isItemsSourceSuspended = true;
+        _suspendedItemCount = _collectionView.Count;
         _collectionView.ItemPropertyChanged -= OnItemPropertyChanged;
         _collectionView.Source = Enumerable.Empty<object>();
-        _isItemsSourceSuspended = true;
     }
 
     /// <summary>
@@ -1234,6 +1262,13 @@ public partial class TableView : Control
         }
 
         _isItemsSourceSuspended = false;
+
+        // The selection was kept across the unload on the strength of its indexes; a source that changed size
+        // meanwhile has moved them, and then it is cleared as any rebuild of the view clears it.
+        if (_collectionView.Count != _suspendedItemCount)
+        {
+            DeselectAllBeforeViewReset();
+        }
     }
 
     /// <summary>

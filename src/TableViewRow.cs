@@ -293,17 +293,13 @@ public partial class TableViewRow : ContentControl
     /// <summary>
     /// Clears the pointer state and repaints.
     /// </summary>
-    private void ResetPointerState()
+    internal void ResetPointerState()
     {
         _isPressed = false;
         _isPointerOver = false;
         UpdateVisualStates();
     }
 
-    /// <summary>
-    /// Drives the row's visual states. <c>SelectorItem</c> used to do this; now that the row is a plain
-    /// <see cref="ContentControl"/> it owns the state machine.
-    /// </summary>
     /// <summary>
     /// Brings the row's visual states in line with its selection, pointer and the table's selection mode, without
     /// transitions.
@@ -318,6 +314,10 @@ public partial class TableViewRow : ContentControl
     /// </summary>
     internal int SelectionModeVersion { get; set; }
 
+    /// <summary>
+    /// Drives the row's visual states. <c>SelectorItem</c> used to do this; now that the row is a plain
+    /// <see cref="ContentControl"/> it owns the state machine.
+    /// </summary>
     private void UpdateVisualStates(bool useTransitions = true)
     {
         var state = (IsSelected, _isPressed, _isPointerOver) switch

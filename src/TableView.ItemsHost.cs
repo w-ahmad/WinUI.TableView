@@ -565,8 +565,9 @@ public partial class TableView
             default:
                 // A reset re-orders everything, so index-based selection no longer means anything. It was already
                 // cleared, with notifications, by OnCollectionViewResetting while the old indexes still held; this
-                // only guards against a reset that did not announce itself first.
-                if (_rowSelection.Clear())
+                // only guards against a reset that did not announce itself first. The resets of an unload and a
+                // reload keep it (see SuspendItemsSource).
+                if (!_isItemsSourceSuspended && _rowSelection.Clear())
                 {
                     SyncSelectionProperties();
                 }
@@ -603,7 +604,11 @@ public partial class TableView
     /// </remarks>
     private void OnCollectionViewResetting(object? sender, EventArgs e)
     {
-        DeselectAllBeforeViewReset();
+        // The swaps an unload and a reload make are not rebuilds of the view the selection was made on.
+        if (!_isItemsSourceSuspended)
+        {
+            DeselectAllBeforeViewReset();
+        }
     }
 
     /// <summary>
@@ -663,7 +668,19 @@ public partial class TableView
     {
         var visualIndex = GetVisualIndexFromItemIndex(itemIndex);
 
-        return visualIndex < 0 ? null : _rowsRepeater?.GetOrCreateElement(visualIndex) as TableViewRow;
+        if (visualIndex < 0 || _rowsRepeater?.GetOrCreateElement(visualIndex) is not TableViewRow row)
+        {
+            return null;
+        }
+
+        // A row created for this call, rather than taken from the pool, has no template and so no cells until it
+        // is laid out, and the repeater holds it unlaid out where the layout estimates it to be.
+        if (row.RowPresenter is null)
+        {
+            row.UpdateLayout();
+        }
+
+        return row;
     }
 
     /// <summary>

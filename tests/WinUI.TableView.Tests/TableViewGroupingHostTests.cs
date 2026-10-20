@@ -163,6 +163,47 @@ public class TableViewGroupingHostTests
     }
 
     [UITestMethod]
+    public async Task GroupHeaderTemplate_ReusesTheLastGroupStyleForDeeperLevels()
+    {
+        var levelZero = new DataTemplate();
+        var levelOne = new DataTemplate();
+        var tableView = await CreateTableViewAsync(CreateItems(6));
+
+        tableView.GroupStyle.Add(new GroupStyle { HeaderTemplate = levelZero });
+        tableView.GroupStyle.Add(new GroupStyle { HeaderTemplate = levelOne });
+        await GroupAsync(tableView, TableViewGroupState.Expanded, nameof(GroupItem.Category), nameof(GroupItem.Kind), nameof(GroupItem.Id));
+
+        Assert.IsTrue(tableView.GroupHeaderRows.Any(x => x.GroupInfo!.Level is 2), "a third level should be realized");
+
+        // Two styles for three levels: the last entry serves every level past the end of the list.
+        foreach (var header in tableView.GroupHeaderRows)
+        {
+            Assert.AreSame(header.GroupInfo!.Level is 0 ? levelZero : levelOne, header.ContentTemplate, $"level {header.GroupInfo.Level}");
+        }
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task StickyGroupHeader_IsNotAmongTheAutomationChildren()
+    {
+        var tableView = await CreateTableViewAsync(CreateItems(3_000));
+        tableView.AreStickyGroupHeadersEnabled = true;
+        await GroupAsync(tableView, TableViewGroupState.Expanded);
+        await ScrollToAsync(tableView, 2_000d);
+        Assert.IsTrue(IsStickyHeaderShown(tableView), "precondition: a header is pinned");
+
+        var children = FrameworkElementAutomationPeer.CreatePeerForElement(tableView).GetChildren();
+        var owners = children.OfType<FrameworkElementAutomationPeer>().Select(x => x.Owner).ToList();
+
+        // Screen reader users reach the header among the rows; the one drawn over them would be a duplicate.
+        Assert.IsFalse(owners.Contains(tableView.StickyGroupHeader!), "the sticky header should not be exposed to automation");
+        Assert.IsTrue(owners.OfType<TableViewRow>().Any(), "the realized rows should be");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
     public async Task GroupHeaderTemplate_FallsBackToDefaultGroupStyle()
     {
         var tableView = await CreateTableViewAsync(CreateItems(6));

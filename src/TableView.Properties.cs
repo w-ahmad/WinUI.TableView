@@ -1032,6 +1032,18 @@ public partial class TableView
     {
         if (d is TableView tableView)
         {
+            // What the mode no longer allows is dropped: every row in None, every row but one in Single, where the
+            // selected index wins over the first selected row. ListViewBase did the same.
+            if (tableView.SelectionMode is ListViewSelectionMode.None)
+            {
+                tableView.ChangeSelection(static model => model.Clear(), snapshotRemovedItems: true);
+            }
+            else if (tableView.SelectionMode is ListViewSelectionMode.Single && tableView._rowSelection.Count > 1)
+            {
+                var keep = tableView.SelectedIndex >= 0 ? tableView.SelectedIndex : tableView._rowSelection.FirstIndex;
+                tableView.ChangeSelection(model => model.SelectOnly(keep), snapshotRemovedItems: true);
+            }
+
             if (tableView.SelectionMode is ListViewSelectionMode.Single or ListViewSelectionMode.None)
             {
                 var currentCell = tableView.CurrentCellSlot.HasValue ? tableView.GetCellFromSlot(tableView.CurrentCellSlot.Value) : default;
