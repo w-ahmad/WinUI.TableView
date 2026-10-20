@@ -238,7 +238,16 @@ public partial class TableView
         // growing that pool causes first-scroll stalls. Half a viewport of cache in total limits this work while
         // keeping rows ahead of the viewport; steady scrolling still reuses rows at the same rate.
         repeater.HorizontalCacheLength = 0d;
+#if WINDOWS
+        // Windows shows the browser's first-scroll pattern too - frames of 70-140 ms while the pool grows as
+        // scrolling starts - and adds one of its own: the reference-tracker walk of an induced gen2 GC suspends
+        // the process for as long as there are live XAML objects to walk, and the realized rows are most of them.
+        // One viewport of cache halves the rows both costs are paid on, while still keeping half a viewport of
+        // realized rows ahead of a fling for the frames the UI thread is busy.
+        repeater.VerticalCacheLength = 1d;
+#else
         repeater.VerticalCacheLength = OperatingSystem.IsBrowser() ? 0.5d : 2d;
+#endif
 
         // The platform's own virtualizing layout realizes from an anchor, estimates unrealized row heights and
         // recycles rows it leaves behind. On Uno its managed layout methods also need coverage in the AOT profile.
