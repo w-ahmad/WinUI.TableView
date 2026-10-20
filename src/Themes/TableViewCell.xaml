@@ -34,27 +34,10 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <VisualStateManager.VisualStateGroups>
-                            <VisualStateGroup x:Name="CommonStates">
-                                <VisualState x:Name="Normal" />
-                                <VisualState x:Name="PointerOver">
-                                    <VisualState.Setters>
-                                        <Setter Target="RootBorder.Background"
-                                                Value="{ThemeResource TableViewCellBackgroundPointerOver}" />
-                                        <Setter Target="RootBorder.CornerRadius"
-                                                Value="{ThemeResource TableViewRowCellSelectionBorderCornerRadius}" />
-                                    </VisualState.Setters>
-                                </VisualState>
-                            </VisualStateGroup>
-                            <VisualStateGroup x:Name="SelectionStates">
-                                <VisualState x:Name="Selected" />
-                                <VisualState x:Name="Unselected" />
-                            </VisualStateGroup>
-                            <VisualStateGroup x:Name="CurrentStates">
-                                <VisualState x:Name="Regular" />
-                                <VisualState x:Name="Current" />
-                            </VisualStateGroup>
-                        </VisualStateManager.VisualStateGroups>
+                        <!--  No visual states: a table creates this template for every column of every row it shows, and
+                              the state groups were most of its object count. The cell styles RootBorder for pointer-over
+                              itself (see SetPointerOverVisual), the way it draws its selection and background layers, and
+                              a replacement template that does define CommonStates is driven through them as before.  -->
 
                         <!--  Rounded only while it draws the pointer-over background: rounded corners also clip the content
                               to a rounded shape, which a renderer works out again for every frame the rows move.  -->

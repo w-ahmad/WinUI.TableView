@@ -454,20 +454,32 @@ public partial class TableViewCell : ContentControl
            && TableView?.SelectionUnit is not TableViewSelectionUnit.Row)
            || !TableView.IsReadOnly)
         {
-            VisualStates.GoToState(this, false, VisualStates.StatePointerOver);
+            ApplyPointerOverState(isPointerOver: true);
         }
     }
 
     /// <inheritdoc/>
     protected override void OnPointerExited(PointerRoutedEventArgs e)
     {
-        base.OnPointerEntered(e);
+        base.OnPointerExited(e);
 
         if ((TableView?.SelectionMode is not ListViewSelectionMode.None
             && TableView?.SelectionUnit is not TableViewSelectionUnit.Row)
             || !TableView.IsReadOnly)
         {
-            VisualStates.GoToState(this, false, VisualStates.StateNormal);
+            ApplyPointerOverState(isPointerOver: false);
+        }
+    }
+
+    /// <summary>
+    /// Shows or clears the pointer-over look: through the template's visual states when it defines them, or
+    /// directly on the root border, since the default template carries no visual states.
+    /// </summary>
+    internal void ApplyPointerOverState(bool isPointerOver)
+    {
+        if (!VisualStateManager.GoToState(this, isPointerOver ? VisualStates.StatePointerOver : VisualStates.StateNormal, false))
+        {
+            SetPointerOverVisual(isPointerOver);
         }
     }
 

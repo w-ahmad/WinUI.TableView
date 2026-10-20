@@ -206,10 +206,12 @@ public class TableViewCellVisualsTests
         Assert.IsNotNull(root);
         Assert.IsFalse(ShowsFill(root.Background));
 
-        VisualStateManager.GoToState(cell, VisualStates.StatePointerOver, false);
+        // What the pointer handlers call: the default template has no visual states, so the cell styles the
+        // root border itself; a template that defines the states is driven through them instead.
+        cell.ApplyPointerOverState(isPointerOver: true);
         Assert.IsTrue(ShowsFill(root.Background), "the pointer-over highlight is not shown");
 
-        VisualStateManager.GoToState(cell, VisualStates.StateNormal, false);
+        cell.ApplyPointerOverState(isPointerOver: false);
         Assert.IsFalse(ShowsFill(root.Background));
 
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);

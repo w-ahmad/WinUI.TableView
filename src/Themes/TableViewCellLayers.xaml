@@ -12,6 +12,14 @@
         rows. The cell adds a layer when it first needs it and picks one of these styles for it; the styles refer to the
         same resources the template's visual states used to.
     -->
+    <Style x:Key="TableViewCellPointerOverLayerStyle"
+           TargetType="Border">
+        <Setter Property="Background"
+                Value="{ThemeResource TableViewCellBackgroundPointerOver}" />
+        <Setter Property="CornerRadius"
+                Value="{ThemeResource TableViewRowCellSelectionBorderCornerRadius}" />
+    </Style>
+
     <Style x:Key="TableViewCellBackgroundLayerStyle"
            TargetType="Border">
         <Setter Property="CornerRadius"

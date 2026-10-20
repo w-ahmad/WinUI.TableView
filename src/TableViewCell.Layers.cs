@@ -101,6 +101,31 @@ public partial class TableViewCell
         });
     }
 
+    /// <summary>
+    /// Shows or clears the pointer-over look on the cell's root border, for templates without visual states.
+    /// </summary>
+    /// <remarks>
+    /// The default template dropped its visual state groups - a table creates them for every cell it shows, and
+    /// they were most of the template's object count - so the two properties the pointer-over state used to set
+    /// are applied through a style from the same dictionary the layers use.
+    /// </remarks>
+    private void SetPointerOverVisual(bool isPointerOver)
+    {
+        if (_rootBorder is null)
+        {
+            return;
+        }
+
+        if (isPointerOver)
+        {
+            _rootBorder.Style = GetLayerStyle("TableViewCellPointerOverLayerStyle");
+        }
+        else
+        {
+            _rootBorder.ClearValue(FrameworkElement.StyleProperty);
+        }
+    }
+
     private Border AddLayer(string name, string? styleKey, int index)
     {
         var layer = new Border { Name = name };

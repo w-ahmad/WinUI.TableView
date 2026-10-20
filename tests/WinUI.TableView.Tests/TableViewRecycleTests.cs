@@ -40,8 +40,7 @@ public class TableViewRecycleTests
 
         foreach (var cell in RealizedRows(tableView).SelectMany(row => row.Cells))
         {
-            var expected = cell.IsCurrent ? VisualStates.StateCurrent : VisualStates.StateRegular;
-            Assert.AreEqual(expected, GetCurrentState(cell, VisualStates.GroupCurrent), $"cell {cell.Slot} shows a stale current state");
+            Assert.AreEqual(cell.IsCurrent, ShowsCurrentBorder(cell), $"cell {cell.Slot} shows a stale current state");
         }
 
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
@@ -69,7 +68,7 @@ public class TableViewRecycleTests
         // Preparing row 0 again happens inside a layout pass; it must show the current cell, not focus it.
         Assert.AreSame(button, FocusManager.GetFocusedElement(root.XamlRoot), "scrolling the current row back in took focus");
         Assert.AreEqual(0d, GetScrollViewer(tableView).VerticalOffset, 1d);
-        Assert.AreEqual(VisualStates.StateCurrent, GetCurrentState(GetCell(tableView, 0, 0), VisualStates.GroupCurrent));
+        Assert.IsTrue(ShowsCurrentBorder(GetCell(tableView, 0, 0)), "the current cell does not show its border");
 
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(root);
     }
@@ -310,6 +309,22 @@ public class TableViewRecycleTests
     {
         var root = (FrameworkElement)VisualTreeHelper.GetChild(control, 0);
         return VisualStateManager.GetVisualStateGroups(root).FirstOrDefault(x => x.Name == groupName)?.CurrentState?.Name;
+    }
+
+    /// <summary>
+    /// Whether the cell draws the current-cell border. The default cell template has no visual states; the
+    /// cell adds a SelectionBorder layer and only the current-cell styles give it a visible border brush.
+    /// </summary>
+    private static bool ShowsCurrentBorder(TableViewCell cell)
+    {
+        var border = cell.FindDescendants().OfType<Border>().FirstOrDefault(x => x.Name == "SelectionBorder");
+
+        return border?.BorderBrush switch
+        {
+            null => false,
+            SolidColorBrush solid => solid.Opacity > 0d && solid.Color.A > 0,
+            _ => true
+        };
     }
 
     private static TableViewCell GetCell(TableView tableView, int row, int column)
