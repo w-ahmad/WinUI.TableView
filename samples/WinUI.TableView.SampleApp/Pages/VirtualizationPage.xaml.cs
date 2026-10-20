@@ -37,6 +37,16 @@ public sealed partial class VirtualizationPage : Page
         Report($"built and bound {count:N0} items in {stopwatch.ElapsedMilliseconds} ms");
 
         jumpTarget.Maximum = count - 1;
+
+        // The rows realize in the layout pass after the counters above were reported, so count them again
+        // once that pass has run.
+        tableView.LayoutUpdated += OnFirstLayoutAfterItemsChange;
+
+        void OnFirstLayoutAfterItemsChange(object? sender, object e)
+        {
+            tableView.LayoutUpdated -= OnFirstLayoutAfterItemsChange;
+            UpdateCounters();
+        }
     }
 
     private void OnSelectAllClick(object sender, RoutedEventArgs e)
@@ -137,7 +147,11 @@ public sealed partial class VirtualizationPage : Page
     }
 }
 
-public sealed class VirtualizationItem
+#if WINDOWS
+// {Binding} resolves properties through ICustomPropertyProvider under Native AOT, and this generates it.
+[WinRT.GeneratedBindableCustomProperty]
+#endif
+public sealed partial class VirtualizationItem
 {
     public int Id { get; set; }
 

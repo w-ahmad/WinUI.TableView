@@ -20,6 +20,7 @@ public partial class App : Application
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(ExampleModel))]
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(SalesExampleModel))]
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(TransactionModel))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Pages.VirtualizationItem))]
     public App()
     {
         InitializeComponent();
@@ -65,6 +66,10 @@ public partial class App : Application
 #endif
 #endif
         MainWindow.Activate();
+
+#if WINDOWS
+        ScrollProbe.TryStart();
+#endif
     }
 
     public static void InitializeLogging()
