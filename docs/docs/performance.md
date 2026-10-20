@@ -19,7 +19,7 @@ needs to be realized for it. [`SelectedItems`](xref:WinUI.TableView.TableView.Se
 those ranges rather than a materialised list, so reading its `Count` is cheap; enumerating it still walks the
 selection, so avoid doing that on a hot path when the selection is large. Prefer
 [`SelectedRanges`](xref:WinUI.TableView.TableView.SelectedRanges) or
-[`IsRowSelected`](xref:WinUI.TableView.TableView.IsRowSelected) when you only need to test membership.
+[`IsRowSelected`](xref:WinUI.TableView.TableView.IsRowSelected*) when you only need to test membership.
 
 Cell selection is stored the same way, as rectangles, so selecting all cells is one rectangle rather than one
 entry per cell.
