@@ -15,7 +15,6 @@ using WinUI.TableView.Controls;
 using WinUI.TableView.Extensions;
 using WinUI.TableView.Helpers;
 using SD = WinUI.TableView.SortDirection;
-using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
 

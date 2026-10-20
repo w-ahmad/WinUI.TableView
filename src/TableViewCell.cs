@@ -339,13 +339,7 @@ public partial class TableViewCell : ContentControl
                 var desiredWidth = element.DesiredSize.Width;
                 desiredWidth += element.Margin.Left;
                 desiredWidth += element.Margin.Right;
-                desiredWidth += Padding.Left;
-                desiredWidth += Padding.Right;
-                desiredWidth += BorderThickness.Left;
-                desiredWidth += BorderThickness.Right;
-                desiredWidth += SelectionBorderThickness.Left;
-                desiredWidth += SelectionBorderThickness.Right;
-                desiredWidth += _v_gridLine?.ActualWidth ?? 0d;
+                desiredWidth += GetChromeWidth();
 
                 _resizePreviewWidth = Math.Min(maxPreviewWidth, Math.Max(ActualWidth, desiredWidth));
             }
