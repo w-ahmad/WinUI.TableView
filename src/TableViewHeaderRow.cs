@@ -231,11 +231,23 @@ public partial class TableViewHeaderRow : Control
     }
 
     /// <summary>
-    /// Recalculates header widths after deferred desired-width updates.
+    /// Recalculates header widths after deferred desired-width updates, once the view is not scrolling.
     /// </summary>
+    /// <remarks>
+    /// Applying grown widths changes every affected column's cells in every realized row, and the re-measure of
+    /// all that text lands in one or two frames - long ones, in the middle of whatever scroll let the timer
+    /// expire. The widths themselves are already up to a debounce stale, so while a scroll is in flight the
+    /// timer re-arms and the same widths are applied on a frame where nothing is moving.
+    /// </remarks>
     private void OnDesiredWidthTimerTick(object? sender, object e)
     {
         _desiredWidthTimer?.Stop();
+
+        if (TableView?.IsViewChangeInFlight is true)
+        {
+            _desiredWidthTimer?.Start();
+            return;
+        }
 
         if (!_calculatingHeaderWidths)
         {

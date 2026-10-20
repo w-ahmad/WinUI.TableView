@@ -1095,6 +1095,11 @@ public partial class TableView : Control
     /// </remarks>
     private void OnScrollViewerViewChanged(object? sender, ScrollViewerViewChangedEventArgs e)
     {
+        if (e.IsIntermediate)
+        {
+            _lastIntermediateViewChange = Environment.TickCount64;
+        }
+
         SetValue(VerticalOffsetProperty, _scrollViewer?.VerticalOffset ?? 0d);
 
         // Which group is at the top, and how far the next header pushes its sticky header up, change on any scroll.
@@ -1103,6 +1108,20 @@ public partial class TableView : Control
             UpdateStickyGroupHeader();
         }
     }
+
+    // Half of MinValue, so subtracting it from a tick count cannot overflow into "recent".
+    private long _lastIntermediateViewChange = long.MinValue / 2;
+
+    /// <summary>
+    /// Gets a value indicating whether the view is in the middle of a scroll: a wheel animation, panning or a
+    /// fling that has not settled yet.
+    /// </summary>
+    /// <remarks>
+    /// An intermediate view change arrives every frame while the view moves, and the final one on the frame it
+    /// settles, so recency of the last intermediate one is what says the view is still moving. A programmatic
+    /// jump with animation disabled raises only the final change and never reads as in flight.
+    /// </remarks>
+    internal bool IsViewChangeInFlight => Environment.TickCount64 - _lastIntermediateViewChange < 100;
 
     /// <summary>
     /// Re-measures the group headers when the viewport's width changes, since they are measured no wider than it.
