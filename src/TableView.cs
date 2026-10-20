@@ -463,7 +463,7 @@ public partial class TableView : Control
             || !pointerPoint.Properties.IsLeftButtonPressed                             // Skip selection when the left mouse button is not pressed
             || (pressedElement == this && !ShowDragRectangle)                           // Skip selection when the pointer is not over a Cell or Row, and ShowDragRectangle is false.
             // || (pressedElement != this && canvasPoint.Value.X < CellsHorizontalOffset)  // Skip selection when the pointer is in the row header area (and not on the TableView)
-            ) 
+            )
         {
             return false;
         }
@@ -1057,7 +1057,7 @@ public partial class TableView : Control
         _headerRow = GetTemplateChild("HeaderRow") as TableViewHeaderRow;
         _scrollViewer = GetTemplateChild("ScrollViewer") as ScrollViewer;
         _headerRowDefinition = GetTemplateChild("HeaderRowDefinition") as RowDefinition;
-        DragRectangleCanvas = GetTemplateChild("DragRectangleCanvas") as Canvas;
+        DragRectangleCanvas = GetTemplateChild("DragRectangleCanvas") as FrameworkElement;
         _dragRectangle = GetTemplateChild("DragRectangle") as Border;
         _scrollViewer?.Loaded += OnScrollViewerLoaded;
         _scrollViewer?.ViewChanged += OnScrollViewerViewChanged;
@@ -1142,7 +1142,10 @@ public partial class TableView : Control
     /// </summary>
     private void OnScrollViewerLoaded(object sender, RoutedEventArgs e)
     {
-        var scrollPresenter = _scrollViewer?.FindDescendant<ScrollContentPresenter>();
+        // Found by name, not by type: under Native AOT the wrapper CsWinRT creates for an element from XAML can
+        // be a base class of its runtime class when the exact projection is not in the app's type map, and a
+        // search by concrete type then walks right past it.
+        var scrollPresenter = _scrollViewer?.FindDescendant<FrameworkElement>(x => x.Name is "ScrollContentPresenter");
         var xScrollBar = _scrollViewer?.FindDescendant<ScrollBar>(sb => sb.Name is "HorizontalScrollBar2");
         var yScrollBar = _scrollViewer?.FindDescendant<ScrollBar>(sb => sb.Name is "VerticalScrollBar");
 

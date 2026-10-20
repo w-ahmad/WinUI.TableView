@@ -89,7 +89,7 @@ public class DragSelectionRectangleTests
 
         // Drag selection and auto-scroll are active, but rectangle visual is not shown
         Assert.IsTrue(tv.IsDragSelecting);
-        Assert.AreEqual(Visibility.Collapsed, tv.DragRectangleCanvas?.Children.OfType<Border>().FirstOrDefault()?.Visibility);
+        Assert.AreEqual(Visibility.Collapsed, (tv.DragRectangleCanvas as Panel)?.Children.OfType<Border>().FirstOrDefault()?.Visibility);
 
         tv.EndDragSelection();
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tv);

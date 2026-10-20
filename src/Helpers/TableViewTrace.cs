@@ -9,7 +9,7 @@ internal static class TableViewTrace
     {
         if (Debugger.IsAttached)
         {
-            Debug.WriteLine($"[TableView] {message}"); 
+            Debug.WriteLine($"[TableView] {message}");
         }
     }
 }

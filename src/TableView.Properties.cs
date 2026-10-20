@@ -469,7 +469,12 @@ public partial class TableView
     /// <summary>
     /// Gets the canvas that hosts the drag selection rectangle.
     /// </summary>
-    internal Canvas? DragRectangleCanvas { get; private set; }
+    /// <remarks>
+    /// Typed as the element, not as Canvas: under Native AOT the wrapper CsWinRT creates for a template part can
+    /// be a base class of its runtime class when the exact projection is not in the app's type map, and a cast to
+    /// the concrete class then fails. Everything here needs only the element's size and a transform target.
+    /// </remarks>
+    internal FrameworkElement? DragRectangleCanvas { get; private set; }
 
     /// <summary>
     /// Gets a value indicating whether a drag selection is currently in progress.
