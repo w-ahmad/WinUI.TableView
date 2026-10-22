@@ -1279,6 +1279,12 @@ public partial class TableView : Control
             Mode = BindingMode.TwoWay,
             Source = this
         });
+
+#if !WINDOWS
+        // Uno only drives ScrollingIndicatorStates for scrollbars it materializes by name; HorizontalScrollBar2 isn't one,
+        // so without a vertical scrollbar its indicator would stay None (issue #421).
+        xScrollBar?.IndicatorMode = ScrollingIndicatorMode.MouseIndicator;
+#endif
     }
 
     /// <summary>
