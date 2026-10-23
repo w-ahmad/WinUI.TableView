@@ -446,15 +446,47 @@ public partial class TableViewColumnHeader : ContentControl
                 0) : Padding;
     }
 
+    /// <summary>The default reach of the column-resize grip into a header, per side of the boundary, in DIP (mouse/pen).</summary>
+    internal const double DefaultResizeAreaWidth = 4;
+
+    /// <summary>The minimum reach of the column-resize grip for a touch contact, per side of the boundary, in DIP.</summary>
+    internal const double TouchResizeAreaWidth = 8;
+
+    /// <summary>
+    /// The grip's reach into this header for <paramref name="deviceType"/>: <see cref="TableView.ColumnResizeAreaWidth"/>
+    /// (at least 1), and at least <see cref="TouchResizeAreaWidth"/> for touch.
+    /// </summary>
+    internal static double ResizeAreaWidth(double configured, PointerDeviceType deviceType)
+    {
+        var width = double.IsNaN(configured) || configured < 1 ? 1 : configured;
+        return deviceType == PointerDeviceType.Touch ? Math.Max(width, TouchResizeAreaWidth) : width;
+    }
+
+    /// <summary>
+    /// Whether a point <paramref name="x"/> DIP from a header's left edge is inside the grip at its RIGHT edge.
+    /// Pure, so it is directly unit-testable.
+    /// </summary>
+    internal static bool IsInRightResizeArea(double x, double y, double headerWidth, double gripHeight, double areaWidth) =>
+        x >= headerWidth - areaWidth && y < gripHeight;
+
+    /// <summary>
+    /// Whether a point <paramref name="x"/> DIP from a header's left edge is inside the grip at its LEFT edge (the
+    /// previous column's half of the boundary). Pure, so it is directly unit-testable.
+    /// </summary>
+    internal static bool IsInLeftResizeArea(double x, double y, double headerHeight, double areaWidth) =>
+        x <= areaWidth && y < headerHeight;
+
+    private double ResizeAreaWidth(PointerRoutedEventArgs args) =>
+        ResizeAreaWidth(_tableView?.ColumnResizeAreaWidth ?? DefaultResizeAreaWidth, args.Pointer.PointerDeviceType);
+
     /// <summary>
     /// Determines whether the cursor is in the right resize area.
     /// </summary>
     private bool IsCursorInRightResizeArea(PointerRoutedEventArgs args)
     {
-        var resizeWidth = args.Pointer.PointerDeviceType == PointerDeviceType.Touch ? 8 : 4;
         var point = args.GetCurrentPoint(this);
         var resizeHeight = ActualHeight - (CanFilter ? _optionsButton?.ActualHeight ?? 0 : 0);
-        return ActualWidth - point.Position.X <= resizeWidth && point.Position.Y < resizeHeight;
+        return IsInRightResizeArea(point.Position.X, point.Position.Y, ActualWidth, resizeHeight, ResizeAreaWidth(args));
     }
 
     /// <summary>
@@ -462,9 +494,8 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     private bool IsCursorInLeftResizeArea(PointerRoutedEventArgs args)
     {
-        var resizeArea = args.Pointer.PointerDeviceType == PointerDeviceType.Touch ? 8 : 4;
         var point = args.GetCurrentPoint(this);
-        return point.Position.X <= resizeArea && point.Position.Y < ActualHeight;
+        return IsInLeftResizeArea(point.Position.X, point.Position.Y, ActualHeight, ResizeAreaWidth(args));
     }
 
     /// <inheritdoc/>
@@ -482,7 +513,7 @@ public partial class TableViewColumnHeader : ContentControl
 
         var position = e.GetPosition(this);
 
-        if (position.X <= 8 && _headerRow?.GetPreviousHeader(this) is { Column: { } } header)
+        if (position.X <= Math.Max(TouchResizeAreaWidth, _tableView.ColumnResizeAreaWidth) && _headerRow?.GetPreviousHeader(this) is { Column: { } } header)
         {
             header.Column.Width = GridLength.Auto;
         }

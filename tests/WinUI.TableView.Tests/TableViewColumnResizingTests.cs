@@ -1,3 +1,4 @@
+using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
@@ -356,6 +357,49 @@ public class TableViewColumnResizingTests
         var rect = TableViewCell.ComputeClipRect(-10d, -5d);
         Assert.AreEqual(0d, rect.Width, 0.01, "A negative live width must clamp to zero, not a negative Rect size");
         Assert.AreEqual(0d, rect.Height, 0.01, "A negative height must clamp to zero, not a negative Rect size");
+    }
+
+    // ── Resize grip reach (ColumnResizeAreaWidth) ─────────────────────────────
+
+    [UITestMethod]
+    public async Task ColumnResizeAreaWidth_DefaultsToFour()
+    {
+        var tableView = await CreateTableViewAsync();
+        Assert.AreEqual(4d, tableView.ColumnResizeAreaWidth, 0.001, "The default keeps the historical 4 DIP per side for a mouse");
+    }
+
+    [UITestMethod]
+    public void ResizeAreaWidth_UsesTheConfiguredWidth_AndAtLeastEightForTouch()
+    {
+        Assert.AreEqual(6d, TableViewColumnHeader.ResizeAreaWidth(6, PointerDeviceType.Mouse), 0.001);
+        Assert.AreEqual(6d, TableViewColumnHeader.ResizeAreaWidth(6, PointerDeviceType.Pen), 0.001);
+        Assert.AreEqual(8d, TableViewColumnHeader.ResizeAreaWidth(6, PointerDeviceType.Touch), 0.001, "touch never gets less than 8");
+        Assert.AreEqual(12d, TableViewColumnHeader.ResizeAreaWidth(12, PointerDeviceType.Touch), 0.001, "a wider configured grip widens touch too");
+        Assert.AreEqual(1d, TableViewColumnHeader.ResizeAreaWidth(0, PointerDeviceType.Mouse), 0.001, "below 1 is treated as 1");
+        Assert.AreEqual(1d, TableViewColumnHeader.ResizeAreaWidth(double.NaN, PointerDeviceType.Mouse), 0.001, "NaN is treated as 1");
+    }
+
+    [UITestMethod]
+    public void IsInRightResizeArea_CoversTheConfiguredReachInsideTheRightEdge()
+    {
+        // A 100 DIP header with a 6 DIP reach: 94..100 is the grip, 93.9 is not.
+        Assert.IsTrue(TableViewColumnHeader.IsInRightResizeArea(100, 5, 100, 20, 6));
+        Assert.IsTrue(TableViewColumnHeader.IsInRightResizeArea(94, 5, 100, 20, 6));
+        Assert.IsFalse(TableViewColumnHeader.IsInRightResizeArea(93.9, 5, 100, 20, 6));
+        // The default 4 DIP reach: 97 (3 DIP in) is in, 95.9 is not.
+        Assert.IsTrue(TableViewColumnHeader.IsInRightResizeArea(97, 5, 100, 20, 4));
+        Assert.IsFalse(TableViewColumnHeader.IsInRightResizeArea(95.9, 5, 100, 20, 4));
+        // At or below the grip height (the options button sits there) it is not the grip.
+        Assert.IsFalse(TableViewColumnHeader.IsInRightResizeArea(99, 20, 100, 20, 6));
+    }
+
+    [UITestMethod]
+    public void IsInLeftResizeArea_CoversTheConfiguredReachInsideTheLeftEdge()
+    {
+        Assert.IsTrue(TableViewColumnHeader.IsInLeftResizeArea(0, 5, 40, 6));
+        Assert.IsTrue(TableViewColumnHeader.IsInLeftResizeArea(6, 5, 40, 6));
+        Assert.IsFalse(TableViewColumnHeader.IsInLeftResizeArea(6.1, 5, 40, 6));
+        Assert.IsFalse(TableViewColumnHeader.IsInLeftResizeArea(3, 40, 40, 6), "below the header is not the grip");
     }
 
     // ── Bug 3 regression: CalculateHeaderWidths stability / alignment after sort ────

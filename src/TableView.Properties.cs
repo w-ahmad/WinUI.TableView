@@ -264,6 +264,11 @@ public partial class TableView
     public static readonly DependencyProperty ColumnResizeModeProperty = DependencyProperty.Register(nameof(ColumnResizeMode), typeof(TableViewColumnResizeMode), typeof(TableView), new PropertyMetadata(TableViewColumnResizeMode.Live));
 
     /// <summary>
+    /// Identifies the ColumnResizeAreaWidth dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ColumnResizeAreaWidthProperty = DependencyProperty.Register(nameof(ColumnResizeAreaWidth), typeof(double), typeof(TableView), new PropertyMetadata(TableViewColumnHeader.DefaultResizeAreaWidth));
+
+    /// <summary>
     /// Identifies the FrozenColumnCount dependency property.
     /// </summary>
     public static readonly DependencyProperty FrozenColumnCountProperty = DependencyProperty.Register(nameof(FrozenColumnCount), typeof(int), typeof(TableView), new PropertyMetadata(0, OnFrozenColumnCountChanged));
@@ -926,6 +931,18 @@ public partial class TableView
     {
         get => (TableViewColumnResizeMode)GetValue(ColumnResizeModeProperty);
         set => SetValue(ColumnResizeModeProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets how far, in device-independent pixels, the column-resize grip reaches into the header on EACH
+    /// side of a column boundary for a mouse or pen (default 4, so the grip spans 8 DIP centred on the boundary).
+    /// A touch contact always gets at least 8 DIP per side. The grip scales with the display like any other
+    /// layout size; values below 1 are treated as 1.
+    /// </summary>
+    public double ColumnResizeAreaWidth
+    {
+        get => (double)GetValue(ColumnResizeAreaWidthProperty);
+        set => SetValue(ColumnResizeAreaWidthProperty, value);
     }
 
     /// <summary>
