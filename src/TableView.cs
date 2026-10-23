@@ -1212,6 +1212,10 @@ public partial class TableView : ListView
     /// </summary>
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
+        // WinUI can raise a stale Unloaded after Loaded while the control is still in the live tree
+        // (e.g. content of a ContentDialog, microsoft-ui-xaml#8342); treat it as a no-op.
+        if (IsLoaded) return;
+
         EndDragSelection();
         StopAutoScroll();
 
