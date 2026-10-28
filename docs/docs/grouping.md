@@ -35,6 +35,18 @@ tableView.GroupDescriptions.Add(new GroupDescription("Role"));
 
 This produces a two-level hierarchy: a header per department, and inside each, a header per role.
 
+### Grouping by a column
+
+A `GroupDescription` you add yourself isn't tied to a column, so no column header shows its order or offers **Ungroup** for it. To group by a column the way its header's **Group** command does, call the column's `Group` method; `Ungroup` removes it again:
+
+```csharp
+categoryColumn.Group();    // false if grouping isn't allowed, the column is already grouped, or a Grouping handler handled it
+categoryColumn.Ungroup();  // false if the table isn't grouped by this column
+bool grouped = categoryColumn.IsGrouped;
+```
+
+Grouping a second column nests its groups inside the first column's, as with `GroupDescriptions`.
+
 Remove all grouping:
 
 ```csharp

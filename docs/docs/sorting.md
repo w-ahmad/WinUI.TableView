@@ -91,6 +91,16 @@ tableView.SortDescriptions.Add(new SortDescription("Price", SortDirection.Ascend
 
 The [`SortDescriptions`](xref:WinUI.TableView.TableView.SortDescriptions) collection is backed by the internal collection view. Changes take effect immediately.
 
+To sort by a column the way clicking its header does, so the header shows the direction, call the column's `Sort` method. Pass `null` to remove that column's sort, and `clearOtherSorting: false` to add to the existing sort as a Ctrl+click does:
+
+```csharp
+priceColumn.Sort(SortDirection.Descending);                          // replaces other sorting
+nameColumn.Sort(SortDirection.Ascending, clearOtherSorting: false);  // sorts by price, then name
+priceColumn.Sort(null);                                              // removes the price sort
+```
+
+`Sort` returns `false` if the column can't be sorted or a [`Sorting`](#the-sorting-event) handler handled the request.
+
 Clear all sorting using the dedicated method:
 
 ```csharp
