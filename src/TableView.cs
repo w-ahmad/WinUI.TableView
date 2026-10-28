@@ -105,15 +105,16 @@ public partial class TableView : ListView
     /// <summary>
     /// Handles the PropertyChanged event of the CollectionView.
     /// </summary>
-    private async void OnCollectionViewPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void OnCollectionViewPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(CollectionView.CollectionGroups))
         {
             _collectionView.CollectionGroups?.VectorChanged += OnCollectionViewGroupDescriptionsChanged;
 
+            // Detach and reattach so the ListView rebuilds its groups. Both in one go: yielding between them let a
+            // frame render the table empty, a visible flicker on every grouping change.
             _shouldThrowBaseProeprtyChangedException = false;
             base.ItemsSource = null;
-            await Task.Yield();
             base.ItemsSource = _collectionView;
             _shouldThrowBaseProeprtyChangedException = true;
         }
