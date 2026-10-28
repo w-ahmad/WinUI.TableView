@@ -192,6 +192,9 @@ public partial class TableViewHeaderRow : Control
             else
             {
                 RemoveHeaders([e.Column]);
+
+                // Star columns share the width the hidden column leaves; AddHeaders does this for the other direction.
+                CalculateHeaderWidths();
             }
         }
         else if ((e.PropertyName is nameof(TableViewColumn.Order) ||
