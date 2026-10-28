@@ -308,6 +308,11 @@ public partial class TableView
     /// </summary>
     public static readonly DependencyProperty ShowFilterItemsCountProperty = DependencyProperty.Register(nameof(ShowFilterItemsCount), typeof(bool), typeof(TableView), new PropertyMetadata(false));
 
+    /// <summary>
+    /// Identifies the <see cref="ApplyColumnFilterImmediately"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ApplyColumnFilterImmediatelyProperty = DependencyProperty.Register(nameof(ApplyColumnFilterImmediately), typeof(bool), typeof(TableView), new PropertyMetadata(false));
+
 
     /// <summary>
     /// Identifies the <see cref="ForceRowOrCellSelectionOnContextRequested"/> dependency property.
@@ -410,6 +415,17 @@ public partial class TableView
     {
         get => (bool)GetValue(ShowFilterItemsCountProperty);
         set => SetValue(ShowFilterItemsCountProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value that indicates whether a column's filter applies as soon as it changes in the filter
+    /// flyout (an item is checked or unchecked, or the search text changes) instead of when OK is pressed.
+    /// The flyout then has no OK and Cancel buttons; closing it keeps the filter.
+    /// </summary>
+    public bool ApplyColumnFilterImmediately
+    {
+        get => (bool)GetValue(ApplyColumnFilterImmediatelyProperty);
+        set => SetValue(ApplyColumnFilterImmediatelyProperty, value);
     }
 
     /// <summary>

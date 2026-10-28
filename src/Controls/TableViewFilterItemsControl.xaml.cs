@@ -16,6 +16,8 @@ namespace WinUI.TableView.Controls;
 public partial class TableViewFilterItemsControl : UserControl
 {
     private bool _canSetState = true;
+    private bool _isClearingSearchBox;
+    private bool _isUpdatingSelectAllCheckBox;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TableViewFilterItemsControl"/> class.
@@ -49,12 +51,32 @@ public partial class TableViewFilterItemsControl : UserControl
     /// </summary>
     internal void ClearSearchBox()
     {
+        // The flyout clears its search when it closes; that isn't the user changing the filter, so it mustn't
+        // undo a filter that was applied from the search.
+        _isClearingSearchBox = true;
         searchBox?.Text = string.Empty;
+        _isClearingSearchBox = false;
     }
 
     private void OnSearchBoxTextChanged(object sender, TextChangedEventArgs e)
     {
         FilterItems = TableView?.FilterHandler?.GetFilterItems(ColumnHeader?.Column!, searchBox!.Text);
+
+        if (!_isClearingSearchBox)
+        {
+            ApplyFilterIfImmediate();
+        }
+    }
+
+    /// <summary>
+    /// Applies the filter as it stands, as OK would, when <see cref="TableView.ApplyColumnFilterImmediately"/> is on.
+    /// </summary>
+    private void ApplyFilterIfImmediate()
+    {
+        if (TableView?.ApplyColumnFilterImmediately is true)
+        {
+            ColumnHeader?.ApplyFilter();
+        }
     }
 
     /// <summary>
@@ -76,7 +98,14 @@ public partial class TableViewFilterItemsControl : UserControl
     /// </summary>
     private void OnSelectAllCheckBoxCheckChanged(object sender, RoutedEventArgs e)
     {
+        // The checkbox also follows the items (SetSelectAllCheckBoxState); only a click on it changes the filter.
+        if (_isUpdatingSelectAllCheckBox)
+        {
+            return;
+        }
+
         SetFilterItemsState(selectAllCheckBox.IsChecked is true);
+        ApplyFilterIfImmediate();
     }
 
     /// <summary>
@@ -90,9 +119,11 @@ public partial class TableViewFilterItemsControl : UserControl
         }
 
 
+        _isUpdatingSelectAllCheckBox = true;
         selectAllCheckBox.IsChecked = FilterItems?.All(x => x.IsSelected) ?? false ? true
                                       : FilterItems?.All(x => !x.IsSelected) ?? false ? false
                                       : null;
+        _isUpdatingSelectAllCheckBox = false;
     }
 
     /// <summary>
@@ -145,6 +176,12 @@ public partial class TableViewFilterItemsControl : UserControl
     private void OnFilterItemPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         SetSelectAllCheckBoxState();
+
+        // SetFilterItemsState changes every item at once and applies once itself.
+        if (_canSetState && e.PropertyName is nameof(TableViewFilterItem.IsSelected))
+        {
+            ApplyFilterIfImmediate();
+        }
     }
 
     /// <summary>
