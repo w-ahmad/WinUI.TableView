@@ -43,6 +43,7 @@ public partial class TableViewHeaderRow : Control
     private TranslateTransform? _columnDropIndicatorTransform;
     private Image? _dragHeaderImage;
     private DispatcherTimer? _desiredWidthTimer;
+    private DispatcherTimer? _starResizeTimer;
     private bool _calculatingHeaderWidths;
     private int _dropColumnIndex;
     private bool _isValidDropTarget;
@@ -760,6 +761,25 @@ public partial class TableViewHeaderRow : Control
     /// </summary>
     private void OnTableViewSizeChanged(object sender, SizeChangedEventArgs e)
     {
+        // Resizing a star column re-lays out every realized cell in it, on every frame of a window resize. With a
+        // delay set, star widths catch up once the resize pauses; the first layout and fixed-width columns don't wait.
+        if (TableView is { StarColumnResizeDelay: { } delay } && delay > TimeSpan.Zero && e.PreviousSize.Width > 0)
+        {
+            _starResizeTimer ??= new DispatcherTimer();
+            _starResizeTimer.Interval = delay;
+            _starResizeTimer.Tick -= OnStarResizeTimerTick;
+            _starResizeTimer.Tick += OnStarResizeTimerTick;
+            _starResizeTimer.Stop();
+            _starResizeTimer.Start();
+            return;
+        }
+
+        CalculateHeaderWidths();
+    }
+
+    private void OnStarResizeTimerTick(object? sender, object e)
+    {
+        _starResizeTimer?.Stop();
         CalculateHeaderWidths();
     }
 
