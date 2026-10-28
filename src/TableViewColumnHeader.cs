@@ -61,6 +61,7 @@ public partial class TableViewColumnHeader : ContentControl
         ManipulationMode = ManipulationModes.TranslateX;
         RegisterPropertyChangedCallback(WidthProperty, OnWidthChanged);
         RightTapped += OnRightTapped;
+        ContextRequested += OnContextRequested;
     }
 
     /// <summary>
@@ -311,6 +312,52 @@ public partial class TableViewColumnHeader : ContentControl
     {
         _optionsFlyout?.Hide();
     }
+
+    /// <summary>
+    /// Keyboard access to what a click does: Enter or Space sorts (Ctrl adds to the existing sort, as Ctrl+click does),
+    /// and Alt+Down opens the column's options. Shift+F10 and the Menu key open them too (see OnContextRequested).
+    /// </summary>
+    protected override void OnKeyDown(KeyRoutedEventArgs e)
+    {
+        if (e.Key is VirtualKey.Enter or VirtualKey.Space && CanSort && Column is not null)
+        {
+            DoSort(GetNextSortDirection(), !IsKeyDown(VirtualKey.Control));
+            e.Handled = true;
+        }
+        else if (e.Key is VirtualKey.Down && IsKeyDown(VirtualKey.Menu) && ShowOptions())
+        {
+            e.Handled = true;
+        }
+
+        base.OnKeyDown(e);
+    }
+
+    /// <summary>
+    /// Opens the column's options for a keyboard context request (Shift+F10, the Menu key). A right-click also
+    /// raises this, with a pointer position; those keep going through <see cref="TableView.UseRightClickForColumnFilter"/>.
+    /// </summary>
+    private void OnContextRequested(UIElement sender, ContextRequestedEventArgs e)
+    {
+        if (!e.TryGetPosition(this, out _) && ShowOptions())
+        {
+            e.Handled = true;
+        }
+    }
+
+    /// <summary>Opens the options flyout (sort, group, filter), if the column has one.</summary>
+    private bool ShowOptions()
+    {
+        if (_optionsButton?.Flyout is not { } flyout || !CanFilter)
+        {
+            return false;
+        }
+
+        flyout.ShowAt(_optionsButton);
+        return true;
+    }
+
+    private static bool IsKeyDown(VirtualKey key) =>
+        InputKeyboardSource.GetKeyStateForCurrentThread(key).HasFlag(CoreVirtualKeyStates.Down);
 
     /// <inheritdoc/>
     protected override void OnTapped(TappedRoutedEventArgs e)
