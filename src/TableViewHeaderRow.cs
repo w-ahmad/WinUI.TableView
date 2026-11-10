@@ -128,6 +128,10 @@ public partial class TableViewHeaderRow : Control
                 {
                     Rect = new Rect(xClip, 0, _scrollableHeadersPanel.ActualWidth - xClip, finalSize.Height)
                 };
+
+            // The same culling as the rows' cells (TableViewRowPresenter.ArrangeOverride), in the panel's own
+            // coordinates, where the viewport starts at HorizontalOffset.
+            HorizontalCulling.Apply(_scrollableHeadersPanel, TableView.HorizontalOffset, TableView.ActualWidth, TableView.CullsOffscreenColumns);
         }
 
         return finalSize;

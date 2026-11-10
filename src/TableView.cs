@@ -83,6 +83,11 @@ public partial class TableView : ListView
         Unloaded += OnUnloaded;
         SelectionChanged += TableView_SelectionChanged;
         Items.VectorChanged += OnItemsVectorChanged;
+        SizeChanged += (_, e) =>
+        {
+            if (e.NewSize.Width != e.PreviousSize.Width)
+                RefreshCulling();
+        };
         _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
         _collectionView.VectorChanged += OnCollectionViewVectorChanged;
 #if WINDOWS
