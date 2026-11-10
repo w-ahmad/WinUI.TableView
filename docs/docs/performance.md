@@ -102,6 +102,8 @@ By default, dragging a column divider ([`ColumnResizeMode="Live"`](xref:WinUI.Ta
 
 Unlike rows, columns are not virtualized — all column headers are instantiated regardless of whether they are visible. A very large number of columns (100+) may affect horizontal scroll performance. In practice, most data grids have far fewer columns than rows.
 
+Cells and column headers that are scrolled more than 240 DIPs outside the horizontal viewport are hidden from the renderer: they are drawn at opacity 0 and keep their size and position, so layout is unchanged and each one gets its own opacity back as soon as it comes near the viewport. This matters on Uno's Skia renderer, which otherwise draws every realized cell of every column on every frame. Set [`CullsOffscreenColumns`](xref:WinUI.TableView.TableView.CullsOffscreenColumns) to `false` to turn it off, for example if your cell templates set the opacity of the cell itself.
+
 ## Uno Platform
 
 On Uno Platform targets, data binding and layout passes may have slightly different performance characteristics than on the Windows target. Test performance on each target platform before shipping.

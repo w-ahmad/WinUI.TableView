@@ -851,6 +851,36 @@ public partial class TableView
     public double HorizontalOffset => (double)GetValue(HorizontalOffsetProperty);
 
     /// <summary>
+    /// Gets or sets whether cells and column headers scrolled out of the horizontal viewport are hidden from the
+    /// renderer (opacity 0, layout unchanged). On by default. It matters on Uno, whose Skia renderer otherwise
+    /// draws every realized cell of every column on every frame. See <c>HorizontalCulling</c>.
+    /// </summary>
+    public bool CullsOffscreenColumns
+    {
+        get => _cullsOffscreenColumns;
+        set
+        {
+            if (_cullsOffscreenColumns == value)
+                return;
+            _cullsOffscreenColumns = value;
+            RefreshCulling();
+        }
+    }
+
+    /// <summary>
+    /// Re-runs the off-screen cull: it is applied when the header row and each row are arranged, against the
+    /// table's width, which is 0 on the first pass and changes without re-arranging a row whose own size did not.
+    /// </summary>
+    internal void RefreshCulling()
+    {
+        _headerRow?.InvalidateArrange();
+        foreach (var row in _rows)
+            row?.RowPresenter?.InvalidateArrange();
+    }
+
+    private bool _cullsOffscreenColumns = true;
+
+    /// <summary>
     /// Gets the actual width of the row header.
     /// </summary>
     public double RowHeaderActualWidth => (double)GetValue(RowHeaderActualWidthProperty);
