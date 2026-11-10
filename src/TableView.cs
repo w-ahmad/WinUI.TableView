@@ -1228,6 +1228,19 @@ public partial class TableView : ListView
     }
 
     /// <summary>
+    /// Stops following the items source WITHOUT changing what is shown: the realized rows stay as they are, and later
+    /// changes to the source (or to its items) are ignored. For a table about to be discarded: letting go through
+    /// <c>ItemsSource = null</c> resets the list and tears every realized row down at once, and while the table is
+    /// still bound a reload of the source does the same. One way: a table detached like this is not meant to be shown
+    /// again (its live-shaping subscription is not restored).
+    /// </summary>
+    public void DetachItemsSource()
+    {
+        _collectionView.ItemPropertyChanged -= OnItemPropertyChanged;
+        _collectionView.StopTracking();
+    }
+
+    /// <summary>
     /// Suspends subscriptions to the current items source while the control is unloaded.
     /// </summary>
     private void SuspendItemsSource()

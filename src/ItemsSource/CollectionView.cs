@@ -120,6 +120,16 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     }
 
     /// <summary>
+    /// Stops listening to <see cref="Source"/> and its items without touching the view: what is shown stays, and later
+    /// changes to the source are not followed. Setting <see cref="Source"/> again starts listening again.
+    /// </summary>
+    internal void StopTracking()
+    {
+        DetachCollectionChangedHandlers(Source);
+        DetachPropertyChangedHandlers(Source);
+    }
+
+    /// <summary>
     /// Detaches collection changed handlers from the source collection.
     /// </summary>
     private void DetachCollectionChangedHandlers(IEnumerable source)

@@ -102,6 +102,10 @@ By default, dragging a column divider ([`ColumnResizeMode="Live"`](xref:WinUI.Ta
 
 Unlike rows, columns are not virtualized — all column headers are instantiated regardless of whether they are visible. A very large number of columns (100+) may affect horizontal scroll performance. In practice, most data grids have far fewer columns than rows.
 
+## Discarding a large table
+
+Setting `ItemsSource = null` on a table you are about to throw away resets the list, which tears down every realized row at once on the UI thread; while the table is still bound, reloading its source does the same. Call [`DetachItemsSource()`](xref:WinUI.TableView.TableView.DetachItemsSource) first: the table stops following the source and its items without changing what is shown, so you can remove it from the page (or clear its columns) and release it afterwards. A detached table is not meant to be shown again; set `ItemsSource` again if you do need it to follow a source.
+
 ## Uno Platform
 
 On Uno Platform targets, data binding and layout passes may have slightly different performance characteristics than on the Windows target. Test performance on each target platform before shipping.
