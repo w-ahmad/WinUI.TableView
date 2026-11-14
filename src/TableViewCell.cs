@@ -29,6 +29,8 @@ public partial class TableViewCell : ContentControl
     private Border? _selectionBorder;
     private Border? _backgroundBorder;
     private Border? _rootBorder;
+    private Grid? _rootGrid; // set only by a template that takes the cell's values from code (see SyncTemplateParts)
+    private bool _syncCallbacksRegistered;
     private Rectangle? _v_gridLine;
     private object? _uneditedValue;
     private RoutedEventArgs? _editingArgs;
@@ -98,9 +100,52 @@ public partial class TableViewCell : ContentControl
         _backgroundBorder = GetTemplateChild("BackgroundBorder") as Border;
         _rootBorder = GetTemplateChild("RootBorder") as Border;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
+        _rootGrid = GetTemplateChild("RootGrid") as Grid;
+
+        if (_rootGrid is not null)
+        {
+            RegisterSyncCallbacks();
+            SyncTemplateParts(null);
+        }
 
         EnsureGridLines();
         EnsureStyle(Row?.Content);
+    }
+
+    /// <summary>The cell properties the default template takes from code instead of TemplateBindings.</summary>
+    private static readonly DependencyProperty[] s_syncedProperties =
+    [
+        BorderBrushProperty, BorderThicknessProperty, CornerRadiusProperty, BackgroundProperty,
+        PaddingProperty, VerticalContentAlignmentProperty, HorizontalContentAlignmentProperty,
+    ];
+
+    private void RegisterSyncCallbacks()
+    {
+        if (_syncCallbacksRegistered) return;
+        _syncCallbacksRegistered = true;
+        foreach (var property in s_syncedProperties)
+            RegisterPropertyChangedCallback(property, static (d, dp) => ((TableViewCell)d).SyncTemplateParts(dp));
+    }
+
+    /// <summary>
+    /// Copies the cell's own values onto the parts of a template that names <c>RootGrid</c>, which is what the default
+    /// template's TemplateBindings did, without a BindingExpression per property per realized cell.
+    /// <paramref name="changed"/> null copies them all.
+    /// </summary>
+    private void SyncTemplateParts(DependencyProperty? changed)
+    {
+        if (_rootGrid is not { } grid) return;
+
+        if (changed is null || changed == BorderBrushProperty) grid.BorderBrush = BorderBrush;
+        if (changed is null || changed == BorderThicknessProperty) grid.BorderThickness = BorderThickness;
+        if (changed is null || changed == CornerRadiusProperty) grid.CornerRadius = CornerRadius;
+        if (_backgroundBorder is { } background && (changed is null || changed == BackgroundProperty)) background.Background = Background;
+        if (_contentPresenter is { } presenter)
+        {
+            if (changed is null || changed == PaddingProperty) presenter.Margin = Padding;
+            if (changed is null || changed == VerticalContentAlignmentProperty) presenter.VerticalAlignment = VerticalContentAlignment;
+            if (changed is null || changed == HorizontalContentAlignmentProperty) presenter.HorizontalAlignment = HorizontalContentAlignment;
+        }
     }
 
     /// <inheritdoc/>

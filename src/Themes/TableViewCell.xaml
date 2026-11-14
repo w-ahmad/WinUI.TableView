@@ -20,9 +20,12 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:TableViewCell">
-                    <Grid BorderBrush="{TemplateBinding BorderBrush}"
-                          BorderThickness="{TemplateBinding BorderThickness}"
-                          CornerRadius="{TemplateBinding CornerRadius}">
+                    <!-- No TemplateBindings: TableViewCell copies BorderBrush, BorderThickness, CornerRadius, Background,
+                         Padding and the content alignments onto RootGrid, BackgroundBorder and Content itself
+                         (TableViewCell.SyncTemplateParts) when the template names RootGrid. Each TemplateBinding is a
+                         BindingExpression per realized cell; a custom template that does not name RootGrid keeps its
+                         own bindings and is left alone. -->
+                    <Grid x:Name="RootGrid">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
@@ -59,7 +62,6 @@
                         </VisualStateManager.VisualStateGroups>
 
                         <Border x:Name="BackgroundBorder"
-                                Background="{TemplateBinding Background}"
                                 CornerRadius="{ThemeResource TableViewRowCellSelectionBorderCornerRadius}" />
 
                         <Border x:Name="SelectionBorder"
@@ -68,10 +70,7 @@
 
                         <Border x:Name="RootBorder"
                                 CornerRadius="{ThemeResource TableViewRowCellSelectionBorderCornerRadius}">
-                            <ContentPresenter x:Name="Content"
-                                              Margin="{TemplateBinding Padding}"
-                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                            <ContentPresenter x:Name="Content" />
                         </Border>
 
                         <Rectangle x:Name="VerticalGridLine"
