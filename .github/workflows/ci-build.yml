@@ -244,6 +244,13 @@ jobs:
     environment: ci-nuget-publish
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
+
+    - name: NuGet Login
+      uses: NuGet/login@v1
+      id: login
+      with:
+        user: w-ahmad
+    
     - name: Download artifacts
       uses: actions/download-artifact@v4
       with:
@@ -252,4 +259,4 @@ jobs:
 
     - name: Push to NuGet
       run: |
-        dotnet nuget push packages\*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
+        dotnet nuget push packages\*.nupkg -k ${{steps.login.outputs.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json --skip-duplicate
