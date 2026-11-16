@@ -31,9 +31,19 @@ public class TableViewScrollRowIntoViewTests
     }
 
     [UITestMethod]
-    [DataRow(ListViewSelectionMode.Single)]
-    [DataRow(ListViewSelectionMode.Multiple)]
-    public async Task SelectingARow_ThenRemovingItems_DoesNotThrowFromTheQueuedScroll(ListViewSelectionMode selectionMode)
+    public Task SelectingARow_ThenRemovingItems_DoesNotThrowFromTheQueuedScroll_InSingleSelectionMode()
+    {
+        return SelectARowThenRemoveItemsAsync(ListViewSelectionMode.Single);
+    }
+
+    [UITestMethod]
+    public Task SelectingARow_ThenRemovingItems_DoesNotThrowFromTheQueuedScroll_InMultipleSelectionMode()
+    {
+        return SelectARowThenRemoveItemsAsync(ListViewSelectionMode.Multiple);
+    }
+
+    // The Uno test runner only runs parameterless test methods, so each selection mode is its own test.
+    private static async Task SelectARowThenRemoveItemsAsync(ListViewSelectionMode selectionMode)
     {
         var (tableView, items) = await CreateTableViewAsync(itemCount: 5);
         Exception? unhandled = null;
