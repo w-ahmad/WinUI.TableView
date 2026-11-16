@@ -215,8 +215,9 @@ public partial class TableView : ListView
 
         if (SelectedItems?.Count == 1)
         {
-            var index = Items.IndexOf(SelectedItem);
-            DispatcherQueue.TryEnqueue(async () => await ScrollRowIntoView(index));
+            // The items may change before the queued action runs, so the index is resolved then, not now.
+            var item = SelectedItem;
+            DispatcherQueue.TryEnqueue(async () => await ScrollRowIntoView(Items.IndexOf(item)));
         }
     }
 
@@ -2627,7 +2628,7 @@ public partial class TableView : ListView
     /// <param name="index">The index of the row to scroll into view.</param>
     public async Task<TableViewRow?> ScrollRowIntoView(int index)
     {
-        if (_scrollViewer is null || index < 0) return default!;
+        if (_scrollViewer is null || index < 0 || index >= Items.Count) return default!;
 
         var item = Items[index];
         index = Items.IndexOf(item); // if the ItemsSource has duplicate items in it. ScrollIntoView will only bring first index of the item.
