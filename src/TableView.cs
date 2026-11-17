@@ -2088,6 +2088,11 @@ public partial class TableView : ListView
 
                 SelectRange(newSelection);
             }
+            else if (SelectionMode is ListViewSelectionMode.Extended)
+            {
+                // Ctrl+Shift only ever adds the anchor-to-target range; rows that are already selected stay selected.
+                SelectRange(newSelection);
+            }
             else if (selectionRange?.LastIndex > newSelection.LastIndex)
             {
                 var deselectRange = new ItemIndexRange(newSelection.LastIndex + 1, (uint)(selectionRange.LastIndex - newSelection.LastIndex));
@@ -2102,6 +2107,9 @@ public partial class TableView : ListView
             {
                 SelectRange(newSelection);
             }
+
+            // The target becomes the current row, so keyboard navigation continues from it; the anchor stays put.
+            CurrentRowIndex = slot.Row;
         }
 
         if (!IsReadOnly && slot.IsValid(this))

@@ -68,6 +68,34 @@ public class TableViewShiftClickSelectionTests
     }
 
     [UITestMethod]
+    public async Task CtrlShiftClick_Row_InsideTheSelectedRange_KeepsTheSelection()
+    {
+        var tableView = await CreateTableViewAsync(TableViewSelectionUnit.Row);
+
+        Click(tableView, 5);
+        ShiftClick(tableView, 8);
+        ShiftClick(tableView, 6, ctrlKey: true);
+
+        CollectionAssert.AreEqual(new[] { 5, 6, 7, 8 }, SelectedRows(tableView));
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task ShiftClick_Row_MakesTheClickedRowCurrentAndKeepsTheAnchor()
+    {
+        var tableView = await CreateTableViewAsync(TableViewSelectionUnit.Row);
+
+        Click(tableView, 5);
+        ShiftClick(tableView, 8);
+
+        Assert.AreEqual(8, tableView.CurrentRowIndex);
+        Assert.AreEqual(5, tableView.SelectionStartRowIndex);
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
     public async Task ShiftClick_Cell_ExtendsFromTheMostRecentlyClickedCell()
     {
         var tableView = await CreateTableViewAsync(TableViewSelectionUnit.Cell);
