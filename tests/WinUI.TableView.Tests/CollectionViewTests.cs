@@ -873,6 +873,45 @@ public class CollectionViewTests
     /// Flips a group's expanded/collapsed state, the same DependencyProperty the header row's expand/collapse
     /// button toggles - a stand-in for the removed CollectionView.ToggleGroup convenience method.
     /// </summary>
+    // Same items in the same order, but one of them belongs to another group than when the source was detached.
+    [UITestMethod]
+    public void AttachToSource_GroupKeyChangedWhileDetached_RebuildsGroups()
+    {
+        var src = new ObservableCollection<TestItem>
+        {
+            new() { Id = 1, Name = "A", Value = 1 },
+            new() { Id = 2, Name = "B", Value = 2 },
+            new() { Id = 3, Name = "C", Value = 1 },
+            new() { Id = 4, Name = "D", Value = 2 },
+        };
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+        view.GroupDescriptions.Add(GroupByValue());
+
+        view.DetachFromSource();
+        src[2].Value = 2;
+
+        Assert.IsTrue(view.AttachToSource(), "A changed grouping key must reset the view");
+
+        var group1 = (CollectionViewGroup)view.CollectionGroups![0];
+        var group2 = (CollectionViewGroup)view.CollectionGroups[1];
+        CollectionAssert.AreEqual(new[] { "A" }, group1.GroupItems!.Select(i => ((TestItem)i!).Name).ToArray());
+        CollectionAssert.AreEqual(new[] { "B", "C", "D" }, group2.GroupItems!.Select(i => ((TestItem)i!).Name).ToArray());
+    }
+
+    [UITestMethod]
+    public void AttachToSource_GroupedSourceUnchanged_DoesNotReset()
+    {
+        var src = CreateItems(4);
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+        view.GroupDescriptions.Add(GroupByValue());
+
+        view.DetachFromSource();
+
+        Assert.IsFalse(view.AttachToSource(), "An unchanged grouped source must not reset the view");
+    }
+
     private static void ToggleGroup(CollectionViewGroup group)
     {
         var info = (TableViewGroupInfo)group.Group!;
@@ -889,6 +928,43 @@ public class CollectionViewTests
         return new GroupDescription(null, valueDelegate: item => ((TestItem)item!).Name);
     }
 #endif
+
+    // Enabling live shaping while detached must not subscribe to the items: attaching subscribes to all of
+    // them, and a second subscription would survive the next detach.
+    [UITestMethod]
+    public void AllowLiveShaping_EnabledWhileDetached_DoesNotSubscribeTwice()
+    {
+        var src = CreateItems(4);
+        var view = new CollectionView(src);
+        view.SortDescriptions.Add(SortByValueAscending());
+
+        view.DetachFromSource();
+        view.AllowLiveShaping = false;
+        view.AllowLiveShaping = true;
+        view.AttachToSource();
+        view.DetachFromSource();
+
+        var expected = view.ToArray();
+        src[0].Value = -1; // would move to the front if the view still listened to the item
+
+        CollectionAssert.AreEqual(expected, view.ToArray(), "A detached view must not listen to its items");
+    }
+
+    // Value types are boxed anew every time the source is enumerated, so they have to be compared by value.
+    [UITestMethod]
+    public void AttachToSource_ValueTypeSourceUnchanged_DoesNotReset()
+    {
+        var src = new List<int> { 3, 1, 2 };
+        var view = new CollectionView(src);
+
+        view.DetachFromSource();
+        Assert.IsFalse(view.AttachToSource(), "An unchanged source of value types must not reset the view");
+
+        view.DetachFromSource();
+        src[1] = 5;
+        Assert.IsTrue(view.AttachToSource(), "A changed source of value types must reset the view");
+        CollectionAssert.AreEqual(new object[] { 3, 5, 2 }, view.ToArray());
+    }
 
     private static ObservableCollection<TestItem> CreateItems(int count)
     {

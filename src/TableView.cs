@@ -1325,9 +1325,17 @@ public partial class TableView : ListView
         // The view is reset if the source changed while the control was unloaded, which clears the selection.
         var selectedItems = SelectedItems.ToList();
 
-        if (_collectionView.AttachToSource() && selectedItems.Count > 0)
+        if (_collectionView.AttachToSource())
         {
-            RestoreSelection(selectedItems);
+            if (selectedItems.Count > 0)
+            {
+                RestoreSelection(selectedItems);
+            }
+        }
+        else
+        {
+            // The rows were kept, but their items may have changed while nothing was listening to them.
+            EnsureCellsStyle();
         }
     }
 

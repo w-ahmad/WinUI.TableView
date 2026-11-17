@@ -211,6 +211,45 @@ public class TableViewLifecycleTests
         }
     }
 
+    // Rows are kept while the table is unloaded, when nothing listens to their items; conditional cell styles
+    // have to be evaluated again on reload even if the view itself did not change.
+    [UITestMethod]
+    public async Task TableView_ItemChangedWhileUnloaded_RefreshesConditionalCellStylesOnReload()
+    {
+        var items = CreateItems();
+        var tableView = CreateTableView(items);
+        var style = new Style(typeof(TableViewCell));
+        tableView.ConditionalCellStyles.Add(new TableViewConditionalCellStyle
+        {
+            Style = style,
+            Predicate = context => context.DataItem is LifecycleTestItem { Name: "Changed" }
+        });
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        await WaitForRenderedFramesAsync(5);
+
+        var cell = (tableView.ContainerFromIndex(2) as TableViewRow)?.FindDescendant<TableViewCell>();
+        Assert.IsNotNull(cell, "Precondition: the row's cell is realized");
+        Assert.AreNotSame(style, cell!.Style, "Precondition: the conditional style does not apply yet");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        items[2].Name = "Changed";
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        try
+        {
+            await WaitForRenderedFramesAsync(10);
+
+            cell = (tableView.ContainerFromIndex(2) as TableViewRow)?.FindDescendant<TableViewCell>();
+            Assert.IsNotNull(cell, "Precondition: the row's cell is realized");
+            Assert.AreSame(style, cell!.Style, "A reloaded table must re-evaluate its conditional cell styles");
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
     // A height change makes the current row scroll itself into view, which is awaited. The row can be
     // detached from its table before that completes, and must not use the table afterwards (#469, a guard
     // lost in #455).

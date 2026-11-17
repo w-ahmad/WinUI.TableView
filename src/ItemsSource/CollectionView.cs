@@ -17,6 +17,9 @@ namespace WinUI.TableView;
 internal partial class CollectionView : ICollectionView, ISupportIncrementalLoading, INotifyPropertyChanging, INotifyPropertyChanged, IComparer<object?>
 {
     private bool _isSourceDetached;
+#if WINDOWS
+    private List<object?[]>? _detachedGroupKeys; // The grouping keys of the items when the source was detached.
+#endif
     private object[] _itemsCopy = []; // In case the source is ICollection, keep a copy of the items to keep track of removed items.
     private readonly List<object?> _view = [];
     // The full filtered+sorted set, in source order, regardless of grouping. _view is pruned down to just
@@ -146,6 +149,9 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
         DetachCollectionChangedHandlers(Source);
         DetachPropertyChangedHandlers(Source);
         _isSourceDetached = true;
+#if WINDOWS
+        _detachedGroupKeys = GetGroupKeys();
+#endif
     }
 
     /// <summary>
@@ -164,13 +170,64 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
         AttachPropertyChangedHandlers(Source);
         CreateItemsCopy(Source);
 
-        if (!alwaysReset && _groupingSourceItems.SequenceEqual(GetFilteredSortedItems(), ReferenceEqualityComparer.Instance))
+#if WINDOWS
+        var detachedGroupKeys = _detachedGroupKeys;
+        _detachedGroupKeys = null;
+#endif
+
+        if (!alwaysReset && _groupingSourceItems.SequenceEqual(GetFilteredSortedItems(), ItemIdentityComparer.Instance))
         {
+#if WINDOWS
+            // The same items in the same order can still belong to other groups than before.
+            if (HaveSameGroupKeys(detachedGroupKeys, GetGroupKeys()))
+            {
+                return false;
+            }
+#else
             return false;
+#endif
         }
 
         HandleSourceChanged();
         return true;
+    }
+
+#if WINDOWS
+    /// <summary>
+    /// Gets the grouping keys of every filtered and sorted item, or null if the view is not grouped.
+    /// </summary>
+    private List<object?[]>? GetGroupKeys()
+    {
+        if (GroupDescriptions.Count == 0) return null;
+
+        return [.. _groupingSourceItems.Select(item => GroupDescriptions.Select(description => description.GetPropertyValue(item)).ToArray())];
+    }
+
+    private static bool HaveSameGroupKeys(List<object?[]>? x, List<object?[]>? y)
+    {
+        if (x is null || y is null) return x is null && y is null;
+
+        return x.Count == y.Count && x.Zip(y).All(keys => keys.First.SequenceEqual(keys.Second));
+    }
+#endif
+
+    /// <summary>
+    /// Compares items the way the view identifies them: reference types by reference, and value types,
+    /// which are boxed anew every time the source is enumerated, by value.
+    /// </summary>
+    private sealed class ItemIdentityComparer : IEqualityComparer<object?>
+    {
+        public static readonly ItemIdentityComparer Instance = new();
+
+        public new bool Equals(object? x, object? y)
+        {
+            return ReferenceEquals(x, y) || (x is ValueType && x.Equals(y));
+        }
+
+        public int GetHashCode(object? obj)
+        {
+            return obj is ValueType ? obj.GetHashCode() : System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(obj);
+        }
     }
 
     /// <summary>
@@ -179,7 +236,8 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     /// <param name="items">The items to attach handlers to.</param>
     private void AttachPropertyChangedHandlers(IEnumerable? items)
     {
-        if (!AllowLiveShaping || items is null) return;
+        // Nothing is subscribed while detached from the source; AttachToSource subscribes to all of its items.
+        if (!AllowLiveShaping || _isSourceDetached || items is null) return;
 
         foreach (var item in items.OfType<INotifyPropertyChanged>())
         {
