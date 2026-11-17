@@ -950,6 +950,62 @@ public class CollectionViewTests
         CollectionAssert.AreEqual(expected, view.ToArray(), "A detached view must not listen to its items");
     }
 
+    // Items added, removed or moved while detached are applied one by one, so that the list showing the view
+    // keeps the selection of its other items.
+    [UITestMethod]
+    public void AttachToSource_SourceChangedWhileDetached_SyncsWithoutReset()
+    {
+        var src = CreateItems(6);
+        var view = new CollectionView(src);
+        var changes = new List<CollectionChange>();
+        view.VectorChanged += (_, e) => changes.Add(e.CollectionChange);
+
+        view.DetachFromSource();
+        src.RemoveAt(1);
+        src.Insert(0, new TestItem { Id = 10, Name = "Added first", Value = 10 });
+        src.Add(new TestItem { Id = 11, Name = "Added last", Value = 11 });
+        src.Move(2, 4);
+
+        Assert.IsFalse(view.AttachToSource(), "A few changed items must not reset the view");
+        CollectionAssert.AreEqual(src.ToArray(), view.ToArray());
+        CollectionAssert.DoesNotContain(changes, CollectionChange.Reset);
+    }
+
+    [UITestMethod]
+    public void AttachToSource_SortedSourceChangedWhileDetached_SyncsWithoutReset()
+    {
+        var src = CreateItems(6);
+        var view = new CollectionView(src);
+        view.SortDescriptions.Add(SortByValueAscending());
+        var changes = new List<CollectionChange>();
+        view.VectorChanged += (_, e) => changes.Add(e.CollectionChange);
+
+        view.DetachFromSource();
+        src[0].Value = -1;
+        src.Add(new TestItem { Id = 10, Name = "Added", Value = 3 });
+
+        Assert.IsFalse(view.AttachToSource(), "A few changed items must not reset the view");
+        CollectionAssert.AreEqual(src.OrderBy(item => item.Value).ToArray(), view.ToArray());
+        CollectionAssert.DoesNotContain(changes, CollectionChange.Reset);
+    }
+
+    [UITestMethod]
+    public void AttachToSource_SourceReplacedWhileDetached_Resets()
+    {
+        var src = CreateItems(6);
+        var view = new CollectionView(src);
+
+        view.DetachFromSource();
+        src.Clear();
+        foreach (var item in CreateItems(200))
+        {
+            src.Add(item);
+        }
+
+        Assert.IsTrue(view.AttachToSource(), "Too many changed items must reset the view");
+        CollectionAssert.AreEqual(src.ToArray(), view.ToArray());
+    }
+
     // Value types are boxed anew every time the source is enumerated, so they have to be compared by value.
     [UITestMethod]
     public void AttachToSource_ValueTypeSourceUnchanged_DoesNotReset()
@@ -962,8 +1018,8 @@ public class CollectionViewTests
 
         view.DetachFromSource();
         src[1] = 5;
-        Assert.IsTrue(view.AttachToSource(), "A changed source of value types must reset the view");
-        CollectionAssert.AreEqual(new object[] { 3, 5, 2 }, view.ToArray());
+        view.AttachToSource();
+        CollectionAssert.AreEqual(new object[] { 3, 5, 2 }, view.ToArray(), "A changed source of value types must update the view");
     }
 
     private static ObservableCollection<TestItem> CreateItems(int count)

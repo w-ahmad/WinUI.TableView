@@ -16,6 +16,7 @@ namespace WinUI.TableView;
 /// </summary>
 internal partial class CollectionView : ICollectionView, ISupportIncrementalLoading, INotifyPropertyChanging, INotifyPropertyChanged, IComparer<object?>
 {
+    private const int MaxIncrementalSyncChanges = 100;
     private bool _isSourceDetached;
 #if WINDOWS
     private List<object?[]>? _detachedGroupKeys; // The grouping keys of the items when the source was detached.
@@ -156,8 +157,9 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
 
     /// <summary>
     /// Starts listening to the current source collection after <see cref="DetachFromSource"/>. Unless
-    /// <paramref name="alwaysReset"/> is set, the view is only reset if the source no longer produces the
-    /// items the view holds.
+    /// <paramref name="alwaysReset"/> is set, the view is left alone if the source still produces the items
+    /// the view holds, and a small difference is applied item by item, which keeps the selection of the
+    /// other items. Only otherwise is the view reset.
     /// </summary>
     /// <param name="alwaysReset">Resets the view even if its items are unchanged, e.g. for a new source.</param>
     /// <returns><see langword="true"/> if the view has been reset.</returns>
@@ -175,20 +177,91 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
         _detachedGroupKeys = null;
 #endif
 
-        if (!alwaysReset && _groupingSourceItems.SequenceEqual(GetFilteredSortedItems(), ItemIdentityComparer.Instance))
+        if (!alwaysReset)
         {
+            var items = GetFilteredSortedItems();
+
+            if (_groupingSourceItems.SequenceEqual(items, ItemIdentityComparer.Instance))
+            {
 #if WINDOWS
-            // The same items in the same order can still belong to other groups than before.
-            if (HaveSameGroupKeys(detachedGroupKeys, GetGroupKeys()))
+                // The same items in the same order can still belong to other groups than before.
+                if (HaveSameGroupKeys(detachedGroupKeys, GetGroupKeys()))
+                {
+                    return false;
+                }
+#else
+                return false;
+#endif
+            }
+            else if (TrySyncViewIncrementally(items))
             {
                 return false;
             }
-#else
-            return false;
-#endif
         }
 
         HandleSourceChanged();
+        return true;
+    }
+
+    /// <summary>
+    /// Turns the view into <paramref name="items"/> by removing and inserting single items instead of
+    /// resetting it. Not done for a grouped view, for duplicate items or for too many changes.
+    /// </summary>
+    /// <returns><see langword="true"/> if the view now holds <paramref name="items"/>.</returns>
+    private bool TrySyncViewIncrementally(List<object?> items)
+    {
+#if WINDOWS
+        if (GroupDescriptions.Count > 0) return false;
+#endif
+
+        var comparer = ItemIdentityComparer.Instance;
+        var oldIndexes = new Dictionary<object, int>(comparer!);
+
+        for (var index = 0; index < _view.Count; index++)
+        {
+            if (_view[index] is not { } item || !oldIndexes.TryAdd(item, index)) return false;
+        }
+
+        // The items that stay where they are: the ones found in the same relative order in both lists.
+        var kept = new HashSet<object>(comparer!);
+        var nextOldIndex = 0;
+
+        foreach (var item in items)
+        {
+            if (item is null) return false;
+
+            if (oldIndexes.TryGetValue(item, out var oldIndex) && oldIndex >= nextOldIndex)
+            {
+                if (!kept.Add(item)) return false;
+                nextOldIndex = oldIndex + 1;
+            }
+        }
+
+        if (_view.Count - kept.Count + items.Count - kept.Count > MaxIncrementalSyncChanges) return false;
+
+        for (var index = _view.Count - 1; index >= 0; index--)
+        {
+            if (!kept.Contains(_view[index]!))
+            {
+                RemoveFromView(index, _view[index]);
+            }
+        }
+
+        for (var index = 0; index < items.Count; index++)
+        {
+            if (index < _view.Count && comparer.Equals(_view[index], items[index])) continue;
+
+            _groupingSourceItems.Insert(index, items[index]);
+            _view.Insert(index, items[index]);
+
+            if (index <= CurrentPosition)
+            {
+                CurrentPosition++;
+            }
+
+            OnVectorChanged(new VectorChangedEventArgs(CollectionChange.ItemInserted, index, items[index]));
+        }
+
         return true;
     }
 

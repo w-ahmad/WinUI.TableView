@@ -1322,17 +1322,35 @@ public partial class TableView : ListView
             return;
         }
 
-        // The view is reset if the source changed while the control was unloaded, which clears the selection.
+        // If the source changed while the control was unloaded, the view is brought up to date item by item,
+        // which keeps the selection, or reset, which clears it.
         var selectedItems = SelectedItems.ToList();
+        var isReset = _collectionView.AttachToSource();
 
-        if (_collectionView.AttachToSource())
+#if !WINDOWS
+        // Uno keeps an item selected after it has been removed from the view.
+        if (SelectionMode is ListViewSelectionMode.Single)
         {
-            if (selectedItems.Count > 0)
+            if (SelectedItem is { } selectedItem && !Items.Contains(selectedItem))
             {
-                RestoreSelection(selectedItems);
+                SelectedItem = null;
             }
         }
         else
+        {
+            foreach (var removedItem in SelectedItems.Where(item => !Items.Contains(item)).ToList())
+            {
+                SelectedItems.Remove(removedItem);
+            }
+        }
+#endif
+
+        if (SelectedItems.Count < selectedItems.Count)
+        {
+            RestoreSelection(selectedItems);
+        }
+
+        if (!isReset)
         {
             // The rows were kept, but their items may have changed while nothing was listening to them.
             EnsureCellsStyle();

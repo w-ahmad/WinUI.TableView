@@ -145,6 +145,45 @@ public class TableViewLifecycleTests
         }
     }
 
+    // Restoring the selection after a reset is too late for a two-way bound SelectedItem: null has been
+    // written to it by then. Changes to other items must not touch the selection at all.
+    [UITestMethod]
+    public async Task TableView_OtherItemsChangedWhileUnloaded_NeverClearsSelectionOnReload()
+    {
+        var items = CreateItems();
+        var tableView = CreateTableView(items);
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        tableView.SelectedItem = items[3];
+        var selected = items[3];
+
+        var selectedItemValues = new List<object?>();
+        var selectionChangedCount = 0;
+        tableView.RegisterPropertyChangedCallback(Microsoft.UI.Xaml.Controls.Primitives.Selector.SelectedItemProperty,
+            (_, _) => selectedItemValues.Add(tableView.SelectedItem));
+        tableView.SelectionChanged += (_, _) => selectionChangedCount++;
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        items.Insert(0, new LifecycleTestItem { Name = "Added while unloaded" });
+        items.RemoveAt(7);
+        items.Add(new LifecycleTestItem { Name = "Also added while unloaded" });
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        try
+        {
+            await WaitForRenderedFramesAsync(5);
+
+            Assert.AreEqual(items.Count, tableView.Items.Count, "Precondition: the reloaded table shows the changed source");
+            Assert.AreSame(selected, tableView.SelectedItem, "A reloaded table must keep its selection");
+            Assert.AreEqual(0, selectedItemValues.Count(value => value is null), "SelectedItem must never be cleared while reloading");
+            Assert.AreEqual(0, selectionChangedCount, "Reloading must not change the selection");
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
     // A sort key changed while the table is unloaded resets the view on reload; rows detached by that reset
     // must not touch their table afterwards (#469).
     [UITestMethod]
