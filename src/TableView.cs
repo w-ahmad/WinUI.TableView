@@ -567,10 +567,16 @@ public partial class TableView : ListView
             || canvasPoint.Value.Y < 0                                                  // Skip selection when the pointer is in the column header area (above the scroll canvas)
             || !pointerPoint.Properties.IsLeftButtonPressed                             // Skip selection when the left mouse button is not pressed
             || (pressedElement == this && !ShowDragRectangle)                           // Skip selection when the pointer is not over a Cell or Row, and ShowDragRectangle is false.
-            || (pressedElement != this && canvasPoint.Value.X < CellsHorizontalOffset)  // Skip selection when the pointer is in the row header area (and not on the TableView)
-            || isShiftKey)                                                              // Skip selection when the Shift key is held
+            || (pressedElement != this && canvasPoint.Value.X < CellsHorizontalOffset))  // Skip selection when the pointer is in the row header area (and not on the TableView)
         {
             return false;
+        }
+
+        // Shift extends the selection from the anchor instead of starting a new one. It has to be handled here:
+        // the base ListView never sees the plain clicks handled below, so its own anchor would be stale.
+        if (isShiftKey && SelectionMode is ListViewSelectionMode.Extended or ListViewSelectionMode.Multiple)
+        {
+            return ExtendSelectionTo(pressedElement, ctrlKey);
         }
 
         _lastDragCanvasPoint = null;
@@ -634,6 +640,34 @@ public partial class TableView : ListView
         }
 
         MakeSelectionInDragRect();
+        return true;
+    }
+
+    /// <summary>
+    /// Extends the selection from the selection anchor to the pressed row or cell (Shift+Click).
+    /// </summary>
+    /// <returns>True if the press was on a row or cell and the selection was extended to it.</returns>
+    internal bool ExtendSelectionTo(UIElement pressedElement, bool ctrlKey)
+    {
+        TableViewCellSlot slot;
+
+        if (pressedElement is TableViewCell cell)
+        {
+            slot = cell.Slot;
+            // A finished click or drag clears the cell anchor and leaves the current cell as the anchor.
+            SelectionStartCellSlot ??= CurrentCellSlot;
+        }
+        else if (pressedElement is TableViewRow row)
+        {
+            slot = new(row.Index, -1);
+        }
+        else
+        {
+            return false;
+        }
+
+        MakeSelection(slot, shiftKey: true, ctrlKey);
+
         return true;
     }
 
@@ -2033,7 +2067,33 @@ public partial class TableView : ListView
             {
                 SelectionStartRowIndex = CurrentRowIndex = SelectedIndex = slot.Row;
             }
-            if (selectionRange?.LastIndex > newSelection.LastIndex)
+
+            if (!ctrlKey)
+            {
+                // Without Ctrl the selection becomes exactly the anchor-to-target range, wherever the target is:
+                // a Shift+Click can land far from the previous range, on either side of the anchor.
+                foreach (var range in SelectedRanges.ToArray())
+                {
+                    if (range.LastIndex < newSelection.FirstIndex || range.FirstIndex > newSelection.LastIndex)
+                    {
+                        DeselectRange(range);
+                        continue;
+                    }
+
+                    foreach (var outside in range.Subtract(newSelection))
+                    {
+                        DeselectRange(outside);
+                    }
+                }
+
+                SelectRange(newSelection);
+            }
+            else if (SelectionMode is ListViewSelectionMode.Extended)
+            {
+                // Ctrl+Shift only ever adds the anchor-to-target range; rows that are already selected stay selected.
+                SelectRange(newSelection);
+            }
+            else if (selectionRange?.LastIndex > newSelection.LastIndex)
             {
                 var deselectRange = new ItemIndexRange(newSelection.LastIndex + 1, (uint)(selectionRange.LastIndex - newSelection.LastIndex));
                 DeselectRange(deselectRange);
@@ -2047,6 +2107,9 @@ public partial class TableView : ListView
             {
                 SelectRange(newSelection);
             }
+
+            // The target becomes the current row, so keyboard navigation continues from it; the anchor stays put.
+            CurrentRowIndex = slot.Row;
         }
 
         if (!IsReadOnly && slot.IsValid(this))
