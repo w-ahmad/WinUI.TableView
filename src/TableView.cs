@@ -2927,7 +2927,8 @@ public partial class TableView : ListView
 
         if (RowContextFlyout is not null && !eventArgs.Handled)
         {
-#if !WINDOWS
+#if !WINDOWS && !NET10_0_OR_GREATER
+            // Uno 6 flyouts do not inherit their target's DataContext; Uno 7 does, and dropped the property.
             RowContextFlyout.DataContext = row.Content;
 #endif
             RowContextFlyout.ShowAt(row.RowPresenter, new FlyoutShowOptions
@@ -2955,7 +2956,8 @@ public partial class TableView : ListView
 
         if (CellContextFlyout is not null && !eventArgs.Handled)
         {
-#if !WINDOWS
+#if !WINDOWS && !NET10_0_OR_GREATER
+            // Uno 6 flyouts do not inherit their target's DataContext; Uno 7 does, and dropped the property.
             CellContextFlyout.DataContext = cell.Row?.Content;
 #endif
             CellContextFlyout.ShowAt(cell, new FlyoutShowOptions
