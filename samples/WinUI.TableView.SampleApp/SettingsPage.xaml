@@ -88,6 +88,7 @@
                         <ComboBox x:Name="themeMode"
                                   Grid.Column="2"
                                   VerticalAlignment="Center"
+                                  AutomationProperties.Name="App theme"
                                   SelectionChanged="OnThemeModeSelectionChanged">
                             <ComboBoxItem Content="Light"
                                           Tag="Light" />
