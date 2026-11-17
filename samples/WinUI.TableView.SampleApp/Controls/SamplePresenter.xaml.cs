@@ -1,7 +1,6 @@
 #if WINDOWS
-using ColorCode; 
+using ColorCode;
 #endif
-using CommunityToolkit.WinUI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -24,7 +23,7 @@ namespace WinUI.TableView.SampleApp.Controls
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            if (this.FindParent<Page>() is { } page)
+            if (FindParentPage(this) is { } page)
             {
                 var pageName = page.GetType().Name;
 
@@ -47,6 +46,18 @@ namespace WinUI.TableView.SampleApp.Controls
         private void OnSubstitutionValueChanged(CodeSubstitution sender, object? args)
         {
             GenerateSyntaxHighlightedContent();
+        }
+
+        private static Page? FindParentPage(DependencyObject start)
+        {
+            var parent = VisualTreeHelper.GetParent(start);
+
+            while (parent is not null and not Page)
+            {
+                parent = VisualTreeHelper.GetParent(parent);
+            }
+
+            return parent as Page;
         }
 
         private void GenerateSyntaxHighlightedContent()
