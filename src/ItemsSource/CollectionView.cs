@@ -16,6 +16,7 @@ namespace WinUI.TableView;
 /// </summary>
 internal partial class CollectionView : ICollectionView, ISupportIncrementalLoading, INotifyPropertyChanging, INotifyPropertyChanged, IComparer<object?>
 {
+    private bool _isSourceDetached;
     private object[] _itemsCopy = []; // In case the source is ICollection, keep a copy of the items to keep track of removed items.
     private readonly List<object?> _view = [];
     // The full filtered+sorted set, in source order, regardless of grouping. _view is pruned down to just
@@ -132,6 +133,44 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
         {
             sourceCV.VectorChanged -= OnSourceVectorChanged;
         }
+    }
+
+    /// <summary>
+    /// Stops listening to the source collection and its items while keeping the current view, so that
+    /// the source no longer keeps this view (and its owner) alive or drives it.
+    /// </summary>
+    internal void DetachFromSource()
+    {
+        if (_isSourceDetached) return;
+
+        DetachCollectionChangedHandlers(Source);
+        DetachPropertyChangedHandlers(Source);
+        _isSourceDetached = true;
+    }
+
+    /// <summary>
+    /// Starts listening to the current source collection after <see cref="DetachFromSource"/>. Unless
+    /// <paramref name="alwaysReset"/> is set, the view is only reset if the source no longer produces the
+    /// items the view holds.
+    /// </summary>
+    /// <param name="alwaysReset">Resets the view even if its items are unchanged, e.g. for a new source.</param>
+    /// <returns><see langword="true"/> if the view has been reset.</returns>
+    internal bool AttachToSource(bool alwaysReset = false)
+    {
+        if (!_isSourceDetached) return false;
+
+        _isSourceDetached = false;
+        AttachCollectionChangedHandlers(Source);
+        AttachPropertyChangedHandlers(Source);
+        CreateItemsCopy(Source);
+
+        if (!alwaysReset && _groupingSourceItems.SequenceEqual(GetFilteredSortedItems(), ReferenceEqualityComparer.Instance))
+        {
+            return false;
+        }
+
+        HandleSourceChanged();
+        return true;
     }
 
     /// <summary>
@@ -360,26 +399,9 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     private void HandleSourceChanged()
     {
         var currentItem = CurrentItem;
+        var items = GetFilteredSortedItems();
         _groupingSourceItems.Clear();
-
-        if (Source is not null)
-        {
-            if (FilterDescriptions.Count > 0)
-            {
-                foreach (var item in Source)
-                {
-                    if (FilterDescriptions.All(x => x.Predicate(item)))
-                        _groupingSourceItems.Add(item);
-                }
-            }
-            else
-            {
-                _groupingSourceItems.AddRange(Source.OfType<object>());
-            }
-
-            if (SortDescriptions.Count > 0)
-                _groupingSourceItems.Sort(this);
-        }
+        _groupingSourceItems.AddRange(items);
 
 #if WINDOWS
         if (GroupDescriptions.Count > 0)
@@ -396,6 +418,35 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
 
         OnVectorChanged(new VectorChangedEventArgs(CollectionChange.Reset));
         MoveCurrentTo(currentItem);
+    }
+
+    /// <summary>
+    /// Gets the items of the source with the current filters and sorting applied.
+    /// </summary>
+    private List<object?> GetFilteredSortedItems()
+    {
+        var items = new List<object?>();
+
+        if (Source is not null)
+        {
+            if (FilterDescriptions.Count > 0)
+            {
+                foreach (var item in Source)
+                {
+                    if (FilterDescriptions.All(x => x.Predicate(item)))
+                        items.Add(item);
+                }
+            }
+            else
+            {
+                items.AddRange(Source.OfType<object>());
+            }
+
+            if (SortDescriptions.Count > 0)
+                items.Sort(this);
+        }
+
+        return items;
     }
 
     /// <summary>
