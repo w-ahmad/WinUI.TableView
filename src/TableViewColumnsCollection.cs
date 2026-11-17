@@ -177,8 +177,6 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
     /// <inheritdoc/>
     public void Move(int oldIndex, int newIndex)
     {
-        _movingColumn = true;
-
         if (oldIndex < 0 || oldIndex >= Count)
         {
             throw new ArgumentOutOfRangeException(nameof(oldIndex), "Old index is out of range.");
@@ -195,15 +193,22 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
         var column = (TableViewColumn)this[oldIndex];
         var columnBefore = (TableViewColumn)this[newIndex];
 
-        // Assign the same order value as the target column, ensuring correct order for the VisibleColumns collection.
-        column.Order = columnBefore.Order;
+        _movingColumn = true;
 
-        RemoveAt(oldIndex);
-        Insert(newIndex, column);
+        try
+        {
+            // Assign the same order value as the target column, ensuring correct order for the VisibleColumns collection.
+            column.Order = columnBefore.Order;
 
-        UpdateFrozenColumns();
-        CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, column, newIndex, oldIndex));
+            RemoveAt(oldIndex);
+            Insert(newIndex, column);
 
-        _movingColumn = false;
+            UpdateFrozenColumns();
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, column, newIndex, oldIndex));
+        }
+        finally
+        {
+            _movingColumn = false;
+        }
     }
 }

@@ -657,6 +657,8 @@ public partial class TableViewHeaderRow : Control
             var dropIndex = sourceIndex > _dropColumnIndex ? _dropColumnIndex + 1 : _dropColumnIndex;
             dropIndex = Math.Clamp(dropIndex, 0, TableView.Columns.VisibleColumns.Count - 1);
 
+            if (dropIndex == sourceIndex) return;
+
             var reorderingArgs = new TableViewColumnReorderingEventArgs(column, dropIndex);
             TableView.OnColumnReordering(reorderingArgs);
 
@@ -695,6 +697,8 @@ public partial class TableViewHeaderRow : Control
     public void InsertHeader(TableViewColumnHeader header)
     {
         if (TableView is null || header is not { Column: { } column }) return;
+
+        column.HeaderControl = header;
 
         var _frozenColumns = TableView.Columns.VisibleColumns.Where(x => x.IsFrozen).ToList();
         var _scrollableColumns = TableView.Columns.VisibleColumns.Where(x => !x.IsFrozen).ToList();
