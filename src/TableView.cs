@@ -2086,10 +2086,7 @@ public partial class TableView : ListView
                     }
                 }
 
-                if (!SelectedRanges.Any(x => x.Contains(newSelection)))
-                {
-                    SelectRange(newSelection);
-                }
+                SelectRange(newSelection);
             }
             else if (selectionRange?.LastIndex > newSelection.LastIndex)
             {

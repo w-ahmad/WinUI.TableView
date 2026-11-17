@@ -58,7 +58,7 @@ public class TableViewShiftClickSelectionTests
 
         Click(tableView, 1);
         // A Ctrl+Click adds the row to the selection and makes it the anchor.
-        tableView.SelectRange(new ItemIndexRange(4, 1));
+        tableView.SelectedItems.Add(tableView.Items[4]);
         tableView.SelectionStartRowIndex = 4;
         ShiftClick(tableView, 6, ctrlKey: true);
 
@@ -143,7 +143,8 @@ public class TableViewShiftClickSelectionTests
 
     private static int[] SelectedRows(TableView tableView)
     {
-        return [.. tableView.SelectedRanges.SelectMany(range => Enumerable.Range(range.FirstIndex, (int)range.Length)).Order()];
+        // Not SelectedRanges: Uno does not implement it on ListViewBase.
+        return [.. tableView.SelectedItems.Select(item => tableView.Items.IndexOf(item)).Order()];
     }
 
     private static TableViewCellSlot[] Slots(int firstRow, int firstColumn, int lastRow, int lastColumn)
