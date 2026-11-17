@@ -34,6 +34,10 @@ public partial class TableView : ListView
     private bool _shouldThrowBaseProeprtyChangedException = true;
     private bool _ensureColumns = true;
     private bool _isItemsSourceSuspended;
+#if WINDOWS
+    private bool _isRowsPanelSuspended;
+    private double _suspendedVerticalOffset;
+#endif
     private readonly List<TableViewRow> _rows = [];
     private readonly CollectionView _collectionView = [];
     private Border? _dragRectangle;
@@ -1236,6 +1240,9 @@ public partial class TableView : ListView
         }
 
         ResumeItemsSource();
+#if WINDOWS
+        ResumeRowsPanel();
+#endif
         EnsureAutoColumns();
 #if WINDOWS
         ApplyStickyGroupHeadersSetting();
@@ -1260,6 +1267,9 @@ public partial class TableView : ListView
         }
 
         SuspendItemsSource();
+#if WINDOWS
+        SuspendRowsPanel();
+#endif
     }
 
     /// <summary>
@@ -1272,10 +1282,60 @@ public partial class TableView : ListView
             return;
         }
 
+        // The view keeps its items, so the selection (and anything bound to it) survives being unloaded.
         _collectionView.ItemPropertyChanged -= OnItemPropertyChanged;
-        _collectionView.Source = Enumerable.Empty<object>();
+        _collectionView.DetachFromSource();
         _isItemsSourceSuspended = true;
     }
+
+#if WINDOWS
+    /// <summary>
+    /// Hides the realized rows while the control is unloaded. Rows that are visible when the control enters
+    /// the tree again are all laid out before its first frame, which stalls e.g. switching between tabs.
+    /// Only done on Windows: Uno's rows panel does not recover its extent after being collapsed.
+    /// </summary>
+    private void SuspendRowsPanel()
+    {
+        if (_isRowsPanelSuspended || ItemsPanelRoot is not { Visibility: Visibility.Visible } rowsPanel)
+        {
+            return;
+        }
+
+        _suspendedVerticalOffset = _scrollViewer?.VerticalOffset ?? 0d;
+        rowsPanel.Visibility = Visibility.Collapsed;
+        _isRowsPanelSuspended = true;
+    }
+
+    /// <summary>
+    /// Shows the rows again once the control has had the chance to render without them, and restores the
+    /// scroll position that hiding them reset.
+    /// </summary>
+    private void ResumeRowsPanel()
+    {
+        if (!_isRowsPanelSuspended)
+        {
+            return;
+        }
+
+        DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+        {
+            // Unloaded again in the meantime: the next load resumes the rows.
+            if (!_isRowsPanelSuspended || !IsLoaded)
+            {
+                return;
+            }
+
+            _isRowsPanelSuspended = false;
+            ItemsPanelRoot?.Visibility = Visibility.Visible;
+
+            if (_suspendedVerticalOffset > 0 && _scrollViewer is not null)
+            {
+                UpdateLayout(); // the extent is not known until the rows are laid out
+                _scrollViewer.ChangeView(null, _suspendedVerticalOffset, null, true);
+            }
+        });
+    }
+#endif
 
     /// <summary>
     /// Restores subscriptions to the current items source when the control is loaded.
@@ -1288,13 +1348,72 @@ public partial class TableView : ListView
         }
 
         _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
+        _isItemsSourceSuspended = false;
 
-        if (ItemsSource is IEnumerable source)
+        if (ItemsSource is IEnumerable source && !ReferenceEquals(_collectionView.Source, source))
         {
-            _collectionView.Source = source;
+            _collectionView.Source = source; // the source was replaced while the control was unloaded
+            return;
         }
 
-        _isItemsSourceSuspended = false;
+        // If the source changed while the control was unloaded, the view is brought up to date item by item,
+        // which keeps the selection, or reset, which clears it.
+        var selectedItems = SelectedItems.ToList();
+        var isReset = _collectionView.AttachToSource();
+
+#if !WINDOWS
+        // Uno keeps an item selected after it has been removed from the view.
+        if (SelectionMode is ListViewSelectionMode.Single)
+        {
+            if (SelectedItem is { } selectedItem && !Items.Contains(selectedItem))
+            {
+                SelectedItem = null;
+            }
+        }
+        else
+        {
+            foreach (var removedItem in SelectedItems.Where(item => !Items.Contains(item)).ToList())
+            {
+                SelectedItems.Remove(removedItem);
+            }
+        }
+#endif
+
+        if (SelectedItems.Count < selectedItems.Count)
+        {
+            RestoreSelection(selectedItems);
+        }
+
+        if (!isReset)
+        {
+            // The rows were kept, but their items may have changed while nothing was listening to them.
+            EnsureCellsStyle();
+        }
+    }
+
+    /// <summary>
+    /// Selects the given items again, skipping the ones that are no longer in the view.
+    /// </summary>
+    private void RestoreSelection(List<object> selectedItems)
+    {
+        if (SelectionMode is ListViewSelectionMode.Single)
+        {
+            if (Items.Contains(selectedItems[0]))
+            {
+                SelectedItem = selectedItems[0];
+            }
+
+            return;
+        }
+
+        if (SelectionMode is ListViewSelectionMode.None) return;
+
+        var indexes = selectedItems.Select(item => Items.IndexOf(item)).Where(index => index >= 0);
+
+        foreach (var range in IndexRangeHelper.GetRanges(indexes))
+        {
+            SelectRange(range);
+        }
     }
 
     /// <summary>

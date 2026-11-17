@@ -19,17 +19,12 @@ partial class CollectionView
         {
             if (field == value) return;
 
-            DetachCollectionChangedHandlers(field);
-            DetachPropertyChangedHandlers(field);
+            // Detaches from the old source, then attaches to the new one.
+            DetachFromSource();
             OnPropertyChanging();
             field = value;
 
-            AttachCollectionChangedHandlers(field);
-            AttachPropertyChangedHandlers(field);
-
-            CreateItemsCopy(field);
-
-            HandleSourceChanged();
+            AttachToSource(alwaysReset: true);
             OnPropertyChanged();
         }
     } = new List<object>();

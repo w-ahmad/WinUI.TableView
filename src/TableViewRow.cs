@@ -293,15 +293,17 @@ public partial class TableViewRow : ListViewItem
         // A height change (wrapped text, row details, ...) can push the current row out of view, so keep it
         // visible vertically. The horizontal position is left alone: a width change, such as resizing a
         // column, must not scroll the table to the current cell.
-        if (TableView is null || e.NewSize.Height == e.PreviousSize.Height) return;
+        // The row can be detached from its table while the scroll below is awaited (e.g. the view is reset),
+        // so the table is captured up front.
+        if (TableView is not { } tableView || e.NewSize.Height == e.PreviousSize.Height) return;
 
-        if (TableView.CurrentCellSlot?.Row == Index || TableView.CurrentRowIndex == Index)
+        if (tableView.CurrentCellSlot?.Row == Index || tableView.CurrentRowIndex == Index)
         {
-            _ = await TableView.ScrollRowIntoView(Index);
+            _ = await tableView.ScrollRowIntoView(Index);
         }
 
         // Update the row positions in the TableView after the size change.
-        TableView.UpdateRowPositions();
+        tableView.UpdateRowPositions();
     }
 
     /// <summary>

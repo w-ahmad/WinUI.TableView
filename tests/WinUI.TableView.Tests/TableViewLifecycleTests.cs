@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
 using System.Collections.ObjectModel;
+using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView.Tests;
 
@@ -56,7 +57,7 @@ public class TableViewLifecycleTests
     }
 
     [UITestMethod]
-    public async Task TableView_UnloadAndReload_SuspendsAndRestoresItems()
+    public async Task TableView_UnloadAndReload_DetachesFromSourceAndResyncs()
     {
         var items = CreateItems();
         var tableView = CreateTableView(items);
@@ -65,15 +66,276 @@ public class TableViewLifecycleTests
         Assert.AreEqual(items.Count, tableView.Items.Count, "Precondition: the loaded table shows its items");
 
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
-        Assert.AreEqual(0, tableView.Items.Count, "An unloaded table must release its items source");
+        items.Add(new LifecycleTestItem { Name = "Added while unloaded" });
+        Assert.AreEqual(items.Count - 1, tableView.Items.Count, "An unloaded table must not listen to its items source");
 
         await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
         try
         {
-            Assert.AreEqual(items.Count, tableView.Items.Count, "A reloaded table must restore its items");
+            Assert.AreEqual(items.Count, tableView.Items.Count, "A reloaded table must pick up changes made while it was unloaded");
+
+            items.Add(new LifecycleTestItem { Name = "Added after reload" });
+            Assert.AreEqual(items.Count, tableView.Items.Count, "A reloaded table must listen to its items source again");
         }
         finally
         {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
+    // Tables hosted in TabViewItems are unloaded on every tab switch; that must not clear the selection (#469).
+    [UITestMethod]
+    public async Task TableView_UnloadAndReload_KeepsSelection()
+    {
+        var items = CreateItems();
+        var tableView = CreateTableView(items);
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        tableView.SelectedItem = items[3];
+
+        var selectionChangedCount = 0;
+        tableView.SelectionChanged += (_, _) => selectionChangedCount++;
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        Assert.AreSame(items[3], tableView.SelectedItem, "An unloaded table must keep its selection");
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        try
+        {
+            Assert.AreSame(items[3], tableView.SelectedItem, "A reloaded table must keep its selection");
+            Assert.AreEqual(0, selectionChangedCount, "Unloading and reloading must not change the selection");
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
+    [UITestMethod]
+    public async Task TableView_SourceChangedWhileUnloaded_RestoresSelectionOnReload()
+    {
+        var items = CreateItems();
+        var tableView = CreateTableView(items);
+        tableView.SelectionMode = ListViewSelectionMode.Extended;
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        var removed = items[4];
+        var expected = new object[] { items[3], items[5] };
+
+        foreach (var item in items.Skip(3).Take(3).ToList())
+        {
+            tableView.SelectedItems.Add(item);
+        }
+
+        Assert.AreEqual(3, tableView.SelectedItems.Count, "Precondition: three rows are selected");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        items.Remove(removed);
+        items.Insert(0, new LifecycleTestItem { Name = "Added while unloaded" });
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        try
+        {
+            CollectionAssert.AreEquivalent(expected, tableView.SelectedItems.ToArray(),
+                "A reloaded table must reselect the items that are still in its source");
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
+    // Restoring the selection after a reset is too late for a two-way bound SelectedItem: null has been
+    // written to it by then. Changes to other items must not touch the selection at all.
+    [UITestMethod]
+    public async Task TableView_OtherItemsChangedWhileUnloaded_NeverClearsSelectionOnReload()
+    {
+        var items = CreateItems();
+        var tableView = CreateTableView(items);
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        tableView.SelectedItem = items[3];
+        var selected = items[3];
+
+        var selectedItemValues = new List<object?>();
+        var selectionChangedCount = 0;
+        tableView.RegisterPropertyChangedCallback(Microsoft.UI.Xaml.Controls.Primitives.Selector.SelectedItemProperty,
+            (_, _) => selectedItemValues.Add(tableView.SelectedItem));
+        tableView.SelectionChanged += (_, _) => selectionChangedCount++;
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        items.Insert(0, new LifecycleTestItem { Name = "Added while unloaded" });
+        items.RemoveAt(7);
+        items.Add(new LifecycleTestItem { Name = "Also added while unloaded" });
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        try
+        {
+            await WaitForRenderedFramesAsync(5);
+
+            Assert.AreEqual(items.Count, tableView.Items.Count, "Precondition: the reloaded table shows the changed source");
+            Assert.AreSame(selected, tableView.SelectedItem, "A reloaded table must keep its selection");
+            Assert.AreEqual(0, selectedItemValues.Count(value => value is null), "SelectedItem must never be cleared while reloading");
+            Assert.AreEqual(0, selectionChangedCount, "Reloading must not change the selection");
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
+    // A sort key changed while the table is unloaded resets the view on reload; rows detached by that reset
+    // must not touch their table afterwards (#469).
+    [UITestMethod]
+    public async Task TableView_SortKeyChangedWhileUnloaded_ResortsAndKeepsSelectionOnReload()
+    {
+        var items = CreateItems();
+        var tableView = CreateTableView(items);
+        tableView.SortDescriptions.Add(new SortDescription(nameof(LifecycleTestItem.Name), SortDirection.Ascending));
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        tableView.SelectedItem = items[3];
+        await WaitForRenderedFramesAsync(5);
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        items[3].Name = "Item 8a";
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        try
+        {
+            await WaitForRenderedFramesAsync(10);
+
+            Assert.AreSame(items[3], tableView.Items[8], "A reloaded table must apply its sorting to changed items");
+            Assert.AreSame(items[3], tableView.SelectedItem, "A reloaded table must keep its selection");
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
+    // Rows are hidden while the table is unloaded so that it re-enters the tree quickly; they must come
+    // back, at the scroll position the table was left at.
+    [UITestMethod]
+    public async Task TableView_UnloadAndReload_RestoresRowsAndScrollPosition()
+    {
+        var items = new ObservableCollection<LifecycleTestItem>(
+            Enumerable.Range(0, 200).Select(i => new LifecycleTestItem { Name = $"Item {i}" }));
+        var tableView = CreateTableView(items);
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        var scrollViewer = tableView.FindDescendant<ScrollViewer>();
+        Assert.IsNotNull(scrollViewer);
+
+        scrollViewer!.ChangeView(null, 1000d, null, true);
+        await WaitForRenderedFramesAsync(10);
+        var offset = scrollViewer.VerticalOffset;
+        Assert.IsTrue(offset > 0, "Precondition: the table is scrolled down");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        try
+        {
+            await WaitForRenderedFramesAsync(20);
+
+            Assert.AreEqual(Visibility.Visible, tableView.ItemsPanelRoot.Visibility, "A reloaded table must show its rows again");
+            Assert.AreEqual(offset, scrollViewer.VerticalOffset, 1d, "A reloaded table must keep its scroll position");
+
+            var realizedRows = tableView.FindDescendants().OfType<TableViewRow>().Where(row => row.ActualHeight > 0).ToList();
+            Assert.IsTrue(realizedRows.Count > 0, "A reloaded table must lay out its rows");
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
+    // Rows are kept while the table is unloaded, when nothing listens to their items; conditional cell styles
+    // have to be evaluated again on reload even if the view itself did not change.
+    [UITestMethod]
+    public async Task TableView_ItemChangedWhileUnloaded_RefreshesConditionalCellStylesOnReload()
+    {
+        var items = CreateItems();
+        var tableView = CreateTableView(items);
+        var style = new Style(typeof(TableViewCell));
+        tableView.ConditionalCellStyles.Add(new TableViewConditionalCellStyle
+        {
+            Style = style,
+            Predicate = context => context.DataItem is LifecycleTestItem { Name: "Changed" }
+        });
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        await WaitForRenderedFramesAsync(5);
+
+        var cell = (tableView.ContainerFromIndex(2) as TableViewRow)?.FindDescendant<TableViewCell>();
+        Assert.IsNotNull(cell, "Precondition: the row's cell is realized");
+        Assert.AreNotSame(style, cell!.Style, "Precondition: the conditional style does not apply yet");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        items[2].Name = "Changed";
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        try
+        {
+            await WaitForRenderedFramesAsync(10);
+
+            cell = (tableView.ContainerFromIndex(2) as TableViewRow)?.FindDescendant<TableViewCell>();
+            Assert.IsNotNull(cell, "Precondition: the row's cell is realized");
+            Assert.AreSame(style, cell!.Style, "A reloaded table must re-evaluate its conditional cell styles");
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
+    // A height change makes the current row scroll itself into view, which is awaited. The row can be
+    // detached from its table before that completes, and must not use the table afterwards (#469, a guard
+    // lost in #455).
+    [UITestMethod]
+    public async Task Row_DetachedWhileScrollingItselfIntoView_DoesNotThrow()
+    {
+        var items = CreateItems();
+        var tableView = CreateTableView(items);
+        Exception? unhandled = null;
+
+        // The row's size handler runs outside the test, so what it throws only shows up as an unhandled exception.
+        void OnUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+        {
+            unhandled ??= e.Exception;
+            e.Handled = true;
+        }
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        Application.Current.UnhandledException += OnUnhandledException;
+        try
+        {
+            tableView.CurrentCellSlot = new TableViewCellSlot(0, 0);
+            await WaitForRenderedFramesAsync(5);
+
+            var row = tableView.ContainerFromIndex(0) as TableViewRow;
+            Assert.IsNotNull(row, "Precondition: the current row is realized");
+
+            // Runs right after the row's own handler has started awaiting the scroll.
+            var sizeChanged = false;
+            row!.SizeChanged += (_, _) =>
+            {
+                sizeChanged = true;
+                items.Clear();
+                tableView.UpdateLayout();
+            };
+
+            row.MinHeight = row.ActualHeight + 40;
+            await WaitForRenderedFramesAsync(10);
+            await Task.Delay(200);
+
+            Assert.IsTrue(sizeChanged, "Precondition: the row's height changed");
+            Assert.IsNull(row.TableView, "Precondition: the row was detached from its table");
+            Assert.IsNull(unhandled, $"The detached row threw: {unhandled}");
+        }
+        finally
+        {
+            Application.Current.UnhandledException -= OnUnhandledException;
             await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
         }
     }
