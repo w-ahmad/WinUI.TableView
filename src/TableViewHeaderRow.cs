@@ -358,9 +358,8 @@ public partial class TableViewHeaderRow : Control
                     if (isShared)
                     {
                         starEdge += width * scale;
-                        var pixels = Math.Floor(starEdge + 0.001) - starPixels;
-                        starPixels += pixels;
-                        width = pixels / scale;
+                        width = ClampColumnWidth(column, (Math.Floor(starEdge + 0.001) - starPixels) / scale);
+                        starPixels += width * scale;
                     }
 
                     header.Width = width;

@@ -187,11 +187,12 @@ public partial class TableViewRowPresenter : Control
             // positioned purely by HeaderColumn's width (see TableViewRowPresenter.xaml's ColumnDefinitions),
             // so it never depends on any data column's width and is safe to skip recomputing (via a real
             // TransformToVisual walk, on every visible row) during a resize drag.
-            if (TableView.CollectionView.Count > 0 && !TableView.IsColumnResizing && _v_gridLine is not null)
+            if (TableView.CollectionView.Count > 0 && !TableView.IsColumnResizing && _v_gridLine is not null && _frozenCellsPanel is not null)
             {
-                var transform = _v_gridLine.TransformToVisual(this);
-                var relativePosition = transform.TransformPoint(new Point(0, 0));
-                var offset = _v_gridLine.Visibility is Visibility.Visible ? relativePosition.X : 0d;
+                // Measured from the cells, so it holds when the grid line is collapsed.
+                var transform = _frozenCellsPanel.TransformToVisual(this);
+                var offset = transform.TransformPoint(new Point(0, 0)).X;
+                offset -= _v_gridLine.Visibility is Visibility.Visible ? _v_gridLine.ActualWidth : 0d;
                 offset -= Math.Max(cornerRadius.TopLeft, cornerRadius.BottomLeft);
 
                 TableView.SetValue(TableView.CellsHorizontalOffsetProperty, Math.Max(0, offset));
