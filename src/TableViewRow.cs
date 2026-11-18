@@ -453,6 +453,37 @@ public partial class TableViewRow : ListViewItem
                 TableView.Columns.CollectionChanged += OnColumnsCollectionChanged;
                 TableView.Columns.ColumnPropertyChanged += OnColumnPropertyChanged;
             }
+
+            SyncCellsWithColumns();
+        }
+    }
+
+    /// <summary>
+    /// Brings the cells up to date with the columns. A row without a TableView does not hear about
+    /// column changes, so a recycled row can come back with cells for other columns or other widths.
+    /// </summary>
+    private void SyncCellsWithColumns()
+    {
+        if (TableView?.Columns is null || RowPresenter is null || _ensureCells)
+        {
+            return;
+        }
+
+        var cells = RowPresenter.Cells;
+
+        if (!cells.Select(x => x.Column).SequenceEqual(TableView.Columns.VisibleColumns))
+        {
+            _ensureCells = true;
+            EnsureCells();
+            return;
+        }
+
+        foreach (var cell in cells)
+        {
+            if (cell.Column is { } column && cell.Width != column.ActualWidth)
+            {
+                cell.Width = column.ActualWidth;
+            }
         }
     }
 
