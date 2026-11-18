@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
@@ -14,7 +15,18 @@ namespace WinUI.TableView.Tests;
 [TestClass]
 public class TableViewColumnReorderTests
 {
+    private TableView? _tableView;
+
     public TestContext TestContext { get; set; } = null!;
+
+    [TestCleanup]
+    public async Task CleanupAsync()
+    {
+        if (_tableView is not null)
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(_tableView);
+        }
+    }
 
     [UITestMethod]
     public async Task Move_ToSameIndex_KeepsColumnPropertyNotifications()
@@ -69,12 +81,33 @@ public class TableViewColumnReorderTests
     }
 
     [UITestMethod]
+    public async Task Move_WhenCollectionChangedHandlerThrows_KeepsColumnPropertyNotifications()
+    {
+        var tableView = await CreateTableViewAsync();
+        var column = tableView.Columns[0];
+
+        void ThrowOnMove(object? sender, NotifyCollectionChangedEventArgs e) => throw new InvalidOperationException();
+
+        tableView.Columns.CollectionChanged += ThrowOnMove;
+        Assert.ThrowsExactly<InvalidOperationException>(() => tableView.Columns.Move(0, 2));
+        tableView.Columns.CollectionChanged -= ThrowOnMove;
+
+        var changes = CaptureColumnPropertyChanges(tableView);
+        column.ActualWidth += 40;
+
+        Assert.Contains(nameof(TableViewColumn.ActualWidth), changes,
+            "A move that failed part-way must not switch off ColumnPropertyChanged");
+    }
+
+    [UITestMethod]
     public async Task Move_ToDifferentIndex_KeepsHeaderControl()
     {
         var tableView = await CreateTableViewAsync();
         var headerRow = tableView.FindDescendant<TableViewHeaderRow>()!;
         var column = tableView.Columns[0];
         var header = column.HeaderControl;
+        var style = new Style(typeof(TableViewColumnHeader));
+        header!.Style = style;
 
         tableView.Columns.Move(0, 2);
 
@@ -82,6 +115,8 @@ public class TableViewColumnReorderTests
         Assert.IsNotNull(header, "Precondition: the column had a header");
         Assert.AreSame(header, column.HeaderControl,
             "A moved column must keep pointing at its header");
+        Assert.AreSame(style, header.Style,
+            "Moving a column must not replace a style set on its header");
         Assert.AreSame(header, headerRow.Headers[2],
             "The moved column's header must sit at the column's new position");
     }
@@ -185,7 +220,7 @@ public class TableViewColumnReorderTests
         return changes;
     }
 
-    private static async Task<TableView> CreateTableViewAsync()
+    private async Task<TableView> CreateTableViewAsync()
     {
         var tableView = new TableView
         {
@@ -211,6 +246,7 @@ public class TableViewColumnReorderTests
         };
 
         await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        _tableView = tableView;
 
         return tableView;
     }
