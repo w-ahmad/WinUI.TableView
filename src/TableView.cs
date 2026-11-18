@@ -2999,6 +2999,7 @@ public partial class TableView : ListView
     private void EnsureGridLines()
     {
         _headerRow?.EnsureGridLines();
+        _headerRow?.CalculateHeaderWidths();
 
         foreach (var row in _rows)
         {

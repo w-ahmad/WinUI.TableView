@@ -44,6 +44,7 @@ public partial class TableViewHeaderRow : Control
     private Image? _dragHeaderImage;
     private DispatcherTimer? _desiredWidthTimer;
     private bool _calculatingHeaderWidths;
+    private bool _cellsAvailableWidthPending;
     private int _dropColumnIndex;
     private bool _isValidDropTarget;
     private readonly Dictionary<DependencyProperty, long> _callbackTokens = [];
@@ -292,11 +293,11 @@ public partial class TableViewHeaderRow : Control
             var autoColumns = allColumns.Where(x => x.Width.IsAuto).ToList();
             var absoluteColumns = allColumns.Where(x => x.Width.IsAbsolute).ToList();
 
-            var availableWidth = TableView.ActualWidth - 32;
+            var availableWidth = GetCellsAvailableWidth();
             var starUnitWeight = starColumns.Sum(x => x.Width.Value);
 
-            var fixedWidth = autoColumns.Sum(GetColumnDesiredWidth);
-            fixedWidth += absoluteColumns.Sum(x => x.ActualWidth);
+            var fixedWidth = autoColumns.Sum(x => ClampColumnWidth(x, GetColumnDesiredWidth(x)));
+            fixedWidth += absoluteColumns.Sum(x => ClampColumnWidth(x, x.Width.Value));
 
             availableWidth -= fixedWidth;
             var starUnitWidth = starUnitWeight > 0 ? availableWidth / starUnitWeight : 0;
@@ -333,6 +334,10 @@ public partial class TableViewHeaderRow : Control
             } while (starWidthAdjusted);
 
 
+            var scale = XamlRoot?.RasterizationScale ?? 1d;
+            var starEdge = 0d;
+            var starPixels = 0d;
+
             foreach (var column in allColumns)
             {
                 if (column.HeaderControl is { } header)
@@ -344,9 +349,19 @@ public partial class TableViewHeaderRow : Control
 
                     var minWidth = column.MinWidth ?? TableView.MinColumnWidth;
                     var maxWidth = column.MaxWidth ?? TableView.MaxColumnWidth;
+                    var isShared = column.Width.IsStar && width >= minWidth && width <= maxWidth;
 
                     width = width < minWidth ? minWidth : width;
                     width = width > maxWidth ? maxWidth : width;
+
+                    // Snap to whole pixels so layout rounding can't push the columns past the viewport.
+                    if (isShared)
+                    {
+                        starEdge += width * scale;
+                        width = ClampColumnWidth(column, (Math.Floor(starEdge + 0.001) - starPixels) / scale);
+                        starPixels += width * scale;
+                    }
+
                     header.Width = width;
                 }
             }
@@ -355,6 +370,50 @@ public partial class TableViewHeaderRow : Control
 
             TableView.UpdateHorizontalScrollBarMargin();
         }
+    }
+
+    /// <summary>
+    /// Limits a width to the column's minimum and maximum widths.
+    /// </summary>
+    private double ClampColumnWidth(TableViewColumn column, double width)
+    {
+        var minWidth = column.MinWidth ?? TableView?.MinColumnWidth ?? 0d;
+        var maxWidth = column.MaxWidth ?? TableView?.MaxColumnWidth ?? double.PositiveInfinity;
+
+        width = width < minWidth ? minWidth : width;
+        return width > maxWidth ? maxWidth : width;
+    }
+
+    /// <summary>
+    /// Gets the width the columns can share without overflowing the rows.
+    /// </summary>
+    private double GetCellsAvailableWidth()
+    {
+        if (TableView is null) return 0d;
+
+        var offset = TableView.CellsHorizontalOffset;
+        offset = double.IsNaN(offset) ? _cornerButtonPanel?.ActualWidth ?? 0d : offset;
+        offset += _v_gridLine?.Visibility is Visibility.Visible ? _v_gridLine.Width : 0d;
+
+        var border = TableView.BorderThickness;
+        var padding = TableView.Padding;
+
+        return Math.Max(0d, TableView.ActualWidth - border.Left - border.Right - padding.Left - padding.Right - offset);
+    }
+
+    /// <summary>
+    /// Handles changes to the properties that set the width left for the cells.
+    /// </summary>
+    private void OnTableViewCellsAvailableWidthChanged(DependencyObject sender, DependencyProperty dp)
+    {
+        if (_cellsAvailableWidthPending || TableView?.Columns.VisibleColumns.Any(x => x.Width.IsStar) is not true) return;
+
+        // Deferred: the offset changes while the rows are being arranged.
+        _cellsAvailableWidthPending = DispatcherQueue.TryEnqueue(() =>
+        {
+            _cellsAvailableWidthPending = false;
+            CalculateHeaderWidths();
+        });
     }
 
     /// <summary>
@@ -800,6 +859,9 @@ public partial class TableViewHeaderRow : Control
             UnregisterPropertyChangedCallback(oldTableView, ListViewBase.SelectionModeProperty);
             UnregisterPropertyChangedCallback(oldTableView, TableView.CornerButtonModeProperty);
             UnregisterPropertyChangedCallback(oldTableView, TableView.ItemsSourceProperty);
+            UnregisterPropertyChangedCallback(oldTableView, TableView.CellsHorizontalOffsetProperty);
+            UnregisterPropertyChangedCallback(oldTableView, BorderThicknessProperty);
+            UnregisterPropertyChangedCallback(oldTableView, PaddingProperty);
         }
 
         if (e.NewValue is TableView newTableView)
@@ -816,6 +878,11 @@ public partial class TableViewHeaderRow : Control
                 newTableView.RegisterPropertyChangedCallback(TableView.CornerButtonModeProperty, OnTableViewCornerButtonModePropertyChanged);
             _callbackTokens[TableView.ItemsSourceProperty] =
                 newTableView.RegisterPropertyChangedCallback(TableView.ItemsSourceProperty, OnTableViewItemsSourcePropertyChanged);
+
+            foreach (var property in new[] { TableView.CellsHorizontalOffsetProperty, BorderThicknessProperty, PaddingProperty })
+            {
+                _callbackTokens[property] = newTableView.RegisterPropertyChangedCallback(property, OnTableViewCellsAvailableWidthChanged);
+            }
         }
     }
 

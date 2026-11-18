@@ -160,6 +160,11 @@
                         </FontIcon>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
+                <NavigationViewItem Content="Star Columns">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE740;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
                 <NavigationViewItem Content="Headers Visibility">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE7B3;" />
