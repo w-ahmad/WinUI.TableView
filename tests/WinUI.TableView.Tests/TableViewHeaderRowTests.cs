@@ -318,7 +318,22 @@ public class TableViewHeaderRowTests
         return AssertStarColumnsFillTheRowWidthAsync(TableViewHeadersVisibility.Columns, ListViewSelectionMode.Multiple);
     }
 
-    private static async Task AssertStarColumnsFillTheRowWidthAsync(TableViewHeadersVisibility headersVisibility, ListViewSelectionMode selectionMode)
+    [UITestMethod]
+    public Task StarColumns_FillTheRowWidth_WithRowHeadersAndNoGridLines()
+    {
+        return AssertStarColumnsFillTheRowWidthAsync(TableViewHeadersVisibility.All, ListViewSelectionMode.Extended, TableViewGridLinesVisibility.None);
+    }
+
+    [UITestMethod]
+    public Task StarColumns_FillTheRowWidth_WithMultipleSelectionAndNoGridLines()
+    {
+        return AssertStarColumnsFillTheRowWidthAsync(TableViewHeadersVisibility.Columns, ListViewSelectionMode.Multiple, TableViewGridLinesVisibility.None);
+    }
+
+    private static async Task AssertStarColumnsFillTheRowWidthAsync(
+        TableViewHeadersVisibility headersVisibility,
+        ListViewSelectionMode selectionMode,
+        TableViewGridLinesVisibility gridLinesVisibility = TableViewGridLinesVisibility.All)
     {
         var tableView = new TableView
         {
@@ -327,6 +342,8 @@ public class TableViewHeaderRowTests
             AutoGenerateColumns = false,
             HeadersVisibility = headersVisibility,
             SelectionMode = selectionMode,
+            GridLinesVisibility = gridLinesVisibility,
+            HeaderGridLinesVisibility = gridLinesVisibility,
             ItemsSource = new[] { new HeaderRowTestItem { Name = "Alpha" }, new HeaderRowTestItem { Name = "Beta" } }
         };
 
@@ -359,6 +376,11 @@ public class TableViewHeaderRowTests
             var cellRight = lastCell.TransformToVisual(tableView).TransformPoint(new Windows.Foundation.Point(lastCell.ActualWidth, 0)).X;
             var rowRight = tableView.ActualWidth - tableView.BorderThickness.Right;
             Assert.AreEqual(rowRight, cellRight, 1d, "The last star column must end at the right edge of the row");
+
+            var header = tableView.Columns[0].HeaderControl!;
+            var headerLeft = header.TransformToVisual(tableView).TransformPoint(default).X;
+            var cellLeft = row.Cells[0].TransformToVisual(tableView).TransformPoint(default).X;
+            Assert.AreEqual(headerLeft, cellLeft, 1d, "The headers must stay aligned with the cells");
 
             var scrollViewer = tableView.FindDescendant<ScrollViewer>();
             Assert.AreEqual(0d, scrollViewer!.ScrollableWidth, 0.01, "Star columns must not overflow the viewport");
