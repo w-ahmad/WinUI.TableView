@@ -166,14 +166,14 @@ public partial class TableViewHeaderRow : Control
     {
         if (Headers.FirstOrDefault(h => h.Column == column) is { } header)
         {
-            RemoveHeader(header);
+            RemoveFromPanel(header);
             InsertHeader(header);
         }
 
         if (newIndex >= 0 && newIndex < TableView?.FrozenColumnCount &&
             _frozenHeadersPanel?.Children.OfType<TableViewColumnHeader>().LastOrDefault() is { } frozenHeader)
         {
-            RemoveHeader(frozenHeader);
+            RemoveFromPanel(frozenHeader);
             InsertHeader(frozenHeader);
         }
     }
@@ -698,8 +698,6 @@ public partial class TableViewHeaderRow : Control
     {
         if (TableView is null || header is not { Column: { } column }) return;
 
-        column.HeaderControl = header;
-
         var _frozenColumns = TableView.Columns.VisibleColumns.Where(x => x.IsFrozen).ToList();
         var _scrollableColumns = TableView.Columns.VisibleColumns.Where(x => !x.IsFrozen).ToList();
 
@@ -732,6 +730,11 @@ public partial class TableViewHeaderRow : Control
             header.Column.HeaderControl = null;
         }
 
+        RemoveFromPanel(header);
+    }
+
+    private void RemoveFromPanel(TableViewColumnHeader header)
+    {
         if (_frozenHeadersPanel?.Children.Contains(header) ?? false)
         {
             _frozenHeadersPanel.Children.Remove(header);
