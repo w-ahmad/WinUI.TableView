@@ -45,6 +45,7 @@ public partial class TableViewHeaderRow : Control
     private DispatcherTimer? _desiredWidthTimer;
     private bool _calculatingHeaderWidths;
     private bool _cellsAvailableWidthPending;
+    private bool _isPaddingApplied;
     private int _dropColumnIndex;
     private bool _isValidDropTarget;
     private readonly Dictionary<DependencyProperty, long> _callbackTokens = [];
@@ -402,10 +403,28 @@ public partial class TableViewHeaderRow : Control
     }
 
     /// <summary>
+    /// Insets the header row by the TableView's horizontal padding, which its rows are already inset by.
+    /// </summary>
+    private void ApplyTableViewPadding()
+    {
+        var padding = TableView?.Padding ?? default;
+
+        if (!_isPaddingApplied && padding.Left == 0 && padding.Right == 0) return;
+
+        Margin = new Thickness(padding.Left, 0, padding.Right, 0);
+        _isPaddingApplied = true;
+    }
+
+    /// <summary>
     /// Handles changes to the properties that set the width left for the cells.
     /// </summary>
     private void OnTableViewCellsAvailableWidthChanged(DependencyObject sender, DependencyProperty dp)
     {
+        if (dp == PaddingProperty)
+        {
+            ApplyTableViewPadding();
+        }
+
         if (_cellsAvailableWidthPending || TableView?.Columns.VisibleColumns.Any(x => x.Width.IsStar) is not true) return;
 
         // Deferred: the offset changes while the rows are being arranged.
@@ -884,6 +903,8 @@ public partial class TableViewHeaderRow : Control
                 _callbackTokens[property] = newTableView.RegisterPropertyChangedCallback(property, OnTableViewCellsAvailableWidthChanged);
             }
         }
+
+        ApplyTableViewPadding();
     }
 
     /// <summary>
