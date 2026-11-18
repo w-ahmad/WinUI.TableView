@@ -301,10 +301,24 @@ public class TableViewHeaderRowTests
     }
 
     [UITestMethod]
-    [DataRow(TableViewHeadersVisibility.None, ListViewSelectionMode.Extended)]
-    [DataRow(TableViewHeadersVisibility.All, ListViewSelectionMode.Extended)]
-    [DataRow(TableViewHeadersVisibility.Columns, ListViewSelectionMode.Multiple)]
-    public async Task StarColumns_FillTheRowWidth(TableViewHeadersVisibility headersVisibility, ListViewSelectionMode selectionMode)
+    public Task StarColumns_FillTheRowWidth_WithoutHeaders()
+    {
+        return AssertStarColumnsFillTheRowWidthAsync(TableViewHeadersVisibility.None, ListViewSelectionMode.Extended);
+    }
+
+    [UITestMethod]
+    public Task StarColumns_FillTheRowWidth_WithRowHeaders()
+    {
+        return AssertStarColumnsFillTheRowWidthAsync(TableViewHeadersVisibility.All, ListViewSelectionMode.Extended);
+    }
+
+    [UITestMethod]
+    public Task StarColumns_FillTheRowWidth_WithMultipleSelection()
+    {
+        return AssertStarColumnsFillTheRowWidthAsync(TableViewHeadersVisibility.Columns, ListViewSelectionMode.Multiple);
+    }
+
+    private static async Task AssertStarColumnsFillTheRowWidthAsync(TableViewHeadersVisibility headersVisibility, ListViewSelectionMode selectionMode)
     {
         var tableView = new TableView
         {
