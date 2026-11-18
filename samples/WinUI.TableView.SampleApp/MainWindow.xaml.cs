@@ -61,6 +61,7 @@ public sealed partial class MainWindow : Window
                 "Alternate Row Color" => typeof(AlternateRowColorPage),
                 "Context Flyouts" => typeof(ContextFlyoutsPage),
                 "Row Reorder" => typeof(ReorderRowsPage),
+                "Column Reorder" => typeof(ReorderColumnsPage),
                 "Pagination" => typeof(PaginationPage),
                 "Incremental Loading" => typeof(IncrementalLoadingPage),
                 "Filtering" => typeof(FilteringPage),
