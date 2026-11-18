@@ -300,6 +300,61 @@ public class TableViewHeaderRowTests
         }
     }
 
+    [UITestMethod]
+    [DataRow(TableViewHeadersVisibility.None, ListViewSelectionMode.Extended)]
+    [DataRow(TableViewHeadersVisibility.All, ListViewSelectionMode.Extended)]
+    [DataRow(TableViewHeadersVisibility.Columns, ListViewSelectionMode.Multiple)]
+    public async Task StarColumns_FillTheRowWidth(TableViewHeadersVisibility headersVisibility, ListViewSelectionMode selectionMode)
+    {
+        var tableView = new TableView
+        {
+            Width = 401,
+            Height = 300,
+            AutoGenerateColumns = false,
+            HeadersVisibility = headersVisibility,
+            SelectionMode = selectionMode,
+            ItemsSource = new[] { new HeaderRowTestItem { Name = "Alpha" }, new HeaderRowTestItem { Name = "Beta" } }
+        };
+
+        tableView.Columns.Add(new TableViewTextColumn
+        {
+            Width = new GridLength(90),
+            Binding = new Binding { Path = new PropertyPath(nameof(HeaderRowTestItem.Name)) }
+        });
+
+        for (var i = 0; i < 2; i++)
+        {
+            tableView.Columns.Add(new TableViewTextColumn
+            {
+                Width = new GridLength(1, GridUnitType.Star),
+                Binding = new Binding { Path = new PropertyPath(nameof(HeaderRowTestItem.Name)) }
+            });
+        }
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+
+        try
+        {
+            await DrainDispatcherQueueAsync();
+            tableView.UpdateLayout();
+
+            var row = tableView.FindDescendants().OfType<TableViewRow>().FirstOrDefault();
+            Assert.IsNotNull(row, "Precondition: a row is realized");
+
+            var lastCell = row!.Cells[^1];
+            var cellRight = lastCell.TransformToVisual(tableView).TransformPoint(new Windows.Foundation.Point(lastCell.ActualWidth, 0)).X;
+            var rowRight = tableView.ActualWidth - tableView.BorderThickness.Right;
+            Assert.AreEqual(rowRight, cellRight, 1d, "The last star column must end at the right edge of the row");
+
+            var scrollViewer = tableView.FindDescendant<ScrollViewer>();
+            Assert.AreEqual(0d, scrollViewer!.ScrollableWidth, 0.01, "Star columns must not overflow the viewport");
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
     private static void AssertScrollBarSpace(TableView tableView)
     {
         var scrollViewer = tableView.FindDescendant<ScrollViewer>();
