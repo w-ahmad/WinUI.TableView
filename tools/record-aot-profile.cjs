@@ -23,10 +23,12 @@
 // run the normal publish (tools/publish-and-serve-wasm.ps1) so the new profile is applied.
 //
 // Pages are found by name: the recording switches on Uno's accessibility layer, which mirrors the
-// navigation menu into the DOM with live positions, so the menu's order, expanded groups and scroll
-// position don't matter, and a page this branch's sample doesn't have is skipped. Clicks inside a page
-// are still coordinates against the fixed 1280x900 viewport - check the screenshots in the work folder
-// if a page's layout changes. The accessibility layer's own code is recorded into the profile as well.
+// navigation menu into the DOM with live positions, so the menu's order and expanded groups don't
+// matter, and a page this branch's sample doesn't have is skipped. The window is 1280 wide and starts
+// 900 high; it grows until the whole menu fits, because the positions are only right while the menu is
+// unscrolled. Clicks inside a page are still coordinates from the page's top-left corner - check the
+// screenshots in the work folder if a page's layout changes. The accessibility layer's own code is
+// recorded into the profile as well.
 const fs = require("node:fs");
 const path = require("node:path");
 const os = require("node:os");
@@ -150,10 +152,26 @@ async function findMenuItem(page, name) {
     }, name);
 }
 
-// The menu scrolls between the hamburger button and the footer's Settings item.
-async function menuBounds(page) {
-    const settings = await findMenuItem(page, "Settings");
-    return { top: 60, bottom: settings ? settings.y - 40 : 820 };
+// Makes the window tall enough to show the whole menu. The menu must never scroll: once it has, Uno 7's
+// accessibility layer reports its items away from where they are drawn, and a click opens another page.
+async function fitMenu(page) {
+    for (let attempt = 0; attempt < 5; attempt++) {
+        const overflow = await page.evaluate(() => {
+            let last = 0, footer = Infinity;
+            for (const element of document.querySelectorAll("#uno-semantics-root [aria-label]")) {
+                if (element.getAttribute("role") === "label") continue;
+                const rect = element.getBoundingClientRect();
+                if (rect.width <= 100 || rect.height > 60 || rect.x >= 320) continue; // menu items only
+                if (element.getAttribute("aria-label") === "Settings") footer = rect.top;
+                else last = Math.max(last, rect.bottom);
+            }
+            return last - (footer - 12);
+        });
+        if (!(overflow > 0)) return;
+        const size = page.viewportSize();
+        await page.setViewportSize({ width: size.width, height: Math.ceil(size.height + overflow + 40) });
+        await page.waitForTimeout(1500);
+    }
 }
 
 const titleClip = { x: 340, y: 15, width: 600, height: 50 };
@@ -164,18 +182,12 @@ function createNavigator(page) {
     return async function navigate(name) {
         if (name === current) return true;
         await page.keyboard.press("Escape"); // close any flyout an earlier step left open
-        for (let attempt = 0; attempt < 15; attempt++) {
+        for (let attempt = 0; attempt < 3; attempt++) {
+            await fitMenu(page); // opening a page can expand its group, which lengthens the menu
             const item = await findMenuItem(page, name);
             if (!item) {
                 console.log(`  (no '${name}' page in this sample - skipped)`);
                 return false;
-            }
-            const { top, bottom } = await menuBounds(page);
-            if (item.y < top || item.y > bottom) {
-                await page.mouse.move(160, (top + bottom) / 2);
-                await page.mouse.wheel(0, item.y < top ? -320 : 320);
-                await page.waitForTimeout(600);
-                continue;
             }
             const before = await page.screenshot({ clip: titleClip });
             await page.mouse.click(item.x, item.y);
@@ -210,8 +222,8 @@ async function wheel(page, steps, delta = 80) {
 async function recordScrolling(page, navigate) {
     await wheel(page, 20); // Overview, the landing page
     for (const name of ["Grid Lines", "Grouping", "Virtualization", "Selection", "Corner Button", "Alternate Row Color",
-        "Context Flyouts", "Row Reorder", "Pagination", "Incremental Loading", "Editing", "Clipboard Actions", "Data Export",
-        "Conditional Cell Styling", "Column Sizing", "Headers Visibility"]) {
+        "Context Flyouts", "Row Reorder", "Column Reorder", "Pagination", "Incremental Loading", "Editing", "Clipboard Actions", "Data Export",
+        "Conditional Cell Styling", "Column Sizing", "Star Columns", "Headers Visibility"]) {
         if (await navigate(name)) await wheel(page, 20);
     }
     if (await navigate("Virtualization")) { // jump to row 5000 through the page's own controls
@@ -333,6 +345,7 @@ async function record(chromium) {
             if (only && name !== only) continue;
             console.log(`Recording ${name} ...`);
             const page = await browser.newPage({ viewport: { width: 1280, height: 900 }, serviceWorkers: "block", acceptDownloads: true });
+            page.setDefaultTimeout(300000); // the interpreted app can keep a screenshot waiting past the 30 s default
             const logs = [];
             page.on("console", message => logs.push(message.text()));
             page.on("pageerror", error => logs.push(String(error.stack || error)));
