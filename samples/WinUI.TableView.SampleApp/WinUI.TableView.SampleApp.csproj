@@ -42,8 +42,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- The showcase pages display their own source files -->
-    <EmbeddedResource Include="Pages\Showcases\*.xaml;Pages\Showcases\*.xaml.cs;Showcases\*.cs"
+    <!-- The sample pages display their own source files -->
+    <EmbeddedResource Include="Pages\**\*.xaml;Pages\**\*.xaml.cs;Showcases\*.cs"
                       LogicalName="Source/%(Filename)%(Extension)" />
   </ItemGroup>
 

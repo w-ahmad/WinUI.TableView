@@ -7,258 +7,259 @@ using Microsoft.UI.Xaml.Media;
 using System.Text.RegularExpressions;
 using WinUI.TableView.SampleApp.Helpers;
 
-namespace WinUI.TableView.SampleApp.Controls
+namespace WinUI.TableView.SampleApp.Controls;
+
+/// <summary>
+/// Hosts a sample: its title, the running example with its options, and a switch in the toolbar that
+/// swaps the example for its code. The code is the page's <see cref="Xaml"/> and <see cref="CSharp"/>
+/// snippets when it has them, otherwise the page's real source files, which the project embeds as resources.
+/// </summary>
+public sealed partial class SamplePresenter : UserControl
 {
-    public sealed partial class SamplePresenter : UserControl
+    private const string RepositoryUri = "https://github.com/w-ahmad/WinUI.TableView/tree/main/samples/WinUI.TableView.SampleApp/";
+    private const string XamlView = "XAML";
+    private const string CSharpView = "C#";
+    private const int TrivialCodeBehindLines = 14;
+    private static readonly Regex _substitutionPattern = SubstitutionPattern();
+    private readonly Dictionary<string, FrameworkElement> _codeViews = [];
+    private bool _isLoaded;
+
+    public SamplePresenter()
     {
-        private const string _baseUri = "https://github.com/w-ahmad/WinUI.TableView/tree/main/samples/WinUI.TableView.SampleApp/";
-        private static readonly Regex _substitutionPattern = SubstitutionPattern();
+        InitializeComponent();
 
-        public SamplePresenter()
-        {
-            InitializeComponent();
-
-            Substitutions = [];
-        }
-
-        private void OnLoaded(object sender, RoutedEventArgs e)
-        {
-            if (FindParentPage(this) is { } page)
-            {
-                var pageName = page.GetType().Name;
-                var folder = SampleCatalog.Find(page.GetType())?.Folder ?? "Pages";
-
-                PageMarkupGitHubLink.NavigateUri = new Uri($"{_baseUri}{folder}/{pageName}.xaml", UriKind.Absolute);
-                PageCodeGitHubLink.NavigateUri = new Uri($"{_baseUri}{folder}/{pageName}.xaml.cs", UriKind.Absolute);
-
-            }
-
-            if (Substitutions is not null)
-            {
-                foreach (var substitution in Substitutions)
-                {
-                    substitution.ValueChanged += OnSubstitutionValueChanged;
-                }
-            }
-
-            GenerateSyntaxHighlightedContent();
-        }
-
-        private void OnSubstitutionValueChanged(CodeSubstitution sender, object? args)
-        {
-            GenerateSyntaxHighlightedContent();
-        }
-
-        private static Page? FindParentPage(DependencyObject start)
-        {
-            var parent = VisualTreeHelper.GetParent(start);
-
-            while (parent is not null and not Page)
-            {
-                parent = VisualTreeHelper.GetParent(parent);
-            }
-
-            return parent as Page;
-        }
-
-        private void GenerateSyntaxHighlightedContent()
-        {
-            OnXamlChanged();
-            OnCSharpChanged();
-        }
-
-        private void OnToggleThemeButtonClicked(object sender, RoutedEventArgs e)
-        {
-#if WINDOWS
-            exampleContainer.RequestedTheme = exampleContainer.ActualTheme == ElementTheme.Light ? ElementTheme.Dark : ElementTheme.Light;
-            themeBackground.Visibility = exampleContainer.ActualTheme != ThemeHelper.ActualTheme ? Visibility.Visible : Visibility.Collapsed;
-#else
-            if (App.Current.MainWindow.Content is FrameworkElement root)
-            {
-                root.RequestedTheme = root.ActualTheme == ElementTheme.Light ? ElementTheme.Dark : ElementTheme.Light;
-            }
-#endif
-        }
-
-        private void OnSourceExpanderExpanded(Expander sender, ExpanderExpandingEventArgs args)
-        {
-            sourceRow.Height = new GridLength(1, GridUnitType.Star);
-        }
-
-        private void OnSourceExpanderCollapsed(Expander sender, ExpanderCollapsedEventArgs args)
-        {
-            sourceRow.Height = GridLength.Auto;
-        }
-
-        private void OnXamlChanged()
-        {
-            if (!IsLoaded) return;
-
-            ToggleSourceExpanderVisibility();
-
-            if (!string.IsNullOrWhiteSpace(Xaml))
-            {
-                AddFormattedCode(Xaml, "XAML");
-            }
-        }
-
-        private void OnCSharpChanged()
-        {
-            if (!IsLoaded) return;
-
-            ToggleSourceExpanderVisibility();
-
-            if (!string.IsNullOrWhiteSpace(CSharp))
-            {
-                AddFormattedCode(CSharp, "C#");
-            }
-        }
-
-        private void AddFormattedCode(string code, string lang)
-        {
-            code = ApplySubstitutions(code);
-
-#if WINDOWS
-            var formatter = new RichTextBlockFormatter(ThemeHelper.ActualTheme);
-            var textBlock = new RichTextBlock
-            {
-                Margin = new Thickness(0, 8, 0, 0),
-                FontFamily = new FontFamily("Consolas"),
-                IsTextSelectionEnabled = true
-            }; 
-
-            formatter.FormatRichTextBlock(code, lang == "XAML" ? Languages.Xml : Languages.CSharp, textBlock);
-#else
-            var textBlock = new TextBlock
-            {
-                Text = code,
-                Margin = new Thickness(0, 8, 0, 0),
-                FontFamily = new FontFamily("Consolas"),
-            };
-#endif
-
-            var pivotItem = sourcePivot.Items.OfType<PivotItem>().FirstOrDefault(x => x.Header?.Equals(lang) is true);
-
-            if (pivotItem is not null)
-            {
-                var scrollViewer = (ScrollViewer)pivotItem.Content;
-                scrollViewer.Content = textBlock;
-            }
-            else
-            {
-                sourcePivot.Items.Insert(lang == "XAML" ? 0 : sourcePivot.Items.Count, new PivotItem
-                {
-                    Header = lang,
-                    Content = new ScrollViewer
-                    {
-                        VerticalScrollMode = ScrollMode.Auto,
-                        VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-                        Content = textBlock
-                    }
-                });
-            }
-        }
-
-        private string ApplySubstitutions(string code)
-        {
-            // Trim out stray blank lines at start and end.
-            code = code.TrimStart('\n').TrimEnd();
-
-            // Also trim out spaces at the end of each line
-            code = string.Join('\n', code.Split('\n').Select(s => s.TrimEnd()));
-
-            if (Substitutions != null)
-            {
-                // Perform any applicable substitutions.
-                code = _substitutionPattern.Replace(code, match =>
-                {
-                    foreach (var substitution in Substitutions)
-                    {
-                        if (substitution.Key == match.Groups[1].Value)
-                        {
-                            return substitution.ValueAsString()!;
-                        }
-                    }
-                    throw new KeyNotFoundException(match.Groups[1].Value);
-                });
-            }
-
-            return code;
-        }
-
-        private void ToggleSourceExpanderVisibility()
-        {
-            sourceExpander.Visibility = !string.IsNullOrWhiteSpace(Xaml) || !string.IsNullOrWhiteSpace(CSharp)
-                ? Visibility.Visible : Visibility.Collapsed;
-        }
-
-        private static void OnXamlChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            if (d is SamplePresenter presenter)
-            {
-                presenter.OnXamlChanged();
-            }
-        }
-
-        private static void OnCSharpChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            if (d is SamplePresenter presenter)
-            {
-                presenter.OnCSharpChanged();
-            }
-        }
-
-        public string? Header
-        {
-            get => (string?)GetValue(HeaderProperty);
-            set => SetValue(HeaderProperty, value);
-        }
-
-        public string? Description
-        {
-            get => (string?)GetValue(DescriptionProperty);
-            set => SetValue(DescriptionProperty, value);
-        }
-
-        public object? Example
-        {
-            get => GetValue(ExampleProperty);
-            set => SetValue(ExampleProperty, value);
-        }
-
-        public object? Options
-        {
-            get => GetValue(OptionsProperty);
-            set => SetValue(OptionsProperty, value);
-        }
-
-        public string? Xaml
-        {
-            get => (string?)GetValue(XamlCodeProperty);
-            set => SetValue(XamlCodeProperty, value);
-        }
-
-        public string? CSharp
-        {
-            get => (string?)GetValue(CSharpCodeProperty);
-            set => SetValue(CSharpCodeProperty, value);
-        }
-
-        public IList<CodeSubstitution> Substitutions
-        {
-            get => (IList<CodeSubstitution>)GetValue(SubstitutionsProperty);
-            set => SetValue(SubstitutionsProperty, value);
-        }
-
-        public static readonly DependencyProperty HeaderProperty = DependencyProperty.Register(nameof(Header), typeof(string), typeof(SamplePresenter), new PropertyMetadata(null));
-        public static readonly DependencyProperty DescriptionProperty = DependencyProperty.Register(nameof(Description), typeof(string), typeof(SamplePresenter), new PropertyMetadata(null));
-        public static readonly DependencyProperty ExampleProperty = DependencyProperty.Register(nameof(Example), typeof(object), typeof(SamplePresenter), new PropertyMetadata(null));
-        public static readonly DependencyProperty OptionsProperty = DependencyProperty.Register(nameof(Options), typeof(object), typeof(SamplePresenter), new PropertyMetadata(null));
-        public static readonly DependencyProperty XamlCodeProperty = DependencyProperty.Register(nameof(Xaml), typeof(string), typeof(SamplePresenter), new PropertyMetadata(null, OnXamlChanged));
-        public static readonly DependencyProperty CSharpCodeProperty = DependencyProperty.Register(nameof(CSharp), typeof(string), typeof(SamplePresenter), new PropertyMetadata(null, OnCSharpChanged));
-        public static readonly DependencyProperty SubstitutionsProperty = DependencyProperty.Register(nameof(Substitutions), typeof(IList<CodeSubstitution>), typeof(SamplePresenter), new PropertyMetadata(null));
-
-        [GeneratedRegex(@"\$\(([^\)]+)\)")]
-        private static partial Regex SubstitutionPattern();
+        Substitutions = [];
     }
+
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        if (_isLoaded) return;
+        _isLoaded = true;
+
+        var pageType = FindParentPage()?.GetType();
+        var pageFolder = pageType is null ? "Pages" : SampleCatalog.Find(pageType)?.Folder ?? "Pages";
+
+        AddView(XamlView, $"{pageType?.Name}.xaml", pageFolder, !string.IsNullOrWhiteSpace(Xaml));
+        AddView(CSharpView, $"{pageType?.Name}.xaml.cs", pageFolder, !string.IsNullOrWhiteSpace(CSharp));
+
+        foreach (var file in (Sources ?? string.Empty).Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            AddView(file, file, "Showcases", false);
+        }
+
+        foreach (var substitution in Substitutions)
+        {
+            substitution.ValueChanged += (_, _) => RefreshCode();
+        }
+    }
+
+    private void AddView(string label, string file, string folder, bool hasSnippet)
+    {
+        var source = ReadSource(file);
+
+        if (source is not null)
+        {
+            sourceLinks.Children.Add(new HyperlinkButton
+            {
+                Content = file,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                HorizontalContentAlignment = HorizontalAlignment.Left,
+                NavigateUri = new Uri($"{RepositoryUri}{folder}/{file}")
+            });
+        }
+
+        // A code-behind that only calls InitializeComponent is not worth a tab.
+        var isWorthShowing = hasSnippet || (source is not null && (label != CSharpView || source.Count(c => c == '\n') > TrivialCodeBehindLines));
+
+        if (isWorthShowing)
+        {
+            viewSelector.Items.Add(new SelectorBarItem { Text = label, Tag = file });
+        }
+    }
+
+    private Page? FindParentPage()
+    {
+        var parent = VisualTreeHelper.GetParent(this);
+
+        while (parent is not null and not Page)
+        {
+            parent = VisualTreeHelper.GetParent(parent);
+        }
+
+        return parent as Page;
+    }
+
+    private void OnViewSelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
+    {
+        ShowSelectedView();
+    }
+
+    private void ShowSelectedView()
+    {
+        var item = viewSelector.SelectedItem;
+        var isCode = item?.Tag is string;
+
+        exampleContainer.Visibility = isCode ? Visibility.Collapsed : Visibility.Visible;
+        optionsContainer.Visibility = isCode || Options is null ? Visibility.Collapsed : Visibility.Visible;
+        codeContainer.Visibility = isCode ? Visibility.Visible : Visibility.Collapsed;
+
+        if (item?.Tag is not string file) return;
+
+        if (!_codeViews.TryGetValue(item.Text, out var view))
+        {
+            var snippet = item.Text switch
+            {
+                XamlView => Xaml,
+                CSharpView => CSharp,
+                _ => null
+            };
+            var code = string.IsNullOrWhiteSpace(snippet) ? ReadSource(file) ?? string.Empty : ApplySubstitutions(snippet);
+
+            _codeViews[item.Text] = view = CreateCodeView(code, item.Text == XamlView);
+        }
+
+        codeScroller.Content = view;
+    }
+
+    /// <summary>
+    /// Rebuilds the code after a snippet or one of its substitutions changed.
+    /// </summary>
+    private void RefreshCode()
+    {
+        _codeViews.Clear();
+
+        if (_isLoaded)
+        {
+            ShowSelectedView();
+        }
+    }
+
+    private static string? ReadSource(string file)
+    {
+        using var stream = typeof(SamplePresenter).Assembly.GetManifestResourceStream($"Source/{file}");
+
+        if (stream is null) return null;
+
+        using var reader = new StreamReader(stream);
+
+        return reader.ReadToEnd().Replace("\r\n", "\n").TrimEnd();
+    }
+
+    private static FrameworkElement CreateCodeView(string code, bool isXaml)
+    {
+#if WINDOWS
+        var textBlock = new RichTextBlock
+        {
+            FontFamily = new FontFamily("Cascadia Mono, Consolas"),
+            FontSize = 13,
+            IsTextSelectionEnabled = true
+        };
+
+        new RichTextBlockFormatter(ThemeHelper.ActualTheme).FormatRichTextBlock(code, isXaml ? Languages.Xml : Languages.CSharp, textBlock);
+#else
+        var textBlock = new TextBlock
+        {
+            Text = code,
+            FontFamily = new FontFamily("Consolas"),
+            FontSize = 13,
+            IsTextSelectionEnabled = true
+        };
+#endif
+        return textBlock;
+    }
+
+    private string ApplySubstitutions(string code)
+    {
+        code = string.Join('\n', code.Replace("\r\n", "\n").Trim('\n').TrimEnd().Split('\n').Select(line => line.TrimEnd()));
+
+        return _substitutionPattern.Replace(code, match =>
+        {
+            var substitution = Substitutions.FirstOrDefault(substitution => substitution.Key == match.Groups[1].Value)
+                ?? throw new KeyNotFoundException(match.Groups[1].Value);
+
+            return substitution.ValueAsString()!;
+        });
+    }
+
+    private void OnToggleThemeClicked(object sender, RoutedEventArgs e)
+    {
+#if WINDOWS
+        exampleContainer.RequestedTheme = exampleContainer.ActualTheme == ElementTheme.Light ? ElementTheme.Dark : ElementTheme.Light;
+        themeBackground.Visibility = exampleContainer.ActualTheme != ThemeHelper.ActualTheme ? Visibility.Visible : Visibility.Collapsed;
+#else
+        if (App.Current.MainWindow.Content is FrameworkElement root)
+        {
+            root.RequestedTheme = root.ActualTheme == ElementTheme.Light ? ElementTheme.Dark : ElementTheme.Light;
+        }
+#endif
+    }
+
+    private static void OnCodeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        (d as SamplePresenter)?.RefreshCode();
+    }
+
+    public string? Header
+    {
+        get => (string?)GetValue(HeaderProperty);
+        set => SetValue(HeaderProperty, value);
+    }
+
+    public string? Description
+    {
+        get => (string?)GetValue(DescriptionProperty);
+        set => SetValue(DescriptionProperty, value);
+    }
+
+    public object? Example
+    {
+        get => GetValue(ExampleProperty);
+        set => SetValue(ExampleProperty, value);
+    }
+
+    public object? Options
+    {
+        get => GetValue(OptionsProperty);
+        set => SetValue(OptionsProperty, value);
+    }
+
+    /// <summary>
+    /// A XAML snippet to show instead of the page's whole .xaml file. $(Key) is replaced by the substitution of that key.
+    /// </summary>
+    public string? Xaml
+    {
+        get => (string?)GetValue(XamlCodeProperty);
+        set => SetValue(XamlCodeProperty, value);
+    }
+
+    /// <summary>
+    /// A C# snippet to show instead of the page's whole code-behind file.
+    /// </summary>
+    public string? CSharp
+    {
+        get => (string?)GetValue(CSharpCodeProperty);
+        set => SetValue(CSharpCodeProperty, value);
+    }
+
+    /// <summary>
+    /// Semicolon separated names of further source files to show, e.g. "Deal.cs".
+    /// </summary>
+    public string? Sources { get; set; }
+
+    public IList<CodeSubstitution> Substitutions
+    {
+        get => (IList<CodeSubstitution>)GetValue(SubstitutionsProperty);
+        set => SetValue(SubstitutionsProperty, value);
+    }
+
+    public static readonly DependencyProperty HeaderProperty = DependencyProperty.Register(nameof(Header), typeof(string), typeof(SamplePresenter), new PropertyMetadata(null));
+    public static readonly DependencyProperty DescriptionProperty = DependencyProperty.Register(nameof(Description), typeof(string), typeof(SamplePresenter), new PropertyMetadata(null));
+    public static readonly DependencyProperty ExampleProperty = DependencyProperty.Register(nameof(Example), typeof(object), typeof(SamplePresenter), new PropertyMetadata(null));
+    public static readonly DependencyProperty OptionsProperty = DependencyProperty.Register(nameof(Options), typeof(object), typeof(SamplePresenter), new PropertyMetadata(null));
+    public static readonly DependencyProperty XamlCodeProperty = DependencyProperty.Register(nameof(Xaml), typeof(string), typeof(SamplePresenter), new PropertyMetadata(null, OnCodeChanged));
+    public static readonly DependencyProperty CSharpCodeProperty = DependencyProperty.Register(nameof(CSharp), typeof(string), typeof(SamplePresenter), new PropertyMetadata(null, OnCodeChanged));
+    public static readonly DependencyProperty SubstitutionsProperty = DependencyProperty.Register(nameof(Substitutions), typeof(IList<CodeSubstitution>), typeof(SamplePresenter), new PropertyMetadata(null));
+
+    [GeneratedRegex(@"\$\(([^\)]+)\)")]
+    private static partial Regex SubstitutionPattern();
 }

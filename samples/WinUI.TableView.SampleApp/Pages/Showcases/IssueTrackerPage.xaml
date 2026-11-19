@@ -38,10 +38,10 @@
         </Style>
     </Page.Resources>
 
-    <controls:ShowcasePresenter Header="Issue Tracker"
+    <controls:SamplePresenter Header="Issue Tracker"
                                 Description="An editable backlog. Double-click a cell to edit it: change a status and the issue moves to its new group."
-                                Sources="IssueTrackerPage.xaml;IssueTrackerPage.xaml.cs;WorkItem.cs">
-        <controls:ShowcasePresenter.Example>
+                                Sources="WorkItem.cs">
+        <controls:SamplePresenter.Example>
             <Border CornerRadius="8"
                     BorderThickness="1"
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -345,6 +345,6 @@
                     </tv:TableView>
                 </Grid>
             </Border>
-        </controls:ShowcasePresenter.Example>
-    </controls:ShowcasePresenter>
+        </controls:SamplePresenter.Example>
+    </controls:SamplePresenter>
 </Page>

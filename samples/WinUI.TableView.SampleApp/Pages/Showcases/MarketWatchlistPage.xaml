@@ -76,10 +76,10 @@
         </tv:TableViewConditionalCellStylesCollection>
     </Page.Resources>
 
-    <controls:ShowcasePresenter Header="Market Watchlist"
+    <controls:SamplePresenter Header="Market Watchlist"
                                 Description="Prices tick several times a second. Cells redraw through plain property change notifications; no rows are rebuilt."
-                                Sources="MarketWatchlistPage.xaml;MarketWatchlistPage.xaml.cs;Stock.cs">
-        <controls:ShowcasePresenter.Example>
+                                Sources="Stock.cs">
+        <controls:SamplePresenter.Example>
             <Grid RowSpacing="12">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -396,6 +396,6 @@
                     </Grid>
                 </Border>
             </Grid>
-        </controls:ShowcasePresenter.Example>
-    </controls:ShowcasePresenter>
+        </controls:SamplePresenter.Example>
+    </controls:SamplePresenter>
 </Page>

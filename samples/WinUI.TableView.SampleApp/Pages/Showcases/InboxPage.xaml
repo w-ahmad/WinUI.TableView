@@ -38,10 +38,10 @@
         </DataTemplate>
     </Page.Resources>
 
-    <controls:ShowcasePresenter Header="Inbox"
+    <controls:SamplePresenter Header="Inbox"
                                 Description="TableView as a mail list. Unread rows are bold, flags toggle in place, and the selected row fills the reading pane."
-                                Sources="InboxPage.xaml;InboxPage.xaml.cs;MailMessage.cs">
-        <controls:ShowcasePresenter.Example>
+                                Sources="MailMessage.cs">
+        <controls:SamplePresenter.Example>
             <Grid ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -331,6 +331,6 @@
                     </Grid>
                 </Border>
             </Grid>
-        </controls:ShowcasePresenter.Example>
-    </controls:ShowcasePresenter>
+        </controls:SamplePresenter.Example>
+    </controls:SamplePresenter>
 </Page>

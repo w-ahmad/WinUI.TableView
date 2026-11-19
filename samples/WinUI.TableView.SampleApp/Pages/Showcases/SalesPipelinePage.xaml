@@ -77,10 +77,10 @@
         </DataTemplate>
     </Page.Resources>
 
-    <controls:ShowcasePresenter Header="Sales Pipeline"
+    <controls:SamplePresenter Header="Sales Pipeline"
                                 Description="A deal ledger for 5,000 opportunities. Every cell below is a TableView column: pills, avatars, bars and all."
-                                Sources="SalesPipelinePage.xaml;SalesPipelinePage.xaml.cs;Deal.cs">
-        <controls:ShowcasePresenter.Example>
+                                Sources="Deal.cs">
+        <controls:SamplePresenter.Example>
             <Grid RowSpacing="12">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -455,6 +455,6 @@
                     </Grid>
                 </Border>
             </Grid>
-        </controls:ShowcasePresenter.Example>
-    </controls:ShowcasePresenter>
+        </controls:SamplePresenter.Example>
+    </controls:SamplePresenter>
 </Page>
