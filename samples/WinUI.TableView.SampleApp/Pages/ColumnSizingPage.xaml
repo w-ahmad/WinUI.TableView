@@ -1,51 +1,118 @@
 <Page x:Class="WinUI.TableView.SampleApp.Pages.ColumnSizingPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:pages="using:WinUI.TableView.SampleApp.Pages"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:tv="using:WinUI.TableView"
+      xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
       xmlns:helpers="using:WinUI.TableView.SampleApp.Helpers"
       d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
       mc:Ignorable="d"
       DataContextChanged="OnDataContextChanged">
 
     <Grid>
-        <controls:SamplePresenter Description="This sample demonstrates the different ways a column can be sized." 
-                                  Header="Column Sizing">
+        <controls:SamplePresenter x:Name="presenter"
+                                  Header="Column Sizing"
+                                  Description="A column width can be fixed, sized to its content (Auto) or a share of the space left (star), within optional minimum and maximum widths. Drag a header edge to resize, or double-click it to fit.">
             <controls:SamplePresenter.Example>
                 <tv:TableView x:Name="tableView"
-                              ItemsSource="{Binding Items}" />
+                              ItemsSource="{Binding Items}"
+                              AutoGenerateColumns="False"
+                              GridLinesVisibility="All">
+                    <tv:TableView.Columns>
+                        <!--  Fixed, and not resizable  -->
+                        <tv:TableViewNumberColumn Header="Id (80)"
+                                                  Width="80"
+                                                  CanResize="False"
+                                                  Binding="{Binding Id}" />
+                        <!--  As wide as its widest cell or its header  -->
+                        <tv:TableViewTextColumn Header="First name (Auto)"
+                                                Width="Auto"
+                                                Binding="{Binding FirstName}" />
+                        <!--  Auto, measured from the cells only  -->
+                        <tv:TableViewTextColumn Header="Department (Auto: cells)"
+                                                Width="Auto"
+                                                ColumnAutoWidthMode="Cells"
+                                                Binding="{Binding Department}" />
+                        <!--  Two shares of the space that is left, never under 180  -->
+                        <tv:TableViewTextColumn Header="Email (2*, min 180)"
+                                                Width="2*"
+                                                MinWidth="180"
+                                                Binding="{Binding Email}" />
+                        <!--  One share, never over 260  -->
+                        <tv:TableViewTextColumn Header="Designation (*, max 260)"
+                                                Width="*"
+                                                MaxWidth="260"
+                                                Binding="{Binding Designation}" />
+                    </tv:TableView.Columns>
+                </tv:TableView>
             </controls:SamplePresenter.Example>
             <controls:SamplePresenter.Options>
                 <StackPanel Spacing="16"
-                            MinWidth="200">
+                            Width="260">
                     <ComboBox x:Name="columnAutoWidthMode"
                               HorizontalAlignment="Stretch"
-                              Header="Column Auto Width Mode"
+                              Header="ColumnAutoWidthMode"
                               SelectedItem="{Binding ColumnAutoWidthMode, Mode=TwoWay, ElementName=tableView}"
                               ItemsSource="{helpers:EnumValues Type=tv:TableViewColumnAutoWidthMode}" />
                     <ComboBox x:Name="columnResizeMode"
                               HorizontalAlignment="Stretch"
-                              Header="Column Resize Mode"
+                              Header="ColumnResizeMode"
                               SelectedItem="{Binding ColumnResizeMode, Mode=TwoWay, ElementName=tableView}"
                               ItemsSource="{helpers:EnumValues Type=tv:TableViewColumnResizeMode}" />
+                    <ToggleSwitch Header="CanResizeColumns"
+                                  OnContent="True"
+                                  OffContent="False"
+                                  IsOn="{Binding CanResizeColumns, Mode=TwoWay, ElementName=tableView}" />
+                    <NumberBox Header="MinColumnWidth"
+                               Minimum="20"
+                               Maximum="300"
+                               SmallChange="10"
+                               SpinButtonPlacementMode="Inline"
+                               Value="{Binding MinColumnWidth, Mode=TwoWay, ElementName=tableView}" />
+                    <TextBlock TextWrapping="Wrap"
+                               Style="{StaticResource CaptionTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               Text="ColumnAutoWidthMode decides what an Auto column measures: its cells, its header or both. A column can override it. ColumnResizeMode chooses between a preview line and resizing live while dragging." />
                 </StackPanel>
             </controls:SamplePresenter.Options>
             <controls:SamplePresenter.Xaml>
                 <x:String xml:space="preserve">
-&lt;tv:TableView ItemsSource="{Binding Items}"
-    ColumnAutoWidthMode="$(ColumnAutoWidthMode)"
-    ColumnResizeMode="$(ColumnResizeMode)"/>
+&lt;tv:TableView x:Name="tableView"
+              ItemsSource="{Binding Items}"
+              AutoGenerateColumns="False"
+              GridLinesVisibility="All">
+    &lt;tv:TableView.Columns>
+        &lt;!--  Fixed, and not resizable  -->
+        &lt;tv:TableViewNumberColumn Header="Id (80)"
+                                  Width="80"
+                                  CanResize="False"
+                                  Binding="{Binding Id}" />
+        &lt;!--  As wide as its widest cell or its header  -->
+        &lt;tv:TableViewTextColumn Header="First name (Auto)"
+                                Width="Auto"
+                                Binding="{Binding FirstName}" />
+        &lt;!--  Auto, measured from the cells only  -->
+        &lt;tv:TableViewTextColumn Header="Department (Auto: cells)"
+                                Width="Auto"
+                                ColumnAutoWidthMode="Cells"
+                                Binding="{Binding Department}" />
+        &lt;!--  Two shares of the space that is left, never under 180  -->
+        &lt;tv:TableViewTextColumn Header="Email (2*, min 180)"
+                                Width="2*"
+                                MinWidth="180"
+                                Binding="{Binding Email}" />
+        &lt;!--  One share, never over 260  -->
+        &lt;tv:TableViewTextColumn Header="Designation (*, max 260)"
+                                Width="*"
+                                MaxWidth="260"
+                                Binding="{Binding Designation}" />
+    &lt;/tv:TableView.Columns>
+&lt;/tv:TableView>
                 </x:String>
             </controls:SamplePresenter.Xaml>
-            <controls:SamplePresenter.Substitutions>
-                <controls:CodeSubstitution Key="ColumnAutoWidthMode"
-                                           Value="{x:Bind columnAutoWidthMode.SelectedItem, Mode=OneWay}" />
-                <controls:CodeSubstitution Key="ColumnResizeMode"
-                                           Value="{x:Bind columnResizeMode.SelectedItem, Mode=OneWay}" />
-            </controls:SamplePresenter.Substitutions>
         </controls:SamplePresenter>
     </Grid>
 </Page>

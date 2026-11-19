@@ -2,35 +2,85 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:pages="using:WinUI.TableView.SampleApp.Pages"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:tv="using:WinUI.TableView"
       xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
+      xmlns:helpers="using:WinUI.TableView.SampleApp.Helpers"
       d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
       mc:Ignorable="d">
 
     <Grid>
-        <controls:SamplePresenter Header="Editing"
-                                  Description="Showcasing cell value editing functionality.">
+        <controls:SamplePresenter x:Name="presenter"
+                                  Header="Editing"
+                                  Description="Double-click a cell or press F2 to edit it; each column type brings its own editor. CellEditEnding can veto a value: try an email without an @.">
             <controls:SamplePresenter.Example>
-                <tv:TableView ItemsSource="{Binding Items}"
-                              IsReadOnly="{Binding IsOn, ElementName=isReadOnly, Mode=TwoWay}" />
+                <tv:TableView x:Name="tableView"
+                              ItemsSource="{Binding Items}"
+                              IsReadOnly="{x:Bind isReadOnly.IsOn, Mode=OneWay}"
+                              CellEditEnding="OnCellEditEnding"
+                              CellEditEnded="OnCellEditEnded"
+                              AutoGeneratingColumn="{x:Bind local:ExampleModelColumnsHelper.OnAutoGeneratingColumns}" />
             </controls:SamplePresenter.Example>
             <controls:SamplePresenter.Options>
-                <StackPanel VerticalAlignment="Top">
+                <StackPanel Spacing="16"
+                            Width="280">
                     <ToggleSwitch x:Name="isReadOnly"
-                                  IsOn="True"
-                                  Header="Is readonly"
+                                  Header="IsReadOnly"
                                   OnContent="True"
                                   OffContent="False" />
+                    <ToggleSwitch x:Name="validateEmail"
+                                  Header="Reject an email without @"
+                                  IsOn="True"
+                                  OnContent="On"
+                                  OffContent="Off" />
+                    <InfoBar x:Name="validation"
+                             IsClosable="False"
+                             Severity="Error"
+                             Title="Not saved" />
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Recent edits"
+                                   Style="{StaticResource BodyStrongTextBlockStyle}" />
+                        <TextBlock x:Name="editLog"
+                                   TextWrapping="Wrap"
+                                   Text="Nothing edited yet."
+                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
                 </StackPanel>
             </controls:SamplePresenter.Options>
             <controls:SamplePresenter.Xaml>
                 <x:String xml:space="preserve">
-&lt;tv:TableView ItemsSource="{Binding Items}"
-    IsReadOnly="$(IsReadOnly)">
+&lt;tv:TableView x:Name="tableView"
+              ItemsSource="{Binding Items}"
+              IsReadOnly="$(IsReadOnly)"
+              CellEditEnding="OnCellEditEnding"
+              CellEditEnded="OnCellEditEnded" />
                 </x:String>
             </controls:SamplePresenter.Xaml>
+            <controls:SamplePresenter.CSharp>
+                <x:String xml:space="preserve">
+// Runs before the value is written back. Cancel keeps the cell in edit mode.
+private void OnCellEditEnding(object? sender, TableViewCellEditEndingEventArgs e)
+{
+    if (e.EditAction is TableViewEditAction.Commit
+        &amp;&amp; e.Column.Header is "Email"
+        &amp;&amp; e.EditingElement is TextBox textBox
+        &amp;&amp; !textBox.Text.Contains('@'))
+    {
+        e.Cancel = true;
+    }
+}
+
+// Runs after the edit was committed or cancelled.
+private void OnCellEditEnded(object? sender, TableViewCellEditEndedEventArgs e)
+{
+    var item = (ExampleModel?)e.DataItem;
+    Debug.WriteLine($"{e.EditAction}: {e.Column.Header} of #{item?.Id}");
+}
+                </x:String>
+            </controls:SamplePresenter.CSharp>
             <controls:SamplePresenter.Substitutions>
                 <controls:CodeSubstitution Key="IsReadOnly"
                                            Value="{x:Bind isReadOnly.IsOn, Mode=OneWay}" />

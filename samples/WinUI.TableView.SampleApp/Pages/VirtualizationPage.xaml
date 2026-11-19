@@ -9,7 +9,7 @@
       mc:Ignorable="d">
 
     <Grid>
-        <controls:SamplePresenter Header="Virtualization and selection"
+        <controls:SamplePresenter Header="Virtualization"
                                   Description="Rows are hosted in an ItemsRepeater with a TableView-specific virtualizing layout. The number of realized row elements tracks the viewport, not the number of items, and selection is stored as index ranges so selecting everything costs one range.">
             <controls:SamplePresenter.Example>
                 <tv:TableView x:Name="tableView"

@@ -11,7 +11,7 @@
 
     <Grid>
         <controls:SamplePresenter Header="Column Custom Sorting"
-                                  Description="This sample demonstrates how to implement custom sorting.">
+                                  Description="Handle Sorting and ClearSorting to sort the data yourself, for example on a server, while the column header keeps showing the sort direction.">
             <controls:SamplePresenter.Example>
                 <tv:TableView x:Name="tableView"
                               ItemsSource="{Binding Items}"

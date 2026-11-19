@@ -12,17 +12,33 @@
 
     <Grid>
         <controls:SamplePresenter Header="Alternate Row Colors"
-                                  Description="Showcasing alternate row colors feature.">
+                                  Description="Give every other row its own background and foreground, which makes a wide table easier to read across.">
             <controls:SamplePresenter.Example>
                 <tv:TableView x:Name="tableView"
                               ItemsSource="{Binding Items}"
-                              AlternateRowBackground="#50515C6B"
-                              AlternateRowForeground="#FF00FFFF"
+                              AlternateRowBackground="#1F7F7F7F"
                               AutoGeneratingColumn="{x:Bind local:ExampleModelColumnsHelper.OnAutoGeneratingColumns}">
                 </tv:TableView>
             </controls:SamplePresenter.Example>
             <controls:SamplePresenter.Options>
-                <StackPanel Spacing="16">
+                <StackPanel Spacing="16"
+                            Width="260">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Presets"
+                                   Style="{StaticResource BodyStrongTextBlockStyle}" />
+                        <Button Content="Subtle gray"
+                                Tag="#1F7F7F7F"
+                                HorizontalAlignment="Stretch"
+                                Click="OnPresetClicked" />
+                        <Button Content="Accent tint"
+                                Tag="#260078D4"
+                                HorizontalAlignment="Stretch"
+                                Click="OnPresetClicked" />
+                        <Button Content="Ledger green, dark text"
+                                Tag="#FFDFF0E3|#FF0B3D1F"
+                                HorizontalAlignment="Stretch"
+                                Click="OnPresetClicked" />
+                    </StackPanel>
                     <TextBlock Text="Alternate row background" />
                     <StackPanel Spacing="8"
                                 Orientation="Horizontal">

@@ -11,7 +11,7 @@
 
     <Grid>
         <controls:SamplePresenter Header="Column Custom Filter"
-                                  Description="This sample demonstrate how filter flyout implementaion can be customized.">
+                                  Description="Replace what a filter flyout offers with your own IColumnFilterHandler. Here the Full Name template column, which has no value of its own, gets filter items built from two properties.">
             <controls:SamplePresenter.Example>
                 <tv:TableView x:Name="tableView"
                               ItemsSource="{Binding Items}"

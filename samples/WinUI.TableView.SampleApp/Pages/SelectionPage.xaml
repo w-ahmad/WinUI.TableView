@@ -2,33 +2,35 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:pages="using:WinUI.TableView.SampleApp.Pages"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:tv="using:WinUI.TableView"
       xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
       xmlns:helpers="using:WinUI.TableView.SampleApp.Helpers"
-      xmlns:converters="using:WinUI.TableView.SampleApp.Converters"
       d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
       mc:Ignorable="d">
 
     <Grid>
-        <controls:SamplePresenter Header="Selection"
-                                  Description="Showcasing differnet selection options.">
+        <controls:SamplePresenter x:Name="presenter"
+                                  Header="Selection"
+                                  Description="Choose how much can be selected (SelectionMode) and what a click selects: whole rows, single cells or both (SelectionUnit). The panel shows what is selected right now.">
             <controls:SamplePresenter.Example>
                 <tv:TableView x:Name="tableView"
                               ItemsSource="{Binding Items}"
-                              SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                              SelectionChanged="OnSelectionChanged"
+                              CellSelectionChanged="OnCellSelectionChanged"
                               AutoGeneratingColumn="{x:Bind local:ExampleModelColumnsHelper.OnAutoGeneratingColumns}" />
             </controls:SamplePresenter.Example>
             <controls:SamplePresenter.Options>
                 <StackPanel Spacing="16"
-                            MaxWidth="350">
+                            Width="280">
                     <ComboBox x:Name="selectionModes"
-                              Header="Selection Mode"
+                              Header="SelectionMode"
                               HorizontalAlignment="Stretch"
                               SelectedItem="{x:Bind tableView.SelectionMode, Mode=OneWay, Converter={StaticResource EnumToString}}"
                               SelectionChanged="OnSelectionModeChanged" />
-                    <ComboBox Header="Selection Unit"
+                    <ComboBox Header="SelectionUnit"
                               HorizontalAlignment="Stretch"
                               SelectedItem="{Binding SelectionUnit, Mode=TwoWay, ElementName=tableView}"
                               ItemsSource="{helpers:EnumValues Type=tv:TableViewSelectionUnit}" />
@@ -40,53 +42,75 @@
                                   OnContent="True"
                                   OffContent="False"
                                   IsOn="{Binding ShowDragRectangle, Mode=TwoWay, ElementName=tableView}" />
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8">
+                        <Button Content="Select all"
+                                Click="OnSelectAllClicked" />
+                        <Button Content="Clear selection"
+                                Click="OnClearSelectionClicked" />
+                    </StackPanel>
                     <InfoBar IsOpen="True"
                              IsClosable="False"
-                             Title="Selected Item">
-                        <StackPanel Spacing="8">
+                             Title="Selected now">
+                        <StackPanel Spacing="4"
+                                    Padding="0,0,0,12">
                             <TextBlock>
-                                <Run Text="Row Index:" />
-                                <Run FontWeight="Bold"
-                                     Text="{Binding SelectedIndex, ElementName=tableView}" />
+                                <Run Text="Rows:" />
+                                <Run x:Name="selectedRows"
+                                     FontWeight="SemiBold"
+                                     Text="0" />
                             </TextBlock>
                             <TextBlock>
-                                <Run Text="Id:" />
-                                <Run FontWeight="Bold"
-                                     Text="{Binding SelectedItem.Id}" />
+                                <Run Text="Cells:" />
+                                <Run x:Name="selectedCells"
+                                     FontWeight="SemiBold"
+                                     Text="0" />
                             </TextBlock>
-                            <TextBlock>
-                                <Run Text="First Name:" />
-                                <Run FontWeight="Bold"
-                                     Text="{Binding SelectedItem.FirstName}" />
-                            </TextBlock>
-                            <TextBlock>
-                                <Run Text="Last Name:" />
-                                <Run FontWeight="Bold"
-                                     Text="{Binding SelectedItem.LastName}" />
-                            </TextBlock>
-                            <TextBlock>
-                                <Run Text="Gender:" />
-                                <Run FontWeight="Bold"
-                                     Text="{Binding SelectedItem.Gender}" />
+                            <TextBlock TextWrapping="Wrap">
+                                <Run Text="Selected item:" />
+                                <Run x:Name="selectedItem"
+                                     FontWeight="SemiBold"
+                                     Text="none" />
                             </TextBlock>
                         </StackPanel>
                     </InfoBar>
-                    <InfoBar IsOpen="True"
-                             IsClosable="False"
-                             Title="Tip"
-                             Message="To hide current cell selection border, try these values:&#x0a;&#x0a;SelectionUnit = Row&#x0a;IsReadOnly = true" />
+                    <TextBlock TextWrapping="Wrap"
+                               Style="{StaticResource CaptionTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               Text="To hide the current-cell border, set SelectionUnit to Row and IsReadOnly to True." />
                 </StackPanel>
             </controls:SamplePresenter.Options>
             <controls:SamplePresenter.Xaml>
                 <x:String xml:space="preserve">
 &lt;tv:TableView x:Name="tableView"
-    ItemsSource="{Binding Items}"
-    SelectionMode="$(SelectionMode)"
-    SelectionUnit="$(SelectionUnit)"
-    IsReadOnly="$(IsReadOnly)"
-    ShowDragRectangle="$(ShowDragRectangle)" /&gt;
+              ItemsSource="{Binding Items}"
+              SelectionMode="$(SelectionMode)"
+              SelectionUnit="$(SelectionUnit)"
+              IsReadOnly="$(IsReadOnly)"
+              ShowDragRectangle="$(ShowDragRectangle)"
+              SelectionChanged="OnSelectionChanged"
+              CellSelectionChanged="OnCellSelectionChanged" />
                 </x:String>
             </controls:SamplePresenter.Xaml>
+            <controls:SamplePresenter.CSharp>
+                <x:String xml:space="preserve">
+// Rows: SelectedItems holds the items, SelectedRanges the same selection as index ranges.
+private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+{
+    var rows = tableView.SelectedItems.Count;
+    var current = tableView.SelectedItem as ExampleModel;
+}
+
+// Cells: the event reports the cell slots (row, column) that were added and removed.
+private void OnCellSelectionChanged(object? sender, TableViewCellSelectionChangedEventArgs e)
+{
+    _selectedCells += e.AddedCells.Count - e.RemovedCells.Count;
+}
+
+tableView.SelectAll();
+tableView.DeselectAll();
+                </x:String>
+            </controls:SamplePresenter.CSharp>
             <controls:SamplePresenter.Substitutions>
                 <controls:CodeSubstitution Key="SelectionMode"
                                            Value="{x:Bind tableView.SelectionMode, Mode=OneWay}" />

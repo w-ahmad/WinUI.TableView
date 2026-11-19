@@ -13,7 +13,7 @@
 
     <Grid>
         <controls:SamplePresenter Header="Grid Lines"
-                                  Description="Showcasing grid lines feature.">
+                                  Description="Show horizontal, vertical, both or no grid lines for the rows and for the headers, and set their color and thickness.">
             <controls:SamplePresenter.Example>
                 <tv:TableView x:Name="tableView"
                               ItemsSource="{Binding Items}"

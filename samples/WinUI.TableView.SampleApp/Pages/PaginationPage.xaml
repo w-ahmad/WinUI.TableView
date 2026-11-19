@@ -13,7 +13,7 @@
 
     <Grid>
         <controls:SamplePresenter Header="Column Custom Filter"
-                                  Description="A simple pagination implementiaon example. This is not built right into the TableView.">
+                                  Description="Paging is not built into TableView, but it takes little on top of it: bind the table to one page of the collection and add a pager.">
             <controls:SamplePresenter.Example>
                 <Grid>
                     <Grid.RowDefinitions>

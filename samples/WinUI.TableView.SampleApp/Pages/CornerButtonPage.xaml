@@ -13,7 +13,7 @@
     
     <Grid>
         <controls:SamplePresenter Header="Corner Button"
-                                  Description="Showcasing different options for the TableView corner button.">
+                                  Description="The button where the row and column headers meet can select every row, open the options menu of the table, or do nothing.">
             <controls:SamplePresenter.Example>
                 <tv:TableView x:Name="tableView"
                               ItemsSource="{Binding Items}"
