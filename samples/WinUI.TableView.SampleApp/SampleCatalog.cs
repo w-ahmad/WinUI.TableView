@@ -131,9 +131,7 @@ public static class SampleCatalog
     public static SampleGroup Performance { get; } = new("Performance", "",
         "Virtualization and on-demand loading for very large data.",
         new("Virtualization", "", typeof(VirtualizationPage),
-            "Row and column virtualization with live element counts."),
-        new("Large Dataset", "", typeof(LargeDataPage),
-            "One million rows, scrolled, sorted and filtered."),
+            "A million rows: scroll, jump and select with only the visible rows realized."),
         new("Incremental Loading", "", typeof(IncrementalLoadingPage),
             "Fetch more items as the user scrolls toward the end."));
 

@@ -19,7 +19,6 @@ public partial class App : Application
     /// </remarks>
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(ExampleModel))]
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(SalesExampleModel))]
-    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(TransactionModel))]
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Pages.VirtualizationItem))]
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Showcases.Deal))]
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Showcases.Stock))]
