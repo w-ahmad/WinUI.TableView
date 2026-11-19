@@ -18,9 +18,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
 {
     private const int MaxIncrementalSyncChanges = 100;
     private bool _isSourceDetached;
-#if WINDOWS
     private List<object?[]>? _detachedGroupKeys; // The grouping keys of the items when the source was detached.
-#endif
     private object[] _itemsCopy = []; // In case the source is ICollection, keep a copy of the items to keep track of removed items.
     private readonly List<object?> _view = [];
     // The full filtered+sorted set, in source order, regardless of grouping. _view is pruned down to just
@@ -144,9 +142,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
         DetachCollectionChangedHandlers(Source);
         DetachPropertyChangedHandlers(Source);
         _isSourceDetached = true;
-#if WINDOWS
         _detachedGroupKeys = GetGroupKeys();
-#endif
     }
 
     /// <summary>
@@ -166,10 +162,8 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
         AttachPropertyChangedHandlers(Source);
         CreateItemsCopy(Source);
 
-#if WINDOWS
         var detachedGroupKeys = _detachedGroupKeys;
         _detachedGroupKeys = null;
-#endif
 
         if (!alwaysReset)
         {
@@ -177,15 +171,11 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
 
             if (_groupingSourceItems.SequenceEqual(items, ItemIdentityComparer.Instance))
             {
-#if WINDOWS
                 // The same items in the same order can still belong to other groups than before.
                 if (HaveSameGroupKeys(detachedGroupKeys, GetGroupKeys()))
                 {
                     return false;
                 }
-#else
-                return false;
-#endif
             }
             else if (TrySyncViewIncrementally(items))
             {
@@ -204,9 +194,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     /// <returns><see langword="true"/> if the view now holds <paramref name="items"/>.</returns>
     private bool TrySyncViewIncrementally(List<object?> items)
     {
-#if WINDOWS
         if (GroupDescriptions.Count > 0) return false;
-#endif
 
         var comparer = ItemIdentityComparer.Instance;
         var oldIndexes = new Dictionary<object, int>(comparer!);
@@ -259,7 +247,6 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
         return true;
     }
 
-#if WINDOWS
     /// <summary>
     /// Gets the grouping keys of every filtered and sorted item, or null if the view is not grouped.
     /// </summary>
@@ -276,7 +263,6 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
 
         return x.Count == y.Count && x.Zip(y).All(keys => keys.First.SequenceEqual(keys.Second));
     }
-#endif
 
     /// <summary>
     /// Compares items the way the view identifies them: reference types by reference, and value types,
