@@ -141,27 +141,16 @@
                                   IsReadOnly="True"
                                   IsTabStop="False"
                                   RowHeight="42"
-                                  HeadersVisibility="Columns"
-                                  GridLinesVisibility="Horizontal"
-                                  HeaderGridLinesVisibility="Horizontal"
-                                  CanSortColumns="False"
-                                  CanFilterColumns="False"
+                                  HeadersVisibility="All"
                                   ScrollViewer.VerticalScrollBarVisibility="Hidden"
                                   ScrollViewer.HorizontalScrollBarVisibility="Hidden">
                         <tv:TableView.Columns>
-                            <tv:TableViewTemplateColumn Header="Deal"
-                                                        Width="*">
-                                <tv:TableViewTemplateColumn.CellTemplate>
-                                    <DataTemplate x:DataType="data:Deal">
-                                        <TextBlock Text="{x:Bind Name}"
-                                                   Margin="12,0"
-                                                   TextTrimming="CharacterEllipsis"
-                                                   VerticalAlignment="Center" />
-                                    </DataTemplate>
-                                </tv:TableViewTemplateColumn.CellTemplate>
-                            </tv:TableViewTemplateColumn>
+                            <tv:TableViewTextColumn Header="Deal"
+                                                    Width="*"
+                                                    Binding="{Binding Name}" />
                             <tv:TableViewTemplateColumn Header="Account"
-                                                        Width="1.15*">
+                                                        Width="1.15*"
+                                                        CanFilter="True">
                                 <tv:TableViewTemplateColumn.CellTemplate>
                                     <DataTemplate x:DataType="data:Deal">
                                         <StackPanel Orientation="Horizontal"
@@ -185,7 +174,8 @@
                                 </tv:TableViewTemplateColumn.CellTemplate>
                             </tv:TableViewTemplateColumn>
                             <tv:TableViewTemplateColumn Header="Stage"
-                                                        Width="128">
+                                                        Width="128"
+                                                        CanFilter="True">
                                 <tv:TableViewTemplateColumn.CellTemplate>
                                     <DataTemplate x:DataType="data:Deal">
                                         <Border CornerRadius="11"
@@ -207,7 +197,8 @@
                                 </tv:TableViewTemplateColumn.CellTemplate>
                             </tv:TableViewTemplateColumn>
                             <tv:TableViewTemplateColumn Header="Amount"
-                                                        Width="100">
+                                                        Width="100"
+                                                        CanFilter="True">
                                 <tv:TableViewTemplateColumn.CellTemplate>
                                     <DataTemplate x:DataType="data:Deal">
                                         <TextBlock Text="{x:Bind data:Format.Currency(Amount)}"
