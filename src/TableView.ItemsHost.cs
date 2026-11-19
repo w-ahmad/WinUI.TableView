@@ -22,6 +22,7 @@ public partial class TableView
     private bool _isIncrementalLoadQueued;
     private TableViewRealizedRows? _realizedRows;
     private int _selectionModeVersion;
+    private double _suspendedVerticalOffset;
 
     /// <summary>
     /// Gets the items produced by the current sorting and filtering.
@@ -308,8 +309,10 @@ public partial class TableView
     /// </remarks>
     private void SuspendRowsHost()
     {
-        if (_rowsRepeater is not null)
+        if (_rowsRepeater is { ItemsSource: not null })
         {
+            // Taking the items away resets the scroll position; ResumeRowsHost puts it back.
+            _suspendedVerticalOffset = _scrollViewer?.VerticalOffset ?? 0d;
             _rowsRepeater.ItemsSource = null;
         }
 
@@ -331,7 +334,15 @@ public partial class TableView
         if (_rowsRepeater is not null && _visualRows is not null && _rowsRepeater.ItemsSource is null)
         {
             _rowsRepeater.ItemsSource = _visualRows;
+
+            if (_suspendedVerticalOffset > 0d && _scrollViewer is not null)
+            {
+                UpdateLayout(); // the extent is not known until the rows are laid out
+                _scrollViewer.ChangeView(null, _suspendedVerticalOffset, null, true);
+            }
         }
+
+        _suspendedVerticalOffset = 0d;
     }
 
     /// <summary>
@@ -565,9 +576,8 @@ public partial class TableView
             default:
                 // A reset re-orders everything, so index-based selection no longer means anything. It was already
                 // cleared, with notifications, by OnCollectionViewResetting while the old indexes still held; this
-                // only guards against a reset that did not announce itself first. The resets of an unload and a
-                // reload keep it (see SuspendItemsSource).
-                if (!_isItemsSourceSuspended && _rowSelection.Clear())
+                // only guards against a reset that did not announce itself first.
+                if (_rowSelection.Clear())
                 {
                     SyncSelectionProperties();
                 }
@@ -604,11 +614,13 @@ public partial class TableView
     /// </remarks>
     private void OnCollectionViewResetting(object? sender, EventArgs e)
     {
-        // The swaps an unload and a reload make are not rebuilds of the view the selection was made on.
-        if (!_isItemsSourceSuspended)
+        // A reload that has to reset the view selects the items still in it again afterwards.
+        if (_isReattachingItemsSource && _rowSelection.Count > 0)
         {
-            DeselectAllBeforeViewReset();
+            _selectionBeforeReattachReset = [.. SelectedItems];
         }
+
+        DeselectAllBeforeViewReset();
     }
 
     /// <summary>

@@ -12,8 +12,8 @@ internal static class FrameworkElementExtensions
     /// Returns the root element a content presenter realized, or <see langword="null"/> when it holds nothing yet.
     /// </summary>
     /// <remarks>
-    /// Only the presenter that realizes a template exposes its root on Uno; it is the presenter's single visual child,
-    /// read from the tree because Uno 7 dropped the <c>ContentTemplateRoot</c> property it used to have there.
+    /// The root is the presenter's single visual child. It is read from the tree because Uno 7 dropped the
+    /// <c>ContentTemplateRoot</c> property that Uno 6 had on <see cref="ContentPresenter"/>.
     /// </remarks>
     internal static Microsoft.UI.Xaml.FrameworkElement? GetContentTemplateRoot(this ContentPresenter presenter)
     {

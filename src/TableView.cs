@@ -35,7 +35,8 @@ public partial class TableView : Control
     private RowDefinition? _headerRowDefinition;
     private bool _ensureColumns = true;
     private bool _isItemsSourceSuspended;
-    private int _suspendedItemCount;
+    private bool _isReattachingItemsSource;
+    private List<object>? _selectionBeforeReattachReset;
     // Half of MinValue, so subtracting it from a tick count cannot overflow into "recent".
     private long _lastIntermediateViewChange = long.MinValue / 2;
     private readonly List<TableViewRow> _rows = [];
@@ -496,16 +497,11 @@ public partial class TableView : Control
             return false;
         }
 
-        if (isShiftKey)
+        // Shift extends the selection from the anchor instead of starting a new one. It has to be handled here:
+        // the base ListView never sees the plain clicks handled below, so its own anchor would be stale.
+        if (isShiftKey && SelectionMode is ListViewSelectionMode.Extended or ListViewSelectionMode.Multiple)
         {
-            // Extending the selection from the anchor used to be ListViewItem's job. Route it through the same
-            // MakeSelection path the keyboard uses so SelectionUnit and the anchor stay consistent.
-            if (GetSlotAtCanvasPoint(canvasPoint.Value) is { } shiftSlot)
-            {
-                MakeSelection(shiftSlot, shiftKey: true, ctrlKey);
-            }
-
-            return true;
+            return ExtendSelectionTo(pressedElement, ctrlKey);
         }
 
         _lastDragCanvasPoint = null;
@@ -569,6 +565,34 @@ public partial class TableView : Control
         }
 
         MakeSelectionInDragRect();
+        return true;
+    }
+
+    /// <summary>
+    /// Extends the selection from the selection anchor to the pressed row or cell (Shift+Click).
+    /// </summary>
+    /// <returns>True if the press was on a row or cell and the selection was extended to it.</returns>
+    internal bool ExtendSelectionTo(UIElement pressedElement, bool ctrlKey)
+    {
+        TableViewCellSlot slot;
+
+        if (pressedElement is TableViewCell cell)
+        {
+            slot = cell.Slot;
+            // A finished click or drag clears the cell anchor and leaves the current cell as the anchor.
+            SelectionStartCellSlot ??= CurrentCellSlot;
+        }
+        else if (pressedElement is TableViewRow row)
+        {
+            slot = new(row.Index, -1);
+        }
+        else
+        {
+            return false;
+        }
+
+        MakeSelection(slot, shiftKey: true, ctrlKey);
+
         return true;
     }
 
@@ -1149,7 +1173,8 @@ public partial class TableView : Control
     internal bool IsViewChangeInFlight => Environment.TickCount64 - _lastIntermediateViewChange < 100;
 
     /// <summary>
-    /// Re-measures the group headers when the viewport's width changes, since they are measured no wider than it.
+    /// Re-measures the group headers and the open row details when the viewport's width changes, since they are
+    /// measured no wider than it.
     /// </summary>
     private void OnScrollViewerSizeChanged(object sender, SizeChangedEventArgs e)
     {
@@ -1158,6 +1183,14 @@ public partial class TableView : Control
             foreach (var header in _groupHeaderRows)
             {
                 header.InvalidateMeasure();
+            }
+
+            foreach (var row in _rows)
+            {
+                if (row.RowPresenter is { IsDetailsPanelVisible: true } presenter)
+                {
+                    presenter.InvalidateMeasure();
+                }
             }
         }
     }
@@ -1213,6 +1246,10 @@ public partial class TableView : Control
     /// </summary>
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
+        // WinUI can raise a stale Unloaded after Loaded while the control is still in the live tree
+        // (e.g. content of a ContentDialog, microsoft-ui-xaml#8342); treat it as a no-op.
+        if (IsLoaded) return;
+
         EndDragSelection();
         StopAutoScroll();
 
@@ -1236,12 +1273,10 @@ public partial class TableView : Control
             return;
         }
 
-        // Suspended first, so the empty view the swap builds is not taken for a rebuild that clears the selection:
-        // the selection is kept for the same items coming back when the control is loaded again.
-        _isItemsSourceSuspended = true;
-        _suspendedItemCount = _collectionView.Count;
+        // The view keeps its items, so the selection (and anything bound to it) survives being unloaded.
         _collectionView.ItemPropertyChanged -= OnItemPropertyChanged;
-        _collectionView.Source = Enumerable.Empty<object>();
+        _collectionView.DetachFromSource();
+        _isItemsSourceSuspended = true;
     }
 
     /// <summary>
@@ -1255,20 +1290,65 @@ public partial class TableView : Control
         }
 
         _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
-
-        if (ItemsSource is IEnumerable source)
-        {
-            _collectionView.Source = source;
-        }
-
         _isItemsSourceSuspended = false;
 
-        // The selection was kept across the unload on the strength of its indexes; a source that changed size
-        // meanwhile has moved them, and then it is cleared as any rebuild of the view clears it.
-        if (_collectionView.Count != _suspendedItemCount)
+        if (ItemsSource is IEnumerable source && !ReferenceEquals(_collectionView.Source, source))
         {
-            DeselectAllBeforeViewReset();
+            _collectionView.Source = source; // the source was replaced while the control was unloaded
+            return;
         }
+
+        // A source that changed while the control was unloaded is applied item by item, which keeps the
+        // selection, or by a reset, after which the items still in the view are selected again.
+        _isReattachingItemsSource = true;
+
+        try
+        {
+            _collectionView.AttachToSource();
+        }
+        finally
+        {
+            _isReattachingItemsSource = false;
+        }
+
+        if (_selectionBeforeReattachReset is { } selectedItems)
+        {
+            _selectionBeforeReattachReset = null;
+            RestoreSelection(selectedItems);
+        }
+    }
+
+    /// <summary>
+    /// Selects the given items again, skipping the ones that are no longer in the view.
+    /// </summary>
+    private void RestoreSelection(List<object> selectedItems)
+    {
+        if (SelectionMode is ListViewSelectionMode.None) return;
+
+        if (SelectionMode is ListViewSelectionMode.Single)
+        {
+            if (_collectionView.IndexOf(selectedItems[0]) is >= 0 and var index)
+            {
+                SelectedIndex = index;
+            }
+
+            return;
+        }
+
+        ChangeSelection(model =>
+        {
+            var changed = false;
+
+            foreach (var item in selectedItems)
+            {
+                if (_collectionView.IndexOf(item) is >= 0 and var index)
+                {
+                    changed |= model.Select(index, index);
+                }
+            }
+
+            return changed;
+        });
     }
 
     /// <summary>
@@ -2026,7 +2106,33 @@ public partial class TableView : Control
             {
                 SelectionStartRowIndex = CurrentRowIndex = SelectedIndex = slot.Row;
             }
-            if (selectionRange?.LastIndex > newSelection.LastIndex)
+
+            if (!ctrlKey)
+            {
+                // Without Ctrl the selection becomes exactly the anchor-to-target range, wherever the target is:
+                // a Shift+Click can land far from the previous range, on either side of the anchor.
+                foreach (var range in SelectedRanges.ToArray())
+                {
+                    if (range.LastIndex < newSelection.FirstIndex || range.FirstIndex > newSelection.LastIndex)
+                    {
+                        DeselectRange(range);
+                        continue;
+                    }
+
+                    foreach (var outside in range.Subtract(newSelection))
+                    {
+                        DeselectRange(outside);
+                    }
+                }
+
+                SelectRange(newSelection);
+            }
+            else if (SelectionMode is ListViewSelectionMode.Extended)
+            {
+                // Ctrl+Shift only ever adds the anchor-to-target range; rows that are already selected stay selected.
+                SelectRange(newSelection);
+            }
+            else if (selectionRange?.LastIndex > newSelection.LastIndex)
             {
                 var deselectRange = new ItemIndexRange(newSelection.LastIndex + 1, (uint)(selectionRange.LastIndex - newSelection.LastIndex));
                 DeselectRange(deselectRange);
@@ -2040,6 +2146,9 @@ public partial class TableView : Control
             {
                 SelectRange(newSelection);
             }
+
+            // The target becomes the current row, so keyboard navigation continues from it; the anchor stays put.
+            CurrentRowIndex = slot.Row;
         }
 
         if (!IsReadOnly && slot.IsValid(this))
@@ -2997,6 +3106,7 @@ public partial class TableView : Control
     private void EnsureGridLines()
     {
         _headerRow?.EnsureGridLines();
+        _headerRow?.CalculateHeaderWidths();
 
         foreach (var row in _rows)
         {
@@ -3108,7 +3218,7 @@ public partial class TableView : Control
         if (RowContextFlyout is not null && !eventArgs.Handled)
         {
 #if !WINDOWS && !NET10_0_OR_GREATER
-            // Uno 6 flyouts do not inherit their target's DataContext; Uno 7 dropped the property.
+            // Uno 6 flyouts do not inherit their target's DataContext; Uno 7 does, and dropped the property.
             RowContextFlyout.DataContext = row.Content;
 #endif
             RowContextFlyout.ShowAt(row.RowPresenter, new FlyoutShowOptions
@@ -3137,7 +3247,7 @@ public partial class TableView : Control
         if (CellContextFlyout is not null && !eventArgs.Handled)
         {
 #if !WINDOWS && !NET10_0_OR_GREATER
-            // Uno 6 flyouts do not inherit their target's DataContext; Uno 7 dropped the property.
+            // Uno 6 flyouts do not inherit their target's DataContext; Uno 7 does, and dropped the property.
             CellContextFlyout.DataContext = cell.Row?.Content;
 #endif
             CellContextFlyout.ShowAt(cell, new FlyoutShowOptions

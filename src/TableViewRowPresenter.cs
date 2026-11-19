@@ -212,7 +212,27 @@ public partial class TableViewRowPresenter : Control
             _rowHeader?.InvalidateMeasure(); // The row header does not measure every time.
         }
 
+        LimitDetailsToViewport();
+
         return base.MeasureOverride(availableSize);
+    }
+
+    // Rows are measured at an unbounded width; wide details stay within the viewport instead of widening the row.
+    private void LimitDetailsToViewport()
+    {
+        if (_detailsPanel?.Visibility is not Visibility.Visible || TableView is not { RowsViewportWidth: > 0d } tableView)
+        {
+            return;
+        }
+
+        var cellsLeft = double.IsNaN(tableView.CellsHorizontalOffset) ? 0d : tableView.CellsHorizontalOffset;
+        cellsLeft += _v_gridLine?.Visibility is Visibility.Visible ? _v_gridLine.ActualWidth : 0d;
+        var maxWidth = Math.Max(0d, tableView.RowsViewportWidth - cellsLeft);
+
+        if (_detailsPanel.MaxWidth != maxWidth)
+        {
+            _detailsPanel.MaxWidth = maxWidth;
+        }
     }
 
     /// <inheritdoc/>
@@ -260,12 +280,13 @@ public partial class TableViewRowPresenter : Control
             // positioned purely by HeaderColumn's width (see TableViewRowPresenter.xaml's ColumnDefinitions),
             // so it never depends on any data column's width and is safe to skip recomputing (via a real
             // TransformToVisual walk, on every visible row) during a resize drag.
-            if (TableView.CollectionView.Count > 0 && !TableView.IsColumnResizing && _v_gridLine is not null)
+            if (TableView.CollectionView.Count > 0 && !TableView.IsColumnResizing && _v_gridLine is not null && _frozenCellsPanel is not null)
             {
-                // RootPanel is arranged at x = left above, so left + the gridline offset within RootPanel is
-                // the same value a TransformToVisual(this) walk produced — without walking the visual tree
-                // once per visible row per arrange pass.
-                var offset = Math.Max(0, _v_gridLine.Visibility is Visibility.Visible ? left + _v_gridLine.ActualOffset.X : 0d);
+                // Measured from the cells, so it holds when the grid line is collapsed. RootPanel is arranged at
+                // x = left above, so no visual-tree walk is needed.
+                var offset = left + _frozenCellsPanel.ActualOffset.X;
+                offset -= _v_gridLine.Visibility is Visibility.Visible ? _v_gridLine.ActualWidth : 0d;
+                offset = Math.Max(0, offset);
 
                 // Every row arranges on every scroll frame, and they all compute the same value.
                 if (offset != _lastCellsHorizontalOffset)

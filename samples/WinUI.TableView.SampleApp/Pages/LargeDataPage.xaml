@@ -6,7 +6,6 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:tv="using:WinUI.TableView"
       xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
-      xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
       xmlns:converters="using:WinUI.TableView.SampleApp.Converters"
       mc:Ignorable="d"
       Loaded="OnPageLoaded"

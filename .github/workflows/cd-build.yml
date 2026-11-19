@@ -43,8 +43,28 @@ jobs:
       with:
         name: NuGet Packages
         path: artifacts/NuGet/Release 
+
+  publish:
+    needs: [build]
+    runs-on: windows-latest
+    environment: cd-nuget-publish
+    permissions:
+      id-token: write  # enable GitHub OIDC token issuance for this job
+    steps:
         
+    - name: NuGet Login
+      uses: NuGet/login@v1
+      id: login
+      with:
+        user: w-ahmad
+    
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: NuGet Packages
+        path: packages
+
     - name: Push to NuGet
       run: |
-        dotnet nuget push artifacts\NuGet\Release\*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
+        dotnet nuget push packages\*.nupkg -k ${{steps.login.outputs.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json --skip-duplicate
         

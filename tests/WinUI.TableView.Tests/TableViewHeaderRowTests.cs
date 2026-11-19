@@ -300,6 +300,97 @@ public class TableViewHeaderRowTests
         }
     }
 
+    [UITestMethod]
+    public Task StarColumns_FillTheRowWidth_WithoutHeaders()
+    {
+        return AssertStarColumnsFillTheRowWidthAsync(TableViewHeadersVisibility.None, ListViewSelectionMode.Extended);
+    }
+
+    [UITestMethod]
+    public Task StarColumns_FillTheRowWidth_WithRowHeaders()
+    {
+        return AssertStarColumnsFillTheRowWidthAsync(TableViewHeadersVisibility.All, ListViewSelectionMode.Extended);
+    }
+
+    [UITestMethod]
+    public Task StarColumns_FillTheRowWidth_WithMultipleSelection()
+    {
+        return AssertStarColumnsFillTheRowWidthAsync(TableViewHeadersVisibility.Columns, ListViewSelectionMode.Multiple);
+    }
+
+    [UITestMethod]
+    public Task StarColumns_FillTheRowWidth_WithRowHeadersAndNoGridLines()
+    {
+        return AssertStarColumnsFillTheRowWidthAsync(TableViewHeadersVisibility.All, ListViewSelectionMode.Extended, TableViewGridLinesVisibility.None);
+    }
+
+    [UITestMethod]
+    public Task StarColumns_FillTheRowWidth_WithMultipleSelectionAndNoGridLines()
+    {
+        return AssertStarColumnsFillTheRowWidthAsync(TableViewHeadersVisibility.Columns, ListViewSelectionMode.Multiple, TableViewGridLinesVisibility.None);
+    }
+
+    private static async Task AssertStarColumnsFillTheRowWidthAsync(
+        TableViewHeadersVisibility headersVisibility,
+        ListViewSelectionMode selectionMode,
+        TableViewGridLinesVisibility gridLinesVisibility = TableViewGridLinesVisibility.All)
+    {
+        var tableView = new TableView
+        {
+            Width = 401,
+            Height = 300,
+            AutoGenerateColumns = false,
+            HeadersVisibility = headersVisibility,
+            SelectionMode = selectionMode,
+            GridLinesVisibility = gridLinesVisibility,
+            HeaderGridLinesVisibility = gridLinesVisibility,
+            ItemsSource = new[] { new HeaderRowTestItem { Name = "Alpha" }, new HeaderRowTestItem { Name = "Beta" } }
+        };
+
+        tableView.Columns.Add(new TableViewTextColumn
+        {
+            Width = new GridLength(90),
+            Binding = new Binding { Path = new PropertyPath(nameof(HeaderRowTestItem.Name)) }
+        });
+
+        for (var i = 0; i < 2; i++)
+        {
+            tableView.Columns.Add(new TableViewTextColumn
+            {
+                Width = new GridLength(1, GridUnitType.Star),
+                Binding = new Binding { Path = new PropertyPath(nameof(HeaderRowTestItem.Name)) }
+            });
+        }
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+
+        try
+        {
+            await DrainDispatcherQueueAsync();
+            tableView.UpdateLayout();
+
+            var row = tableView.FindDescendants().OfType<TableViewRow>().FirstOrDefault();
+            Assert.IsNotNull(row, "Precondition: a row is realized");
+
+            var lastCell = row!.Cells[^1];
+            var cellRight = lastCell.TransformToVisual(tableView).TransformPoint(new Windows.Foundation.Point(lastCell.ActualWidth, 0)).X;
+            var rowRight = tableView.ActualWidth - tableView.BorderThickness.Right;
+            Assert.AreEqual(rowRight, cellRight, 1d, "The last star column must end at the right edge of the row");
+
+            var header = tableView.Columns[0].HeaderControl!;
+            var headerLeft = header.TransformToVisual(tableView).TransformPoint(default).X;
+            var cellLeft = row.Cells[0].TransformToVisual(tableView).TransformPoint(default).X;
+            Assert.AreEqual(headerLeft, cellLeft, 1d, "The headers must stay aligned with the cells");
+
+            var scrollViewer = tableView.FindDescendant<ScrollViewer>();
+            Assert.AreEqual(0d, scrollViewer!.ScrollableWidth, 0.01, "Star columns must not overflow the viewport");
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
     private static void AssertScrollBarSpace(TableView tableView)
     {
         var scrollViewer = tableView.FindDescendant<ScrollViewer>();

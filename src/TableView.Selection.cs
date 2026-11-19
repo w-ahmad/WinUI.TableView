@@ -251,8 +251,7 @@ public partial class TableView
     /// </summary>
     private void OnItemsChangedForSelection()
     {
-        // The empty view an unload swaps in is not a shrinking source; the selection waits for the reload.
-        if (!_isItemsSourceSuspended && _rowSelection.TrimTo(_collectionView.Count))
+        if (_rowSelection.TrimTo(_collectionView.Count))
         {
             SyncSelectionProperties();
         }

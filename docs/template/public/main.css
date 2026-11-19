@@ -1,0 +1,27 @@
+/* Brand-coloured logos for the navbar icon links (not part of Bootstrap Icons). */
+.bi-uno::before,
+.bi-ms-store::before,
+.bi-nuget::before {
+  content: "";
+  width: 1em;
+  height: 1em;
+}
+
+.bi-uno::before {
+  background: url("../images/uno-logo.svg") center / contain no-repeat;
+}
+
+.bi-ms-store::before {
+  background: url("../images/microsoft-logo.svg") center / contain no-repeat;
+}
+
+/* Drawn through a mask so the NuGet blue can be lightened on the dark navbar. */
+.bi-nuget::before {
+  background-color: #004880;
+  -webkit-mask: url("../images/nuget-logo.svg") center / contain no-repeat;
+  mask: url("../images/nuget-logo.svg") center / contain no-repeat;
+}
+
+[data-bs-theme="dark"] .bi-nuget::before {
+  background-color: #4da3e8;
+}

@@ -88,6 +88,11 @@
                         <FontIcon Glyph="&#xEC8F;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
+                <NavigationViewItem Content="Column Reorder">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8AB;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
                 <NavigationViewItem Content="Pagination">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE89A;" />
@@ -158,6 +163,11 @@
                                 <RotateTransform Angle="90" />
                             </FontIcon.RenderTransform>
                         </FontIcon>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Star Columns">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE740;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
                 <NavigationViewItem Content="Headers Visibility">

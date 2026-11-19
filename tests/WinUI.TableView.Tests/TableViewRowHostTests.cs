@@ -443,8 +443,7 @@ public class TableViewRowHostTests
         var changes = 0;
         tableView.SelectionChanged += (_, _) => changes++;
 
-        // Unloading swaps an empty source in and loading swaps the real one back; neither is a rebuild of the view
-        // the selection was made on.
+        // The view keeps its items while the table is unloaded, so nothing happens to the selection.
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
         await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
         await WaitForLayoutAsync(tableView);
@@ -453,14 +452,17 @@ public class TableViewRowHostTests
         Assert.IsTrue(tableView.IsRowSelected(120));
         Assert.AreEqual(0, changes, "nothing changed, so SelectionChanged should not have fired");
 
-        // A source that changed size while unloaded has moved the indexes, and the selection is cleared as any
-        // rebuild of the view clears it.
+        // A source that changed while unloaded is applied item by item, so the same items stay selected.
+        var selected = items[120];
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
         items.RemoveAt(0);
         await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
         await WaitForLayoutAsync(tableView);
 
-        Assert.AreEqual(0, tableView.SelectedItems.Count, "indexes into a source that shrank cannot be trusted");
+        Assert.AreEqual(50, tableView.SelectedItems.Count, "the selected items are still in the source");
+        Assert.IsTrue(tableView.IsRowSelected(119), "the selection follows its items to their new indexes");
+        Assert.IsTrue(tableView.SelectedItems.Contains(selected));
+        Assert.AreEqual(0, changes, "the same items are selected, so SelectionChanged should not have fired");
 
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }

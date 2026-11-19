@@ -16,6 +16,11 @@ namespace WinUI.TableView;
 /// </summary>
 internal partial class CollectionView : ICollectionView, ISupportIncrementalLoading, INotifyPropertyChanging, INotifyPropertyChanged, IComparer<object?>
 {
+    private const int MaxIncrementalSyncChanges = 100;
+    private bool _isSourceDetached;
+#if WINDOWS
+    private List<object?[]>? _detachedGroupKeys; // The grouping keys of the items when the source was detached.
+#endif
     private object[] _itemsCopy = []; // In case the source is ICollection, keep a copy of the items to keep track of removed items.
     private readonly List<object?> _view = [];
     // The full filtered+sorted set, in source order, regardless of grouping. _view is pruned down to just
@@ -129,12 +134,177 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     }
 
     /// <summary>
+    /// Stops listening to the source collection and its items while keeping the current view, so that
+    /// the source no longer keeps this view (and its owner) alive or drives it.
+    /// </summary>
+    internal void DetachFromSource()
+    {
+        if (_isSourceDetached) return;
+
+        DetachCollectionChangedHandlers(Source);
+        DetachPropertyChangedHandlers(Source);
+        _isSourceDetached = true;
+#if WINDOWS
+        _detachedGroupKeys = GetGroupKeys();
+#endif
+    }
+
+    /// <summary>
+    /// Starts listening to the current source collection after <see cref="DetachFromSource"/>. Unless
+    /// <paramref name="alwaysReset"/> is set, the view is left alone if the source still produces the items
+    /// the view holds, and a small difference is applied item by item, which keeps the selection of the
+    /// other items. Only otherwise is the view reset.
+    /// </summary>
+    /// <param name="alwaysReset">Resets the view even if its items are unchanged, e.g. for a new source.</param>
+    /// <returns><see langword="true"/> if the view has been reset.</returns>
+    internal bool AttachToSource(bool alwaysReset = false)
+    {
+        if (!_isSourceDetached) return false;
+
+        _isSourceDetached = false;
+        AttachCollectionChangedHandlers(Source);
+        AttachPropertyChangedHandlers(Source);
+        CreateItemsCopy(Source);
+
+#if WINDOWS
+        var detachedGroupKeys = _detachedGroupKeys;
+        _detachedGroupKeys = null;
+#endif
+
+        if (!alwaysReset)
+        {
+            var items = GetFilteredSortedItems();
+
+            if (_groupingSourceItems.SequenceEqual(items, ItemIdentityComparer.Instance))
+            {
+#if WINDOWS
+                // The same items in the same order can still belong to other groups than before.
+                if (HaveSameGroupKeys(detachedGroupKeys, GetGroupKeys()))
+                {
+                    return false;
+                }
+#else
+                return false;
+#endif
+            }
+            else if (TrySyncViewIncrementally(items))
+            {
+                return false;
+            }
+        }
+
+        HandleSourceChanged();
+        return true;
+    }
+
+    /// <summary>
+    /// Turns the view into <paramref name="items"/> by removing and inserting single items instead of
+    /// resetting it. Not done for a grouped view, for duplicate items or for too many changes.
+    /// </summary>
+    /// <returns><see langword="true"/> if the view now holds <paramref name="items"/>.</returns>
+    private bool TrySyncViewIncrementally(List<object?> items)
+    {
+#if WINDOWS
+        if (GroupDescriptions.Count > 0) return false;
+#endif
+
+        var comparer = ItemIdentityComparer.Instance;
+        var oldIndexes = new Dictionary<object, int>(comparer!);
+
+        for (var index = 0; index < _view.Count; index++)
+        {
+            if (_view[index] is not { } item || !oldIndexes.TryAdd(item, index)) return false;
+        }
+
+        // The items that stay where they are: the ones found in the same relative order in both lists.
+        var kept = new HashSet<object>(comparer!);
+        var nextOldIndex = 0;
+
+        foreach (var item in items)
+        {
+            if (item is null) return false;
+
+            if (oldIndexes.TryGetValue(item, out var oldIndex) && oldIndex >= nextOldIndex)
+            {
+                if (!kept.Add(item)) return false;
+                nextOldIndex = oldIndex + 1;
+            }
+        }
+
+        if (_view.Count - kept.Count + items.Count - kept.Count > MaxIncrementalSyncChanges) return false;
+
+        for (var index = _view.Count - 1; index >= 0; index--)
+        {
+            if (!kept.Contains(_view[index]!))
+            {
+                RemoveFromView(index, _view[index]);
+            }
+        }
+
+        for (var index = 0; index < items.Count; index++)
+        {
+            if (index < _view.Count && comparer.Equals(_view[index], items[index])) continue;
+
+            _groupingSourceItems.Insert(index, items[index]);
+            _view.Insert(index, items[index]);
+
+            if (index <= CurrentPosition)
+            {
+                CurrentPosition++;
+            }
+
+            OnVectorChanged(new VectorChangedEventArgs(CollectionChange.ItemInserted, index, items[index]));
+        }
+
+        return true;
+    }
+
+#if WINDOWS
+    /// <summary>
+    /// Gets the grouping keys of every filtered and sorted item, or null if the view is not grouped.
+    /// </summary>
+    private List<object?[]>? GetGroupKeys()
+    {
+        if (GroupDescriptions.Count == 0) return null;
+
+        return [.. _groupingSourceItems.Select(item => GroupDescriptions.Select(description => description.GetPropertyValue(item)).ToArray())];
+    }
+
+    private static bool HaveSameGroupKeys(List<object?[]>? x, List<object?[]>? y)
+    {
+        if (x is null || y is null) return x is null && y is null;
+
+        return x.Count == y.Count && x.Zip(y).All(keys => keys.First.SequenceEqual(keys.Second));
+    }
+#endif
+
+    /// <summary>
+    /// Compares items the way the view identifies them: reference types by reference, and value types,
+    /// which are boxed anew every time the source is enumerated, by value.
+    /// </summary>
+    private sealed class ItemIdentityComparer : IEqualityComparer<object?>
+    {
+        public static readonly ItemIdentityComparer Instance = new();
+
+        public new bool Equals(object? x, object? y)
+        {
+            return ReferenceEquals(x, y) || (x is ValueType && x.Equals(y));
+        }
+
+        public int GetHashCode(object? obj)
+        {
+            return obj is ValueType ? obj.GetHashCode() : System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(obj);
+        }
+    }
+
+    /// <summary>
     /// Attaches property changed handlers to the items in the collection.
     /// </summary>
     /// <param name="items">The items to attach handlers to.</param>
     private void AttachPropertyChangedHandlers(IEnumerable? items)
     {
-        if (!AllowLiveShaping || items is null) return;
+        // Nothing is subscribed while detached from the source; AttachToSource subscribes to all of its items.
+        if (!AllowLiveShaping || _isSourceDetached || items is null) return;
 
         foreach (var item in items.OfType<INotifyPropertyChanged>())
         {
@@ -352,26 +522,9 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     private void HandleSourceChanged()
     {
         var currentItem = CurrentItem;
+        var items = GetFilteredSortedItems();
         _groupingSourceItems.Clear();
-
-        if (Source is not null)
-        {
-            if (FilterDescriptions.Count > 0)
-            {
-                foreach (var item in Source)
-                {
-                    if (FilterDescriptions.All(x => x.Predicate(item)))
-                        _groupingSourceItems.Add(item);
-                }
-            }
-            else
-            {
-                _groupingSourceItems.AddRange(Source.OfType<object>());
-            }
-
-            if (SortDescriptions.Count > 0)
-                _groupingSourceItems.Sort(this);
-        }
+        _groupingSourceItems.AddRange(items);
 
         if (GroupDescriptions.Count > 0)
         {
@@ -384,6 +537,35 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
 
         OnVectorChanged(new VectorChangedEventArgs(CollectionChange.Reset));
         MoveCurrentTo(currentItem);
+    }
+
+    /// <summary>
+    /// Gets the items of the source with the current filters and sorting applied.
+    /// </summary>
+    private List<object?> GetFilteredSortedItems()
+    {
+        var items = new List<object?>();
+
+        if (Source is not null)
+        {
+            if (FilterDescriptions.Count > 0)
+            {
+                foreach (var item in Source)
+                {
+                    if (FilterDescriptions.All(x => x.Predicate(item)))
+                        items.Add(item);
+                }
+            }
+            else
+            {
+                items.AddRange(Source.OfType<object>());
+            }
+
+            if (SortDescriptions.Count > 0)
+                items.Sort(this);
+        }
+
+        return items;
     }
 
     /// <summary>
