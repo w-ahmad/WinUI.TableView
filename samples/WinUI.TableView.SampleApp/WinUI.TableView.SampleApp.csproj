@@ -42,6 +42,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The showcase pages display their own source files -->
+    <EmbeddedResource Include="Pages\Showcases\*.xaml;Pages\Showcases\*.xaml.cs;Showcases\*.cs"
+                      LogicalName="Source/%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="ColorCode.WinUI" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" />

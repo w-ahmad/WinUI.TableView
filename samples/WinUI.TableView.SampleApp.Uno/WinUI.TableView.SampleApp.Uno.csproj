@@ -86,6 +86,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The showcase pages display their own source files -->
+    <EmbeddedResource Include="..\WinUI.TableView.SampleApp\Pages\Showcases\*.xaml;..\WinUI.TableView.SampleApp\Pages\Showcases\*.xaml.cs;..\WinUI.TableView.SampleApp\Showcases\*.cs"
+                      LogicalName="Source/%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="ClosedXML" />
   </ItemGroup>

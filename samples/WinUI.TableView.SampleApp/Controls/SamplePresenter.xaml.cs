@@ -11,7 +11,7 @@ namespace WinUI.TableView.SampleApp.Controls
 {
     public sealed partial class SamplePresenter : UserControl
     {
-        private const string _baseUri = "https://github.com/w-ahmad/WinUI.TableView/tree/main/samples/WinUI.TableView.SampleApp/Pages/";
+        private const string _baseUri = "https://github.com/w-ahmad/WinUI.TableView/tree/main/samples/WinUI.TableView.SampleApp/";
         private static readonly Regex _substitutionPattern = SubstitutionPattern();
 
         public SamplePresenter()
@@ -26,9 +26,10 @@ namespace WinUI.TableView.SampleApp.Controls
             if (FindParentPage(this) is { } page)
             {
                 var pageName = page.GetType().Name;
+                var folder = SampleCatalog.Find(page.GetType())?.Folder ?? "Pages";
 
-                PageMarkupGitHubLink.NavigateUri = new Uri($"{_baseUri}{pageName}.xaml", UriKind.Absolute);
-                PageCodeGitHubLink.NavigateUri = new Uri($"{_baseUri}{pageName}.xaml.cs", UriKind.Absolute);
+                PageMarkupGitHubLink.NavigateUri = new Uri($"{_baseUri}{folder}/{pageName}.xaml", UriKind.Absolute);
+                PageCodeGitHubLink.NavigateUri = new Uri($"{_baseUri}{folder}/{pageName}.xaml.cs", UriKind.Absolute);
 
             }
 
