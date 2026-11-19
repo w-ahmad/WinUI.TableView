@@ -63,7 +63,7 @@ public partial class TableViewTemplateColumn : TableViewColumn
     /// <inheritdoc/>
     /// <remarks>
     /// A row reused for another item keeps its cells, and the item reaches the template through the inherited
-    /// <see cref="FrameworkElement.DataContext"/>, so the cell keeps its element and only a different template
+    /// <c>DataContext</c>, so the cell keeps its element and only a different template
     /// replaces the content. Inflating the template again for every row the table shows was the costliest part of
     /// scrolling a table with template columns.
     /// </remarks>

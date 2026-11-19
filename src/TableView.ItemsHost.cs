@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Windows.Foundation.Collections;
 using WinUI.TableView.Helpers;
 using WinUI.TableView.Layout;
@@ -257,6 +258,9 @@ public partial class TableView
         repeater.ItemsSource = _visualRows;
 
         repeater.ElementPrepared += OnRowElementPrepared;
+#if WINDOWS
+        repeater.KeyDown += OnRowsHostKeyDown;
+#endif
 
         ConsiderLoadingMoreItems(-1);
         repeater.ElementClearing += OnRowElementClearing;
@@ -356,6 +360,9 @@ public partial class TableView
         }
 
         _rowsRepeater.ElementPrepared -= OnRowElementPrepared;
+#if WINDOWS
+        _rowsRepeater.KeyDown -= OnRowsHostKeyDown;
+#endif
         _rowsRepeater.LayoutUpdated -= OnRowsRepeaterLayoutUpdated;
         _rowsRepeater.ElementClearing -= OnRowElementClearing;
         _rowsRepeater.ElementIndexChanged -= OnRowElementIndexChanged;
@@ -393,6 +400,7 @@ public partial class TableView
         {
             header.VisualIndex = args.Index;
             AttachGroupHeader(header);
+            ConsiderLoadingMoreItems(args.Index); // the last rows can be the headers of collapsed groups
         }
     }
 
@@ -434,7 +442,7 @@ public partial class TableView
 
         // A row being recycled mid-edit would silently drop the edit and leave the table stuck in editing mode,
         // so commit it while the cell still exists.
-        CommitEditIfEditing(row);
+        EndEditOfReleasedRow(row);
 
         _rows.Remove(row);
         row.IsAttached = false;
@@ -536,18 +544,31 @@ public partial class TableView
     }
 
     /// <summary>
-    /// Commits an in-flight edit hosted by the given row.
+    /// Ends the open edit because its row is about to be released: commits it, or cancels it when a handler
+    /// refuses the commit, and leaves edit mode either way.
     /// </summary>
-    private void CommitEditIfEditing(TableViewRow row)
+    /// <param name="row">The row being released, or <see langword="null"/> when every row is.</param>
+    private void EndEditOfReleasedRow(TableViewRow? row = null)
     {
-        if (!IsEditing || CurrentCellSlot is not { } slot || slot.Row != row.Index)
+        if (!IsEditing || _editingCell is not { } cell || (row is not null && !ReferenceEquals(cell.Row, row)))
         {
             return;
         }
 
-        if (GetCellFromSlot(slot) is { } cell && EndCellEditing(TableViewEditAction.Commit, cell))
+        // A commit can re-sort the item; the view must not change mid-layout.
+        _collectionView.DeferItemChanges();
+
+        try
+        {
+            if (!EndCellEditing(TableViewEditAction.Commit, cell))
+            {
+                cell.EndEditing(TableViewEditAction.Cancel);
+            }
+        }
+        finally
         {
             SetIsEditing(false);
+            DispatcherQueue?.TryEnqueue(_collectionView.ApplyDeferredItemChanges);
         }
     }
 
@@ -563,14 +584,40 @@ public partial class TableView
             case CollectionChange.ItemInserted:
                 _rowSelection.OnItemsInserted(index, 1);
                 _visualRows?.OnItemInserted(index);
+
+                // The selected rows may have moved down. A reattach settles the selection once, at its end.
+                if (_rowSelection.Count > 0 && !_isReattachingItemsSource)
+                {
+                    SyncSelectionProperties();
+                }
+
                 break;
 
             case CollectionChange.ItemRemoved:
                 // The visual index has to be read before the projection is rebuilt, while it still describes
                 // where the removed row was.
                 var removedVisualIndex = _visualRows?.GetVisualIndex(index) ?? index;
-                _rowSelection.OnItemsRemoved(index, 1);
-                _visualRows?.OnItemRemoved(removedVisualIndex, (args as VectorChangedEventArgs)?.Item);
+                var removedItem = (args as VectorChangedEventArgs)?.Item;
+                var wasSelected = _rowSelection.OnItemsRemoved(index, 1);
+                _visualRows?.OnItemRemoved(removedVisualIndex, removedItem);
+
+                if (_isReattachingItemsSource)
+                {
+                    // The item may only have moved; SettleSelectionAfterReattach finds out.
+                    if (wasSelected && removedItem is not null)
+                    {
+                        (_selectedItemsRemovedWhileReattaching ??= []).Add(removedItem);
+                    }
+                }
+                else if (wasSelected)
+                {
+                    OnSelectedItemRemoved(removedItem);
+                }
+                else if (_rowSelection.Count > 0)
+                {
+                    SyncSelectionProperties();
+                }
+
                 break;
 
             default:
@@ -614,6 +661,9 @@ public partial class TableView
     /// </remarks>
     private void OnCollectionViewResetting(object? sender, EventArgs e)
     {
+        // Every row is about to show another item or none, so an open edit ends here, while its item is known.
+        EndEditOfReleasedRow();
+
         // A reload that has to reset the view selects the items still in it again afterwards.
         if (_isReattachingItemsSource && _rowSelection.Count > 0)
         {
@@ -680,7 +730,12 @@ public partial class TableView
     {
         var visualIndex = GetVisualIndexFromItemIndex(itemIndex);
 
-        if (visualIndex < 0 || _rowsRepeater?.GetOrCreateElement(visualIndex) is not TableViewRow row)
+        if (visualIndex < 0 || !IsRowsHostActive)
+        {
+            return null;
+        }
+
+        if (_rowsRepeater.GetOrCreateElement(visualIndex) is not TableViewRow row)
         {
             return null;
         }
@@ -694,6 +749,12 @@ public partial class TableView
 
         return row;
     }
+
+    /// <summary>
+    /// Gets a value indicating whether the repeater has its items, which it does not while the table is unloaded.
+    /// </summary>
+    [MemberNotNullWhen(true, nameof(_rowsRepeater))]
+    private bool IsRowsHostActive => _rowsRepeater is { ItemsSource: not null };
 
     /// <summary>
     /// Queues a request for more items when a realized row is close enough to the end of what is loaded.
@@ -717,8 +778,8 @@ public partial class TableView
             return;
         }
 
-        // An empty source that has more to give needs its first page unconditionally.
-        if (_collectionView.Count > 0)
+        // A table showing nothing, not even a group header, needs its first page unconditionally.
+        if (VisualRowCount > 0)
         {
             var threshold = (int)Math.Round(IncrementalLoadingThreshold * Math.Max(1, CalculateAvailablePageSize()));
 

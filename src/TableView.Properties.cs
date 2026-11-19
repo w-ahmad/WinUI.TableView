@@ -1004,6 +1004,11 @@ public partial class TableView
     }
 
     /// <summary>
+    /// Gets the value <see cref="CellsHorizontalOffset"/> last changed to, for the rows to compare with on every arrange.
+    /// </summary>
+    internal double LastCellsHorizontalOffset { get; private set; } = 16d;
+
+    /// <summary>
     /// Gets or sets a value indicating whether columns can be reordered by dragging headers.
     /// </summary>
     public bool CanReorderColumns

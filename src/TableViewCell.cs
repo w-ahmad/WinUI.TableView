@@ -122,7 +122,7 @@ public partial class TableViewCell : ContentControl
         if (_isContentLayoutDeferred)
         {
             _isContentLayoutDeferred = false;
-            ClearValue(MinHeightProperty);
+            ReleaseDeferredHeight();
         }
 #endif
 
@@ -153,6 +153,7 @@ public partial class TableViewCell : ContentControl
 
 #if !WINDOWS
     private bool _isContentLayoutDeferred;
+    private FrameworkElement? _deferredHeightHolder;
 
     /// <summary>
     /// Leaves the cell out of rendering while it is out of view, and its content out of layout until the cell is
@@ -181,10 +182,11 @@ public partial class TableViewCell : ContentControl
 
             if (defer)
             {
-                // Keeps an auto-height row at its height while the content that gave it is out of layout.
-                if (ActualHeight > 0)
+                // The parent pins the height, so the cell's own MinHeight stays bound.
+                if (_contentPresenter.Parent is FrameworkElement { ActualHeight: > 0 } holder)
                 {
-                    MinHeight = ActualHeight;
+                    _deferredHeightHolder = holder;
+                    holder.MinHeight = holder.ActualHeight;
                 }
 
                 _contentPresenter.Visibility = Visibility.Collapsed;
@@ -192,9 +194,19 @@ public partial class TableViewCell : ContentControl
             else
             {
                 _contentPresenter.Visibility = Visibility.Visible;
-                ClearValue(MinHeightProperty);
+                ReleaseDeferredHeight();
             }
         }
+    }
+
+    /// <summary>
+    /// Lets go of the height held for content that is out of layout: it belonged to another item or to other
+    /// row heights.
+    /// </summary>
+    internal void ReleaseDeferredHeight()
+    {
+        _deferredHeightHolder?.ClearValue(MinHeightProperty);
+        _deferredHeightHolder = null;
     }
 #endif
 
@@ -580,7 +592,7 @@ public partial class TableViewCell : ContentControl
 
         if (TableView is not null)
         {
-            TableView.SetIsEditing(true);
+            TableView.SetEditingCell(this);
             TableView.UpdateCornerButtonState();
         }
 

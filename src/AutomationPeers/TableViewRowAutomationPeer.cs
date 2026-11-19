@@ -119,7 +119,7 @@ public partial class TableViewRowAutomationPeer : FrameworkElementAutomationPeer
     {
         if (_owner is { TableView: { } tableView, Index: >= 0 })
         {
-            tableView.MakeSelection(new TableViewCellSlot(_owner.Index, -1), shiftKey: false);
+            tableView.SelectOnlyRow(_owner.Index);
         }
     }
 
@@ -128,7 +128,7 @@ public partial class TableViewRowAutomationPeer : FrameworkElementAutomationPeer
     {
         if (_owner is { TableView: { } tableView, Index: >= 0 })
         {
-            tableView.MakeSelection(new TableViewCellSlot(_owner.Index, -1), shiftKey: false, ctrlKey: true);
+            tableView.AddRowToSelection(_owner.Index);
         }
     }
 

@@ -87,13 +87,22 @@ public partial class TableView
             return;
         }
 
-        if (SelectionMode is ListViewSelectionMode.Single)
+        // Limited to the items there are: a selected index without an item reads as a null item.
+        var first = Math.Max(0, itemIndexRange.FirstIndex);
+        var last = Math.Min(itemIndexRange.LastIndex, _collectionView.Count - 1);
+
+        if (first > last)
         {
-            SelectedIndex = itemIndexRange.FirstIndex;
             return;
         }
 
-        ChangeSelection(model => model.Select(itemIndexRange.FirstIndex, itemIndexRange.LastIndex));
+        if (SelectionMode is ListViewSelectionMode.Single)
+        {
+            SelectedIndex = first;
+            return;
+        }
+
+        ChangeSelection(model => model.Select(first, last));
     }
 
     /// <summary>
@@ -132,7 +141,75 @@ public partial class TableView
     /// </summary>
     private void SelectSingleItem(int itemIndex)
     {
-        ChangeSelection(model => itemIndex < 0 ? model.Clear() : model.SelectOnly(itemIndex));
+        ChangeSelection(model => itemIndex < 0 || itemIndex >= _collectionView.Count ? model.Clear() : model.SelectOnly(itemIndex));
+    }
+
+    /// <summary>
+    /// Makes a row the whole selection and the selection anchor.
+    /// </summary>
+    internal void SelectOnlyRow(int index)
+    {
+        if (!CanSelectRow(index))
+        {
+            return;
+        }
+
+        SelectionStartRowIndex = CurrentRowIndex = index;
+        SelectSingleItem(index);
+    }
+
+    /// <summary>
+    /// Adds a row to the selection without touching the others, and makes it the selection anchor.
+    /// </summary>
+    internal void AddRowToSelection(int index)
+    {
+        if (SelectionMode is ListViewSelectionMode.Single)
+        {
+            SelectOnlyRow(index);
+        }
+        else if (CanSelectRow(index))
+        {
+            SelectionStartRowIndex = CurrentRowIndex = index;
+            SelectRange(new ItemIndexRange(index, 1));
+        }
+    }
+
+    /// <summary>
+    /// Deselects the row a press landed on when the press toggles it: any press in Multiple mode, a press with
+    /// Ctrl in Extended mode.
+    /// </summary>
+    /// <returns>True when the row was selected and the press deselected it.</returns>
+    internal bool DeselectRowOnPress(int? index, bool ctrlKey)
+    {
+        var toggles = SelectionMode is ListViewSelectionMode.Multiple
+            || (ctrlKey && SelectionMode is ListViewSelectionMode.Extended);
+
+        if (!toggles || index is not { } row || !_rowSelection.Contains(row))
+        {
+            return false;
+        }
+
+        DeselectRange(new ItemIndexRange(row, 1));
+        CurrentRowIndex = row;
+
+        return true;
+    }
+
+    private bool CanSelectRow(int index)
+    {
+        return SelectionMode is not ListViewSelectionMode.None
+            && SelectionUnit is not TableViewSelectionUnit.Cell
+            && index >= 0
+            && index < _collectionView.Count;
+    }
+
+    /// <summary>
+    /// Reports a selected item that left the view, after the model has dropped it.
+    /// </summary>
+    private void OnSelectedItemRemoved(object? item)
+    {
+        SyncSelectionProperties();
+        SelectionChanged?.Invoke(this, new SelectionChangedEventArgs(item is null ? [] : [item], []));
     }
 
     /// <summary>
@@ -190,6 +267,11 @@ public partial class TableView
     {
         ChangeSelection(static model => model.Clear(), snapshotRemovedItems: true);
         DeselectAllCells();
+
+        // The anchors are indexes into the view being rebuilt.
+        SelectionStartRowIndex = null;
+        SelectionStartCellSlot = null;
+        CurrentRowIndex = null;
     }
 
     /// <summary>
@@ -222,6 +304,7 @@ public partial class TableView
             if (index >= 0 && (added.Contains(index) || removed.Contains(index)))
             {
                 row.IsSelected = _rowSelection.Contains(index);
+                row.NotifySelectionChanged(isOnlySelection: _rowSelection.Count is 1);
             }
         }
     }
@@ -275,5 +358,11 @@ public partial class TableView
         }
 
         tableView.SelectSingleItem(e.NewValue is int index ? index : -1);
+
+        // An index without an item selects nothing, and the property says so.
+        if (tableView._rowSelection.FirstIndex != tableView.SelectedIndex)
+        {
+            tableView.SyncSelectionProperties();
+        }
     }
 }

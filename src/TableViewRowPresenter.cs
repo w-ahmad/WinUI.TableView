@@ -40,7 +40,6 @@ public partial class TableViewRowPresenter : Control
     private RectangleGeometry? _detailsPanelClip;
     private RectangleGeometry? _scrollableCellsClip;
     private TableViewCell[]? _cells;
-    private double _lastCellsHorizontalOffset = double.NaN;
 
     private const double MultiSelectInset = 44d;
 
@@ -288,10 +287,9 @@ public partial class TableViewRowPresenter : Control
                 offset -= _v_gridLine.Visibility is Visibility.Visible ? _v_gridLine.ActualWidth : 0d;
                 offset = Math.Max(0, offset);
 
-                // Every row arranges on every scroll frame, and they all compute the same value.
-                if (offset != _lastCellsHorizontalOffset)
+                // Compared with the table's value: the header row writes it too.
+                if (offset != TableView.LastCellsHorizontalOffset)
                 {
-                    _lastCellsHorizontalOffset = offset;
                     TableView.SetValue(TableView.CellsHorizontalOffsetProperty, offset);
                 }
             }
@@ -535,42 +533,43 @@ public partial class TableViewRowPresenter : Control
     {
         if (TableView is null) return;
 
+        var thickness = TableView.HorizontalGridLinesStrokeThickness;
+        var visibility = TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Horizontal
+                         ? Visibility.Visible : Visibility.Collapsed;
+
+        // Each part is optional: a custom template may leave one out, or have another element under its name.
         if (_h_gridLine is not null)
         {
-            var thickness = TableView.HorizontalGridLinesStrokeThickness;
-            var visibility = TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Horizontal
-                             ? Visibility.Visible : Visibility.Collapsed;
-
             GridLineSprite.SetBottomEdge(_h_gridLine, TableView.HorizontalGridLinesStroke, thickness);
             _h_gridLine.Visibility = visibility;
+        }
 
-            if (_h_gridLineSpace is not null)
-            {
-                _h_gridLineSpace.Height = thickness;
-                _h_gridLineSpace.Visibility = visibility;
-            }
+        if (_h_gridLineSpace is not null)
+        {
+            _h_gridLineSpace.Height = thickness;
+            _h_gridLineSpace.Visibility = visibility;
+        }
 
-            if (_detailsGridLine is not null)
-            {
-                GridLineSprite.SetShapeFill(_detailsGridLine, TableView.HorizontalGridLinesStroke);
-                _detailsGridLine.Height = thickness;
-                _detailsGridLine.Visibility = visibility;
-            }
+        if (_detailsGridLine is not null)
+        {
+            GridLineSprite.SetShapeFill(_detailsGridLine, TableView.HorizontalGridLinesStroke);
+            _detailsGridLine.Height = thickness;
+            _detailsGridLine.Visibility = visibility;
+        }
 
-            if (_v_gridLine is not null)
-            {
-                var vGridLinesVisibility = TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
-                                           || TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical;
-                var areHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
-                var isMultiSelection = TableView is { SelectionMode: ListViewSelectionMode.Multiple };
-                var isDetailsToggleButtonVisible = TableView.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded
-                                                    && (TableView.RowDetailsTemplate is not null || TableView.RowDetailsTemplateSelector is not null);
+        if (_v_gridLine is not null)
+        {
+            var vGridLinesVisibility = TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                                       || TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical;
+            var areHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
+            var isMultiSelection = TableView is { SelectionMode: ListViewSelectionMode.Multiple };
+            var isDetailsToggleButtonVisible = TableView.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded
+                                                && (TableView.RowDetailsTemplate is not null || TableView.RowDetailsTemplateSelector is not null);
 
-                GridLineSprite.SetFill(_v_gridLine, TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
-                                                    ? TableView.VerticalGridLinesStroke : SharedResources.TransparentBrush);
-                _v_gridLine.Width = TableView.VerticalGridLinesStrokeThickness;
-                _v_gridLine.Visibility = vGridLinesVisibility && (areHeadersVisible || isMultiSelection || isDetailsToggleButtonVisible) ? Visibility.Visible : Visibility.Collapsed;
-            }
+            GridLineSprite.SetFill(_v_gridLine, TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                                                ? TableView.VerticalGridLinesStroke : SharedResources.TransparentBrush);
+            _v_gridLine.Width = TableView.VerticalGridLinesStrokeThickness;
+            _v_gridLine.Visibility = vGridLinesVisibility && (areHeadersVisible || isMultiSelection || isDetailsToggleButtonVisible) ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 

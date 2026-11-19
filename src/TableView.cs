@@ -35,8 +35,10 @@ public partial class TableView : Control
     private RowDefinition? _headerRowDefinition;
     private bool _ensureColumns = true;
     private bool _isItemsSourceSuspended;
+    private TableViewCell? _editingCell;
     private bool _isReattachingItemsSource;
     private List<object>? _selectionBeforeReattachReset;
+    private List<object>? _selectedItemsRemovedWhileReattaching;
     // Half of MinValue, so subtracting it from a tick count cannot overflow into "recent".
     private long _lastIntermediateViewChange = long.MinValue / 2;
     private readonly List<TableViewRow> _rows = [];
@@ -87,8 +89,11 @@ public partial class TableView : Control
 
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
-#if WINDOWS
-        PreviewKeyDown += OnPreviewKeyDown;
+#if !WINDOWS
+        foreach (var property in new[] { RowHeightProperty, RowMinHeightProperty, RowMaxHeightProperty })
+        {
+            RegisterPropertyChangedCallback(property, OnRowHeightsChanged);
+        }
 #endif
         _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
         _collectionView.ViewResetting += OnCollectionViewResetting;
@@ -96,7 +101,11 @@ public partial class TableView : Control
         _groupStyle.CollectionChanged += delegate { RefreshGroupHeaderTemplates(); };
         Columns.ColumnPropertyChanged += OnColumnPropertyChanged;
         Columns.CollectionChanged += delegate { UpdateRowsMinWidth(); };
-        RegisterPropertyChangedCallback(CellsHorizontalOffsetProperty, delegate { UpdateRowsMinWidth(); });
+        RegisterPropertyChangedCallback(CellsHorizontalOffsetProperty, delegate
+        {
+            LastCellsHorizontalOffset = CellsHorizontalOffset;
+            UpdateRowsMinWidth();
+        });
     }
 
     /// <summary>
@@ -387,6 +396,16 @@ public partial class TableView : Control
     {
         if (e.Handled) return;
 
+#if WINDOWS
+        // A key pressed inside the rows was dealt with as it passed the row host (see OnRowsHostKeyDown).
+        if (IsInRowsHost(e.OriginalSource as DependencyObject)) return;
+#endif
+
+        ProcessKeyDown(e);
+    }
+
+    private void ProcessKeyDown(KeyRoutedEventArgs e)
+    {
         var shiftKey = KeyboardHelper.IsShiftKeyDown();
         var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
 
@@ -401,26 +420,30 @@ public partial class TableView : Control
 
 #if WINDOWS
     /// <summary>
-    /// Handles arrows before the row ScrollViewer consumes them while bubbling.
-    /// Editing controls retain their own arrow-key behavior.
+    /// Handles the keys pressed inside the rows as they bubble past the row host, before the ScrollViewer
+    /// around it scrolls on them. A control inside a cell sees them first and keeps the ones it uses.
     /// </summary>
-    private void OnPreviewKeyDown(object sender, KeyRoutedEventArgs e)
+    private void OnRowsHostKeyDown(object sender, KeyRoutedEventArgs e)
     {
-        if (e.Handled || IsEditing
-            || e.Key is not (VirtualKey.Left or VirtualKey.Right or VirtualKey.Up or VirtualKey.Down))
+        if (!e.Handled)
         {
-            return;
+            ProcessKeyDown(e);
+        }
+    }
+
+    private bool IsInRowsHost(DependencyObject? element)
+    {
+        while (element is not null && !ReferenceEquals(element, this))
+        {
+            if (ReferenceEquals(element, _rowsRepeater))
+            {
+                return true;
+            }
+
+            element = VisualTreeHelper.GetParent(element);
         }
 
-        // Header controls and other controls outside the rows keep their own keyboard behavior.
-        if (e.OriginalSource is not FrameworkElement source
-            || (source != this && source is not (TableViewCell or TableViewRow)
-                && source.FindAscendant<TableViewRow>() is null))
-        {
-            return;
-        }
-
-        HandleNavigations(e, KeyboardHelper.IsShiftKeyDown(), KeyboardHelper.IsCtrlKeyDown());
+        return false;
     }
 #endif
 
@@ -542,6 +565,13 @@ public partial class TableView : Control
         }
 
         pressedElement.Focus(FocusState.Programmatic);
+
+        // A press on a selected row takes it out of the selection instead of starting a drag from it.
+        if (LastSelectionUnit is TableViewSelectionUnit.Row && DeselectRowOnPress(SelectionStartRowIndex, ctrlKey))
+        {
+            return true;
+        }
+
 #if WINDOWS
         _pointerCaptureElement = pressedElement;
 #else
@@ -1236,7 +1266,9 @@ public partial class TableView : Control
 
         ResumeItemsSource();
         ResumeRowsHost();
-        ConsiderLoadingMoreItems(-1);
+
+        // Rows laid out before this event could not ask yet; ask for the last of them.
+        ConsiderLoadingMoreItems(RealizedRows.LastVisualIndex);
         EnsureAutoColumns();
         ApplyStickyGroupHeadersSetting();
     }
@@ -1301,6 +1333,8 @@ public partial class TableView : Control
         // A source that changed while the control was unloaded is applied item by item, which keeps the
         // selection, or by a reset, after which the items still in the view are selected again.
         _isReattachingItemsSource = true;
+        _selectionBeforeReattachReset = null; // never a list left by a reattach that failed
+        _selectedItemsRemovedWhileReattaching = null;
 
         try
         {
@@ -1311,10 +1345,55 @@ public partial class TableView : Control
             _isReattachingItemsSource = false;
         }
 
-        if (_selectionBeforeReattachReset is { } selectedItems)
+        var selectedItems = _selectionBeforeReattachReset;
+        _selectionBeforeReattachReset = null;
+
+        if (selectedItems is not null)
         {
-            _selectionBeforeReattachReset = null;
             RestoreSelection(selectedItems);
+        }
+
+        SettleSelectionAfterReattach();
+    }
+
+    /// <summary>
+    /// Sorts out the selected items an item-by-item reattach took out of the view: one that came back in at
+    /// another index only moved and stays selected, and the rest are reported as deselected.
+    /// </summary>
+    private void SettleSelectionAfterReattach()
+    {
+        var removedItems = _selectedItemsRemovedWhileReattaching;
+        _selectedItemsRemovedWhileReattaching = null;
+
+        if (removedItems is null)
+        {
+            if (_rowSelection.Count > 0)
+            {
+                SyncSelectionProperties(); // the selected rows may have shifted
+            }
+
+            return;
+        }
+
+        List<object>? goneItems = null;
+
+        foreach (var item in removedItems)
+        {
+            if (_collectionView.IndexOf(item) is >= 0 and var index)
+            {
+                _rowSelection.Select(index, index);
+            }
+            else
+            {
+                (goneItems ??= []).Add(item);
+            }
+        }
+
+        SyncSelectionProperties();
+
+        if (goneItems is not null)
+        {
+            SelectionChanged?.Invoke(this, new SelectionChangedEventArgs(goneItems, []));
         }
     }
 
@@ -2082,6 +2161,12 @@ public partial class TableView : Control
     private void SelectRows(TableViewCellSlot slot, bool shiftKey, bool ctrlKey)
     {
         var selectionRange = _rowSelection.GetRangeContaining(slot.Row);
+
+        if (SelectionStartRowIndex >= _collectionView.Count)
+        {
+            SelectionStartRowIndex = null; // the anchor's row is gone
+        }
+
         SelectionStartRowIndex ??= slot.Row;
 
         if (selectionRange is not null && ctrlKey && !shiftKey && (CurrentRowIndex != slot.Row || CurrentCellSlot == slot))
@@ -2787,7 +2872,8 @@ public partial class TableView : Control
     /// </remarks>
     public async Task<TableViewRow?> ScrollRowIntoView(int index)
     {
-        if (_scrollViewer is null || _rowsRepeater is null || index < 0 || index >= _collectionView.Count)
+        // The repeater has no items while the table is unloaded, and cannot realize a row then.
+        if (_scrollViewer is null || !IsRowsHostActive || index < 0 || index >= _collectionView.Count)
         {
             return null;
         }
@@ -3274,8 +3360,19 @@ public partial class TableView : Control
 
     }
 
+    internal void SetEditingCell(TableViewCell cell)
+    {
+        _editingCell = cell;
+        SetIsEditing(true);
+    }
+
     internal void SetIsEditing(bool value)
     {
+        if (!value)
+        {
+            _editingCell = null;
+        }
+
         if (IsEditing == value)
         {
             return;

@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
@@ -143,6 +144,32 @@ public partial class TableViewRow : ContentControl
     }
 
     /// <summary>
+    /// Tells assistive technology that the row's selection changed, which the list item base class used to do.
+    /// </summary>
+    internal void NotifySelectionChanged(bool isOnlySelection)
+    {
+#if WINDOWS
+        // A row has a peer only once an automation client has asked for it.
+        if (FrameworkElementAutomationPeer.FromElement(this) is not { } peer)
+        {
+            return;
+        }
+
+        var isSelected = IsSelected;
+        var automationEvent = !isSelected ? AutomationEvents.SelectionItemPatternOnElementRemovedFromSelection
+            : isOnlySelection ? AutomationEvents.SelectionItemPatternOnElementSelected
+            : AutomationEvents.SelectionItemPatternOnElementAddedToSelection;
+
+        peer.RaisePropertyChangedEvent(SelectionItemPatternIdentifiers.IsSelectedProperty, !isSelected, isSelected);
+
+        if (AutomationPeer.ListenerExists(automationEvent))
+        {
+            peer.RaiseAutomationEvent(automationEvent);
+        }
+#endif
+    }
+
+    /// <summary>
     /// Sets <see cref="IsSelected"/> for the row.
     /// </summary>
     /// <remarks>
@@ -176,6 +203,7 @@ public partial class TableViewRow : ContentControl
 
         if (TableView is not null && index >= 0 && Index == index && object.ReferenceEquals(Content, content))
         {
+            UpdateLayout(); // the row is only as tall as its details once they are laid out
             await TableView.ScrollRowIntoView(index);
         }
     }
@@ -216,6 +244,9 @@ public partial class TableViewRow : ContentControl
                 }
 
                 cell.RefreshElement();
+#if !WINDOWS
+                cell.ReleaseDeferredHeight(); // held for the item the row showed before
+#endif
             }
         }
 

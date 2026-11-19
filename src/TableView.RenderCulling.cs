@@ -1,4 +1,5 @@
 #if !WINDOWS
+using Microsoft.UI.Xaml;
 using System;
 using WinUI.TableView.Helpers;
 
@@ -40,6 +41,20 @@ public partial class TableView
         foreach (var row in _rows)
         {
             row.RowPresenter?.UpdateCellsRenderCulling(viewportWidth, cullCells);
+        }
+    }
+
+    /// <summary>
+    /// Lets the cells out of view take the new row heights: the height they hold is from the old ones.
+    /// </summary>
+    private void OnRowHeightsChanged(DependencyObject sender, DependencyProperty dp)
+    {
+        foreach (var row in _rows)
+        {
+            foreach (var cell in row.Cells)
+            {
+                cell.ReleaseDeferredHeight();
+            }
         }
     }
 }

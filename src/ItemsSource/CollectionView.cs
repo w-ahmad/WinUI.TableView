@@ -18,6 +18,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
 {
     private const int MaxIncrementalSyncChanges = 100;
     private bool _isSourceDetached;
+    private List<(object Item, PropertyChangedEventArgs Args)>? _deferredItemChanges;
     private List<object?[]>? _detachedGroupKeys; // The grouping keys of the items when the source was detached.
     private object[] _itemsCopy = []; // In case the source is ICollection, keep a copy of the items to keep track of removed items.
     private readonly List<object?> _view = [];
@@ -445,6 +446,49 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
             return;
         }
 
+        if (_deferredItemChanges is not null)
+        {
+            _deferredItemChanges.Add((item, e));
+            return;
+        }
+
+        ApplyItemChange(item, e);
+    }
+
+    /// <summary>
+    /// Holds back the view's re-sorting and re-filtering of items whose properties change, until
+    /// <see cref="ApplyDeferredItemChanges"/>. For changes made where the view must not move, such as in the
+    /// middle of a layout pass.
+    /// </summary>
+    internal void DeferItemChanges()
+    {
+        _deferredItemChanges ??= [];
+    }
+
+    /// <summary>
+    /// Applies the item changes held back since <see cref="DeferItemChanges"/>.
+    /// </summary>
+    internal void ApplyDeferredItemChanges()
+    {
+        var changes = _deferredItemChanges;
+        _deferredItemChanges = null;
+
+        if (changes is null)
+        {
+            return;
+        }
+
+        foreach (var (item, args) in changes)
+        {
+            ApplyItemChange(item, args);
+        }
+    }
+
+    /// <summary>
+    /// Moves an item to where its changed property puts it under the current filters and sorting.
+    /// </summary>
+    private void ApplyItemChange(object item, PropertyChangedEventArgs e)
+    {
         if (FilterDescriptions.Any(fd => string.IsNullOrEmpty(fd.PropertyName) || fd.PropertyName == e.PropertyName))
         {
             var filterResult = FilterDescriptions.All(x => x.Predicate(item));

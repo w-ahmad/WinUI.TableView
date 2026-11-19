@@ -341,6 +341,58 @@ public class TableViewRowHostTests
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }
 
+#if WINDOWS
+    [UITestMethod]
+    public async Task GridPattern_GetItem_ForAnOffScreenRow_LeavesRowsOnScreen()
+    {
+        var tableView = await CreateTableViewAsync(itemCount: 2_000);
+        await ScrollToAsync(tableView, 20_000d);
+        var peer = new TableViewAutomationPeer(tableView);
+
+        Assert.IsNotNull(peer.GetItem(1_500, 1));
+        await WaitForLayoutAsync(tableView);
+        await Task.Delay(100);
+        await WaitForLayoutAsync(tableView);
+
+        Assert.IsTrue(tableView.RealizedRows.FindAtOffset(tableView.RowsViewportTop, out _) >= 0,
+            "the rows at the scroll position should be realized after an off-screen row was asked for");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+#endif
+
+    [UITestMethod]
+    public async Task RefillingAnEmptiedTable_KeepsTheHeadersOverTheirCells()
+    {
+        var items = CreateItems(20);
+        var tableView = await CreateTableViewAsync(items);
+        tableView.SelectionMode = ListViewSelectionMode.Multiple;
+        await WaitForLayoutAsync(tableView);
+
+        items.Clear();
+        await Task.Delay(100);
+        await WaitForLayoutAsync(tableView);
+
+        foreach (var item in CreateItems(20))
+        {
+            items.Add(item);
+        }
+
+        await Task.Delay(200);
+        await WaitForLayoutAsync(tableView);
+
+        var cell = ((TableViewRow)tableView.ContainerFromIndex(0)!).Cells[0];
+        var header = cell.Column!.HeaderControl!;
+
+        Assert.AreEqual(
+            cell.TransformToVisual(tableView).TransformPoint(default).X,
+            header.TransformToVisual(tableView).TransformPoint(default).X,
+            1d,
+            "a header should start where its cells start");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
     [UITestMethod]
     public async Task HorizontalExtent_ComesFromTheColumns_NotFromTheRealizedRows()
     {

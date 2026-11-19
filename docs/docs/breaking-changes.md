@@ -45,7 +45,10 @@ do not depend on the base class.
 | `WinUI.TableView.Primitives.ListViewItemPresenter` | the row chrome on Windows | **removed** | It existed only to be the `ListViewItem`'s presenter. The row's chrome is now part of the `TableViewRow` template; restyle the row with an implicit style targeting `TableViewRow` |
 | `GroupStyle` | inherited from `ListViewBase` | declared on `TableView` | XAML populating `<tv:TableView.GroupStyle>` is unchanged. Entries now apply per nesting level (the last one is reused for deeper levels), `DefaultGroupStyle` is used while the collection is empty instead of being copied into it, and `HeaderContainerStyle` is not applied |
 | `TableViewCell` default template | had `BackgroundBorder` and `SelectionBorder` parts, and visual state groups for pointer-over, selection and the current cell | has neither | The cell adds a `Border` of each name, behind its content and drawn with the same resources and visuals, the first time it has a visible `Background`, is selected or is current, and styles its `RootBorder` itself while the pointer is over it. This keeps the default template to the four elements every cell needs, which makes a row cheaper to create. A template of your own keeps working the old way: one that has parts of those names keeps drawing them through its `Selected`, `Current` and other visual states, and one that defines `CommonStates` is driven through `PointerOver` and `Normal` as before; the cell adds nothing to either |
-| Selection across a view rebuild | cleared by some rebuilds (header sorting, grouping), left on shifted indexes by others | always cleared | Anything that rebuilds the view (sorting, grouping, expanding or collapsing a group, a source reset) clears row and cell selection first, with `SelectionChanged` reporting the removed items |
+| `TableViewRowPresenter` template | `HorizontalGridLine` was a `Rectangle` | it is a `Border` whose bottom edge draws the line | Only matters for a template of your own: change the part to a `Border`, or the rows lose their horizontal grid lines |
+| `TableViewTemplateColumn` cells | the `CellTemplate` was built again for every item a row showed | a reused row keeps the built template and gives it the new item as its `DataContext` | Bind everything the template shows. State kept outside a binding, such as a control the user changed that is bound one-way, text typed into a box, or something set in `Loaded`, stays with the row as it scrolls to other items. This is how item containers behave in every virtualizing list |
+| `TableViewCheckBoxColumn` cells | used the implicit `CheckBox` style | use a style of the library's that draws the check mark without animating it, since the same check box shows row after row while scrolling | An implicit `CheckBox` style in your app no longer reaches these cells. Set the column's `ElementStyle` to style them |
+| Selection across a view rebuild | cleared by some rebuilds (header sorting, grouping), left on shifted indexes by others | always cleared | Anything that rebuilds the view (sorting, grouping, expanding or collapsing a group, a source reset) clears row and cell selection first, with `SelectionChanged` reporting the removed items. Unloading and reloading the control is not a rebuild: the row selection is kept, and if the source changed in the meantime the items still in it stay selected |
 
 ### Row drag-reorder
 
@@ -75,7 +78,8 @@ order, so the header among the rows stays the one keyboard and screen reader use
 - **A lost pointer capture** (alt-tab or a cancelled touch mid-drag) left the table stuck in drag selection and the
   row stuck looking pressed.
 - **A row recycled mid-edit** silently dropped the edit and left `IsEditing` true with no cell editing, which
-  disabled the corner menu until the control was reloaded. The edit is now committed as the row is released.
+  disabled the corner menu until the control was reloaded. The edit is now committed as the row is released,
+  whether scrolling released it or the view was rebuilt by sorting, grouping or a new source.
 - **`IGridProvider.GetItem` returned nothing for off-screen rows**, making large tables unreadable to assistive
   technology. It now realizes the row on demand.
 - **Row `SelectionItemPattern` bypassed the control's selection logic**, so selecting a row through automation
