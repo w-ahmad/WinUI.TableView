@@ -28,10 +28,10 @@ public partial class TableViewRowPresenter : Control
     private Panel? _rootPanel;
     private StackPanel? _scrollableCellsPanel;
     private StackPanel? _frozenCellsPanel;
-    private Rectangle? _v_gridLine;
+    private FrameworkElement? _v_gridLine;
     private Border? _h_gridLine;
     private FrameworkElement? _h_gridLineSpace;
-    private Rectangle? _detailsGridLine;
+    private FrameworkElement? _detailsGridLine;
     private Panel? _detailsPanel;
     private ContentPresenter? _detailsPresenter;
     private ToggleButton? _detailsToggleButton;
@@ -71,9 +71,9 @@ public partial class TableViewRowPresenter : Control
         _rootPanel = GetTemplateChild("RootPanel") as Panel;
         _scrollableCellsPanel = GetTemplateChild("ScrollableCellsPanel") as StackPanel;
         _frozenCellsPanel = GetTemplateChild("FrozenCellsPanel") as StackPanel;
-        _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
+        _v_gridLine = GetTemplateChild("VerticalGridLine") as FrameworkElement;
         _h_gridLine = GetTemplateChild("HorizontalGridLine") as Border;
-        _detailsGridLine = GetTemplateChild("DetailsGridLine") as Rectangle;
+        _detailsGridLine = GetTemplateChild("DetailsGridLine") as FrameworkElement;
         _h_gridLineSpace = GetTemplateChild("HorizontalGridLineSpace") as FrameworkElement;
         _detailsPanel = GetTemplateChild("DetailsPanel") as Panel;
         _detailsPresenter = GetTemplateChild("DetailsPresenter") as ContentPresenter;
@@ -531,7 +531,7 @@ public partial class TableViewRowPresenter : Control
 
             if (_detailsGridLine is not null)
             {
-                _detailsGridLine.Fill = TableView.HorizontalGridLinesStroke;
+                GridLineSprite.SetShapeFill(_detailsGridLine, TableView.HorizontalGridLinesStroke);
                 _detailsGridLine.Height = thickness;
                 _detailsGridLine.Visibility = visibility;
             }

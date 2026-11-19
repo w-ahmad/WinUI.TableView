@@ -35,8 +35,8 @@ public partial class TableViewHeaderRow : Control
     private Button? _selectAllButton;
     private CheckBox? _selectAllCheckBox;
     private bool _isSyncingSelectAllCheckBox;
-    private Rectangle? _v_gridLine;
-    private Rectangle? _h_gridLine;
+    private FrameworkElement? _v_gridLine;
+    private FrameworkElement? _h_gridLine;
     private StackPanel? _frozenHeadersPanel;
     private StackPanel? _scrollableHeadersPanel;
     private Border? _columnDropIndicator;
@@ -70,8 +70,8 @@ public partial class TableViewHeaderRow : Control
         _optionsButton = GetTemplateChild("optionsButton") as Button;
         _selectAllButton = GetTemplateChild("selectAllButton") as Button;
         _selectAllCheckBox = GetTemplateChild("selectAllCheckBox") as CheckBox;
-        _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
-        _h_gridLine = GetTemplateChild("HorizontalGridLine") as Rectangle;
+        _v_gridLine = GetTemplateChild("VerticalGridLine") as FrameworkElement;
+        _h_gridLine = GetTemplateChild("HorizontalGridLine") as FrameworkElement;
         _frozenHeadersPanel = GetTemplateChild("FrozenHeadersPanel") as StackPanel;
         _scrollableHeadersPanel = GetTemplateChild("ScrollableHeadersPanel") as StackPanel;
         _columnDropIndicator = GetTemplateChild("ColumnDropIndicator") as Border;
@@ -564,7 +564,7 @@ public partial class TableViewHeaderRow : Control
     {
         if (_h_gridLine is not null && TableView is not null)
         {
-            _h_gridLine.Fill = TableView.HorizontalGridLinesStroke;
+            GridLineSprite.SetShapeFill(_h_gridLine, TableView.HorizontalGridLinesStroke);
             _h_gridLine.Height = TableView.HorizontalGridLinesStrokeThickness;
             _h_gridLine.Visibility = TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Horizontal
                                      ? Visibility.Visible : Visibility.Collapsed;
@@ -579,8 +579,8 @@ public partial class TableViewHeaderRow : Control
                                                     && (TableView.RowDetailsTemplate is not null || TableView.RowDetailsTemplateSelector is not null);
 
 
-                _v_gridLine.Fill = TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
-                                   ? TableView.VerticalGridLinesStroke : SharedResources.TransparentBrush;
+                GridLineSprite.SetShapeFill(_v_gridLine, TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                                                         ? TableView.VerticalGridLinesStroke : SharedResources.TransparentBrush);
                 _v_gridLine.Width = TableView.VerticalGridLinesStrokeThickness;
                 _v_gridLine.Visibility = vGridLinesVisibility && (areHeadersVisible || isMultiSelection || isDetailsToggleButtonVisible) ? Visibility.Visible : Visibility.Collapsed;
             }

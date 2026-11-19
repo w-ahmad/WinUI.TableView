@@ -33,7 +33,7 @@ public partial class TableViewCell : ContentControl
     private Border? _rootBorder;
     private bool _templateHasSelectionLayer;
     private bool _templateHasBackgroundLayer;
-    private Rectangle? _v_gridLine;
+    private FrameworkElement? _v_gridLine;
     private object? _uneditedValue;
     private RoutedEventArgs? _editingArgs;
     private IList<TableViewConditionalCellStyle>? _cellStyles;
@@ -107,7 +107,7 @@ public partial class TableViewCell : ContentControl
         _selectionBorder = GetTemplateChild("SelectionBorder") as Border;
         _backgroundBorder = GetTemplateChild("BackgroundBorder") as Border;
         _rootBorder = GetTemplateChild("RootBorder") as Border;
-        _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
+        _v_gridLine = GetTemplateChild("VerticalGridLine") as FrameworkElement;
 
         // A template that has these parts draws them through its own visual states. Without them, and with a root to
         // put them in, the cell adds them itself when it needs them.

@@ -39,7 +39,7 @@ public partial class TableViewColumnHeader : ContentControl
     private Button? _optionsButton;
     private TableViewFilterMenuFlyout? _optionsFlyout;
     private ContentPresenter? _contentPresenter;
-    private Rectangle? _v_gridLine;
+    private FrameworkElement? _v_gridLine;
     private bool _resizeStarted;
     private double _resizeStartingWidth;
     private double _resizeStartPointerX;
@@ -362,7 +362,7 @@ public partial class TableViewColumnHeader : ContentControl
         _optionsButton = GetTemplateChild("OptionsButton") as Button;
         _optionsFlyout = GetTemplateChild("OptionsFlyout") as TableViewFilterMenuFlyout;
         _contentPresenter = GetTemplateChild("ContentPresenter") as ContentPresenter;
-        _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
+        _v_gridLine = GetTemplateChild("VerticalGridLine") as FrameworkElement;
 
         if (_tableView is null || _optionsButton is null || _optionsFlyout is null)
         {
@@ -720,8 +720,8 @@ public partial class TableViewColumnHeader : ContentControl
     {
         if (_v_gridLine is not null && _tableView is not null)
         {
-            _v_gridLine.Fill = _tableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
-                               ? _tableView.VerticalGridLinesStroke : SharedResources.TransparentBrush;
+            GridLineSprite.SetShapeFill(_v_gridLine, _tableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                                                     ? _tableView.VerticalGridLinesStroke : SharedResources.TransparentBrush);
             _v_gridLine.Width = _tableView.VerticalGridLinesStrokeThickness;
             _v_gridLine.Visibility = _tableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
                                      || _tableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical

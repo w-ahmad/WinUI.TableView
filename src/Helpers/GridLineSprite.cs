@@ -27,16 +27,15 @@ internal sealed class GridLineSprite
     /// <summary>
     /// Fills a grid line rectangle with a brush.
     /// </summary>
-    internal static void SetFill(Rectangle line, Brush? brush)
+    internal static void SetFill(FrameworkElement line, Brush? brush)
     {
-        if (TryDraw(line, brush, double.NaN))
-        {
-            line.Fill = null;
-        }
-        else
-        {
-            line.Fill = brush;
-        }
+        SetShapeFill(line, TryDraw(line, brush, double.NaN) ? null : brush);
+    }
+
+    // Under Native AOT a template part may not cast to Rectangle, so the fill is set through its property.
+    internal static void SetShapeFill(FrameworkElement shape, Brush? brush)
+    {
+        shape.SetValue(Shape.FillProperty, brush);
     }
 
     /// <summary>
