@@ -21,6 +21,10 @@ public partial class App : Application
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(SalesExampleModel))]
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(TransactionModel))]
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Pages.VirtualizationItem))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Showcases.Deal))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Showcases.Stock))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Showcases.WorkItem))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Showcases.MailMessage))]
     public App()
     {
         InitializeComponent();
