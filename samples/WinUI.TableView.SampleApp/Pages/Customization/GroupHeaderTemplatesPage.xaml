@@ -1,0 +1,214 @@
+<Page x:Class="WinUI.TableView.SampleApp.Pages.GroupHeaderTemplatesPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:pages="using:WinUI.TableView.SampleApp.Pages"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:tv="using:WinUI.TableView"
+      xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
+      xmlns:helpers="using:WinUI.TableView.SampleApp.Helpers"
+      d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
+      mc:Ignorable="d"
+      DataContextChanged="OnDataContextChanged">
+
+    <Page.Resources>
+        <!--  Header content: an icon, the key and a count  -->
+        <GroupStyle x:Key="BadgeGroupStyle">
+            <GroupStyle.HeaderTemplate>
+                <DataTemplate x:DataType="tv:TableViewGroupInfo">
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="10">
+                        <FontIcon Glyph="&#xE902;"
+                                  FontSize="14"
+                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                        <TextBlock Text="{x:Bind pages:GroupVisuals.Label(Key)}"
+                                   FontSize="14"
+                                   FontWeight="SemiBold" />
+                        <Border CornerRadius="9"
+                                Padding="8,1,8,2"
+                                VerticalAlignment="Center"
+                                Background="{ThemeResource SubtleFillColorSecondaryBrush}">
+                            <TextBlock Text="{x:Bind pages:GroupVisuals.People(Count)}"
+                                       FontSize="12"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </Border>
+                    </StackPanel>
+                </DataTemplate>
+            </GroupStyle.HeaderTemplate>
+        </GroupStyle>
+
+        <!--  Header content and container: HeaderContainerStyle styles the TableViewGroupHeaderRow itself  -->
+        <GroupStyle x:Key="BannerGroupStyle">
+            <GroupStyle.HeaderTemplate>
+                <DataTemplate x:DataType="tv:TableViewGroupInfo">
+                    <Grid>
+                        <TextBlock Text="{x:Bind pages:GroupVisuals.UpperLabel(Key)}"
+                                   FontSize="12"
+                                   FontWeight="Bold"
+                                   CharacterSpacing="80" />
+                        <TextBlock Text="{x:Bind pages:GroupVisuals.People(Count)}"
+                                   FontSize="12"
+                                   Margin="0,0,16,0"
+                                   HorizontalAlignment="Right" />
+                    </Grid>
+                </DataTemplate>
+            </GroupStyle.HeaderTemplate>
+            <GroupStyle.HeaderContainerStyle>
+                <Style TargetType="tv:TableViewGroupHeaderRow">
+                    <Setter Property="MinHeight" Value="36" />
+                    <Setter Property="Background" Value="{ThemeResource AccentFillColorDefaultBrush}" />
+                    <Setter Property="Foreground" Value="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+                </Style>
+            </GroupStyle.HeaderContainerStyle>
+        </GroupStyle>
+    </Page.Resources>
+
+    <Grid>
+        <controls:SamplePresenter x:Name="presenter"
+                                  Header="Group Header Templates"
+                                  Description="A GroupStyle decides how group headers look: HeaderTemplate replaces the content and HeaderContainerStyle restyles the header row around it.">
+            <controls:SamplePresenter.Example>
+                <tv:TableView x:Name="tableView"
+                              ItemsSource="{Binding Items}"
+                              AutoGenerateColumns="False"
+                              DefaultGroupState="Expanded"
+                              DefaultGroupStyle="{StaticResource BadgeGroupStyle}">
+                    <tv:TableView.Columns>
+                        <tv:TableViewNumberColumn Header="Id"
+                                                  Width="90"
+                                                  Binding="{Binding Id}" />
+                        <tv:TableViewTextColumn Header="Full Name"
+                                                Width="200"
+                                                IsReadOnly="True"
+                                                Binding="{Binding FullName}" />
+                        <tv:TableViewTextColumn Header="Department"
+                                                Width="200"
+                                                Binding="{Binding Department}" />
+                        <tv:TableViewTextColumn Header="Designation"
+                                                Width="240"
+                                                Binding="{Binding Designation}" />
+                        <tv:TableViewTextColumn Header="Gender"
+                                                Width="140"
+                                                Binding="{Binding Gender}" />
+                    </tv:TableView.Columns>
+                </tv:TableView>
+            </controls:SamplePresenter.Example>
+            <controls:SamplePresenter.Options>
+                <StackPanel Spacing="16"
+                            MinWidth="220">
+                    <RadioButtons x:Name="groupStyle"
+                                  Header="Group style"
+                                  SelectedIndex="0"
+                                  SelectionChanged="OnGroupStyleChanged">
+                        <x:String>Badge</x:String>
+                        <x:String>Banner</x:String>
+                        <x:String>Default</x:String>
+                    </RadioButtons>
+                    <ComboBox x:Name="groupBy"
+                              Header="Group by"
+                              HorizontalAlignment="Stretch"
+                              SelectedIndex="0"
+                              SelectionChanged="OnGroupByChanged">
+                        <x:String>Department</x:String>
+                        <x:String>Gender</x:String>
+                        <x:String>Designation</x:String>
+                    </ComboBox>
+                    <ComboBox Header="DefaultGroupState"
+                              HorizontalAlignment="Stretch"
+                              SelectedItem="{Binding DefaultGroupState, Mode=TwoWay, ElementName=tableView}"
+                              ItemsSource="{helpers:EnumValues Type=tv:TableViewGroupState}" />
+                    <ToggleSwitch Header="AreStickyGroupHeadersEnabled"
+                                  OnContent="True"
+                                  OffContent="False"
+                                  IsOn="{Binding AreStickyGroupHeadersEnabled, Mode=TwoWay, ElementName=tableView}" />
+                </StackPanel>
+            </controls:SamplePresenter.Options>
+            <controls:SamplePresenter.Xaml>
+                <x:String xml:space="preserve">
+&lt;Page.Resources>
+    &lt;!--  Header content: an icon, the key and a count  -->
+    &lt;GroupStyle x:Key="BadgeGroupStyle">
+        &lt;GroupStyle.HeaderTemplate>
+            &lt;DataTemplate x:DataType="tv:TableViewGroupInfo">
+                &lt;StackPanel Orientation="Horizontal"
+                            Spacing="10">
+                    &lt;FontIcon Glyph="&amp;#xE902;"
+                              FontSize="14"
+                              Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                    &lt;TextBlock Text="{x:Bind pages:GroupVisuals.Label(Key)}"
+                               FontSize="14"
+                               FontWeight="SemiBold" />
+                    &lt;Border CornerRadius="9"
+                            Padding="8,1,8,2"
+                            VerticalAlignment="Center"
+                            Background="{ThemeResource SubtleFillColorSecondaryBrush}">
+                        &lt;TextBlock Text="{x:Bind pages:GroupVisuals.People(Count)}"
+                                   FontSize="12"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    &lt;/Border>
+                &lt;/StackPanel>
+            &lt;/DataTemplate>
+        &lt;/GroupStyle.HeaderTemplate>
+    &lt;/GroupStyle>
+
+    &lt;!--  Header content and container: HeaderContainerStyle styles the TableViewGroupHeaderRow itself  -->
+    &lt;GroupStyle x:Key="BannerGroupStyle">
+        &lt;GroupStyle.HeaderTemplate>
+            &lt;DataTemplate x:DataType="tv:TableViewGroupInfo">
+                &lt;Grid>
+                    &lt;TextBlock Text="{x:Bind pages:GroupVisuals.UpperLabel(Key)}"
+                               FontSize="12"
+                               FontWeight="Bold"
+                               CharacterSpacing="80" />
+                    &lt;TextBlock Text="{x:Bind pages:GroupVisuals.People(Count)}"
+                               FontSize="12"
+                               Margin="0,0,16,0"
+                               HorizontalAlignment="Right" />
+                &lt;/Grid>
+            &lt;/DataTemplate>
+        &lt;/GroupStyle.HeaderTemplate>
+        &lt;GroupStyle.HeaderContainerStyle>
+            &lt;Style TargetType="tv:TableViewGroupHeaderRow">
+                &lt;Setter Property="MinHeight" Value="36" />
+                &lt;Setter Property="Background" Value="{ThemeResource AccentFillColorDefaultBrush}" />
+                &lt;Setter Property="Foreground" Value="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+            &lt;/Style>
+        &lt;/GroupStyle.HeaderContainerStyle>
+    &lt;/GroupStyle>
+&lt;/Page.Resources>
+
+&lt;tv:TableView x:Name="tableView"
+              ItemsSource="{Binding Items}"
+              DefaultGroupState="$(DefaultGroupState)"
+              AreStickyGroupHeadersEnabled="$(AreStickyGroupHeadersEnabled)"
+              DefaultGroupStyle="{StaticResource BadgeGroupStyle}" />
+                </x:String>
+            </controls:SamplePresenter.Xaml>
+            <controls:SamplePresenter.CSharp>
+                <x:String xml:space="preserve">
+// Group by a property; the header template receives a TableViewGroupInfo (Key, Count, IsExpanded).
+tableView.GroupDescriptions.Add(new GroupDescription(nameof(ExampleModel.Department)));
+
+// Swap the style at any time.
+tableView.DefaultGroupStyle = (GroupStyle)Resources["BannerGroupStyle"];
+
+public static class GroupVisuals
+{
+    public static string Label(object? key) => string.IsNullOrEmpty($"{key}") ? "(none)" : $"{key}";
+
+    public static string UpperLabel(object? key) => Label(key).ToUpperInvariant();
+
+    public static string People(int count) => count == 1 ? "1 person" : $"{count} people";
+}
+                </x:String>
+            </controls:SamplePresenter.CSharp>
+            <controls:SamplePresenter.Substitutions>
+                <controls:CodeSubstitution Key="DefaultGroupState"
+                                           Value="{x:Bind tableView.DefaultGroupState, Mode=OneWay}" />
+                <controls:CodeSubstitution Key="AreStickyGroupHeadersEnabled"
+                                           Value="{x:Bind tableView.AreStickyGroupHeadersEnabled, Mode=OneWay}" />
+            </controls:SamplePresenter.Substitutions>
+        </controls:SamplePresenter>
+    </Grid>
+</Page>

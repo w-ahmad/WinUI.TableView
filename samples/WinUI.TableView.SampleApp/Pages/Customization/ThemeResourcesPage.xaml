@@ -1,0 +1,44 @@
+<Page x:Class="WinUI.TableView.SampleApp.Pages.ThemeResourcesPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
+      d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
+      mc:Ignorable="d"
+      DataContextChanged="OnDataContextChanged">
+
+    <Grid>
+        <controls:SamplePresenter x:Name="presenter"
+                                  Header="Theme Resources"
+                                  Description="Lightweight styling: every color, corner radius and line of TableView is a named resource. Override a few in TableView.Resources (or app-wide in App.xaml) and the default templates pick them up, with no template copied.">
+            <controls:SamplePresenter.Example>
+                <!--  The table is created in code-behind, with the chosen resources merged into its Resources  -->
+                <ContentControl x:Name="host"
+                                IsTabStop="False"
+                                VerticalContentAlignment="Stretch"
+                                HorizontalContentAlignment="Stretch" />
+            </controls:SamplePresenter.Example>
+            <controls:SamplePresenter.Options>
+                <StackPanel Spacing="16"
+                            MinWidth="220"
+                            MaxWidth="260">
+                    <RadioButtons x:Name="preset"
+                                  Header="Resource set"
+                                  SelectedIndex="1"
+                                  SelectionChanged="OnPresetChanged">
+                        <x:String>Default</x:String>
+                        <x:String>Accent</x:String>
+                        <x:String>Ledger</x:String>
+                        <x:String>Soft</x:String>
+                    </RadioButtons>
+                    <TextBlock TextWrapping="Wrap"
+                               Style="{StaticResource CaptionTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               Text="Hover and select rows and cells to see the overridden brushes. The full list of keys is in Themes/Resources.xaml of the library." />
+                </StackPanel>
+            </controls:SamplePresenter.Options>
+        </controls:SamplePresenter>
+    </Grid>
+</Page>

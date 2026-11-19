@@ -1,0 +1,335 @@
+<Page x:Class="WinUI.TableView.SampleApp.Pages.TemplateColumnsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:pages="using:WinUI.TableView.SampleApp.Pages"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:tv="using:WinUI.TableView"
+      xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
+      xmlns:helpers="using:WinUI.TableView.SampleApp.Helpers"
+      d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
+      mc:Ignorable="d"
+      DataContextChanged="OnDataContextChanged">
+
+    <Grid>
+        <controls:SamplePresenter x:Name="presenter"
+                                  Header="Template Columns"
+                                  Description="A template column shows anything a DataTemplate can hold, and an editing template decides how the cell edits. Double-click the Employee, Department or Status cells.">
+            <controls:SamplePresenter.Example>
+                <tv:TableView ItemsSource="{Binding Items}"
+                              AutoGenerateColumns="False"
+                              RowHeight="56">
+                    <tv:TableView.Columns>
+                        <!--  Two lines and a picture in one cell; SortMemberPath makes it sortable  -->
+                        <tv:TableViewTemplateColumn Header="Employee"
+                                                    Width="280"
+                                                    CanSort="True"
+                                                    SortMemberPath="FirstName">
+                            <tv:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate x:DataType="local:ExampleModel">
+                                    <StackPanel Orientation="Horizontal"
+                                                Spacing="12"
+                                                Margin="12,0">
+                                        <PersonPicture Width="36"
+                                                       Height="36"
+                                                       DisplayName="{x:Bind FullName, Mode=OneWay}" />
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="{x:Bind FullName, Mode=OneWay}"
+                                                       FontWeight="SemiBold" />
+                                            <TextBlock Text="{x:Bind Designation, Mode=OneWay}"
+                                                       FontSize="12"
+                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </tv:TableViewTemplateColumn.CellTemplate>
+                            <!--  Double-click the cell: the editing template takes over  -->
+                            <tv:TableViewTemplateColumn.EditingTemplate>
+                                <DataTemplate x:DataType="local:ExampleModel">
+                                    <Grid ColumnSpacing="4"
+                                          Margin="4,0"
+                                          VerticalAlignment="Center">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Text="{x:Bind FirstName, Mode=TwoWay}"
+                                                 PlaceholderText="First name" />
+                                        <TextBox Grid.Column="1"
+                                                 Text="{x:Bind LastName, Mode=TwoWay}"
+                                                 PlaceholderText="Last name" />
+                                    </Grid>
+                                </DataTemplate>
+                            </tv:TableViewTemplateColumn.EditingTemplate>
+                        </tv:TableViewTemplateColumn>
+
+                        <!--  A chip colored by its value  -->
+                        <tv:TableViewTemplateColumn Header="Department"
+                                                    Width="220"
+                                                    CanSort="True"
+                                                    SortMemberPath="Department">
+                            <tv:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate x:DataType="local:ExampleModel">
+                                    <Border CornerRadius="4"
+                                            Padding="8,2,8,3"
+                                            Margin="12,0"
+                                            VerticalAlignment="Center"
+                                            HorizontalAlignment="Left"
+                                            Background="{x:Bind pages:EmployeeVisuals.DepartmentBrush(Department), Mode=OneWay}">
+                                        <TextBlock Text="{x:Bind Department, Mode=OneWay}"
+                                                   FontSize="12" />
+                                    </Border>
+                                </DataTemplate>
+                            </tv:TableViewTemplateColumn.CellTemplate>
+                            <tv:TableViewTemplateColumn.EditingTemplate>
+                                <DataTemplate x:DataType="local:ExampleModel">
+                                    <ComboBox ItemsSource="{x:Bind pages:EmployeeVisuals.Departments}"
+                                              SelectedItem="{x:Bind Department, Mode=TwoWay}"
+                                              HorizontalAlignment="Stretch"
+                                              VerticalAlignment="Center" />
+                                </DataTemplate>
+                            </tv:TableViewTemplateColumn.EditingTemplate>
+                        </tv:TableViewTemplateColumn>
+
+                        <!--  A status pill that edits as a toggle switch  -->
+                        <tv:TableViewTemplateColumn Header="Status"
+                                                    Width="160"
+                                                    CanSort="True"
+                                                    SortMemberPath="IsActive">
+                            <tv:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate x:DataType="local:ExampleModel">
+                                    <Border CornerRadius="11"
+                                            Padding="8,2,10,3"
+                                            Margin="12,0"
+                                            VerticalAlignment="Center"
+                                            HorizontalAlignment="Left"
+                                            Background="{x:Bind pages:EmployeeVisuals.StatusTint(IsActive), Mode=OneWay}">
+                                        <StackPanel Orientation="Horizontal"
+                                                    Spacing="6">
+                                            <Ellipse Width="6"
+                                                     Height="6"
+                                                     Fill="{x:Bind pages:EmployeeVisuals.StatusBrush(IsActive), Mode=OneWay}" />
+                                            <TextBlock Text="{x:Bind pages:EmployeeVisuals.StatusText(IsActive), Mode=OneWay}"
+                                                       FontSize="12" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </tv:TableViewTemplateColumn.CellTemplate>
+                            <tv:TableViewTemplateColumn.EditingTemplate>
+                                <DataTemplate x:DataType="local:ExampleModel">
+                                    <ToggleSwitch IsOn="{x:Bind IsActive, Mode=TwoWay}"
+                                                  Margin="12,0"
+                                                  OnContent="Active"
+                                                  OffContent="Away" />
+                                </DataTemplate>
+                            </tv:TableViewTemplateColumn.EditingTemplate>
+                        </tv:TableViewTemplateColumn>
+
+                        <!--  Values worked out from the data: a birthday and an age  -->
+                        <tv:TableViewTemplateColumn Header="Birthday"
+                                                    Width="200"
+                                                    IsReadOnly="True"
+                                                    CanSort="True"
+                                                    SortMemberPath="Dob">
+                            <tv:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate x:DataType="local:ExampleModel">
+                                    <StackPanel Orientation="Horizontal"
+                                                Spacing="8"
+                                                Margin="12,0">
+                                        <FontIcon Glyph="&#xE787;"
+                                                  FontSize="14"
+                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        <TextBlock Text="{x:Bind pages:EmployeeVisuals.Birthday(Dob), Mode=OneWay}"
+                                                   VerticalAlignment="Center" />
+                                        <TextBlock Text="{x:Bind pages:EmployeeVisuals.Age(Dob), Mode=OneWay}"
+                                                   FontSize="12"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </tv:TableViewTemplateColumn.CellTemplate>
+                        </tv:TableViewTemplateColumn>
+                    </tv:TableView.Columns>
+                </tv:TableView>
+            </controls:SamplePresenter.Example>
+            <controls:SamplePresenter.Xaml>
+                <x:String xml:space="preserve">
+&lt;tv:TableView ItemsSource="{Binding Items}"
+              AutoGenerateColumns="False"
+              RowHeight="56">
+    &lt;tv:TableView.Columns>
+        &lt;!--  Two lines and a picture in one cell; SortMemberPath makes it sortable  -->
+        &lt;tv:TableViewTemplateColumn Header="Employee"
+                                    Width="280"
+                                    CanSort="True"
+                                    SortMemberPath="FirstName">
+            &lt;tv:TableViewTemplateColumn.CellTemplate>
+                &lt;DataTemplate x:DataType="local:ExampleModel">
+                    &lt;StackPanel Orientation="Horizontal"
+                                Spacing="12"
+                                Margin="12,0">
+                        &lt;PersonPicture Width="36"
+                                       Height="36"
+                                       DisplayName="{x:Bind FullName, Mode=OneWay}" />
+                        &lt;StackPanel VerticalAlignment="Center">
+                            &lt;TextBlock Text="{x:Bind FullName, Mode=OneWay}"
+                                       FontWeight="SemiBold" />
+                            &lt;TextBlock Text="{x:Bind Designation, Mode=OneWay}"
+                                       FontSize="12"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        &lt;/StackPanel>
+                    &lt;/StackPanel>
+                &lt;/DataTemplate>
+            &lt;/tv:TableViewTemplateColumn.CellTemplate>
+            &lt;!--  Double-click the cell: the editing template takes over  -->
+            &lt;tv:TableViewTemplateColumn.EditingTemplate>
+                &lt;DataTemplate x:DataType="local:ExampleModel">
+                    &lt;Grid ColumnSpacing="4"
+                          Margin="4,0"
+                          VerticalAlignment="Center">
+                        &lt;Grid.ColumnDefinitions>
+                            &lt;ColumnDefinition Width="*" />
+                            &lt;ColumnDefinition Width="*" />
+                        &lt;/Grid.ColumnDefinitions>
+                        &lt;TextBox Text="{x:Bind FirstName, Mode=TwoWay}"
+                                 PlaceholderText="First name" />
+                        &lt;TextBox Grid.Column="1"
+                                 Text="{x:Bind LastName, Mode=TwoWay}"
+                                 PlaceholderText="Last name" />
+                    &lt;/Grid>
+                &lt;/DataTemplate>
+            &lt;/tv:TableViewTemplateColumn.EditingTemplate>
+        &lt;/tv:TableViewTemplateColumn>
+
+        &lt;!--  A chip colored by its value  -->
+        &lt;tv:TableViewTemplateColumn Header="Department"
+                                    Width="220"
+                                    CanSort="True"
+                                    SortMemberPath="Department">
+            &lt;tv:TableViewTemplateColumn.CellTemplate>
+                &lt;DataTemplate x:DataType="local:ExampleModel">
+                    &lt;Border CornerRadius="4"
+                            Padding="8,2,8,3"
+                            Margin="12,0"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Left"
+                            Background="{x:Bind pages:EmployeeVisuals.DepartmentBrush(Department), Mode=OneWay}">
+                        &lt;TextBlock Text="{x:Bind Department, Mode=OneWay}"
+                                   FontSize="12" />
+                    &lt;/Border>
+                &lt;/DataTemplate>
+            &lt;/tv:TableViewTemplateColumn.CellTemplate>
+            &lt;tv:TableViewTemplateColumn.EditingTemplate>
+                &lt;DataTemplate x:DataType="local:ExampleModel">
+                    &lt;ComboBox ItemsSource="{x:Bind pages:EmployeeVisuals.Departments}"
+                              SelectedItem="{x:Bind Department, Mode=TwoWay}"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Center" />
+                &lt;/DataTemplate>
+            &lt;/tv:TableViewTemplateColumn.EditingTemplate>
+        &lt;/tv:TableViewTemplateColumn>
+
+        &lt;!--  A status pill that edits as a toggle switch  -->
+        &lt;tv:TableViewTemplateColumn Header="Status"
+                                    Width="160"
+                                    CanSort="True"
+                                    SortMemberPath="IsActive">
+            &lt;tv:TableViewTemplateColumn.CellTemplate>
+                &lt;DataTemplate x:DataType="local:ExampleModel">
+                    &lt;Border CornerRadius="11"
+                            Padding="8,2,10,3"
+                            Margin="12,0"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Left"
+                            Background="{x:Bind pages:EmployeeVisuals.StatusTint(IsActive), Mode=OneWay}">
+                        &lt;StackPanel Orientation="Horizontal"
+                                    Spacing="6">
+                            &lt;Ellipse Width="6"
+                                     Height="6"
+                                     Fill="{x:Bind pages:EmployeeVisuals.StatusBrush(IsActive), Mode=OneWay}" />
+                            &lt;TextBlock Text="{x:Bind pages:EmployeeVisuals.StatusText(IsActive), Mode=OneWay}"
+                                       FontSize="12" />
+                        &lt;/StackPanel>
+                    &lt;/Border>
+                &lt;/DataTemplate>
+            &lt;/tv:TableViewTemplateColumn.CellTemplate>
+            &lt;tv:TableViewTemplateColumn.EditingTemplate>
+                &lt;DataTemplate x:DataType="local:ExampleModel">
+                    &lt;ToggleSwitch IsOn="{x:Bind IsActive, Mode=TwoWay}"
+                                  Margin="12,0"
+                                  OnContent="Active"
+                                  OffContent="Away" />
+                &lt;/DataTemplate>
+            &lt;/tv:TableViewTemplateColumn.EditingTemplate>
+        &lt;/tv:TableViewTemplateColumn>
+
+        &lt;!--  Values worked out from the data: a birthday and an age  -->
+        &lt;tv:TableViewTemplateColumn Header="Birthday"
+                                    Width="200"
+                                    IsReadOnly="True"
+                                    CanSort="True"
+                                    SortMemberPath="Dob">
+            &lt;tv:TableViewTemplateColumn.CellTemplate>
+                &lt;DataTemplate x:DataType="local:ExampleModel">
+                    &lt;StackPanel Orientation="Horizontal"
+                                Spacing="8"
+                                Margin="12,0">
+                        &lt;FontIcon Glyph="&amp;#xE787;"
+                                  FontSize="14"
+                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        &lt;TextBlock Text="{x:Bind pages:EmployeeVisuals.Birthday(Dob), Mode=OneWay}"
+                                   VerticalAlignment="Center" />
+                        &lt;TextBlock Text="{x:Bind pages:EmployeeVisuals.Age(Dob), Mode=OneWay}"
+                                   FontSize="12"
+                                   VerticalAlignment="Center"
+                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    &lt;/StackPanel>
+                &lt;/DataTemplate>
+            &lt;/tv:TableViewTemplateColumn.CellTemplate>
+        &lt;/tv:TableViewTemplateColumn>
+    &lt;/tv:TableView.Columns>
+&lt;/tv:TableView>
+                </x:String>
+            </controls:SamplePresenter.Xaml>
+            <controls:SamplePresenter.CSharp>
+                <x:String xml:space="preserve">
+/// &lt;summary>
+/// What the cell templates draw for a value; they call these through x:Bind.
+/// &lt;/summary>
+public static class EmployeeVisuals
+{
+    private static readonly Color _active = Color.FromArgb(255, 16, 137, 62);
+    private static readonly Color _away = Color.FromArgb(255, 122, 132, 144);
+
+    public static List&lt;string?> Departments { get; } =
+        [.. ExampleViewModel.ItemsList.Select(item => item.Department).Distinct().Order()];
+
+    public static Brush DepartmentBrush(string? department)
+    {
+        var color = Palette.Avatar(Departments.IndexOf(department)).Color;
+
+        return Palette.Tint(color, 56);
+    }
+
+    public static string StatusText(bool isActive) => isActive ? "Active" : "Away";
+
+    public static Brush StatusBrush(bool isActive) => Palette.Solid(isActive ? _active : _away);
+
+    public static Brush StatusTint(bool isActive) => Palette.Tint(isActive ? _active : _away);
+
+    public static string Birthday(DateOnly dob) => dob.ToString("MMMM d");
+
+    public static string Age(DateOnly dob)
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var age = today.Year - dob.Year - (today &lt; dob.AddYears(today.Year - dob.Year) ? 1 : 0);
+
+        return $"turns {age + 1}";
+    }
+}
+                </x:String>
+            </controls:SamplePresenter.CSharp>
+        </controls:SamplePresenter>
+    </Grid>
+</Page>
