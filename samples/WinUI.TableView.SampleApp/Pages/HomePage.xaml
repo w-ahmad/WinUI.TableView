@@ -1,0 +1,270 @@
+<Page x:Class="WinUI.TableView.SampleApp.Pages.HomePage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:WinUI.TableView.SampleApp.Pages"
+      xmlns:data="using:WinUI.TableView.SampleApp.Showcases"
+      xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
+      xmlns:tv="using:WinUI.TableView">
+
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <LinearGradientBrush x:Key="HeroBackgroundBrush" StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Offset="0" Color="#DCEBFF" />
+                        <GradientStop Offset="0.55" Color="#EDE6FF" />
+                        <GradientStop Offset="1" Color="#FFEFE3" />
+                    </LinearGradientBrush>
+                    <SolidColorBrush x:Key="HeroGlowBrush" Color="#66FFFFFF" />
+                    <SolidColorBrush x:Key="HeroPreviewBackgroundBrush" Color="#F7FFFFFF" />
+                    <SolidColorBrush x:Key="HeroPreviewBorderBrush" Color="#1F000000" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <LinearGradientBrush x:Key="HeroBackgroundBrush" StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Offset="0" Color="#0B2A4F" />
+                        <GradientStop Offset="0.55" Color="#2A1D52" />
+                        <GradientStop Offset="1" Color="#45222B" />
+                    </LinearGradientBrush>
+                    <SolidColorBrush x:Key="HeroGlowBrush" Color="#14FFFFFF" />
+                    <SolidColorBrush x:Key="HeroPreviewBackgroundBrush" Color="#F21C1C1C" />
+                    <SolidColorBrush x:Key="HeroPreviewBorderBrush" Color="#33FFFFFF" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+
+            <Style x:Key="HeroLinkStyle"
+                   TargetType="HyperlinkButton">
+                <Setter Property="Padding" Value="10,6" />
+            </Style>
+        </ResourceDictionary>
+    </Page.Resources>
+
+    <Grid>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup>
+                <VisualState x:Name="Wide">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="1180" />
+                    </VisualState.StateTriggers>
+                </VisualState>
+                <VisualState x:Name="Narrow">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="preview.Visibility" Value="Collapsed" />
+                        <Setter Target="previewColumn.Width" Value="0" />
+                        <Setter Target="hero.ColumnSpacing" Value="0" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
+    <ScrollViewer>
+        <StackPanel x:Name="content"
+                    Spacing="20"
+                    Padding="32,24,32,48">
+
+            <!--  Hero  -->
+            <Grid x:Name="hero"
+                  CornerRadius="12"
+                  ColumnSpacing="32"
+                  Padding="40,36"
+                  Background="{ThemeResource HeroBackgroundBrush}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"
+                                      MinWidth="320" />
+                    <ColumnDefinition x:Name="previewColumn"
+                                      Width="1.15*" />
+                </Grid.ColumnDefinitions>
+
+                <Ellipse Grid.ColumnSpan="2"
+                         Width="520"
+                         Height="520"
+                         Margin="-220,-300,0,0"
+                         Fill="{ThemeResource HeroGlowBrush}"
+                         VerticalAlignment="Top"
+                         HorizontalAlignment="Left" />
+
+                <StackPanel Spacing="14"
+                            VerticalAlignment="Center">
+                    <Border CornerRadius="12"
+                            Padding="12,4"
+                            HorizontalAlignment="Left"
+                            Background="{ThemeResource HeroGlowBrush}">
+                        <TextBlock Text="WinUI  ·  Uno Platform  ·  Native AOT"
+                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                    </Border>
+                    <TextBlock Text="WinUI.TableView"
+                               FontSize="44"
+                               FontWeight="SemiBold"
+                               LineHeight="52" />
+                    <TextBlock MaxWidth="520"
+                               HorizontalAlignment="Left"
+                               TextWrapping="Wrap"
+                               Style="{StaticResource BodyLargeTextBlockStyle}"
+                               Text="A fast, flexible data grid for WinUI and Uno Platform. Sort, filter, group and edit millions of rows, then restyle every header, row and cell to make it yours." />
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8"
+                                Margin="0,10,0,0">
+                        <Button Content="Explore the showcases"
+                                Style="{StaticResource AccentButtonStyle}"
+                                Click="OnExploreShowcasesClicked" />
+                        <Button Content="Start with the basics"
+                                Click="OnStartWithBasicsClicked" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal"
+                                Margin="-10,0,0,0">
+                        <HyperlinkButton Content="Documentation"
+                                         Style="{StaticResource HeroLinkStyle}"
+                                         NavigateUri="https://w-ahmad.dev/WinUI.TableView/" />
+                        <HyperlinkButton Content="GitHub"
+                                         Style="{StaticResource HeroLinkStyle}"
+                                         NavigateUri="https://github.com/w-ahmad/WinUI.TableView" />
+                        <HyperlinkButton Content="NuGet"
+                                         Style="{StaticResource HeroLinkStyle}"
+                                         NavigateUri="https://www.nuget.org/packages/WinUI.TableView/" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!--  A real TableView, not a screenshot  -->
+                <Border x:Name="preview"
+                        Grid.Column="1"
+                        Height="292"
+                        CornerRadius="10"
+                        BorderThickness="1"
+                        VerticalAlignment="Center"
+                        IsHitTestVisible="False"
+                        BorderBrush="{ThemeResource HeroPreviewBorderBrush}"
+                        Background="{ThemeResource HeroPreviewBackgroundBrush}">
+                    <tv:TableView ItemsSource="{x:Bind PreviewDeals}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  IsTabStop="False"
+                                  RowHeight="42"
+                                  HeadersVisibility="Columns"
+                                  GridLinesVisibility="Horizontal"
+                                  HeaderGridLinesVisibility="Horizontal"
+                                  CanSortColumns="False"
+                                  CanFilterColumns="False"
+                                  ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Hidden">
+                        <tv:TableView.Columns>
+                            <tv:TableViewTemplateColumn Header="Deal"
+                                                        Width="*">
+                                <tv:TableViewTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="data:Deal">
+                                        <TextBlock Text="{x:Bind Name}"
+                                                   Margin="12,0"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   VerticalAlignment="Center" />
+                                    </DataTemplate>
+                                </tv:TableViewTemplateColumn.CellTemplate>
+                            </tv:TableViewTemplateColumn>
+                            <tv:TableViewTemplateColumn Header="Account"
+                                                        Width="1.15*">
+                                <tv:TableViewTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="data:Deal">
+                                        <StackPanel Orientation="Horizontal"
+                                                    Spacing="10"
+                                                    Margin="12,0">
+                                            <Border Width="24"
+                                                    Height="24"
+                                                    CornerRadius="12"
+                                                    Background="{x:Bind data:Palette.Avatar(AccountSeed)}">
+                                                <TextBlock Text="{x:Bind data:Format.Initials(Account)}"
+                                                           FontSize="9"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="White"
+                                                           VerticalAlignment="Center"
+                                                           HorizontalAlignment="Center" />
+                                            </Border>
+                                            <TextBlock Text="{x:Bind Account}"
+                                                       VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </tv:TableViewTemplateColumn.CellTemplate>
+                            </tv:TableViewTemplateColumn>
+                            <tv:TableViewTemplateColumn Header="Stage"
+                                                        Width="128">
+                                <tv:TableViewTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="data:Deal">
+                                        <Border CornerRadius="11"
+                                                Padding="8,2,10,3"
+                                                Margin="12,0"
+                                                VerticalAlignment="Center"
+                                                HorizontalAlignment="Left"
+                                                Background="{x:Bind data:DealVisuals.Tint(Stage)}">
+                                            <StackPanel Orientation="Horizontal"
+                                                        Spacing="6">
+                                                <Ellipse Width="6"
+                                                         Height="6"
+                                                         Fill="{x:Bind data:DealVisuals.Accent(Stage)}" />
+                                                <TextBlock Text="{x:Bind data:DealVisuals.Label(Stage)}"
+                                                           FontSize="12" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </tv:TableViewTemplateColumn.CellTemplate>
+                            </tv:TableViewTemplateColumn>
+                            <tv:TableViewTemplateColumn Header="Amount"
+                                                        Width="100">
+                                <tv:TableViewTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="data:Deal">
+                                        <TextBlock Text="{x:Bind data:Format.Currency(Amount)}"
+                                                   Margin="12,0"
+                                                   FontWeight="SemiBold"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Right" />
+                                    </DataTemplate>
+                                </tv:TableViewTemplateColumn.CellTemplate>
+                            </tv:TableViewTemplateColumn>
+                        </tv:TableView.Columns>
+                    </tv:TableView>
+                </Border>
+            </Grid>
+
+            <!--  Highlights  -->
+            <ItemsRepeater ItemsSource="{x:Bind Highlights}">
+                <ItemsRepeater.Layout>
+                    <UniformGridLayout MinItemWidth="230"
+                                       MinItemHeight="84"
+                                       MinRowSpacing="12"
+                                       MinColumnSpacing="12"
+                                       ItemsStretch="Fill" />
+                </ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="local:HomeHighlight">
+                        <Grid ColumnSpacing="14"
+                              Padding="16,12"
+                              CornerRadius="8"
+                              BorderThickness="1"
+                              BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                              Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="{x:Bind Glyph}"
+                                      FontSize="24"
+                                      VerticalAlignment="Center"
+                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                            <StackPanel Grid.Column="1"
+                                        VerticalAlignment="Center">
+                                <TextBlock Text="{x:Bind Title}"
+                                           Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <TextBlock Text="{x:Bind Text}"
+                                           TextWrapping="Wrap"
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+
+            <!--  The groups of the catalog are added here in code-behind  -->
+        </StackPanel>
+    </ScrollViewer>
+
+    </Grid>
+</Page>

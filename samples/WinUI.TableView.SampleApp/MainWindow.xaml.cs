@@ -11,6 +11,9 @@ namespace WinUI.TableView.SampleApp;
 
 public sealed partial class MainWindow : Window
 {
+    private const string HomeTag = "Home";
+    private readonly Dictionary<object, NavigationViewItem> _navItems = [];
+    private NavigationViewItem? _homeNavItem;
     private bool _canNavigate = true;
 #if WINDOWS
     private int _navigationGcGeneration;
@@ -29,10 +32,61 @@ public sealed partial class MainWindow : Window
 
     private async void RootGridLoaded(object sender, RoutedEventArgs e)
     {
+        BuildNavigation();
+
         await ExampleViewModel.InitializeItemsAsync();
 
         SetLoading(false);
-        navigationView.SelectedItem = overViewNavItem;
+        navigationView.SelectedItem = _homeNavItem;
+    }
+
+    private void BuildNavigation()
+    {
+        _homeNavItem = CreateNavItem("Home", "", HomeTag);
+        navigationView.MenuItems.Add(_homeNavItem);
+
+        foreach (var group in SampleCatalog.Groups)
+        {
+            var groupItem = CreateNavItem(group.Title, group.Glyph, group);
+#if AOT_PROFILE_GEN
+            groupItem.IsExpanded = true;
+#endif
+
+            foreach (var sample in group.Samples)
+            {
+                var sampleItem = new NavigationViewItem { Content = sample.Title, Tag = sample };
+                _navItems[sample] = sampleItem;
+                groupItem.MenuItems.Add(sampleItem);
+            }
+
+            _navItems[group] = groupItem;
+            navigationView.MenuItems.Add(groupItem);
+        }
+    }
+
+    private static NavigationViewItem CreateNavItem(string title, string glyph, object tag)
+    {
+        return new NavigationViewItem
+        {
+            Content = title,
+            Tag = tag,
+            Icon = new FontIcon { Glyph = glyph }
+        };
+    }
+
+    /// <summary>
+    /// Opens a sample or a group's page by selecting its item in the navigation menu.
+    /// </summary>
+    internal void NavigateTo(object? sampleOrGroup)
+    {
+        if (sampleOrGroup is null || !_navItems.TryGetValue(sampleOrGroup, out var navItem)) return;
+
+        if (sampleOrGroup is SampleInfo sample && _navItems.TryGetValue(sample.Group, out var groupItem))
+        {
+            groupItem.IsExpanded = true;
+        }
+
+        navigationView.SelectedItem = navItem;
     }
 
     internal void SetLoading(bool isLoading)
@@ -52,43 +106,37 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        if (args.SelectedItem is NavigationViewItem { Content: string } selectedItem)
+        var pageType = args.IsSettingsSelected ? typeof(SettingsPage) : (args.SelectedItem as NavigationViewItem)?.Tag switch
         {
-            var pageType = selectedItem.Content.ToString() switch
-            {
-                "Settings" => typeof(SettingsPage),
-                "Overview" => typeof(OverviewPage),
-                "Grid Lines" => typeof(GridLinesPage),
-                "Selection" => typeof(SelectionPage),
-                "Corner Button" => typeof(CornerButtonPage),
-                "Alternate Row Color" => typeof(AlternateRowColorPage),
-                "Context Flyouts" => typeof(ContextFlyoutsPage),
-                "Virtualization" => typeof(VirtualizationPage),
-                "Row Reorder" => typeof(ReorderRowsPage),
-                "Column Reorder" => typeof(ReorderColumnsPage),
-                "Pagination" => typeof(PaginationPage),
-                "Incremental Loading" => typeof(IncrementalLoadingPage),
-                "Filtering" => typeof(FilteringPage),
-                "Customize Filter Flyout" => typeof(CustomizeFilterPage),
-                "External Filtering" => typeof(ExternalFilteringPage),
-                "Clipboard Actions" => typeof(ClipboardActionsPage),
-                "Editing" => typeof(EditingPage),
-                "Sorting" => typeof(SortingPage),
-                "Custom Sorting" => typeof(CustomizeSortingPage),
-                "Grouping" => typeof(GroupingPage),
-                "Data Export" => typeof(ExportPage),
-                "Large Dataset" => typeof(LargeDataPage),
-                "Conditional Cell Styling" => typeof(ConditionalStylingPage),
-                "Column Sizing" => typeof(ColumnSizingPage),
-                "Star Columns" => typeof(StarColumnsPage),
-                "Headers Visibility" => typeof(HeadersVisibilityPage),
-                "Row Header Template" => typeof(RowHeaderTemplatePage),
-                "Row Details" => typeof(RowDetailsPage),
-                "Compact Sizing" => typeof(CompactSizingPage),
-                _ => typeof(BlankPage)
-            };
+            SampleInfo sample => sample.PageType,
+            SampleGroup => typeof(SectionPage),
+            HomeTag => typeof(HomePage),
+            _ => null
+        };
 
-            rootFrame.Navigate(pageType, selectedItem);
+        if (pageType is not null)
+        {
+            rootFrame.Navigate(pageType, args.SelectedItem);
+        }
+    }
+
+    private void OnSearchTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+    {
+        if (args.Reason is AutoSuggestionBoxTextChangeReason.UserInput)
+        {
+            sender.ItemsSource = SampleCatalog.Search(sender.Text);
+        }
+    }
+
+    private void OnSearchQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+    {
+        var sample = args.ChosenSuggestion as SampleInfo ?? SampleCatalog.Search(args.QueryText).FirstOrDefault();
+
+        if (sample is not null)
+        {
+            sender.Text = string.Empty;
+            sender.ItemsSource = null;
+            NavigateTo(sample);
         }
     }
 

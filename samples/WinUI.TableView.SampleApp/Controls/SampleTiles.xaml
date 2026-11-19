@@ -1,0 +1,144 @@
+<UserControl x:Class="WinUI.TableView.SampleApp.Controls.SampleTiles"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:WinUI.TableView.SampleApp"
+             xmlns:controls="using:WinUI.TableView.SampleApp.Controls">
+
+    <UserControl.Resources>
+        <Style x:Key="TileButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource DefaultButtonStyle}">
+            <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        </Style>
+
+        <Style x:Key="NewBadgeStyle"
+               TargetType="Border">
+            <Setter Property="Background" Value="{ThemeResource AccentFillColorDefaultBrush}" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="7,1,7,2" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <DataTemplate x:Key="TileTemplate"
+                      x:DataType="local:SampleInfo">
+            <Button Tag="{x:Bind}"
+                    Padding="16"
+                    Style="{StaticResource TileButtonStyle}"
+                    AutomationProperties.Name="{x:Bind Title}"
+                    Click="OnTileClicked">
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Width="40"
+                          Height="40"
+                          VerticalAlignment="Top">
+                        <Border CornerRadius="8"
+                                Opacity="0.14"
+                                Background="{ThemeResource AccentFillColorDefaultBrush}" />
+                        <FontIcon Glyph="{x:Bind Glyph}"
+                                  FontSize="18"
+                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                    </Grid>
+
+                    <StackPanel Grid.Column="1"
+                                Spacing="4">
+                        <StackPanel Orientation="Horizontal"
+                                    Spacing="8">
+                            <TextBlock Text="{x:Bind Title}"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <Border Style="{StaticResource NewBadgeStyle}"
+                                    Visibility="{x:Bind IsNew}">
+                                <TextBlock Text="NEW"
+                                           FontSize="10"
+                                           FontWeight="SemiBold"
+                                           Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+                            </Border>
+                        </StackPanel>
+                        <TextBlock Text="{x:Bind Description}"
+                                   MaxLines="3"
+                                   TextWrapping="Wrap"
+                                   TextTrimming="CharacterEllipsis"
+                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                </Grid>
+            </Button>
+        </DataTemplate>
+
+        <DataTemplate x:Key="FeaturedTileTemplate"
+                      x:DataType="local:SampleInfo">
+            <Button Tag="{x:Bind}"
+                    Padding="0"
+                    Style="{StaticResource TileButtonStyle}"
+                    AutomationProperties.Name="{x:Bind Title}"
+                    Click="OnTileClicked">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="112" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid CornerRadius="7,7,0,0"
+                          Background="{x:Bind controls:SampleTiles.Banner(Title)}">
+                        <FontIcon Glyph="{x:Bind Glyph}"
+                                  FontSize="120"
+                                  Opacity="0.16"
+                                  Margin="0,0,-18,-34"
+                                  Foreground="White"
+                                  VerticalAlignment="Bottom"
+                                  HorizontalAlignment="Right" />
+                        <Border Width="48"
+                                Height="48"
+                                Margin="20,0,0,0"
+                                CornerRadius="12"
+                                Background="#33FFFFFF"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Left">
+                            <FontIcon Glyph="{x:Bind Glyph}"
+                                      FontSize="22"
+                                      Foreground="White" />
+                        </Border>
+                    </Grid>
+
+                    <StackPanel Grid.Row="1"
+                                Spacing="4"
+                                Padding="20,14,20,18">
+                        <TextBlock Text="{x:Bind Title}"
+                                   Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock Text="{x:Bind Description}"
+                                   TextWrapping="Wrap"
+                                   Style="{StaticResource BodyTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                </Grid>
+            </Button>
+        </DataTemplate>
+
+        <UniformGridLayout x:Key="TileLayout"
+                           MinItemWidth="300"
+                           MinItemHeight="104"
+                           MinRowSpacing="12"
+                           MinColumnSpacing="12"
+                           ItemsStretch="Fill" />
+
+        <UniformGridLayout x:Key="FeaturedTileLayout"
+                           MinItemWidth="250"
+                           MinItemHeight="256"
+                           MinRowSpacing="16"
+                           MinColumnSpacing="16"
+                           ItemsStretch="Fill" />
+    </UserControl.Resources>
+
+    <ItemsRepeater x:Name="repeater"
+                   Layout="{StaticResource TileLayout}"
+                   ItemTemplate="{StaticResource TileTemplate}" />
+</UserControl>
