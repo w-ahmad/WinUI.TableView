@@ -119,6 +119,13 @@ Uses `AutomationProperties.Name` if set on the `TableViewRowHeader`, otherwise d
 | **Ctrl+Shift+A** | Deselect all |
 | **Ctrl+C** | Copy to clipboard |
 
+The column header row is one tab stop: **Tab** to it, then move between headers with the **Left** / **Right** arrow keys.
+
+| Key (on a column header) | Action |
+|---|---|
+| **Enter** / **Space** | Sort by the column (cycles like a click); **Ctrl** adds to the existing sort, like **Ctrl**+click |
+| **Alt+Down**, **Shift+F10** or the **Menu** key | Open the column's options (sort, group, filter) |
+
 ## Screen reader behavior
 
 When navigating with a screen reader such as Narrator:

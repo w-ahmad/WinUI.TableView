@@ -33,7 +33,7 @@
         <Setter Property="HorizontalContentAlignment"
                 Value="Stretch" />
         <Setter Property="IsTabStop"
-                Value="False" />
+                Value="True" />
         <Setter Property="Background">
             <Setter.Value>
                 <SolidColorBrush Opacity="0" />
