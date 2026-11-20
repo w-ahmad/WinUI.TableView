@@ -308,6 +308,11 @@ public partial class TableView
     /// </summary>
     public static readonly DependencyProperty ShowFilterItemsCountProperty = DependencyProperty.Register(nameof(ShowFilterItemsCount), typeof(bool), typeof(TableView), new PropertyMetadata(false));
 
+    /// <summary>
+    /// Identifies the <see cref="StarColumnResizeDelay"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty StarColumnResizeDelayProperty = DependencyProperty.Register(nameof(StarColumnResizeDelay), typeof(TimeSpan), typeof(TableView), new PropertyMetadata(TimeSpan.Zero));
+
 
     /// <summary>
     /// Identifies the <see cref="ForceRowOrCellSelectionOnContextRequested"/> dependency property.
@@ -410,6 +415,18 @@ public partial class TableView
     {
         get => (bool)GetValue(ShowFilterItemsCountProperty);
         set => SetValue(ShowFilterItemsCountProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets how long star-sized columns wait, after the TableView's width stops changing, before they take up
+    /// the new width. While the window is being resized, recalculating them on every frame re-lays out every realized
+    /// cell in those columns, which makes resizing stutter on wide or text-heavy tables. Zero (the default) recalculates
+    /// on every change.
+    /// </summary>
+    public TimeSpan StarColumnResizeDelay
+    {
+        get => (TimeSpan)GetValue(StarColumnResizeDelayProperty);
+        set => SetValue(StarColumnResizeDelayProperty, value);
     }
 
     /// <summary>

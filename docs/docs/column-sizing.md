@@ -109,6 +109,16 @@ Disable resizing for a specific column:
 
 Prefer `Preview` if users report a slow or stuttery resize drag on grids with many visible rows; keep the default `Live` if you need cells to reflect the in-progress width at every instant (for example, a template column that reacts to its own width while dragging).
 
+### Star columns while the window resizes
+
+Star (`*`) columns take the width the other columns leave, so every change in the TableView's width recalculates them, and every realized cell in a star column lays out again. While the user drags the window edge that happens on every frame, which can make resizing stutter on wide or text-heavy tables. [`StarColumnResizeDelay`](xref:WinUI.TableView.TableView.StarColumnResizeDelay) makes star columns wait until the width has stopped changing for that long:
+
+```xml
+<tv:TableView StarColumnResizeDelay="0:0:0.12" />
+```
+
+During the drag, star columns keep their previous width (the table may briefly show a gap or a horizontal scroll bar), then catch up. The first layout and fixed-width columns don't wait. The default, zero, recalculates on every change.
+
 ## Row and header row heights
 
 Control row heights with the following `TableView` properties:
