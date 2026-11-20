@@ -39,7 +39,11 @@ internal sealed partial class TableViewRowElementFactory
     /// <summary>
     /// Gets the element factory to give the repeater in place of this one.
     /// </summary>
+#if WINDOWS
     public IElementFactory Shim { get; }
+#else
+    public object Shim { get; }
+#endif
 
     /// <summary>
     /// Returns a row for a data item, or a group header for a group, reusing a pooled one when there is one.
@@ -126,14 +130,12 @@ internal sealed partial class TableViewRowElementFactory
     /// </summary>
     /// <remarks>
     /// Uno's repeater only accepts a data template, a template selector or an <c>IElementFactoryShim</c> as its
-    /// item template, not any <see cref="IElementFactory"/>, so the shim is one on that platform as well. That
-    /// interface has its own argument types, which is why the factory itself takes the data and the element.
+    /// item template, not any <see cref="IElementFactory"/>, so on that platform the shim is only that: Uno does not
+    /// implement the <see cref="IElementFactory"/> argument types. That interface has its own argument types, which
+    /// is why the factory itself takes the data and the element.
     /// </remarks>
 #if WINDOWS
     private sealed partial class WeakShim(TableViewRowElementFactory owner) : IElementFactory
-#else
-    private sealed partial class WeakShim(TableViewRowElementFactory owner) : IElementFactory, Microsoft.UI.Xaml.Controls.IElementFactoryShim
-#endif
     {
         private readonly WeakReference<TableViewRowElementFactory> _owner = new(owner);
 
@@ -153,20 +155,28 @@ internal sealed partial class TableViewRowElementFactory
                 owner.RecycleElement(args?.Element);
             }
         }
-#if !WINDOWS
+    }
+#else
+    private sealed partial class WeakShim(TableViewRowElementFactory owner) : Microsoft.UI.Xaml.Controls.IElementFactoryShim
+    {
+        private readonly WeakReference<TableViewRowElementFactory> _owner = new(owner);
 
-        UIElement Microsoft.UI.Xaml.Controls.IElementFactoryShim.GetElement(Microsoft.UI.Xaml.Controls.ElementFactoryGetArgs args)
+        /// <inheritdoc/>
+        public UIElement GetElement(Microsoft.UI.Xaml.Controls.ElementFactoryGetArgs args)
         {
+            // The repeater only asks while its table is alive, so the fallback is never shown; it only keeps the
+            // contract of always returning an element.
             return _owner.TryGetTarget(out var owner) ? owner.GetElement(args?.Data) : new TableViewRow();
         }
 
-        void Microsoft.UI.Xaml.Controls.IElementFactoryShim.RecycleElement(Microsoft.UI.Xaml.Controls.ElementFactoryRecycleArgs args)
+        /// <inheritdoc/>
+        public void RecycleElement(Microsoft.UI.Xaml.Controls.ElementFactoryRecycleArgs args)
         {
             if (_owner.TryGetTarget(out var owner))
             {
                 owner.RecycleElement(args?.Element);
             }
         }
-#endif
     }
+#endif
 }

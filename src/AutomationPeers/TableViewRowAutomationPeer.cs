@@ -88,7 +88,7 @@ public partial class TableViewRowAutomationPeer : FrameworkElementAutomationPeer
     }
 
     /// <inheritdoc/>
-    protected override object GetPatternCore(PatternInterface patternInterface)
+    protected override object? GetPatternCore(PatternInterface patternInterface)
     {
         if (patternInterface == PatternInterface.SelectionItem)
         {
@@ -109,10 +109,20 @@ public partial class TableViewRowAutomationPeer : FrameworkElementAutomationPeer
     public bool IsSelected => _owner.IsSelected;
 
     /// <inheritdoc/>
-    public IRawElementProviderSimple? SelectionContainer =>
-        _owner.TableView is { } tableView && CreatePeerForElement(tableView) is { } peer
-            ? ProviderFromPeer(peer)
-            : null;
+    public IRawElementProviderSimple? SelectionContainer
+    {
+        get
+        {
+#if !WINDOWS && !NET10_0_OR_GREATER
+            // Uno 6 does not implement providers for peers.
+            return null;
+#else
+            return _owner.TableView is { } tableView && CreatePeerForElement(tableView) is { } peer
+                ? ProviderFromPeer(peer)
+                : null;
+#endif
+        }
+    }
 
     /// <inheritdoc/>
     public void Select()

@@ -52,7 +52,7 @@ public partial class TableViewAutomationPeer : FrameworkElementAutomationPeer,
     }
 
     /// <inheritdoc/>
-    protected override object GetPatternCore(PatternInterface patternInterface)
+    protected override object? GetPatternCore(PatternInterface patternInterface)
     {
         return patternInterface switch
         {
@@ -122,9 +122,7 @@ public partial class TableViewAutomationPeer : FrameworkElementAutomationPeer,
             return null;
         }
 
-        var peer = CreatePeerForElement(cell);
-
-        return peer is null ? null : ProviderFromPeer(peer);
+        return ToProvider(CreatePeerForElement(cell));
     }
 
     /// <summary>
@@ -141,7 +139,7 @@ public partial class TableViewAutomationPeer : FrameworkElementAutomationPeer,
                 continue;
             }
 
-            if (CreatePeerForElement(rowHeader) is { } peer && ProviderFromPeer(peer) is { } provider)
+            if (ToProvider(CreatePeerForElement(rowHeader)) is { } provider)
             {
                 providers.Add(provider);
             }
@@ -164,7 +162,7 @@ public partial class TableViewAutomationPeer : FrameworkElementAutomationPeer,
                 continue;
             }
 
-            if (CreatePeerForElement(headerControl) is { } peer && ProviderFromPeer(peer) is { } provider)
+            if (ToProvider(CreatePeerForElement(headerControl)) is { } provider)
             {
                 providers.Add(provider);
             }
@@ -205,7 +203,7 @@ public partial class TableViewAutomationPeer : FrameworkElementAutomationPeer,
                 continue;
             }
 
-            if (CreatePeerForElement(row) is { } peer && ProviderFromPeer(peer) is { } provider)
+            if (ToProvider(CreatePeerForElement(row)) is { } provider)
             {
                 providers.Add(provider);
             }
@@ -262,10 +260,12 @@ public partial class TableViewAutomationPeer : FrameworkElementAutomationPeer,
     {
         var startIndex = 0;
 
+#if WINDOWS || NET10_0_OR_GREATER
         if (startAfter is not null && PeerFromProvider(startAfter) is TableViewRowAutomationPeer startPeer)
         {
             startIndex = startPeer.RowIndex + 1;
         }
+#endif
 
         for (var index = startIndex; index < RowCount; index++)
         {
@@ -279,12 +279,22 @@ public partial class TableViewAutomationPeer : FrameworkElementAutomationPeer,
                 continue;
             }
 
-            var peer = CreatePeerForElement(row);
-
-            return peer is null ? null : ProviderFromPeer(peer);
+            return ToProvider(CreatePeerForElement(row));
         }
 
         return null;
+    }
+
+/// <summary>
+    /// Gets the provider of a peer. Uno 6 does not implement providers for peers, so there it is always null.
+    /// </summary>
+    private IRawElementProviderSimple? ToProvider(AutomationPeer? peer)
+    {
+#if !WINDOWS && !NET10_0_OR_GREATER
+        return null;
+#else
+        return peer is null ? null : ProviderFromPeer(peer);
+#endif
     }
 
     private bool Matches(int itemIndex, AutomationProperty? automationProperty, object value)
