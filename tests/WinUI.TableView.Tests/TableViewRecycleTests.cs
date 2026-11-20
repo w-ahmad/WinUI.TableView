@@ -131,7 +131,14 @@ public class TableViewRecycleTests
         var check = row.FindDescendants().OfType<FontIcon>().First(x => x.Name == "MultiSelectCheck");
         var scale = (ScaleTransform)row.FindDescendants().OfType<Border>().First(x => x.Name is "SelectionIndicator").RenderTransform;
 
-        Assert.IsTrue(scale.ScaleY < 1d, "the indicator should still be growing in");
+#if WINDOWS
+        // With system animations off, as on CI machines, the indicator is at full size at once.
+        if (new Windows.UI.ViewManagement.UISettings().AnimationsEnabled)
+#endif
+        {
+            Assert.IsTrue(scale.ScaleY < 1d, "the indicator should still be growing in");
+        }
+
         Assert.AreEqual(1d, check.Opacity, "the rest of the selection should not wait for the indicator");
 
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
