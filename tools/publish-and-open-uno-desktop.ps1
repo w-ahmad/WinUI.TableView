@@ -20,7 +20,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$outPath = [System.IO.Path]::GetFullPath((Join-Path $repoRoot $Out))
+$outPath = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($repoRoot, $Out))
 $project = Join-Path $repoRoot 'samples\WinUI.TableView.SampleApp.Uno\WinUI.TableView.SampleApp.Uno.csproj'
 $netVersion = ([xml](Get-Content (Join-Path $repoRoot 'Directory.Build.props'))).Project.PropertyGroup.NetVersion | Select-Object -First 1
 $appName = 'WinUI.TableView.SampleApp'

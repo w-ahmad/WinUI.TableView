@@ -217,6 +217,31 @@ public class TableViewSelectionSyncTests
         await WaitForLayoutAsync(tableView);
     }
 
+    [UITestMethod]
+    public async Task AddingToSelectedItems_WhileSelectionIsOff_SelectsNothing()
+    {
+        var (tableView, items) = await CreateTableViewAsync(ListViewSelectionMode.None);
+
+        tableView.SelectedItems.Add(items[2]);
+
+        Assert.AreEqual(0, tableView.SelectedItems.Count);
+    }
+
+    [UITestMethod]
+    public async Task SelectedItems_FindAnItemSelectedAtItsSecondOccurrence()
+    {
+        var (tableView, items) = await CreateTableViewAsync(ListViewSelectionMode.Multiple);
+        items.Add(items[1]);
+        await WaitForLayoutAsync(tableView);
+
+        tableView.SelectRange(new Microsoft.UI.Xaml.Data.ItemIndexRange(items.Count - 1, 1));
+
+        Assert.IsTrue(tableView.SelectedItems.Contains(items[1]));
+        Assert.AreEqual(0, tableView.SelectedItems.IndexOf(items[1]));
+        Assert.IsTrue(tableView.SelectedItems.Remove(items[1]));
+        Assert.AreEqual(0, tableView.SelectedItems.Count);
+    }
+
     private async Task<(TableView, ObservableCollection<Item>)> CreateTableViewAsync(ListViewSelectionMode selectionMode, int itemCount = 10)
     {
         var items = new ObservableCollection<Item>(Enumerable.Range(0, itemCount).Select(i => new Item { Index = i, Name = $"Item {i}" }));

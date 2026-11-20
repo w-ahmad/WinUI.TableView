@@ -203,18 +203,18 @@ public partial class TableView
     /// Gets the height the sticky header covers at the top of the viewport.
     /// </summary>
     /// <remarks>
-    /// The header's own height when it is shown, else that of the group's header in the rows, else the last one seen,
-    /// since a header far out of view is not realized.
+    /// The height of the group's header in the rows when it is realized, else the sticky header's own when it is
+    /// shown, else the last one seen, since a header far out of view is not realized.
     /// </remarks>
     private double GetStickyGroupHeaderHeight(int headerIndex)
     {
-        if (_stickyGroupHeader is { ActualHeight: > 0d } header)
-        {
-            _lastGroupHeaderHeight = header.ActualHeight;
-        }
-        else if (RealizedRows.TryGetBounds(headerIndex, out _, out var height))
+        if (RealizedRows.TryGetBounds(headerIndex, out _, out var height) && height > 0d)
         {
             _lastGroupHeaderHeight = height;
+        }
+        else if (_stickyGroupHeader is { ActualHeight: > 0d } header)
+        {
+            _lastGroupHeaderHeight = header.ActualHeight;
         }
 
         return _lastGroupHeaderHeight;

@@ -30,7 +30,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$outPath = [System.IO.Path]::GetFullPath((Join-Path $repoRoot $Out))
+$outPath = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($repoRoot, $Out))
 $projectDir = Join-Path $repoRoot 'samples\WinUI.TableView.SampleApp'
 $project = Join-Path $projectDir 'WinUI.TableView.SampleApp.csproj'
 $runtime = "win-$($Platform.ToLowerInvariant())"

@@ -30,12 +30,16 @@ public partial class TableViewTemplateColumn : TableViewColumn
     /// <returns>A ContentControl element.</returns>
     public override FrameworkElement GenerateElement(TableViewCell cell, object? dataItem)
     {
-        return new ContentControl
+        var element = new ContentControl
         {
             VerticalContentAlignment = VerticalAlignment.Stretch,
             HorizontalContentAlignment = HorizontalAlignment.Stretch,
             ContentTemplate = CellTemplateSelector?.SelectTemplate(dataItem) ?? CellTemplate
         };
+
+        element.SetValue(IsTemplateHostProperty, true);
+
+        return element;
     }
 
     /// <summary>
@@ -69,7 +73,8 @@ public partial class TableViewTemplateColumn : TableViewColumn
     /// </remarks>
     public override void RefreshElement(TableViewCell cell, object? dataItem)
     {
-        if (cell.Content is ContentControl contentControl)
+        // Only an element this class made is reused: a derived column's own element may be built for its item.
+        if (cell.Content is ContentControl contentControl && contentControl.GetValue(IsTemplateHostProperty) is true)
         {
             var template = CellTemplateSelector?.SelectTemplate(dataItem) ?? CellTemplate;
 
@@ -84,6 +89,8 @@ public partial class TableViewTemplateColumn : TableViewColumn
 
         cell.Content = GenerateElement(cell, dataItem);
     }
+
+    private static readonly DependencyProperty IsTemplateHostProperty = DependencyProperty.RegisterAttached("IsTemplateHost", typeof(bool), typeof(TableViewTemplateColumn), new PropertyMetadata(false));
 
     /// <summary>
     /// Gets or sets the DataTemplate for the cell content.

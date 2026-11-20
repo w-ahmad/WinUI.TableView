@@ -125,6 +125,11 @@ public partial class TableView
     /// </summary>
     private void SetItemSelected(int itemIndex, bool isSelected)
     {
+        if (isSelected && SelectionMode is ListViewSelectionMode.None)
+        {
+            return;
+        }
+
         if (isSelected && SelectionMode is ListViewSelectionMode.Single)
         {
             SelectedIndex = itemIndex;

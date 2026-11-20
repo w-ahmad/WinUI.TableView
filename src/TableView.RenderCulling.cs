@@ -38,9 +38,26 @@ public partial class TableView
         // A column resize preview moves cells with transforms and no layout, so where they are is not known here.
         var cullCells = !IsColumnResizing && viewportWidth > 0d;
 
+        // Uno's scroll viewer can also pan sideways by itself, which brings cells further right into view.
+        _culledViewerOffset = _scrollViewer.HorizontalOffset;
+        viewportWidth += _culledViewerOffset;
+
         foreach (var row in _rows)
         {
             row.RowPresenter?.UpdateCellsRenderCulling(viewportWidth, cullCells);
+        }
+    }
+
+    private double _culledViewerOffset;
+
+    /// <summary>
+    /// Updates the culling when the scroll viewer has panned sideways by itself, which no layout pass reports.
+    /// </summary>
+    private void UpdateRenderCullingAfterViewChange()
+    {
+        if (_scrollViewer is not null && _scrollViewer.HorizontalOffset != _culledViewerOffset)
+        {
+            UpdateRenderCulling();
         }
     }
 

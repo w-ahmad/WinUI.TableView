@@ -87,9 +87,9 @@ internal sealed partial class TableViewSelectedItemsCollection : IList<object>
     public bool Remove(object item)
     {
         var setSelected = SetSelected;
-        var itemIndex = _indexOfItem(item);
+        var itemIndex = SelectedIndexOf(item);
 
-        if (itemIndex < 0 || !_model.Contains(itemIndex))
+        if (itemIndex < 0)
         {
             return false;
         }
@@ -108,15 +108,13 @@ internal sealed partial class TableViewSelectedItemsCollection : IList<object>
     /// <inheritdoc/>
     public bool Contains(object item)
     {
-        var itemIndex = _indexOfItem(item);
-
-        return itemIndex >= 0 && _model.Contains(itemIndex);
+        return SelectedIndexOf(item) >= 0;
     }
 
     /// <inheritdoc/>
     public int IndexOf(object item)
     {
-        var itemIndex = _indexOfItem(item);
+        var itemIndex = SelectedIndexOf(item);
 
         return itemIndex < 0 ? -1 : _model.PositionOf(itemIndex);
     }
@@ -159,6 +157,30 @@ internal sealed partial class TableViewSelectedItemsCollection : IList<object>
         }
 
         setSelected(itemIndex, false);
+    }
+
+    /// <summary>
+    /// Gets the first selected index that holds an item, or -1. An item the source holds more than once can be
+    /// selected at a later index than its first.
+    /// </summary>
+    private int SelectedIndexOf(object? item)
+    {
+        var itemIndex = _indexOfItem(item);
+
+        if (itemIndex < 0 || _model.Contains(itemIndex))
+        {
+            return itemIndex;
+        }
+
+        foreach (var index in _model.GetIndexes())
+        {
+            if (index > itemIndex && Equals(_itemAt(index), item))
+            {
+                return index;
+            }
+        }
+
+        return -1;
     }
 
     private Action<int, bool> SetSelected => _setSelected ?? throw ReadOnly();

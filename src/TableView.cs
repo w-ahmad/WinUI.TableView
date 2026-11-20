@@ -1184,6 +1184,10 @@ public partial class TableView : Control
 
         SetValue(VerticalOffsetProperty, _scrollViewer?.VerticalOffset ?? 0d);
 
+#if !WINDOWS
+        UpdateRenderCullingAfterViewChange();
+#endif
+
         // Which group is at the top, and how far the next header pushes its sticky header up, change on any scroll.
         if (AreStickyGroupHeadersActive || _stickyGroupHeader?.Visibility is Visibility.Visible)
         {

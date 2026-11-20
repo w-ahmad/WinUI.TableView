@@ -67,7 +67,9 @@ public partial class TableViewFilterMenuFlyout : Flyout
         // element that only XAML constructed can be a base class of its runtime class when the exact
         // projection is not in the app's type map, and a search for MenuFlyoutPresenter walked past it -
         // the flyout then showed no menu commands at all.
-        var menuPresenter = presenter.FindDescendant<ItemsControl>(x => x.Name is "MenuItemsPresenter");
+        // A template from before the part was named is still found by type.
+        var menuPresenter = presenter.FindDescendant<ItemsControl>(x => x.Name is "MenuItemsPresenter")
+                            ?? presenter.FindDescendant<MenuFlyoutPresenter>();
         menuPresenter?.ItemsSource = Items;
 
         _filterItemsControl = presenter.FindDescendant<TableViewFilterItemsControl>();

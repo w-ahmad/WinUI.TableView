@@ -101,8 +101,15 @@ internal static class TableViewRowHostTestHelpers
         // The repeater then grows its cache around the viewport over the next few frames. Let that settle too.
         var realized = -1;
 
+        var frames = 0;
+
         for (var stableFrames = 0; stableFrames < 3;)
         {
+            if (frames++ >= 300)
+            {
+                throw new System.TimeoutException("The realized rows did not settle after the scroll.");
+            }
+
             var count = GetRealizedElements(tableView).Count();
             stableFrames = count == realized ? stableFrames + 1 : 0;
             realized = count;

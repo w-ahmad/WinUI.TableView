@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -167,7 +168,17 @@ public partial class TableViewGroupHeaderRow : ContentControl
         if (GroupInfo is { } groupInfo)
         {
             // The owning CollectionView rebuilds the view in response, which replaces this header's content.
-            groupInfo.IsExpanded = !groupInfo.IsExpanded;
+            var wasExpanded = groupInfo.IsExpanded;
+            groupInfo.IsExpanded = !wasExpanded;
+#if WINDOWS
+            if (AutomationPeer.ListenerExists(AutomationEvents.PropertyChanged) && FrameworkElementAutomationPeer.FromElement(this) is { } peer)
+            {
+                peer.RaisePropertyChangedEvent(
+                    ExpandCollapsePatternIdentifiers.ExpandCollapseStateProperty,
+                    wasExpanded ? ExpandCollapseState.Expanded : ExpandCollapseState.Collapsed,
+                    wasExpanded ? ExpandCollapseState.Collapsed : ExpandCollapseState.Expanded);
+            }
+#endif
         }
     }
 
