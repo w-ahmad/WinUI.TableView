@@ -46,6 +46,14 @@ Show how many rows match each filter value:
 <tv:TableView ShowFilterItemsCount="True" />
 ```
 
+## Applying filters as they change
+
+By default the filter flyout applies a column's filter when OK is pressed. To apply it as soon as an item is checked or unchecked, or the search text changes, turn on `ApplyColumnFilterImmediately`. The flyout then drops its OK and Cancel buttons, and closing it keeps the filter:
+
+```xml
+<tv:TableView ApplyColumnFilterImmediately="True" />
+```
+
 ## Filtering programmatically
 
 Add filter descriptions to `TableView.FilterDescriptions`:

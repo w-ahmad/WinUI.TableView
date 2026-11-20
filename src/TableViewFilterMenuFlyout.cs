@@ -12,6 +12,7 @@ namespace WinUI.TableView;
 public partial class TableViewFilterMenuFlyout : Flyout
 {
     private TableViewFilterItemsControl? _filterItemsControl;
+    private FrameworkElement? _buttonsPanel;
     private readonly StandardUICommand _okCommand = new() { Label = TableViewLocalizedStrings.Ok };
     private readonly StandardUICommand _cancelCommand = new() { Label = TableViewLocalizedStrings.Cancel };
 
@@ -44,6 +45,15 @@ public partial class TableViewFilterMenuFlyout : Flyout
     private void OnOpening(object? sender, object e)
     {
         _filterItemsControl?.Initialize();
+        UpdateButtonsVisibility();
+    }
+
+    /// <summary>
+    /// Hides OK and Cancel when the filter applies as it changes: there's nothing left for them to do.
+    /// </summary>
+    private void UpdateButtonsVisibility()
+    {
+        _buttonsPanel?.Visibility = TableView?.ApplyColumnFilterImmediately is true ? Visibility.Collapsed : Visibility.Visible;
     }
 
     /// <summary>
@@ -71,6 +81,8 @@ public partial class TableViewFilterMenuFlyout : Flyout
 
         okButton?.Command = _okCommand;
         cancelButton?.Command = _cancelCommand;
+        _buttonsPanel = okButton?.Parent as FrameworkElement;
+        UpdateButtonsVisibility();
 
         presenter.Loaded -= OnPresenterLoaded;
         _filterItemsControl?.Initialize();
