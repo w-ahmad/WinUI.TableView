@@ -26,7 +26,7 @@ namespace WinUI.TableView;
 #endif
 public partial class TableViewCell : ContentControl
 {
-    private ContentPresenter? _contentPresenter;
+    private FrameworkElement? _contentPresenter; // not ContentPresenter: Native AOT can wrap it as a base class
     private Panel? _layersRoot;
     private Border? _selectionBorder;
     private Border? _backgroundBorder;
@@ -102,7 +102,7 @@ public partial class TableViewCell : ContentControl
     {
         base.OnApplyTemplate();
 
-        _contentPresenter = GetTemplateChild("Content") as ContentPresenter;
+        _contentPresenter = GetTemplateChild("Content") as FrameworkElement;
         _layersRoot = GetTemplateChild("CellLayersRoot") as Panel;
         _selectionBorder = GetTemplateChild("SelectionBorder") as Border;
         _backgroundBorder = GetTemplateChild("BackgroundBorder") as Border;

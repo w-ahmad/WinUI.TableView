@@ -33,7 +33,7 @@ public partial class TableViewRowPresenter : Control
     private FrameworkElement? _h_gridLineSpace;
     private FrameworkElement? _detailsGridLine;
     private Panel? _detailsPanel;
-    private ContentPresenter? _detailsPresenter;
+    private FrameworkElement? _detailsPresenter; // not ContentPresenter: Native AOT can wrap it as a base class
     private ToggleButton? _detailsToggleButton;
     private Border? _indentPlaceholder;
     private long? _detailsPanelVisibilityCallbackToken;
@@ -75,7 +75,7 @@ public partial class TableViewRowPresenter : Control
         _detailsGridLine = GetTemplateChild("DetailsGridLine") as FrameworkElement;
         _h_gridLineSpace = GetTemplateChild("HorizontalGridLineSpace") as FrameworkElement;
         _detailsPanel = GetTemplateChild("DetailsPanel") as Panel;
-        _detailsPresenter = GetTemplateChild("DetailsPresenter") as ContentPresenter;
+        _detailsPresenter = GetTemplateChild("DetailsPresenter") as FrameworkElement;
         _detailsToggleButton = GetTemplateChild("DetailsToggleButton") as ToggleButton;
         _indentPlaceholder = GetTemplateChild("IndentPlaceholder") as Border;
         _cells = null;
@@ -427,9 +427,9 @@ public partial class TableViewRowPresenter : Control
     {
         if (_detailsPresenter is not null && TableView is not null)
         {
-            _detailsPresenter.ContentTemplate =
+            _detailsPresenter.SetValue(ContentPresenter.ContentTemplateProperty,
                 TableView.RowDetailsTemplateSelector?.SelectTemplate(TableViewRow?.Content)
-                ?? TableView.RowDetailsTemplate;
+                ?? TableView.RowDetailsTemplate);
         }
     }
 

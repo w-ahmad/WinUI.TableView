@@ -15,7 +15,7 @@ namespace WinUI.TableView;
 #endif
 public partial class TableViewRowHeader : ContentControl
 {
-    private ContentPresenter? _contentPresenter;
+    private FrameworkElement? _contentPresenter; // not ContentPresenter: Native AOT can wrap it as a base class
 
     /// <summary>
     /// Initializes a new instance of the TableViewRowHeader class.
@@ -30,7 +30,7 @@ public partial class TableViewRowHeader : ContentControl
     {
         base.OnApplyTemplate();
 
-        _contentPresenter = GetTemplateChild("Content") as ContentPresenter;
+        _contentPresenter = GetTemplateChild("Content") as FrameworkElement;
     }
 
     /// <inheritdoc/>
@@ -42,7 +42,7 @@ public partial class TableViewRowHeader : ContentControl
             var element = ContentTemplateRoot as FrameworkElement;
 #else
             // Uno only exposes the template's root on the presenter that realizes it.
-            var element = _contentPresenter.GetContentTemplateRoot();
+            var element = (_contentPresenter as ContentPresenter)?.GetContentTemplateRoot();
 #endif
             element?.Measure(availableSize: new Size(double.PositiveInfinity, double.PositiveInfinity));
 

@@ -38,7 +38,7 @@ public partial class TableViewColumnHeader : ContentControl
     private TableViewHeaderRow? _headerRow;
     private Button? _optionsButton;
     private TableViewFilterMenuFlyout? _optionsFlyout;
-    private ContentPresenter? _contentPresenter;
+    private FrameworkElement? _contentPresenter; // not ContentPresenter: Native AOT can wrap it as a base class
     private FrameworkElement? _v_gridLine;
     private bool _resizeStarted;
     private double _resizeStartingWidth;
@@ -361,7 +361,7 @@ public partial class TableViewColumnHeader : ContentControl
         _headerRow = this.FindAscendant<TableViewHeaderRow>();
         _optionsButton = GetTemplateChild("OptionsButton") as Button;
         _optionsFlyout = GetTemplateChild("OptionsFlyout") as TableViewFilterMenuFlyout;
-        _contentPresenter = GetTemplateChild("ContentPresenter") as ContentPresenter;
+        _contentPresenter = GetTemplateChild("ContentPresenter") as FrameworkElement;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as FrameworkElement;
 
         if (_tableView is null || _optionsButton is null || _optionsFlyout is null)
