@@ -186,4 +186,41 @@ public class TableViewColumnsCollectionTests
 
         Assert.ThrowsExactly<InvalidCastException>(() => collection.Add(invalidObject));
     }
+
+    [UITestMethod]
+    public void UpdateFrozenColumns_ShouldFreezeLeadingVisibleColumnsOnly()
+    {
+        var tableView = new TableView { FrozenColumnCount = 2 };
+        var collection = new TableViewColumnsCollection(tableView);
+
+        var first = new TableViewTextColumn();
+        var hidden = new TableViewTextColumn { Visibility = Visibility.Collapsed };
+        var second = new TableViewTextColumn();
+        var third = new TableViewTextColumn();
+
+        collection.Add(first);
+        collection.Add(hidden);
+        collection.Add(second);
+        collection.Add(third);
+
+        Assert.IsTrue(first.IsFrozen);
+        Assert.IsTrue(second.IsFrozen);
+        Assert.IsFalse(third.IsFrozen);
+    }
+
+    [UITestMethod]
+    public void UpdateFrozenColumns_ShouldHonourOrderOverInsertionOrder()
+    {
+        var tableView = new TableView { FrozenColumnCount = 1 };
+        var collection = new TableViewColumnsCollection(tableView);
+
+        var addedFirst = new TableViewTextColumn { Order = 2 };
+        var addedSecond = new TableViewTextColumn { Order = 1 };
+
+        collection.Add(addedFirst);
+        collection.Add(addedSecond);
+
+        Assert.IsFalse(addedFirst.IsFrozen);
+        Assert.IsTrue(addedSecond.IsFrozen);
+    }
 }
