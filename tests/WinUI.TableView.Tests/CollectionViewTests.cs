@@ -308,7 +308,6 @@ public class CollectionViewTests
         Assert.AreEqual(0, view.Count);
     }
 
-#if WINDOWS
     [UITestMethod]
     public void Single_Group_Description_Groups_Items()
     {
@@ -927,7 +926,6 @@ public class CollectionViewTests
     {
         return new GroupDescription(null, valueDelegate: item => ((TestItem)item!).Name);
     }
-#endif
 
     // Enabling live shaping while detached must not subscribe to the items: attaching subscribes to all of
     // them, and a second subscription would survive the next detach.

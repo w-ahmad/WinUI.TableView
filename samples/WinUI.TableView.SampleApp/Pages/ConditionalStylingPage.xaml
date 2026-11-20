@@ -151,9 +151,6 @@
                                                 Binding="{Binding Status}"
                                                 ConditionalCellStyles="{StaticResource StatusCellStyles}" />
                     </tv:TableView.Columns>
-                    <tv:TableView.ItemContainerTransitions>
-                        <TransitionCollection />
-                    </tv:TableView.ItemContainerTransitions>
                 </tv:TableView>
             </controls:SamplePresenter.Example>
             <controls:SamplePresenter.Options>

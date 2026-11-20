@@ -23,7 +23,7 @@ This guide helps developers who are migrating a WPF application to WinUI 3 and n
 | [`AutoGenerateColumns`](xref:WinUI.TableView.TableView.AutoGenerateColumns) | [`AutoGenerateColumns`](xref:WinUI.TableView.TableView.AutoGenerateColumns) | Same behavior. |
 | [`IsReadOnly`](xref:WinUI.TableView.TableView.IsReadOnly) | [`IsReadOnly`](xref:WinUI.TableView.TableView.IsReadOnly) | Same behavior. Per-column [`IsReadOnly`](xref:WinUI.TableView.TableViewColumn.IsReadOnly) is also supported. |
 | `CanUserSortColumns` | [`CanSortColumns`](xref:WinUI.TableView.TableView.CanSortColumns) | Same behavior. |
-| *(no equivalent)* | [`CanGroupColumns`](xref:WinUI.TableView.TableView.CanGroupColumns) | WPF DataGrid has no built-in column grouping. WinUI.TableView supports multi-level grouping on Windows targets — see [Grouping](grouping.md). |
+| *(no equivalent)* | [`CanGroupColumns`](xref:WinUI.TableView.TableView.CanGroupColumns) | WPF DataGrid has no built-in column grouping. WinUI.TableView supports multi-level grouping — see [Grouping](grouping.md). |
 | `CanUserReorderColumns` | [`CanReorderColumns`](xref:WinUI.TableView.TableView.CanReorderColumns) | Same behavior. |
 | `CanUserResizeColumns` | [`CanResizeColumns`](xref:WinUI.TableView.TableView.CanResizeColumns) | Same behavior. |
 | [`FrozenColumnCount`](xref:WinUI.TableView.TableView.FrozenColumnCount) | [`FrozenColumnCount`](xref:WinUI.TableView.TableView.FrozenColumnCount) | Same behavior. |
@@ -61,7 +61,7 @@ This guide helps developers who are migrating a WPF application to WinUI 3 and n
 | [`CellEditEnded`](xref:WinUI.TableView.TableView.CellEditEnded) | [`CellEditEnded`](xref:WinUI.TableView.TableView.CellEditEnded) | Fires after commit or cancel. |
 | [`Sorting`](xref:WinUI.TableView.TableView.Sorting) | [`Sorting`](xref:WinUI.TableView.TableView.Sorting) | Same purpose. Set `Handled = true` for custom sort. |
 | *(no equivalent)* | [`Grouping`](xref:WinUI.TableView.TableView.Grouping) | WPF DataGrid has no grouping event. Fires before a column's group/ungroup action runs. |
-| `SelectionChanged` | `SelectionChanged` (inherited) + [`CellSelectionChanged`](xref:WinUI.TableView.TableView.CellSelectionChanged) | `SelectionChanged` is from `ListView`. [`CellSelectionChanged`](xref:WinUI.TableView.TableView.CellSelectionChanged) is new. |
+| `SelectionChanged` | [`SelectionChanged`](xref:WinUI.TableView.TableView.SelectionChanged) + [`CellSelectionChanged`](xref:WinUI.TableView.TableView.CellSelectionChanged) | `SelectionChanged` reports row selection changes. [`CellSelectionChanged`](xref:WinUI.TableView.TableView.CellSelectionChanged) is new. |
 | [`CurrentCellChanged`](xref:WinUI.TableView.TableView.CurrentCellChanged) | [`CurrentCellChanged`](xref:WinUI.TableView.TableView.CurrentCellChanged) | Similar. |
 | `CopyingRowClipboardContent` | [`CopyToClipboard`](xref:WinUI.TableView.TableView.CopyToClipboard) | Renamed. Set `Handled = true` for custom content. |
 | [`ColumnReordered`](xref:WinUI.TableView.TableView.ColumnReordered) | [`ColumnReordered`](xref:WinUI.TableView.TableView.ColumnReordered) | Same purpose. |

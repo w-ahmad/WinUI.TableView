@@ -4,17 +4,31 @@ WinUI.TableView is a data grid control for WinUI and Uno Platform applications. 
 
 ## Architecture
 
-`TableView` inherits from `ListView`. This gives it native WinUI scrolling, virtualization, selection, and accessibility behavior out of the box. The control adds its own header row, column definitions, cell rendering, and interaction layer on top.
+`TableView` derives from `Control` and owns its own row hosting: rows live in an `ItemsRepeater` with the
+platform's virtualizing `StackLayout`, and the control creates, recycles and prepares every row itself. That means
+the control — not a base class — decides what a row is, how selection is stored, and how a point on screen maps
+to a row and column.
 
 ```
-TableView (derives from ListView)
-├── TableViewHeaderRow         ← sticky header above the scrollable content
-│   └── TableViewColumnHeader  ← one per column; handles sort, filter, resize, reorder
-└── TableViewRow (one per item)
-    ├── TableViewRowHeader      ← optional left gutter per row
-    ├── TableViewCell[]         ← one per column
-    └── RowDetails panel        ← optional collapsible detail area
+TableView (derives from Control)
+├── TableViewHeaderRow             ← sticky header above the scrollable content
+│   └── TableViewColumnHeader      ← one per column; handles sort, filter, resize, reorder
+├── ScrollViewer
+│   └── ItemsRepeater              ← hosts only the rows the viewport needs
+│       └── TableViewRow           ← one per *visible* item, recycled as you scroll
+│           ├── TableViewRowHeader ← optional left gutter per row
+│           ├── TableViewCell[]    ← one per column
+│           └── RowDetails panel   ← optional collapsible detail area
+└── selection model                ← selected rows stored as index ranges
 ```
+
+### What this buys you
+
+- The number of realized `TableViewRow` elements is proportional to the viewport height, not the item count. A
+  thousand items and a million items produce the same number of row elements.
+- Selecting a large range is a range operation: no row has to exist for it, and
+  [`SelectedItems`](xref:WinUI.TableView.TableView.SelectedItems) projects onto the items on demand.
+- Hit testing during drag selection is index arithmetic rather than a scan over rows.
 
 ## Key concepts
 
@@ -59,7 +73,7 @@ tableView.FilterDescriptions.Add(new FilterDescription("Name", new PredicateFilt
 
 ### Grouping
 
-On Windows targets, columns can be grouped - collapsing rows into collapsible, multi-level headers with expand/collapse control and integration with column sorting.
+Columns can be grouped - collapsing rows into collapsible, multi-level headers with expand/collapse control and integration with column sorting.
 
 See [Grouping](grouping.md).
 
@@ -73,7 +87,7 @@ All types are in the `WinUI.TableView` namespace.
 
 ## Uno Platform
 
-On Uno Platform targets some behaviors differ slightly from the Windows target, particularly around data binding and focus management. [Grouping](grouping.md) is Windows-only and is not available on non-Windows Uno targets. See [Getting started with Uno](getting-started-with-uno.md) for platform-specific notes.
+On Uno Platform targets some behaviors differ slightly from the Windows target, particularly around data binding and focus management. See [Getting started with Uno](getting-started-with-uno.md) for platform-specific notes.
 
 ## Related articles
 

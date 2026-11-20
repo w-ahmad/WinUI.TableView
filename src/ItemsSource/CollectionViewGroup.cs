@@ -1,4 +1,3 @@
-#if WINDOWS
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 using Windows.Foundation.Collections;
@@ -25,4 +24,3 @@ internal partial class CollectionViewGroup : DependencyObject, ICollectionViewGr
     /// </summary>
     public IObservableVector<object?>? GroupItems { get; init; }
 }
-#endif

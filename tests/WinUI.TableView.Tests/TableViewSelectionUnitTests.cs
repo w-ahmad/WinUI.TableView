@@ -24,7 +24,6 @@ public class TableViewSelectionUnitTests
         Assert.AreSame(tableView.Items[1], tableView.SelectedItem);
     }
 
-#if WINDOWS
     [UITestMethod]
     public async Task CellAndRow_RowHeaderClickSelectsOnlyRow()
     {
@@ -36,7 +35,6 @@ public class TableViewSelectionUnitTests
         Assert.AreEqual(1, tableView.SelectedItems.Count);
         Assert.AreSame(tableView.Items[1], tableView.SelectedItem);
     }
-#endif
 
     [UITestMethod]
     public async Task CellSelectionUnitStillSelectsOnlyCells()
@@ -57,7 +55,6 @@ public class TableViewSelectionUnitTests
         Assert.IsTrue(tableView.SelectedCells.Contains(new TableViewCellSlot(1, 1)));
     }
 
-#if WINDOWS
     [UITestMethod]
     public async Task CellOrRowSelectionUnitStillUsesCellAndRowSemantics()
     {
@@ -70,7 +67,6 @@ public class TableViewSelectionUnitTests
         Assert.AreEqual(1, tableView.SelectedItems.Count);
         Assert.AreEqual(0, tableView.SelectedCells.Count);
     }
-#endif
 
     [UITestMethod]
     public async Task CellWithRow_MultiSelectionAddsCellAndRowSelections()

@@ -19,7 +19,9 @@ public sealed partial class ContextFlyoutsPage : Page
         {
             foreach (var item in flyout.Items)
             {
-                item.Tag = e.Cell;
+                // The slot, not the cell element: on Uno, putting an element of the visual tree into another
+                // element's Tag moves its DataContext inheritance to that element, and the cell goes blank.
+                item.Tag = e.Slot;
             }
         }
     }
@@ -28,9 +30,9 @@ public sealed partial class ContextFlyoutsPage : Page
     {
         var menuItem = sender as MenuFlyoutItem;
 
-        if ((menuItem == copyCell || menuItem == copyCellWithHeader) && menuItem.Tag is TableViewCell cell)
+        if ((menuItem == copyCell || menuItem == copyCellWithHeader) && menuItem.Tag is TableViewCellSlot slot)
         {
-            var content = tableView.GetCellsContent([cell.Slot], menuItem == copyCellWithHeader);
+            var content = tableView.GetCellsContent([slot], menuItem == copyCellWithHeader);
 
             CopyToClipboard(content);
         }

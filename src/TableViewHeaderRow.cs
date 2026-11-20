@@ -35,8 +35,8 @@ public partial class TableViewHeaderRow : Control
     private Button? _selectAllButton;
     private CheckBox? _selectAllCheckBox;
     private bool _isSyncingSelectAllCheckBox;
-    private Rectangle? _v_gridLine;
-    private Rectangle? _h_gridLine;
+    private FrameworkElement? _v_gridLine;
+    private FrameworkElement? _h_gridLine;
     private StackPanel? _frozenHeadersPanel;
     private StackPanel? _scrollableHeadersPanel;
     private Border? _columnDropIndicator;
@@ -44,6 +44,7 @@ public partial class TableViewHeaderRow : Control
     private Image? _dragHeaderImage;
     private DispatcherTimer? _desiredWidthTimer;
     private bool _calculatingHeaderWidths;
+    private RectangleGeometry? _scrollableHeadersClip;
     private bool _cellsAvailableWidthPending;
     private bool _isPaddingApplied;
     private int _dropColumnIndex;
@@ -71,8 +72,8 @@ public partial class TableViewHeaderRow : Control
         _optionsButton = GetTemplateChild("optionsButton") as Button;
         _selectAllButton = GetTemplateChild("selectAllButton") as Button;
         _selectAllCheckBox = GetTemplateChild("selectAllCheckBox") as CheckBox;
-        _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
-        _h_gridLine = GetTemplateChild("HorizontalGridLine") as Rectangle;
+        _v_gridLine = GetTemplateChild("VerticalGridLine") as FrameworkElement;
+        _h_gridLine = GetTemplateChild("HorizontalGridLine") as FrameworkElement;
         _frozenHeadersPanel = GetTemplateChild("FrozenHeadersPanel") as StackPanel;
         _scrollableHeadersPanel = GetTemplateChild("ScrollableHeadersPanel") as StackPanel;
         _columnDropIndicator = GetTemplateChild("ColumnDropIndicator") as Border;
@@ -125,11 +126,19 @@ public partial class TableViewHeaderRow : Control
             var xClip = Math.Clamp((headersOffset * -1) + frozenOffset, 0, _scrollableHeadersPanel.ActualWidth);
 
             _scrollableHeadersPanel.Arrange(new Rect(headersOffset, 0, _scrollableHeadersPanel.ActualWidth, _scrollableHeadersPanel.ActualHeight));
-            _scrollableHeadersPanel.Clip = headersOffset >= frozenOffset ? null :
-                new RectangleGeometry
-                {
-                    Rect = new Rect(xClip, 0, _scrollableHeadersPanel.ActualWidth - xClip, finalSize.Height)
-                };
+
+            if (headersOffset >= frozenOffset)
+            {
+                _scrollableHeadersPanel.Clip = null;
+            }
+            else
+            {
+                // Cached rather than reallocated: horizontal scrolling re-arranges this panel every frame
+                // (see TableView.OnHorizontalOffsetChanged).
+                _scrollableHeadersClip ??= new RectangleGeometry();
+                _scrollableHeadersClip.Rect = new Rect(xClip, 0, _scrollableHeadersPanel.ActualWidth - xClip, finalSize.Height);
+                _scrollableHeadersPanel.Clip = _scrollableHeadersClip;
+            }
         }
 
         return finalSize;
@@ -227,11 +236,23 @@ public partial class TableViewHeaderRow : Control
     }
 
     /// <summary>
-    /// Recalculates header widths after deferred desired-width updates.
+    /// Recalculates header widths after deferred desired-width updates, once the view is not scrolling.
     /// </summary>
+    /// <remarks>
+    /// Applying grown widths changes every affected column's cells in every realized row, and the re-measure of
+    /// all that text lands in one or two frames - long ones, in the middle of whatever scroll let the timer
+    /// expire. The widths themselves are already up to a debounce stale, so while a scroll is in flight the
+    /// timer re-arms and the same widths are applied on a frame where nothing is moving.
+    /// </remarks>
     private void OnDesiredWidthTimerTick(object? sender, object e)
     {
         _desiredWidthTimer?.Stop();
+
+        if (TableView?.IsViewChangeInFlight is true)
+        {
+            _desiredWidthTimer?.Start();
+            return;
+        }
 
         if (!_calculatingHeaderWidths)
         {
@@ -544,7 +565,7 @@ public partial class TableViewHeaderRow : Control
     {
         var stateName = VisualStates.StateNoButton;
 
-        if (TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple })
+        if (TableView is { SelectionMode: ListViewSelectionMode.Multiple })
         {
             stateName = TableView.IsEditing ? VisualStates.StateSelectAllCheckBoxDisabled : VisualStates.StateSelectAllCheckBox;
         }
@@ -569,7 +590,7 @@ public partial class TableViewHeaderRow : Control
         // so that the header row corner can take up the desired width.
         if (TableView?.CollectionView.Count == 0)
         {
-            if (TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple })
+            if (TableView.SelectionMode is ListViewSelectionMode.Multiple)
             {
                 TableView.CellsHorizontalOffset = double.NaN;
             }
@@ -624,7 +645,7 @@ public partial class TableViewHeaderRow : Control
     {
         if (_h_gridLine is not null && TableView is not null)
         {
-            _h_gridLine.Fill = TableView.HorizontalGridLinesStroke;
+            GridLineSprite.SetShapeFill(_h_gridLine, TableView.HorizontalGridLinesStroke);
             _h_gridLine.Height = TableView.HorizontalGridLinesStrokeThickness;
             _h_gridLine.Visibility = TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Horizontal
                                      ? Visibility.Visible : Visibility.Collapsed;
@@ -634,13 +655,13 @@ public partial class TableViewHeaderRow : Control
                 var vGridLinesVisibility = TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
                                            || TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical;
                 var areHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
-                var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
+                var isMultiSelection = TableView is { SelectionMode: ListViewSelectionMode.Multiple };
                 var isDetailsToggleButtonVisible = TableView.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded
                                                     && (TableView.RowDetailsTemplate is not null || TableView.RowDetailsTemplateSelector is not null);
 
 
-                _v_gridLine.Fill = TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
-                                   ? TableView.VerticalGridLinesStroke : SharedResources.TransparentBrush;
+                GridLineSprite.SetShapeFill(_v_gridLine, TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                                                         ? TableView.VerticalGridLinesStroke : SharedResources.TransparentBrush);
                 _v_gridLine.Width = TableView.VerticalGridLinesStrokeThickness;
                 _v_gridLine.Visibility = vGridLinesVisibility && (areHeadersVisible || isMultiSelection || isDetailsToggleButtonVisible) ? Visibility.Visible : Visibility.Collapsed;
             }
@@ -683,7 +704,7 @@ public partial class TableViewHeaderRow : Control
         if (_cornerButtonPanel is not null && TableView is not null)
         {
             var areRowHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
-            var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
+            var isMultiSelection = TableView is { SelectionMode: ListViewSelectionMode.Multiple };
             var isRowDetailExpandable = TableView.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded;
 
             _cornerButtonPanel.Visibility = areRowHeadersVisible || isMultiSelection || isRowDetailExpandable
@@ -871,11 +892,11 @@ public partial class TableViewHeaderRow : Control
         {
             oldTableView.SizeChanged -= OnTableViewSizeChanged;
             oldTableView.SelectionChanged -= OnTableViewSelectionChanged;
-            oldTableView.Items.VectorChanged -= OnTableViewItemsVectorChanged;
+            oldTableView.CollectionView.VectorChanged -= OnTableViewItemsVectorChanged;
             oldTableView.Columns.CollectionChanged -= OnTableViewColumnsCollectionChanged;
             oldTableView.Columns.ColumnPropertyChanged -= OnColumnPropertyChanged;
 
-            UnregisterPropertyChangedCallback(oldTableView, ListViewBase.SelectionModeProperty);
+            UnregisterPropertyChangedCallback(oldTableView, TableView.SelectionModeProperty);
             UnregisterPropertyChangedCallback(oldTableView, TableView.CornerButtonModeProperty);
             UnregisterPropertyChangedCallback(oldTableView, TableView.ItemsSourceProperty);
             UnregisterPropertyChangedCallback(oldTableView, TableView.CellsHorizontalOffsetProperty);
@@ -887,12 +908,12 @@ public partial class TableViewHeaderRow : Control
         {
             newTableView.SizeChanged += OnTableViewSizeChanged;
             newTableView.SelectionChanged += OnTableViewSelectionChanged;
-            newTableView.Items.VectorChanged += OnTableViewItemsVectorChanged;
+            newTableView.CollectionView.VectorChanged += OnTableViewItemsVectorChanged;
             newTableView.Columns.CollectionChanged += OnTableViewColumnsCollectionChanged;
             newTableView.Columns.ColumnPropertyChanged += OnColumnPropertyChanged;
 
-            _callbackTokens[ListViewBase.SelectionModeProperty] =
-                newTableView.RegisterPropertyChangedCallback(ListViewBase.SelectionModeProperty, OnTableViewSelectionModePropertyChanged);
+            _callbackTokens[TableView.SelectionModeProperty] =
+                newTableView.RegisterPropertyChangedCallback(TableView.SelectionModeProperty, OnTableViewSelectionModePropertyChanged);
             _callbackTokens[TableView.CornerButtonModeProperty] =
                 newTableView.RegisterPropertyChangedCallback(TableView.CornerButtonModeProperty, OnTableViewCornerButtonModePropertyChanged);
             _callbackTokens[TableView.ItemsSourceProperty] =

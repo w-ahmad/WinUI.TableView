@@ -15,7 +15,7 @@ namespace WinUI.TableView;
 #endif
 public partial class TableViewRowHeader : ContentControl
 {
-    private ContentPresenter? _contentPresenter;
+    private FrameworkElement? _contentPresenter; // not ContentPresenter: Native AOT can wrap it as a base class
 
     /// <summary>
     /// Initializes a new instance of the TableViewRowHeader class.
@@ -30,7 +30,7 @@ public partial class TableViewRowHeader : ContentControl
     {
         base.OnApplyTemplate();
 
-        _contentPresenter = GetTemplateChild("Content") as ContentPresenter;
+        _contentPresenter = GetTemplateChild("Content") as FrameworkElement;
     }
 
     /// <inheritdoc/>
@@ -38,35 +38,21 @@ public partial class TableViewRowHeader : ContentControl
     {
         if (TableView is not null && TableViewRow is not null && _contentPresenter is not null)
         {
+#if WINDOWS
             var element = ContentTemplateRoot as FrameworkElement;
-            #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860           
-            if (element is not null)
-            {
-                element.MaxWidth = double.PositiveInfinity;
-                element.MaxHeight = double.PositiveInfinity;
-            }
-            #endregion
-
+#else
+            // Uno only exposes the template's root on the presenter that realizes it.
+            var element = (_contentPresenter as ContentPresenter)?.GetContentTemplateRoot();
+#endif
             element?.Measure(availableSize: new Size(double.PositiveInfinity, double.PositiveInfinity));
 
             var desiredWidth = GetContentDesiredWidth(element);
-            TableView?.SetValue(TableView.RowHeaderActualWidthProperty, desiredWidth);
 
-            #region TEMP_FIX_FOR_ISSUE https://github.com/microsoft/microsoft-ui-xaml/issues/9860
-            var contentWidth = GetContentWidth(desiredWidth, element);
-            var contentHeight = GetContentHeight(element);
-
-            if (contentWidth < 0 || contentHeight < 0)
+            // Every row header measures on every pass, and the shared width rarely changes.
+            if (TableView is not null && desiredWidth != TableView.RowHeaderActualWidth)
             {
-                _contentPresenter.Visibility = Visibility.Collapsed;
+                TableView.SetValue(TableView.RowHeaderActualWidthProperty, desiredWidth);
             }
-            else if (element is not null)
-            {
-                element.MaxWidth = contentWidth;
-                element.MaxHeight = contentHeight;
-                _contentPresenter.Visibility = Visibility.Visible;
-            }
-            #endregion
         }
 
         return base.MeasureOverride(availableSize);
@@ -85,41 +71,6 @@ public partial class TableViewRowHeader : ContentControl
         desiredWidth = Math.Max(TableView.RowHeaderActualWidth, desiredWidth);
 
         return desiredWidth;
-    }
-
-    private double GetContentWidth(double desiredWidth, FrameworkElement? element)
-    {
-        var contentWidth = desiredWidth;
-        contentWidth -= element?.Margin.Left ?? 0;
-        contentWidth -= element?.Margin.Right ?? 0;
-        contentWidth -= Padding.Left;
-        contentWidth -= Padding.Right;
-        contentWidth -= BorderThickness.Left;
-        contentWidth -= BorderThickness.Right;
-        return contentWidth;
-    }
-
-    private double GetContentHeight(FrameworkElement? element)
-    {
-        var height = Height is double.NaN ? double.PositiveInfinity : Height;
-        var contentHeight = Math.Min(height, MaxHeight);
-        contentHeight -= element?.Margin.Top ?? 0;
-        contentHeight -= element?.Margin.Bottom ?? 0;
-        contentHeight -= Padding.Top;
-        contentHeight -= Padding.Bottom;
-        contentHeight -= BorderThickness.Top;
-        contentHeight -= BorderThickness.Bottom;
-        contentHeight -= GetHorizontalGridlineHeight();
-        return contentHeight;
-    }
-
-    /// <summary>
-    /// Gets the height of the horizontal gridlines.
-    /// </summary>
-    private double GetHorizontalGridlineHeight()
-    {
-        return TableView?.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Horizontal
-            ? TableView.HorizontalGridLinesStrokeThickness : 0d;
     }
 
     /// <summary>
