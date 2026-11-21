@@ -299,6 +299,9 @@ public partial class TableViewCell : ContentControl
     protected override Size ArrangeOverride(Size finalSize)
     {
         finalSize = base.ArrangeOverride(finalSize);
+#if !WINDOWS
+        TableView?.InvalidateRenderCulling();
+#endif
 
         // During a resize-drag preview, manually re-arrange the overlapping template borders wider
         // than the Grid's own column-based sizing would give them (the Grid still thinks this cell is

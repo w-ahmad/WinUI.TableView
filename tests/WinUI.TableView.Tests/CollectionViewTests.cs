@@ -82,6 +82,23 @@ public class CollectionViewTests
     }
 
     [UITestMethod]
+    public void DeferredChange_Of_An_Item_Removed_Meanwhile_Does_Not_Add_It()
+    {
+        var src = CreateItems(3); // Values: 3,2,1
+        var view = new CollectionView(src, liveShapingEnabled: true);
+        view.FilterDescriptions.Add(FilterByValueGreaterThan(1));
+        var filteredOut = src[2];
+
+        view.DeferItemChanges();
+        filteredOut.Value = 5;
+        src.Remove(filteredOut);
+        view.ApplyDeferredItemChanges();
+
+        Assert.AreEqual(2, view.Count);
+        Assert.IsFalse(view.Contains(filteredOut));
+    }
+
+    [UITestMethod]
     public void LiveShaping_Reacts_To_Property_Changes_Sort()
     {
         var src = CreateItems(3); // Values: 3,2,1

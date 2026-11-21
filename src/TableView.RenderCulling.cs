@@ -24,7 +24,11 @@ public partial class TableView
     /// <summary>
     /// Shows the column headers and the cells of the realized rows that are in view, and hides the rest.
     /// </summary>
-    private void UpdateRenderCulling()
+    /// <param name="onlyIfStale">
+    /// Leaves the cells alone when nothing that places them has changed since they were last culled. The repeater
+    /// reports every layout pass in the window, most of which are not the table's.
+    /// </param>
+    private void UpdateRenderCulling(bool onlyIfStale = false)
     {
         if (_scrollViewer is null || ElementVisuals.AreKnownNotComposed)
         {
@@ -41,8 +45,25 @@ public partial class TableView
         _headerRow?.UpdateRenderCulling(cullHeaders: !IsColumnResizing);
 
         // Uno's scroll viewer can also pan sideways by itself, which brings cells further right into view.
-        _culledViewerOffset = _scrollViewer.HorizontalOffset;
-        viewportWidth += _culledViewerOffset;
+        var viewerOffset = _scrollViewer.HorizontalOffset;
+        var horizontalOffset = HorizontalOffset;
+        viewportWidth += viewerOffset;
+
+        if (onlyIfStale
+            && !_isCellCullingStale
+            && viewerOffset == _culledViewerOffset
+            && horizontalOffset == _culledHorizontalOffset
+            && viewportWidth == _culledViewportWidth
+            && cullCells == _culledCells)
+        {
+            return;
+        }
+
+        _isCellCullingStale = false;
+        _culledViewerOffset = viewerOffset;
+        _culledHorizontalOffset = horizontalOffset;
+        _culledViewportWidth = viewportWidth;
+        _culledCells = cullCells;
 
         foreach (var row in _rows)
         {
@@ -51,6 +72,18 @@ public partial class TableView
     }
 
     private double _culledViewerOffset;
+    private double _culledHorizontalOffset;
+    private double _culledViewportWidth;
+    private bool _culledCells;
+    private bool _isCellCullingStale = true;
+
+    /// <summary>
+    /// Marks the cells as possibly moved, so the next layout pass culls them again.
+    /// </summary>
+    internal void InvalidateRenderCulling()
+    {
+        _isCellCullingStale = true;
+    }
 
     /// <summary>
     /// Updates the culling when the scroll viewer has panned sideways by itself, which no layout pass reports.

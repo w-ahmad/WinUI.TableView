@@ -125,6 +125,22 @@ scroll performance. In practice, most data grids have far fewer columns than row
 The horizontal scroll extent is computed from the column widths rather than from whichever rows happen to be
 realized, so the horizontal scrollbar does not change size as you scroll vertically.
 
+## Garbage collection pauses on Windows
+
+A WinUI app's blocking gen2 collections pause the process for longer the more XAML objects are alive, and a page
+of tables is many thousands of them. A pause that lands mid-scroll shows as a dropped frame or a visible hitch.
+This is the app's to tune, not the control's, and both of the following are optional. The Sample App does both,
+which is worth knowing when you compare its scrolling with your own app's:
+
+- **Sustained low latency.** `GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency`, set once at startup,
+  has the runtime prefer background collections over blocking ones. The cost is a larger heap between collections.
+- **Collect after navigating.** Leaving a page frees a lot at once, and the collection that follows tends to land
+  in the first scroll on the next page. Calling `GC.Collect()` a moment after navigation (the Sample App waits
+  500 ms) takes that pause while nothing is moving.
+
+Measure before adopting either: they trade memory and an explicit pause for smoother scrolling, and an app with
+few XAML objects alive gains nothing from them.
+
 ## Uno Platform
 
 On Uno Platform targets, data binding and layout passes may have slightly different performance characteristics than on the Windows target. Test performance on each target platform before shipping.

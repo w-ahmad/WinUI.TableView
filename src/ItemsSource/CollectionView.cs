@@ -501,7 +501,11 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
             else if (sourceIndex == -1 && filterResult)
             {
                 var index = Source.IndexOf(item);
-                HandleItemAdded(index, item);
+
+                if (index >= 0)
+                {
+                    HandleItemAdded(index, item);
+                }
             }
         }
 

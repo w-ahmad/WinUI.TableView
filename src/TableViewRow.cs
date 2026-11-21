@@ -40,6 +40,7 @@ public partial class TableViewRow : ContentControl
     private bool _isPointerOver;
     private bool _isPressed;
     private bool _animateSelection = true;
+    private bool _isApplyingSelection;
     private Brush? _cellPresenterBackground;
     private Brush? _cellPresenterForeground;
 
@@ -68,8 +69,9 @@ public partial class TableViewRow : ContentControl
     /// Gets or sets a value indicating whether the row is selected.
     /// </summary>
     /// <remarks>
-    /// The table's selection model is the source of truth; this reflects it for the row's visuals. Setting it
-    /// directly changes only the visual state, not the table's selection.
+    /// Setting it selects or deselects the row's item in the table, under the table's
+    /// <see cref="TableView.SelectionMode"/> and <see cref="TableView.SelectionUnit"/>; a change the table refuses
+    /// is reverted.
     /// </remarks>
     public bool IsSelected
     {
@@ -179,6 +181,7 @@ public partial class TableViewRow : ContentControl
     internal void SetSelectionState(bool isSelected, bool animate)
     {
         _animateSelection = animate;
+        _isApplyingSelection = true;
 
         try
         {
@@ -187,6 +190,7 @@ public partial class TableViewRow : ContentControl
         finally
         {
             _animateSelection = true;
+            _isApplyingSelection = false;
         }
     }
 
@@ -796,6 +800,17 @@ public partial class TableViewRow : ContentControl
     {
         if (d is TableViewRow row)
         {
+            if (!row._isApplyingSelection && row.IsAttached && row.TableView is { } tableView && row.Index >= 0)
+            {
+                var isSelected = tableView.SetRowSelectedFromRow(row.Index, row.IsSelected);
+
+                if (isSelected != row.IsSelected)
+                {
+                    row.SetSelectionState(isSelected, animate: false);
+                    return;
+                }
+            }
+
             row.UpdateVisualStates(useTransitions: row._animateSelection);
 
             if (row.IsSelected)

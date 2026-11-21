@@ -242,6 +242,91 @@ public class TableViewSelectionSyncTests
         Assert.AreEqual(0, tableView.SelectedItems.Count);
     }
 
+    [UITestMethod]
+    public async Task SelectionChangedHandler_RemovingTheAddedItems_RemovesExactlyThem()
+    {
+        var (tableView, items) = await CreateTableViewAsync(ListViewSelectionMode.Extended);
+        var expected = items.Skip(2).Take(3).ToArray();
+        var kept = items.Except(expected).ToArray();
+
+        tableView.SelectionChanged += (_, e) =>
+        {
+            foreach (var item in e.AddedItems)
+            {
+                items.Remove((Item)item);
+            }
+        };
+
+        tableView.SelectRange(new ItemIndexRange(2, 3));
+
+        CollectionAssert.AreEqual(kept, items.ToArray());
+        Assert.AreEqual(0, tableView.SelectedItems.Count);
+    }
+
+    [UITestMethod]
+    public async Task SelectionChangedItems_ReadAfterTheSourceChanged_AreTheItemsThatChanged()
+    {
+        var (tableView, items) = await CreateTableViewAsync(ListViewSelectionMode.Extended);
+        var expected = items.Skip(2).Take(3).ToArray();
+        IList<object>? added = null;
+        tableView.SelectionChanged += (_, e) => added ??= e.AddedItems;
+
+        tableView.SelectRange(new ItemIndexRange(2, 3));
+        items.Insert(0, new Item { Name = "New" });
+
+        CollectionAssert.AreEqual(expected, added!.ToArray());
+    }
+
+    [UITestMethod]
+    public async Task SelectedIndexAndItem_WhileRowsCannotBeSelected_SelectNothing()
+    {
+        var (tableView, items) = await CreateTableViewAsync(ListViewSelectionMode.None);
+
+        tableView.SelectedIndex = 3;
+        Assert.AreEqual(-1, tableView.SelectedIndex);
+        Assert.AreEqual(0, tableView.SelectedItems.Count);
+
+        tableView.SelectionMode = ListViewSelectionMode.Extended;
+        tableView.SelectionUnit = TableViewSelectionUnit.Cell;
+
+        tableView.SelectedIndex = 3;
+        Assert.AreEqual(-1, tableView.SelectedIndex);
+
+        tableView.SelectedItem = items[4];
+        Assert.IsNull(tableView.SelectedItem);
+        Assert.AreEqual(0, tableView.SelectedItems.Count);
+    }
+
+    [UITestMethod]
+    public async Task SelectedItem_NotInTheView_GoesBackToNull()
+    {
+        var (tableView, _) = await CreateTableViewAsync(ListViewSelectionMode.Single);
+
+        tableView.SelectedItem = new Item { Name = "Foreign" };
+
+        Assert.IsNull(tableView.SelectedItem);
+        Assert.AreEqual(-1, tableView.SelectedIndex);
+    }
+
+    [UITestMethod]
+    public async Task SettingARowIsSelected_SelectsItsItem()
+    {
+        var (tableView, items) = await CreateTableViewAsync(ListViewSelectionMode.Extended);
+        var row = (TableViewRow)tableView.ContainerFromIndex(2)!;
+
+        row.IsSelected = true;
+        CollectionAssert.AreEqual(new object[] { items[2] }, tableView.SelectedItems.ToArray());
+        Assert.AreEqual(2, tableView.SelectedIndex);
+
+        row.IsSelected = false;
+        Assert.AreEqual(0, tableView.SelectedItems.Count);
+
+        tableView.SelectionMode = ListViewSelectionMode.None;
+        row.IsSelected = true;
+        Assert.IsFalse(row.IsSelected);
+        Assert.AreEqual(0, tableView.SelectedItems.Count);
+    }
+
     private async Task<(TableView, ObservableCollection<Item>)> CreateTableViewAsync(ListViewSelectionMode selectionMode, int itemCount = 10)
     {
         var items = new ObservableCollection<Item>(Enumerable.Range(0, itemCount).Select(i => new Item { Index = i, Name = $"Item {i}" }));

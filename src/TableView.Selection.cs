@@ -20,6 +20,7 @@ public partial class TableView
     private readonly TableViewSelectionModel _rowSelection = new();
     private TableViewSelectedItemsCollection? _selectedItems;
     private bool _isSyncingSelectionProperties;
+    private const int SelectionChangeSnapshotLimit = 1024;
 
     /// <summary>
     /// Identifies the <see cref="SelectedItem"/> dependency property.
@@ -36,6 +37,12 @@ public partial class TableView
     /// <summary>
     /// Occurs when the row selection changes.
     /// </summary>
+    /// <remarks>
+    /// The added and removed items are copies when the change covers up to 1,024 items, which every click and
+    /// keyboard change does. A larger change, such as selecting all of a long list, reports them as projections
+    /// over the changed index ranges instead, read through the view when they are enumerated: copy them before
+    /// changing the source if a handler needs them afterwards.
+    /// </remarks>
     public event SelectionChangedEventHandler? SelectionChanged;
 
     /// <summary>
@@ -146,6 +153,11 @@ public partial class TableView
     /// </summary>
     private void SelectSingleItem(int itemIndex)
     {
+        if (itemIndex >= 0 && (SelectionMode is ListViewSelectionMode.None || SelectionUnit is TableViewSelectionUnit.Cell))
+        {
+            return;
+        }
+
         ChangeSelection(model => itemIndex < 0 || itemIndex >= _collectionView.Count ? model.Clear() : model.SelectOnly(itemIndex));
     }
 
@@ -198,6 +210,20 @@ public partial class TableView
         CurrentRowIndex = row;
 
         return true;
+    }
+
+    /// <summary>
+    /// Applies a row's <see cref="TableViewRow.IsSelected"/>, set from outside, to the selection.
+    /// </summary>
+    /// <returns>Whether the row is selected afterwards.</returns>
+    internal bool SetRowSelectedFromRow(int index, bool isSelected)
+    {
+        if (!isSelected || CanSelectRow(index))
+        {
+            SetItemSelected(index, isSelected);
+        }
+
+        return _rowSelection.Contains(index);
     }
 
     private bool CanSelectRow(int index)
@@ -258,10 +284,8 @@ public partial class TableView
         ApplySelectionToRealizedRows(added, removed);
         OnRowSelectionChanged(added, removed);
 
-        var removedItems = ProjectItems(removed);
-
         SelectionChanged?.Invoke(this, new SelectionChangedEventArgs(
-            snapshotRemovedItems ? [.. removedItems] : removedItems,
+            ProjectItems(removed, snapshotRemovedItems),
             ProjectItems(added)));
     }
 
@@ -280,12 +304,16 @@ public partial class TableView
     }
 
     /// <summary>
-    /// Projects a selection span onto the items it covers, without materialising them. The projection is
-    /// read-only: it describes a selection change rather than being one.
+    /// Projects a selection span onto the items it covers. A small span is copied, so a handler can change the
+    /// source while reading it; a large one stays a read-only projection that materialises nothing.
     /// </summary>
-    private IList<object> ProjectItems(TableViewSelectionModel model)
+    private IList<object> ProjectItems(TableViewSelectionModel model, bool snapshot = false)
     {
-        return new TableViewSelectedItemsCollection(model, ItemAt, item => _collectionView.IndexOf(item));
+        var items = new TableViewSelectedItemsCollection(model, ItemAt, item => _collectionView.IndexOf(item));
+
+        return snapshot || model.Count <= SelectionChangeSnapshotLimit
+            ? new System.Collections.ObjectModel.ReadOnlyCollection<object>([.. items])
+            : items;
     }
 
     /// <summary>
@@ -308,7 +336,7 @@ public partial class TableView
 
             if (index >= 0 && (added.Contains(index) || removed.Contains(index)))
             {
-                row.IsSelected = _rowSelection.Contains(index);
+                row.SetSelectionState(_rowSelection.Contains(index), animate: true);
                 row.NotifySelectionChanged(isOnlySelection: _rowSelection.Count is 1);
             }
         }
@@ -353,6 +381,11 @@ public partial class TableView
         }
 
         tableView.SelectSingleItem(tableView._collectionView.IndexOf(e.NewValue));
+
+        if (!Equals(tableView.ItemAt(tableView._rowSelection.FirstIndex), tableView.SelectedItem))
+        {
+            tableView.SyncSelectionProperties();
+        }
     }
 
     private static void OnSelectedIndexChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

@@ -241,6 +241,9 @@ public partial class TableViewRowPresenter : Control
 
         if (TableView is not null)
         {
+#if !WINDOWS
+            TableView.InvalidateRenderCulling();
+#endif
             // Multi-select mode reserves room on the left for the row's check box.
             var isMultiSelection = TableView is { SelectionMode: ListViewSelectionMode.Multiple };
             var left = isMultiSelection ? MultiSelectInset : 0d;

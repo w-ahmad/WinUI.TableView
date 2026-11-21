@@ -101,6 +101,10 @@ public partial class TableView : Control
         _groupStyle.CollectionChanged += delegate { RefreshGroupHeaderTemplates(); };
         Columns.ColumnPropertyChanged += OnColumnPropertyChanged;
         Columns.CollectionChanged += delegate { UpdateRowsMinWidth(); };
+#if !WINDOWS
+        Columns.CollectionChanged += delegate { InvalidateRenderCulling(); };
+        Columns.ColumnPropertyChanged += delegate { InvalidateRenderCulling(); };
+#endif
         RegisterPropertyChangedCallback(CellsHorizontalOffsetProperty, delegate
         {
             LastCellsHorizontalOffset = CellsHorizontalOffset;
@@ -520,8 +524,7 @@ public partial class TableView : Control
             return false;
         }
 
-        // Shift extends the selection from the anchor instead of starting a new one. It has to be handled here:
-        // the base ListView never sees the plain clicks handled below, so its own anchor would be stale.
+        // Shift extends the selection from the anchor instead of starting a new one.
         if (isShiftKey && SelectionMode is ListViewSelectionMode.Extended or ListViewSelectionMode.Multiple)
         {
             return ExtendSelectionTo(pressedElement, ctrlKey);

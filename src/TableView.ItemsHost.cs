@@ -416,7 +416,7 @@ public partial class TableView
         }
 
 #if !WINDOWS
-        UpdateRenderCulling();
+        UpdateRenderCulling(onlyIfStale: true);
 #endif
     }
 
@@ -478,6 +478,9 @@ public partial class TableView
         row.VisualIndex = visualIndex;
         row.Index = itemIndex;
         row.SetSelectionState(itemIndex >= 0 && _rowSelection.Contains(itemIndex), animate: false);
+#if !WINDOWS
+        InvalidateRenderCulling();
+#endif
 
         if (!row.IsAttached)
         {
