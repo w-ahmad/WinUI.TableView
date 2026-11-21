@@ -139,10 +139,46 @@ public partial class TableViewHeaderRow : Control
                 _scrollableHeadersClip.Rect = new Rect(xClip, 0, _scrollableHeadersPanel.ActualWidth - xClip, finalSize.Height);
                 _scrollableHeadersPanel.Clip = _scrollableHeadersClip;
             }
+
+#if !WINDOWS
+            UpdateRenderCulling(cullHeaders: !TableView.IsColumnResizing);
+#endif
         }
 
         return finalSize;
     }
+
+#if !WINDOWS
+    /// <summary>
+    /// Shows the column headers in view and hides the scrollable ones scrolled out of view sideways (see
+    /// <see cref="TableView.UpdateRenderCulling"/>).
+    /// </summary>
+    /// <param name="cullHeaders">Whether to hide the headers out of view, rather than show every header.</param>
+    internal void UpdateRenderCulling(bool cullHeaders)
+    {
+        if (_scrollableHeadersPanel is null || _frozenHeadersPanel is null || TableView is null || ElementVisuals.AreKnownNotComposed)
+        {
+            return;
+        }
+
+        foreach (var header in _frozenHeadersPanel.Children)
+        {
+            ElementVisuals.SetInView(header, isInView: true);
+        }
+
+        // The scrollable panel is arranged at the frozen headers' right edge less the horizontal offset and clipped
+        // there, so in its own coordinates the part in view starts at the offset and runs to this row's right edge.
+        var start = TableView.HorizontalOffset;
+        var end = start + ActualWidth - (_frozenHeadersPanel.ActualOffset.X + _frozenHeadersPanel.ActualWidth);
+        cullHeaders &= ActualWidth > 0d;
+
+        foreach (var header in _scrollableHeadersPanel.Children)
+        {
+            var x = header.ActualOffset.X;
+            ElementVisuals.SetInView(header, isInView: !cullHeaders || (x + header.ActualSize.X >= start && x <= end));
+        }
+    }
+#endif
 
     /// <summary>
     /// Handles the collection changed event for the columns.

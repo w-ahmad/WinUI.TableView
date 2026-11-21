@@ -6,7 +6,7 @@ using WinUI.TableView.Helpers;
 namespace WinUI.TableView;
 
 /// <summary>
-/// Leaves the cells scrolled out of view sideways out of rendering, on renderers that compose them.
+/// Leaves the cells and column headers scrolled out of view sideways out of rendering, on renderers that compose them.
 /// </summary>
 /// <remarks>
 /// Uno's Skia renderer draws every realized element on every frame and clips away what is out of view only after it
@@ -22,7 +22,7 @@ namespace WinUI.TableView;
 public partial class TableView
 {
     /// <summary>
-    /// Shows the cells of the realized rows that are in view, and hides the rest.
+    /// Shows the column headers and the cells of the realized rows that are in view, and hides the rest.
     /// </summary>
     private void UpdateRenderCulling()
     {
@@ -37,6 +37,8 @@ public partial class TableView
 
         // A column resize preview moves cells with transforms and no layout, so where they are is not known here.
         var cullCells = !IsColumnResizing && viewportWidth > 0d;
+
+        _headerRow?.UpdateRenderCulling(cullHeaders: !IsColumnResizing);
 
         // Uno's scroll viewer can also pan sideways by itself, which brings cells further right into view.
         _culledViewerOffset = _scrollViewer.HorizontalOffset;
