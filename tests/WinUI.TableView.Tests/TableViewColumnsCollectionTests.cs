@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
 using System;
 using System.Collections.Specialized;
+using System.Linq;
 
 namespace WinUI.TableView.Tests;
 
@@ -222,5 +223,21 @@ public class TableViewColumnsCollectionTests
 
         Assert.IsFalse(addedFirst.IsFrozen);
         Assert.IsTrue(addedSecond.IsFrozen);
+    }
+
+    [UITestMethod]
+    public void FrozenColumnCountChange_ShouldRefreezeColumns()
+    {
+        var tableView = new TableView();
+        var columns = Enumerable.Range(0, 4).Select(_ => new TableViewTextColumn()).ToList();
+        columns.ForEach(tableView.Columns.Add);
+
+        Assert.IsFalse(columns.Any(x => x.IsFrozen));
+
+        tableView.FrozenColumnCount = 3;
+        CollectionAssert.AreEqual(new[] { true, true, true, false }, columns.Select(x => x.IsFrozen).ToArray());
+
+        tableView.FrozenColumnCount = 1;
+        CollectionAssert.AreEqual(new[] { true, false, false, false }, columns.Select(x => x.IsFrozen).ToArray());
     }
 }

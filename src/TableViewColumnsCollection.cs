@@ -85,14 +85,14 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
 
     internal void UpdateFrozenColumns()
     {
-        // Read VisibleColumns once: it used to be re-evaluated (allocating and sorting a new list)
-        // for every column in this loop.
         var visibleColumns = VisibleColumns;
         var frozenColumnCount = TableView?.FrozenColumnCount ?? 0;
+        var scrollableColumns = new HashSet<TableViewColumn>(visibleColumns.Skip(frozenColumnCount), ReferenceEqualityComparer.Instance);
 
+        // A hidden column counts as frozen, as it always has.
         foreach (var column in this.OfType<TableViewColumn>())
         {
-            column.IsFrozen = visibleColumns.IndexOf(column) < frozenColumnCount;
+            column.IsFrozen = !scrollableColumns.Contains(column);
         }
     }
 
