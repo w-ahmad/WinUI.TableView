@@ -13,6 +13,7 @@ internal static class UnoTestRunner
         await Task.Yield();
 
         var results = new List<(string Name, Exception? Error)>();
+        var skipped = new List<string>();
         var testMethods = typeof(UnoTestRunner).Assembly
             .GetTypes()
             .Where(type => type.GetCustomAttribute<TestClassAttribute>() is not null)
@@ -65,6 +66,13 @@ internal static class UnoTestRunner
                     : exception;
             }
 
+            if (error is AssertInconclusiveException)
+            {
+                skipped.Add($"{type.Name}.{method.Name}");
+                WriteMessage($"SKIP {type.Name}.{method.Name}: {error.Message}");
+                continue;
+            }
+
             results.Add(($"{type.Name}.{method.Name}", error));
             var resultMessage = error is null
                 ? $"PASS {type.Name}.{method.Name}"
@@ -73,6 +81,13 @@ internal static class UnoTestRunner
         }
 
         var failures = results.Count(result => result.Error is not null);
+
+        // Kept on a line of its own: the CI scripts match the summary line exactly.
+        if (skipped.Count > 0)
+        {
+            WriteMessage($"Uno tests skipped as inconclusive: {skipped.Count}.");
+        }
+
         WriteMessage($"Uno tests complete: {results.Count - failures} passed, {failures} failed.");
         window.Content = CreateResultsView(results, failures);
         Environment.ExitCode = failures == 0 ? 0 : 1;
