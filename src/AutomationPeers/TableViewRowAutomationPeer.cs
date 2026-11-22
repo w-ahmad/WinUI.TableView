@@ -71,16 +71,14 @@ public partial class TableViewRowAutomationPeer : FrameworkElementAutomationPeer
         }
 
         var parts = new List<string>();
-        foreach (var cell in _owner.Cells)
+        // Every column, not only those with a cell: columns out of view have none.
+        foreach (var column in tableView.Columns.VisibleColumns)
         {
-            if (cell.Column is { } column)
+            var headerText = GetColumnHeaderText(column);
+            var value = column.GetCellContent(_owner.Content)?.ToString() ?? string.Empty;
+            if (!string.IsNullOrEmpty(headerText))
             {
-                var headerText = GetColumnHeaderText(column);
-                var value = column.GetCellContent(_owner.Content)?.ToString() ?? string.Empty;
-                if (!string.IsNullOrEmpty(headerText))
-                {
-                    parts.Add($"{headerText}: {value}");
-                }
+                parts.Add($"{headerText}: {value}");
             }
         }
 

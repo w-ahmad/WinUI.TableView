@@ -99,8 +99,8 @@ public partial class TableViewAutomationPeer : FrameworkElementAutomationPeer,
     public int ColumnCount => _owner.Columns.VisibleColumns.Count;
 
     /// <summary>
-    /// Returns the automation peer for the cell at the specified row and column index, realizing the row when it
-    /// is not on screen.
+    /// Returns the automation peer for the cell at the specified row and column index, realizing the row and the
+    /// cell when they are not on screen.
     /// </summary>
     /// <param name="row">Zero-based row index.</param>
     /// <param name="column">Zero-based column index.</param>
@@ -114,8 +114,8 @@ public partial class TableViewAutomationPeer : FrameworkElementAutomationPeer,
         // Realize on demand rather than returning null for an off-screen row: the Grid pattern is supposed to be
         // able to reach every cell, and returning null for anything scrolled out of view made large tables
         // effectively unreadable to assistive technology.
-        var cell = _owner.GetCellFromSlot(new TableViewCellSlot(row, column))
-                   ?? _owner.RealizeRow(row)?.GetCell(column);
+        var cell = _owner.GetOrRealizeCellFromSlot(new TableViewCellSlot(row, column))
+                   ?? _owner.RealizeRow(row)?.GetOrRealizeCell(column);
 
         if (cell is null)
         {

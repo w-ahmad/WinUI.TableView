@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WinUI.TableView.AutomationPeers;
 using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView.Tests;
@@ -140,6 +141,61 @@ public class TableViewColumnVirtualizationTests
             Assert.AreSame(columns[i], row.Cells[i].Column, $"cell {i}");
             Assert.AreEqual(i * ColumnWidth, row.Cells[i].ActualOffset.X, 0.01, $"cell {i}");
         }
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task CurrentCell_OutOfView_GetsACellAndIsScrolledIntoView()
+    {
+        var tableView = await CreateTableViewAsync();
+        tableView.SelectionUnit = TableViewSelectionUnit.Cell;
+
+        tableView.CurrentCellSlot = new TableViewCellSlot(1, 160);
+        await Task.Delay(200);
+        tableView.UpdateLayout();
+
+        var row = Rows(tableView).Single(x => x.Index == 1);
+        var cell = row.GetCell(160);
+
+        Assert.IsNotNull(cell, "the current cell has no cell");
+        Assert.IsTrue(tableView.HorizontalOffset > 0d, "the table did not scroll to the current cell");
+        Assert.IsTrue(cell.ActualOffset.X + cell.ActualWidth <= tableView.HorizontalOffset + TableWidth, "the current cell is not in view");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task GridPattern_GetItem_ReachesAColumnOutOfView()
+    {
+        var tableView = await CreateTableViewAsync();
+        var peer = new TableViewAutomationPeer(tableView);
+
+        Assert.IsNull(Rows(tableView).Single(x => x.Index == 2).GetCell(180));
+        Assert.IsNotNull(peer.GetItem(2, 180), "the Grid pattern should reach a cell of a column out of view");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task Editing_CanMoveToACellOutOfView()
+    {
+        var tableView = await CreateTableViewAsync();
+        tableView.SelectionUnit = TableViewSelectionUnit.Cell;
+        var slot = new TableViewCellSlot(0, 170);
+
+        var cell = tableView.GetOrRealizeCellFromSlot(slot);
+
+        Assert.IsNotNull(cell, "no cell was created for the column out of view");
+        Assert.IsTrue(cell.BeginCellEditing(new RoutedEventArgs()), "the cell did not start editing");
+
+        tableView.MakeSelection(slot, false);
+        await Task.Delay(200);
+        tableView.UpdateLayout();
+
+        Assert.AreSame(cell, Rows(tableView).Single(x => x.Index == 0).GetCell(170), "the cell being edited was replaced");
+        Assert.IsInstanceOfType<TextBox>(cell.Content);
+        Assert.IsTrue(tableView.HorizontalOffset > 0d);
 
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }

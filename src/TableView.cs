@@ -966,7 +966,7 @@ public partial class TableView : Control
             {
                 if (!EndCellEditing(TableViewEditAction.Commit, currentCell)) return;
 
-                if (CurrentCellSlot == newSlot || GetCellFromSlot(newSlot) is not { } nextCell || !nextCell.BeginCellEditing(e))
+                if (CurrentCellSlot == newSlot || GetOrRealizeCellFromSlot(newSlot) is not { } nextCell || !nextCell.BeginCellEditing(e))
                 {
                     SetIsEditing(false);
                 }
@@ -3068,6 +3068,15 @@ public partial class TableView : Control
     internal TableViewCell? GetCellFromSlot(TableViewCellSlot slot)
     {
         return slot.IsValid(this) && ContainerFromIndex(slot.Row) is TableViewRow row ? row.GetCell(slot.Column) : default;
+    }
+
+    /// <summary>
+    /// Gets the cell of a realized row for a slot, creating it when its column is out of view.
+    /// </summary>
+    /// <remarks>The cell stays until its row next syncs its cells, unless it has become the current cell.</remarks>
+    internal TableViewCell? GetOrRealizeCellFromSlot(TableViewCellSlot slot)
+    {
+        return slot.IsValid(this) && ContainerFromIndex(slot.Row) is TableViewRow row ? row.GetOrRealizeCell(slot.Column) : default;
     }
 
     /// <summary>
