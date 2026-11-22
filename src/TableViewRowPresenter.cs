@@ -25,8 +25,8 @@ public partial class TableViewRowPresenter : Control
 {
     private TableViewRowHeader? _rowHeader;
     private Panel? _rootPanel;
-    private StackPanel? _scrollableCellsPanel;
-    private StackPanel? _frozenCellsPanel;
+    private Panel? _scrollableCellsPanel; // a custom template may still use a StackPanel
+    private Panel? _frozenCellsPanel;
     private FrameworkElement? _v_gridLine;
     private Border? _h_gridLine;
     private FrameworkElement? _h_gridLineSpace;
@@ -69,8 +69,8 @@ public partial class TableViewRowPresenter : Control
 
         _rowHeader = GetTemplateChild("RowHeader") as TableViewRowHeader;
         _rootPanel = GetTemplateChild("RootPanel") as Panel;
-        _scrollableCellsPanel = GetTemplateChild("ScrollableCellsPanel") as StackPanel;
-        _frozenCellsPanel = GetTemplateChild("FrozenCellsPanel") as StackPanel;
+        _scrollableCellsPanel = GetTemplateChild("ScrollableCellsPanel") as Panel;
+        _frozenCellsPanel = GetTemplateChild("FrozenCellsPanel") as Panel;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as FrameworkElement;
         _h_gridLine = GetTemplateChild("HorizontalGridLine") as Border;
         _detailsGridLine = GetTemplateChild("DetailsGridLine") as FrameworkElement;
@@ -83,6 +83,7 @@ public partial class TableViewRowPresenter : Control
 
         TableViewRow = this.FindAscendant<TableViewRow>();
         TableView = TableViewRow?.TableView;
+        (_scrollableCellsPanel as TableViewCellsPanel)?.TableView = TableView;
         _rowHeader?.TableView = TableView;
         _rowHeader?.TableViewRow = TableViewRow;
 

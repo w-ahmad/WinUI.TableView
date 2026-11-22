@@ -20,6 +20,7 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
     private bool _movingColumn;
     private ReadOnlyCollection<TableViewColumn>? _visibleColumns;
     private double[]? _visibleColumnOffsets;
+    private Dictionary<TableViewColumn, int>? _visibleColumnIndexes;
 
     /// <inheritdoc/>
     public event EventHandler<TableViewColumnPropertyChangedEventArgs>? ColumnPropertyChanged;
@@ -106,6 +107,29 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
     {
         _visibleColumns = null;
         _visibleColumnOffsets = null;
+        _visibleColumnIndexes = null;
+    }
+
+    /// <summary>
+    /// Gets the index of a column among the visible columns, or -1 when it is not one of them.
+    /// </summary>
+    internal int GetVisibleColumnIndex(TableViewColumn column)
+    {
+        if (_visibleColumnIndexes is null)
+        {
+            var columns = VisibleColumns;
+            var indexes = new Dictionary<TableViewColumn, int>(columns.Count);
+
+            for (var i = 0; i < columns.Count; i++)
+            {
+                // A column added twice goes by its first place.
+                indexes.TryAdd(columns[i], i);
+            }
+
+            _visibleColumnIndexes = indexes;
+        }
+
+        return _visibleColumnIndexes.TryGetValue(column, out var index) ? index : -1;
     }
 
     /// <summary>
