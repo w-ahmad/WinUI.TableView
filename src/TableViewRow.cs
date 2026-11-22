@@ -95,6 +95,24 @@ public partial class TableViewRow : ContentControl
     public IReadOnlyList<TableViewCell> Cells => RowPresenter?.Cells ?? [];
 
     /// <summary>
+    /// Gets the cell the row shows for a column, or null when it has none.
+    /// </summary>
+    internal TableViewCell? GetCell(TableViewColumn column)
+    {
+        return RowPresenter?.GetCell(column);
+    }
+
+    /// <summary>
+    /// Gets the cell the row shows for the visible column at an index, or null when it has none.
+    /// </summary>
+    internal TableViewCell? GetCell(int columnIndex)
+    {
+        return TableView?.Columns.VisibleColumns is { } columns && columnIndex >= 0 && columnIndex < columns.Count
+            ? GetCell(columns[columnIndex])
+            : null;
+    }
+
+    /// <summary>
     /// Gets the presenter hosting the row's cells, row header and details pane.
     /// </summary>
     public TableViewRowPresenter? RowPresenter { get; private set; }
@@ -498,7 +516,7 @@ public partial class TableViewRow : ContentControl
         }
         else if (e.PropertyName is nameof(TableViewColumn.ActualWidth))
         {
-            if (Cells.FirstOrDefault(x => x.Column == e.Column) is { } cell)
+            if (GetCell(e.Column) is { } cell)
             {
                 cell.Width = e.Column.ActualWidth;
             }
@@ -540,7 +558,7 @@ public partial class TableViewRow : ContentControl
         {
             foreach (var column in columns)
             {
-                var cell = RowPresenter.Cells.FirstOrDefault(x => x.Column == column);
+                var cell = RowPresenter.GetCell(column);
                 if (cell is not null)
                 {
                     RowPresenter.RemoveCell(cell);
@@ -742,12 +760,7 @@ public partial class TableViewRow : ContentControl
     /// </summary>
     internal void ApplyCurrentCellState(TableViewCellSlot slot)
     {
-        var cells = Cells;
-
-        if (slot.Column >= 0 && slot.Column < cells.Count)
-        {
-            cells[slot.Column].ApplyCurrentCellState();
-        }
+        GetCell(slot.Column)?.ApplyCurrentCellState();
     }
 
     /// <summary>

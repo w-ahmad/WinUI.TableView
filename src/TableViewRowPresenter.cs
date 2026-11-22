@@ -39,6 +39,8 @@ public partial class TableViewRowPresenter : Control
     private RectangleGeometry? _detailsPanelClip;
     private RectangleGeometry? _scrollableCellsClip;
     private TableViewCell[]? _cells;
+    private IReadOnlyList<TableViewCell>? _mappedCells;
+    private readonly Dictionary<TableViewColumn, TableViewCell> _cellsByColumn = [];
 
     private const double MultiSelectInset = 44d;
 
@@ -660,7 +662,7 @@ public partial class TableViewRowPresenter : Control
     /// <param name="newIndex">The new index to move the cell to.</param>
     internal void MoveCells(TableViewColumn column, int newIndex)
     {
-        if (Cells.FirstOrDefault(h => h.Column == column) is { } cell)
+        if (GetCell(column) is { } cell)
         {
             RemoveCell(cell);
             InsertCell(cell);
@@ -712,6 +714,31 @@ public partial class TableViewRowPresenter : Control
     /// a new list rather than altering this one, so a caller enumerating it is not disturbed.
     /// </remarks>
     public IReadOnlyList<TableViewCell> Cells => _cells ??= CollectCells();
+
+    /// <summary>
+    /// Gets the cell the row shows for a column, or null when it has none.
+    /// </summary>
+    internal TableViewCell? GetCell(TableViewColumn column)
+    {
+        var cells = Cells;
+
+        if (!ReferenceEquals(cells, _mappedCells))
+        {
+            _cellsByColumn.Clear();
+
+            foreach (var cell in cells)
+            {
+                if (cell.Column is { } cellColumn)
+                {
+                    _cellsByColumn.TryAdd(cellColumn, cell);
+                }
+            }
+
+            _mappedCells = cells;
+        }
+
+        return _cellsByColumn.TryGetValue(column, out var found) ? found : null;
+    }
 
     /// <summary>
     /// Collects the cells of the frozen and then the scrollable panel, in display order.

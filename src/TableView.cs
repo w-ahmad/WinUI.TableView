@@ -2833,7 +2833,7 @@ public partial class TableView : Control
         var yOffset = _scrollViewer.VerticalOffset;
 
         // Calculate the left and right edge of the cell
-        var cellLeft = Columns.VisibleColumns.Take(slot.Column).Sum(x => x.ActualWidth);
+        var cellLeft = GetVisibleColumnOffset(slot.Column);
         var cellWidth = Columns.VisibleColumns[slot.Column].ActualWidth;
         var cellRight = cellLeft + cellWidth;
         var viewportLeft = HorizontalOffset;
@@ -2860,12 +2860,12 @@ public partial class TableView : Control
         if ((cellLeft >= viewportLeft && cellRight <= viewportRight) ||
             xOffset == HorizontalOffset)
         {
-            return row.Cells.ElementAt(slot.Column);
+            return row.GetCell(slot.Column)!;
         }
 
         SetValue(HorizontalOffsetProperty, xOffset);
 
-        return row?.Cells.ElementAt(slot.Column)!;
+        return row.GetCell(slot.Column)!;
     }
 
     /// <summary>
@@ -3064,7 +3064,7 @@ public partial class TableView : Control
     /// </summary>
     internal TableViewCell? GetCellFromSlot(TableViewCellSlot slot)
     {
-        return slot.IsValid(this) && ContainerFromIndex(slot.Row) is TableViewRow row ? row.Cells[slot.Column] : default;
+        return slot.IsValid(this) && ContainerFromIndex(slot.Row) is TableViewRow row ? row.GetCell(slot.Column) : default;
     }
 
     /// <summary>

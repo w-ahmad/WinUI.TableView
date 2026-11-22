@@ -115,7 +115,7 @@ public partial class TableViewAutomationPeer : FrameworkElementAutomationPeer,
         // able to reach every cell, and returning null for anything scrolled out of view made large tables
         // effectively unreadable to assistive technology.
         var cell = _owner.GetCellFromSlot(new TableViewCellSlot(row, column))
-                   ?? _owner.RealizeRow(row)?.Cells.ElementAtOrDefault(column);
+                   ?? _owner.RealizeRow(row)?.GetCell(column);
 
         if (cell is null)
         {

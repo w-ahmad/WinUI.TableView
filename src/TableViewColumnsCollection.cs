@@ -19,6 +19,7 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
     private TableViewColumn[] _itemsCopy = []; // To keep a copy of the items to keep track of removed items
     private bool _movingColumn;
     private ReadOnlyCollection<TableViewColumn>? _visibleColumns;
+    private double[]? _visibleColumnOffsets;
 
     /// <inheritdoc/>
     public event EventHandler<TableViewColumnPropertyChangedEventArgs>? ColumnPropertyChanged;
@@ -104,6 +105,30 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
     internal void InvalidateVisibleColumns()
     {
         _visibleColumns = null;
+        _visibleColumnOffsets = null;
+    }
+
+    /// <summary>
+    /// Gets the distance from the first visible column's left edge to the left edge of the visible column at an
+    /// index, or to the right edge of the last one when the index is the number of visible columns.
+    /// </summary>
+    internal double GetVisibleColumnOffset(int index)
+    {
+        if (_visibleColumnOffsets is null)
+        {
+            var columns = VisibleColumns;
+            var offsets = new double[columns.Count + 1];
+
+            for (var i = 0; i < columns.Count; i++)
+            {
+                // A column that has not been sized yet takes no room.
+                offsets[i + 1] = offsets[i] + (columns[i].ActualWidth is > 0d and var width ? width : 0d);
+            }
+
+            _visibleColumnOffsets = offsets;
+        }
+
+        return _visibleColumnOffsets[Math.Clamp(index, 0, _visibleColumnOffsets.Length - 1)];
     }
 
     /// <summary>
@@ -114,6 +139,10 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
         if (propertyName is nameof(TableViewColumn.Visibility) or nameof(TableViewColumn.Order))
         {
             InvalidateVisibleColumns();
+        }
+        else if (propertyName is nameof(TableViewColumn.ActualWidth))
+        {
+            _visibleColumnOffsets = null;
         }
 
         if (Contains(column) && !_movingColumn)
