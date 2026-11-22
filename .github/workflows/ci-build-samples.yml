@@ -190,7 +190,6 @@ jobs:
           ###### End of Repository/Build Configurations ######
 
   build-uno-mobile:
-    if: false # Disabled for now.
     runs-on: macos-latest
 
     strategy:
