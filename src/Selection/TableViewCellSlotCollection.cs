@@ -36,14 +36,15 @@ internal sealed partial class TableViewCellSlotCollection : IList<TableViewCellS
     {
         get
         {
-            var count = 0;
+            var count = 0L;
 
             foreach (var range in _ranges)
             {
-                count += range.Length;
+                count += range.LongLength;
             }
 
-            return count;
+            // A list cannot count past int.MaxValue; positions beyond it are not addressable by index.
+            return (int)Math.Min(count, int.MaxValue);
         }
     }
 
@@ -57,16 +58,18 @@ internal sealed partial class TableViewCellSlotCollection : IList<TableViewCellS
         {
             if (index >= 0)
             {
+                long remaining = index;
+
                 foreach (var range in _ranges)
                 {
-                    if (index < range.Length)
+                    if (remaining < range.LongLength)
                     {
                         return new TableViewCellSlot(
-                            range.FirstRow + (index / range.Columns),
-                            range.FirstColumn + (index % range.Columns));
+                            range.FirstRow + (int)(remaining / range.Columns),
+                            range.FirstColumn + (int)(remaining % range.Columns));
                     }
 
-                    index -= range.Length;
+                    remaining -= range.LongLength;
                 }
             }
 
@@ -92,16 +95,18 @@ internal sealed partial class TableViewCellSlotCollection : IList<TableViewCellS
     /// <inheritdoc/>
     public int IndexOf(TableViewCellSlot slot)
     {
-        var offset = 0;
+        var offset = 0L;
 
         foreach (var range in _ranges)
         {
             if (range.Contains(slot.Row, slot.Column))
             {
-                return offset + ((slot.Row - range.FirstRow) * range.Columns) + (slot.Column - range.FirstColumn);
+                var position = offset + ((long)(slot.Row - range.FirstRow) * range.Columns) + (slot.Column - range.FirstColumn);
+
+                return position <= int.MaxValue ? (int)position : -1;
             }
 
-            offset += range.Length;
+            offset += range.LongLength;
         }
 
         return -1;

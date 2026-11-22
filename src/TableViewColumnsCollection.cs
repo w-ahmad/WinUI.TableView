@@ -87,12 +87,10 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
     {
         var visibleColumns = VisibleColumns;
         var frozenColumnCount = TableView?.FrozenColumnCount ?? 0;
-        var scrollableColumns = new HashSet<TableViewColumn>(visibleColumns.Skip(frozenColumnCount), ReferenceEqualityComparer.Instance);
-
-        // A hidden column counts as frozen, as it always has.
+        // A hidden column (index -1) counts as frozen, and a column added twice goes by its first place.
         foreach (var column in this.OfType<TableViewColumn>())
         {
-            column.IsFrozen = !scrollableColumns.Contains(column);
+            column.IsFrozen = visibleColumns.IndexOf(column) < frozenColumnCount;
         }
     }
 
@@ -231,7 +229,10 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
             RemoveAt(oldIndex);
             Insert(newIndex, column);
 
-            InvalidateVisibleColumns(); // OnVectorChanged is suppressed while _movingColumn is set.
+            // OnVectorChanged is suppressed while _movingColumn is set, so its bookkeeping is done here.
+            InvalidateVisibleColumns();
+            _itemsCopy = new TableViewColumn[Count];
+            CopyTo(_itemsCopy, 0);
             UpdateFrozenColumns();
             CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, column, newIndex, oldIndex));
         }

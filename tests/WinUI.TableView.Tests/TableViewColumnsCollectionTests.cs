@@ -240,4 +240,42 @@ public class TableViewColumnsCollectionTests
         tableView.FrozenColumnCount = 1;
         CollectionAssert.AreEqual(new[] { true, false, false, false }, columns.Select(x => x.IsFrozen).ToArray());
     }
+
+    [UITestMethod]
+    public void UpdateFrozenColumns_ShouldFreezeADuplicatedColumnByItsFirstPlace()
+    {
+        var tableView = new TableView { FrozenColumnCount = 1 };
+        var collection = new TableViewColumnsCollection(tableView);
+        var duplicated = new TableViewTextColumn();
+        var other = new TableViewTextColumn();
+
+        collection.Add(duplicated);
+        collection.Add(other);
+        collection.Add(duplicated);
+
+        Assert.IsTrue(duplicated.IsFrozen);
+        Assert.IsFalse(other.IsFrozen);
+    }
+
+    [UITestMethod]
+    public void Move_ThenRemove_KeepsTheMovedColumnOwned()
+    {
+        var tableView = new TableView();
+        var collection = new TableViewColumnsCollection(tableView);
+        var a = new TableViewTextColumn();
+        var b = new TableViewTextColumn();
+        var c = new TableViewTextColumn();
+
+        collection.Add(a);
+        collection.Add(b);
+        collection.Add(c);
+        collection.Move(0, 2);
+        collection.RemoveAt(0);
+
+        Assert.AreEqual(2, collection.VisibleColumns.Count);
+
+        a.Visibility = Visibility.Collapsed;
+
+        Assert.AreEqual(1, collection.VisibleColumns.Count);
+    }
 }
