@@ -102,54 +102,25 @@ public partial class TableViewColumnHeader : ContentControl
     /// <summary>
     /// Gets a value indicating whether the column is currently grouped.
     /// </summary>
-    private bool IsGrouped =>
-        Column is not null &&
-        _tableView?.CollectionView is CollectionView { } collectionView &&
-        collectionView.GroupDescriptions.Any(x => x is ColumnGroupDescription columnGroup && columnGroup.Column == Column);
+    private bool IsGrouped => Column?.IsGrouped ?? false;
 
     /// <summary>
     /// Groups the column, or removes its grouping if it's already grouped.
     /// </summary>
     private void Group()
     {
-        if (!CanGroup || Column is null || _tableView is not { CollectionView: CollectionView { } collectionView })
+        if (!CanGroup || Column is null)
         {
             return;
         }
 
-        if (IsGrouped)
+        if (Column.IsGrouped)
         {
-            using var ungroupDefer = collectionView.DeferRefresh();
-            collectionView.GroupDescriptions.RemoveWhere(x => x is ColumnGroupDescription columnGroup && columnGroup.Column == Column);
-            collectionView.SortDescriptions.RemoveWhere(x => x is ColumnGroupDescription columnSort && columnSort.Column == Column);
-
-            var sortDescription = collectionView.SortDescriptions.FirstOrDefault(x => x is ColumnSortDescription columnSort && columnSort.Column == Column);
-            Column.SortDirection = sortDescription?.Direction;
-
-            return;
+            Column.Ungroup();
         }
-
-        var eventArgs = new TableViewGroupingEventArgs(Column);
-        _tableView.OnGrouping(eventArgs);
-
-        if (eventArgs.Handled) return;
-
-        var boundColumn = Column as TableViewBoundColumn;
-
-        // Prefer explicit SortMemberPath if provided, otherwise use bound column's property path
-        var sortPath = Column.SortMemberPath ?? boundColumn?.PropertyPath;
-
-        using var defer = collectionView.DeferRefresh();
-
-        var direction = Column.SortDirection ?? SD.Ascending;
-
-        var groupDescription = new ColumnGroupDescription(Column, sortPath, direction);
-        collectionView.GroupDescriptions.Add(groupDescription);
-
-        if (Column.SortDirection is null)
+        else
         {
-            collectionView.SortDescriptions.Add(groupDescription);
-            Column.SortDirection = direction;
+            Column.Group();
         }
     }
 
@@ -184,52 +155,7 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     private void DoSort(SD? direction, bool singleSorting = true)
     {
-        if (!CanSort || Column is null || _tableView is not { CollectionView: CollectionView { } collectionView })
-        {
-            return;
-        }
-
-        var eventArgs = new TableViewSortingEventArgs(Column);
-        _tableView.OnSorting(eventArgs);
-
-        if (eventArgs.Handled) return;
-
-        using var defer = collectionView.DeferRefresh();
-        var sortDescription = collectionView.SortDescriptions
-            .FirstOrDefault(x => (x is ColumnSortDescription columnSort && columnSort.Column == Column) ||
-                                          (x is ColumnGroupDescription columnGroup && columnGroup.Column == Column));
-
-        if (singleSorting)
-        {
-            _tableView.ClearAllSortingWithEvent();
-        }
-        else
-        {
-            ClearSortingWithEvent();
-        }
-
-        if (direction is not null)
-        {
-#if WINDOWS
-            if (sortDescription is ColumnSortDescription && IsGrouped)
-            {
-                var groupDescription = collectionView.GroupDescriptions
-                    .FirstOrDefault(x => x is ColumnGroupDescription columnGroup && columnGroup.Column == Column);
-
-                groupDescription?.Direction = direction.Value;
-            }
-#endif
-
-            var boundColumn = Column as TableViewBoundColumn;
-            Column.SortDirection = direction;
-
-            // Prefer explicit SortMemberPath if provided, otherwise use bound column's property path
-            var sortPath = Column.SortMemberPath ?? boundColumn?.PropertyPath;
-            sortDescription ??= new ColumnSortDescription(Column, sortPath);
-            sortDescription.Direction = direction.Value;
-
-            collectionView.SortDescriptions.Add(sortDescription);
-        }
+        Column?.Sort(direction, singleSorting);
     }
 
     /// <summary>
@@ -237,22 +163,7 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     private void ClearSortingWithEvent()
     {
-        var eventArgs = new TableViewClearSortingEventArgs();
-        _tableView?.OnClearSorting(eventArgs);
-
-        if (eventArgs.Handled)
-        {
-            return;
-        }
-
-        if (CanSort && _tableView?.CollectionView is CollectionView { } collectionView && Column is not null)
-        {
-            using var defer = collectionView.DeferRefresh();
-            _tableView.DeselectAll();
-
-            Column.SortDirection = null;
-            collectionView.SortDescriptions.RemoveWhere(x => x is ColumnSortDescription columnSort && columnSort.Column == Column);
-        }
+        Column?.ClearSortingWithEvent();
     }
 
     /// <summary>
