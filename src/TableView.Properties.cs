@@ -1395,6 +1395,9 @@ public partial class TableView
         if (d is TableView { _headerRow: { } } tableView)
         {
             tableView._headerRow.InvalidateArrange();
+#if !WINDOWS
+            tableView.ShowHorizontalScrollIndicator();
+#endif
 
             foreach (var row in tableView._rows)
             {
