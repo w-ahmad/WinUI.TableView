@@ -1367,6 +1367,8 @@ public partial class TableView
     /// </summary>
     private static void OnHorizontalOffsetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
+        (d as TableView)?.UpdateRealizedColumns();
+
         if (d is TableView { _headerRow: { } } tableView)
         {
             tableView._headerRow.InvalidateArrange();

@@ -2396,6 +2396,9 @@ public partial class TableView : Control
         {
             var cell = GetCellFromSlot(oldSlot.Value);
             cell?.ApplyCurrentCellState();
+
+            // The row no longer has to keep that cell when its column is out of view.
+            (ContainerFromIndex(oldSlot.Value.Row) as TableViewRow)?.SyncCells();
         }
 
         if (newSlot.HasValue)
@@ -2860,12 +2863,12 @@ public partial class TableView : Control
         if ((cellLeft >= viewportLeft && cellRight <= viewportRight) ||
             xOffset == HorizontalOffset)
         {
-            return row.GetCell(slot.Column)!;
+            return row.GetOrRealizeCell(slot.Column)!;
         }
 
         SetValue(HorizontalOffsetProperty, xOffset);
 
-        return row.GetCell(slot.Column)!;
+        return row.GetOrRealizeCell(slot.Column)!;
     }
 
     /// <summary>

@@ -430,6 +430,8 @@ public partial class TableView
     /// </summary>
     private void OnRowsRepeaterLayoutUpdated(object? sender, object e)
     {
+        UpdateRealizedColumns();
+
         if (AreStickyGroupHeadersActive || _stickyGroupHeader?.Visibility is Visibility.Visible)
         {
             UpdateStickyGroupHeader();
@@ -511,6 +513,7 @@ public partial class TableView
         // A new row has no template yet; its presenter applies the visuals once it has one.
         if (row.RowPresenter?.IsTemplateApplied is true)
         {
+            row.SyncCells(); // the range can have moved while the row was unused, and the current cell is per row
             ApplyRowVisuals(row);
         }
     }

@@ -20,6 +20,7 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
     private bool _movingColumn;
     private ReadOnlyCollection<TableViewColumn>? _visibleColumns;
     private double[]? _visibleColumnOffsets;
+    private double[]? _estimatedColumnOffsets;
     private Dictionary<TableViewColumn, int>? _visibleColumnIndexes;
 
     /// <inheritdoc/>
@@ -106,9 +107,105 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
     internal void InvalidateVisibleColumns()
     {
         _visibleColumns = null;
-        _visibleColumnOffsets = null;
         _visibleColumnIndexes = null;
+        InvalidateColumnOffsets();
     }
+
+    private void InvalidateColumnOffsets()
+    {
+        _visibleColumnOffsets = null;
+        _estimatedColumnOffsets = null;
+        LayoutVersion++;
+    }
+
+    /// <summary>
+    /// Gets a number that changes whenever the visible columns, their order or their widths change.
+    /// </summary>
+    internal int LayoutVersion { get; private set; }
+
+    /// <summary>
+    /// Finds the visible columns, from a given index on, that overlap a span measured from that column's left edge.
+    /// </summary>
+    /// <remarks>
+    /// A column that has not been sized yet counts with the width it asks for, so that a table whose columns are
+    /// all unsized does not report every one of them as inside the span.
+    /// </remarks>
+    internal (int First, int Last) FindVisibleColumns(int from, double start, double end)
+    {
+        var count = VisibleColumns.Count;
+
+        if (from >= count)
+        {
+            return (count, count - 1);
+        }
+
+        if (_estimatedColumnOffsets is null)
+        {
+            var columns = VisibleColumns;
+            var offsets = new double[count + 1];
+
+            for (var i = 0; i < count; i++)
+            {
+                var width = columns[i].ActualWidth;
+
+                if (!(width > 0d))
+                {
+                    width = columns[i].Width is { IsAbsolute: true, Value: > 0d and var asked } ? asked : UnsizedColumnWidth;
+                }
+
+                offsets[i + 1] = offsets[i] + width;
+            }
+
+            _estimatedColumnOffsets = offsets;
+        }
+
+        var estimated = _estimatedColumnOffsets;
+        var origin = estimated[from];
+
+        // The first column whose right edge is past the start.
+        var low = from;
+        var high = count;
+
+        while (low < high)
+        {
+            var middle = (low + high) / 2;
+
+            if (estimated[middle + 1] - origin > start)
+            {
+                high = middle;
+            }
+            else
+            {
+                low = middle + 1;
+            }
+        }
+
+        var first = Math.Min(low, count - 1);
+
+        // The last column whose left edge is before the end.
+        low = first;
+        high = count;
+
+        while (low < high)
+        {
+            var middle = (low + high) / 2;
+
+            if (estimated[middle] - origin >= end)
+            {
+                high = middle;
+            }
+            else
+            {
+                low = middle + 1;
+            }
+        }
+
+        var last = Math.Max(low - 1, first);
+
+        return (first, last);
+    }
+
+    private const double UnsizedColumnWidth = 100d;
 
     /// <summary>
     /// Gets the index of a column among the visible columns, or -1 when it is not one of them.
@@ -164,9 +261,9 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
         {
             InvalidateVisibleColumns();
         }
-        else if (propertyName is nameof(TableViewColumn.ActualWidth))
+        else if (propertyName is nameof(TableViewColumn.ActualWidth) or nameof(TableViewColumn.Width))
         {
-            _visibleColumnOffsets = null;
+            InvalidateColumnOffsets();
         }
 
         if (Contains(column) && !_movingColumn)

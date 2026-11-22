@@ -676,6 +676,38 @@ public partial class TableViewCell : ContentControl
     }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the cell is among the row's frozen cells.
+    /// </summary>
+    internal bool IsInFrozenPanel { get; set; }
+
+    /// <summary>
+    /// Takes over a column from a cell the row no longer needs for the column it had.
+    /// </summary>
+    internal void Reuse(TableViewColumn column, int index)
+    {
+        Index = index;
+        Width = column.ActualWidth;
+        _cellStyles = null;
+        _appliedSelected = null;
+        _appliedCurrent = null;
+
+        if (ReferenceEquals(Column, column))
+        {
+            SetElement(); // the row can show another item by now
+        }
+        else
+        {
+            Column = column;
+        }
+
+#if !WINDOWS
+        ReleaseDeferredHeight();
+#endif
+        EnsureGridLines();
+        ApplyPointerOverState(false);
+    }
+
+    /// <summary>
     /// Refreshes the element for the cell.
     /// </summary>
     internal void RefreshElement()
