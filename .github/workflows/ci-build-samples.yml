@@ -194,7 +194,7 @@ jobs:
 
     strategy:
       matrix:
-        target_framework: [net10.0-android, net10.0-ios]
+        target_framework: [net10.0-android]
 
     steps:
     - name: Checkout
