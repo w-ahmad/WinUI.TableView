@@ -140,6 +140,8 @@ public static class SampleCatalog
         "Virtualization and on-demand loading for very large data.",
         new("Virtualization", "", typeof(VirtualizationPage),
             "A million rows: scroll, jump and select with only the visible rows realized."),
+        new("Many Columns", "", typeof(ManyColumnsPage),
+            "Hundreds of columns: times how long adding them takes and when the table is first laid out.") { AddedIn = "1.6" },
         new("Incremental Loading", "", typeof(IncrementalLoadingPage),
             "Fetch more items as the user scrolls toward the end."));
 
