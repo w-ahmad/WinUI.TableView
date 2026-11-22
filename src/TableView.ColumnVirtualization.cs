@@ -6,7 +6,8 @@ namespace WinUI.TableView;
 /// Keeps cells only for the columns in or near the viewport.
 /// </summary>
 /// <remarks>
-/// A row has a cell for every frozen column, and for the scrollable columns within <see cref="RealizedColumns"/>.
+/// A row has a cell, and the header row a header, for every frozen column and for the scrollable columns within
+/// <see cref="RealizedColumns"/>.
 /// The range follows the horizontal offset, the viewport's width and the column widths; rows bring their cells in
 /// line with it when it changes (see <see cref="TableViewRowPresenter.SyncCells"/>).
 /// </remarks>
@@ -75,6 +76,7 @@ public partial class TableView
         }
 
         _syncedColumns = range;
+        _headerRow?.SyncHeaders();
 
         foreach (var row in _rows)
         {

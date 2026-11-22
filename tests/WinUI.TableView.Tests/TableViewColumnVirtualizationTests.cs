@@ -245,6 +245,85 @@ public class TableViewColumnVirtualizationTests
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }
 
+    [UITestMethod]
+    public async Task WideTable_HasHeadersOnlyForColumnsNearTheViewport()
+    {
+        var tableView = await CreateTableViewAsync(frozenColumnCount: 1);
+        var headerRow = tableView.FindDescendants().OfType<TableViewHeaderRow>().Single();
+        var columns = tableView.Columns.VisibleColumns;
+
+        Assert.IsTrue(headerRow.Headers.Count >= 9, $"{headerRow.Headers.Count} headers do not cover the viewport");
+        Assert.IsTrue(headerRow.Headers.Count <= MaxRealizedColumns + 1, $"{headerRow.Headers.Count} headers for a {TableWidth}px viewport");
+        Assert.IsNotNull(columns[0].HeaderControl);
+        Assert.IsNull(columns[ColumnCount - 1].HeaderControl);
+
+        // A column is sized whether or not it has a header.
+        Assert.AreEqual(ColumnWidth, columns[ColumnCount - 1].ActualWidth);
+
+        await tableView.ScrollCellIntoView(new TableViewCellSlot(0, 130));
+        tableView.UpdateLayout();
+
+        Assert.IsTrue(headerRow.Headers.Count <= MaxRealizedColumns + 1, $"{headerRow.Headers.Count} headers after scrolling");
+        Assert.IsNotNull(columns[0].HeaderControl, "the frozen column lost its header");
+        Assert.IsNull(columns[1].HeaderControl, "the first scrollable column is far out of view");
+
+        var header = columns[130].HeaderControl;
+        Assert.IsNotNull(header, "the column scrolled to has no header");
+        Assert.AreEqual(129 * ColumnWidth, header.ActualOffset.X, 0.01);
+        Assert.AreEqual(ColumnWidth, header.ActualWidth, 0.01);
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task ColumnChanges_KeepHeadersInLineWithTheColumnsInView()
+    {
+        var tableView = await CreateTableViewAsync();
+        var headerRow = tableView.FindDescendants().OfType<TableViewHeaderRow>().Single();
+        var hidden = (TableViewColumn)tableView.Columns[2];
+
+        hidden.Visibility = Visibility.Collapsed;
+        tableView.Columns.Insert(0, new TableViewTextColumn { Header = "New", Width = new GridLength(ColumnWidth) });
+        tableView.Columns.Move(4, 1);
+        tableView.UpdateLayout();
+
+        var columns = tableView.Columns.VisibleColumns;
+        var headers = headerRow.Headers;
+
+        Assert.IsNull(hidden.HeaderControl);
+
+        for (var i = 0; i < headers.Count; i++)
+        {
+            Assert.AreSame(columns[i], headers[i].Column, $"header {i}");
+            Assert.AreSame(headers[i], columns[i].HeaderControl, $"header {i}");
+            Assert.AreEqual(i * ColumnWidth, headers[i].ActualOffset.X, 0.01, $"header {i}");
+        }
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task AutoWidthColumns_OutOfView_AreSizedWithoutAHeader()
+    {
+        var tableView = new TableView { Width = TableWidth, Height = 300, AutoGenerateColumns = false };
+
+        for (var i = 0; i < ColumnCount; i++)
+        {
+            tableView.Columns.Add(new TableViewTextColumn { Header = $"Column {i}", Binding = new Binding { Path = new PropertyPath(nameof(HostItem.Name)) } });
+        }
+
+        tableView.ItemsSource = new List<HostItem> { new() { Name = "One" } };
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        tableView.UpdateLayout();
+
+        var last = tableView.Columns.VisibleColumns[ColumnCount - 1];
+
+        Assert.IsNull(last.HeaderControl);
+        Assert.IsTrue(last.ActualWidth > 0d, "a column out of view has no width");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
     private static List<TableViewRow> Rows(TableView tableView)
     {
         return [.. tableView.FindDescendants().OfType<TableViewRow>().Where(x => x.IsLoaded)];

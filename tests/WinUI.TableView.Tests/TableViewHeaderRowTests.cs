@@ -411,12 +411,12 @@ public class TableViewHeaderRowTests
         return completion.Task;
     }
 
-    private static StackPanel GetScrollableHeadersPanel(TableView tableView)
+    private static Panel GetScrollableHeadersPanel(TableView tableView)
     {
         var headerRow = tableView.FindDescendants().OfType<TableViewHeaderRow>().FirstOrDefault();
         Assert.IsNotNull(headerRow, "Precondition: the header row is in the visual tree");
 
-        var panel = headerRow!.FindDescendant<StackPanel>(x => x.Name is "ScrollableHeadersPanel");
+        var panel = headerRow!.FindDescendant<TableViewCellsPanel>(x => x.Name is "ScrollableHeadersPanel");
         Assert.IsNotNull(panel, "Precondition: the scrollable headers panel is in the visual tree");
 
         return panel!;

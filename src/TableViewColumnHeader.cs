@@ -741,6 +741,16 @@ public partial class TableViewColumnHeader : ContentControl
     public TableViewColumn? Column { get; internal set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the header is among the frozen headers.
+    /// </summary>
+    internal bool IsInFrozenPanel { get; set; }
+
+    /// <summary>
+    /// Gets a value indicating whether the header is being dragged to another place.
+    /// </summary>
+    internal bool IsReordering => _reorderStarted;
+
+    /// <summary>
     /// Gets a value indicating whether the column can be grouped.
     /// </summary>
     private bool CanGroup => _tableView?.CanGroupColumns == true && Column?.CanGroup == true;
