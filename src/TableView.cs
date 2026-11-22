@@ -215,6 +215,12 @@ public partial class TableView : Control
 
         _resizingColumn = column;
         _resizingOriginalWidth = column.ActualWidth;
+
+        // Narrowing the column slides the columns after it into view without layout, so they get cells now.
+        _resizePreviewLead = column.ActualWidth;
+        UpdateRealizedColumns();
+        _isResizePreviewActive = true;
+
         IsColumnResizing = true;
         column.IsResizing = true;
 
@@ -315,6 +321,8 @@ public partial class TableView : Control
         _resizingColumn = null;
         IsColumnResizing = false;
         column.IsResizing = false;
+        _isResizePreviewActive = false;
+        _resizePreviewLead = 0d;
 
         foreach (var cell in _resizingPreviewCells)
         {

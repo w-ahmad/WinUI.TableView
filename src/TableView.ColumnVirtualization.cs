@@ -18,6 +18,8 @@ public partial class TableView
     private (int First, int Last) _realizedColumns;
     private (int First, int Last)? _syncedColumns;
     private (int Version, int Frozen, double Offset, double ViewerOffset, double Width)? _realizedColumnsKey;
+    private bool _isResizePreviewActive;
+    private double _resizePreviewLead;
 
     /// <summary>
     /// Gets the first and last visible-column index of the scrollable columns that have cells.
@@ -36,6 +38,7 @@ public partial class TableView
 
             // Uno's scroll viewer can also pan sideways by itself.
             var viewerOffset = _scrollViewer?.HorizontalOffset ?? 0d;
+            width += _resizePreviewLead;
             var key = (columns.LayoutVersion, frozen, HorizontalOffset, viewerOffset, width);
 
             if (_realizedColumnsKey != key)
@@ -59,7 +62,7 @@ public partial class TableView
     internal void UpdateRealizedColumns()
     {
         // A resize preview moves cells with transforms; they are synced once it ends.
-        if (IsColumnResizing)
+        if (_isResizePreviewActive)
         {
             return;
         }

@@ -200,6 +200,51 @@ public class TableViewColumnVirtualizationTests
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }
 
+    [UITestMethod]
+    public async Task ResizePreview_GivesCellsToTheColumnsANarrowerColumnBringsIntoView()
+    {
+        var tableView = await CreateTableViewAsync();
+        var row = Rows(tableView).First();
+        var column = (TableViewColumn)tableView.Columns[1];
+        column.Width = new GridLength(600);
+        tableView.UpdateLayout();
+
+        var lastBefore = row.Cells[^1].Index;
+
+        tableView.BeginColumnResizePreview(column);
+
+        // Narrowing by 500px slides five more columns into view, with their lead.
+        Assert.IsTrue(row.Cells[^1].Index >= lastBefore + 5, $"last cell {row.Cells[^1].Index}, was {lastBefore}");
+
+        tableView.UpdateColumnResizePreview(100);
+        tableView.EndColumnResizePreview(100);
+        tableView.UpdateLayout();
+
+        Assert.IsTrue(row.Cells.Count <= MaxRealizedColumns, $"{row.Cells.Count} cells after the resize");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task AddingColumnsToALoadedTable_KeepsTheCellsToTheViewport()
+    {
+        var tableView = await CreateTableViewAsync();
+
+        for (var i = 0; i < 100; i++)
+        {
+            tableView.Columns.Add(new TableViewTextColumn { Header = $"Added {i}", Width = new GridLength(ColumnWidth) });
+        }
+
+        tableView.UpdateLayout();
+
+        foreach (var row in Rows(tableView))
+        {
+            Assert.IsTrue(row.Cells.Count <= MaxRealizedColumns, $"{row.Cells.Count} cells after adding columns");
+        }
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
     private static List<TableViewRow> Rows(TableView tableView)
     {
         return [.. tableView.FindDescendants().OfType<TableViewRow>().Where(x => x.IsLoaded)];
