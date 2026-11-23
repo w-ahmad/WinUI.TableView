@@ -72,6 +72,7 @@
                 <tv:TableView x:Name="tableView"
                               ItemsSource="{Binding Items}"
                               AutoGenerateColumns="False"
+                              IsReadOnly="True"
                               DefaultGroupState="Expanded"
                               DefaultGroupStyle="{StaticResource BadgeGroupStyle}">
                     <tv:TableView.Columns>
@@ -180,6 +181,7 @@
 
 &lt;tv:TableView x:Name="tableView"
               ItemsSource="{Binding Items}"
+              IsReadOnly="True"
               DefaultGroupState="$(DefaultGroupState)"
               AreStickyGroupHeadersEnabled="$(AreStickyGroupHeadersEnabled)"
               DefaultGroupStyle="{StaticResource BadgeGroupStyle}" />

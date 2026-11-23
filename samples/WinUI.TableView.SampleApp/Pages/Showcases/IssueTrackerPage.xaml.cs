@@ -14,7 +14,7 @@ public sealed partial class IssueTrackerPage : Page
     {
         InitializeComponent();
 
-        tableView.FilterDescriptions.Add(new FilterDescription(nameof(WorkItem.Title), IsMatch));
+        tableView.FilterDescriptions.Add(new FilterDescription(null, IsMatch));
         ApplyGrouping();
         UpdateSummary();
     }
@@ -94,12 +94,35 @@ public sealed partial class IssueTrackerPage : Page
 
     private void OnMarkDoneClicked(object sender, RoutedEventArgs e)
     {
-        foreach (var issue in tableView.SelectedItems.OfType<WorkItem>().ToList())
+        var issues = tableView.SelectedItems.OfType<WorkItem>().ToList();
+
+        foreach (var issue in issues)
         {
             issue.Status = "Done";
         }
 
+        if (IsGroupedBy(nameof(WorkItem.Status)))
+        {
+            Regroup(issues);
+        }
+
         UpdateSummary();
+    }
+
+    private bool IsGroupedBy(string? propertyName)
+    {
+        return propertyName is not null && tableView.GroupDescriptions.Any(group => group.PropertyName == propertyName);
+    }
+
+    // Groups don't follow property changes on their own; regrouping clears the selection, so restore it.
+    private void Regroup(List<WorkItem> selected)
+    {
+        tableView.RefreshGrouping();
+
+        foreach (var issue in selected)
+        {
+            tableView.SelectedItems.Add(issue);
+        }
     }
 
     private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -109,6 +132,11 @@ public sealed partial class IssueTrackerPage : Page
 
     private void OnCellEditEnded(object? sender, TableViewCellEditEndedEventArgs e)
     {
+        if (e.EditAction == TableViewEditAction.Commit && e.DataItem is WorkItem issue && IsGroupedBy(e.Column.SortMemberPath))
+        {
+            DispatcherQueue.TryEnqueue(() => Regroup([issue]));
+        }
+
         UpdateSummary();
     }
 

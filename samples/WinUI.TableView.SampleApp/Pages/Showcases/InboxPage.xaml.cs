@@ -13,7 +13,7 @@ public sealed partial class InboxPage : Page
     {
         InitializeComponent();
 
-        tableView.FilterDescriptions.Add(new FilterDescription(nameof(MailMessage.IsRead), IsMatch));
+        tableView.FilterDescriptions.Add(new FilterDescription(null, IsMatch));
         UpdateUnreadCount();
     }
 
@@ -45,12 +45,24 @@ public sealed partial class InboxPage : Page
 
     private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        Show(tableView.SelectedItem as MailMessage);
+        var message = tableView.SelectedItem as MailMessage;
+
+        if (message != Selected)
+        {
+            Show(message);
+        }
     }
 
     private void Show(MailMessage? message)
     {
+        var previous = Selected;
         Selected = message;
+
+        // The unread view kept the previous message while it was open; let it go once selection has settled.
+        if (previous is not null)
+        {
+            DispatcherQueue.TryEnqueue(previous.Reevaluate);
+        }
 
         if (message is not null)
         {

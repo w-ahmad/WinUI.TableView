@@ -34,6 +34,11 @@ public partial class MailMessage : ObservableObject
 
     [ObservableProperty]
     public partial bool IsFlagged { get; set; }
+
+    /// <summary>
+    /// Has a filtered view re-evaluate the message, as when its read state changes.
+    /// </summary>
+    public void Reevaluate() => OnPropertyChanged(nameof(IsRead));
 }
 
 /// <summary>

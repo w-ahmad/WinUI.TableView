@@ -93,12 +93,20 @@ public sealed partial class SalesPipelinePage : Page
         wonValue.Text = Format.Compact(wonThisQuarter.Sum(deal => deal.Amount));
         wonCaption.Text = $"{wonThisQuarter.Count:N0} deals closed since {Format.Date(quarterStart)}";
         averageValue.Text = Format.Currency(open.Count == 0 ? 0 : open.Average(deal => deal.Amount));
-        averageCaption.Text = $"Median {Format.Currency(open.Count == 0 ? 0 : open[open.Count / 2].Amount)} · open deals";
+        averageCaption.Text = $"Median {Format.Currency(Median(open))} · open deals";
         winRateValue.Text = Format.Percent(winRate);
         winRateBar.Value = winRate;
         winRateCaption.Text = $"{won.Count:N0} won · {lost:N0} lost";
 
         UpdateCount();
+    }
+
+    private static decimal Median(List<Deal> sorted)
+    {
+        if (sorted.Count == 0) return 0;
+
+        var middle = sorted.Count / 2;
+        return sorted.Count % 2 == 1 ? sorted[middle].Amount : (sorted[middle - 1].Amount + sorted[middle].Amount) / 2;
     }
 
     private void UpdateCount()
