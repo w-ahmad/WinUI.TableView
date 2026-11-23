@@ -1,0 +1,14 @@
+<Project>
+  <!-- The sample app marks a sample as new until a later release than the one it was added in; it reads the
+       released versions from the release notes. -->
+  <Target Name="AddReleasedVersionsMetadata"
+          BeforeTargets="GetAssemblyAttributes">
+    <ItemGroup>
+      <_ReleaseNotes Include="$(MSBuildThisFileDirectory)..\docs\release-notes\v*.md" />
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>ReleasedVersions</_Parameter1>
+        <_Parameter2>@(_ReleaseNotes->'%(Filename)')</_Parameter2>
+      </AssemblyAttribute>
+    </ItemGroup>
+  </Target>
+</Project>
