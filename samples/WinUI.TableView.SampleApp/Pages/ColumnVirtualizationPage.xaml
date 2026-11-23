@@ -1,4 +1,4 @@
-<Page x:Class="WinUI.TableView.SampleApp.Pages.ManyColumnsPage"
+<Page x:Class="WinUI.TableView.SampleApp.Pages.ColumnVirtualizationPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -8,8 +8,8 @@
       mc:Ignorable="d">
 
     <Grid>
-        <controls:SamplePresenter Header="Many columns"
-                                  Description="Builds a table with hundreds of columns and reports how long adding them took and when the table was first laid out.">
+        <controls:SamplePresenter Header="Column Virtualization"
+                                  Description="A row has cells, and the header row has headers, only for the columns in or near the viewport, so a table with hundreds of columns loads and scrolls like a narrow one. Pick a column count to see how long adding the columns took and when the table was first laid out.">
             <controls:SamplePresenter.Example>
                 <Border x:Name="tableHost" />
             </controls:SamplePresenter.Example>

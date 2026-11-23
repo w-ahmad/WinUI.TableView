@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace WinUI.TableView.SampleApp.Pages;
 
-public sealed partial class ManyColumnsPage : Page
+public sealed partial class ColumnVirtualizationPage : Page
 {
     private static readonly int[] Counts = [10, 100, 500, 1_000];
     private static readonly string[] Paths =
@@ -19,7 +19,7 @@ public sealed partial class ManyColumnsPage : Page
         nameof(ExampleModel.Address),
     ];
 
-    public ManyColumnsPage()
+    public ColumnVirtualizationPage()
     {
         InitializeComponent();
 
