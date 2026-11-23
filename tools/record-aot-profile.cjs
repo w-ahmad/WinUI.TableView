@@ -23,8 +23,8 @@
 // run the normal publish (tools/publish-and-serve-wasm.ps1) so the new profile is applied.
 //
 // Pages are found by name: the recording switches on Uno's accessibility layer, which mirrors the
-// navigation menu into the DOM with live positions, so the menu's order and expanded groups don't
-// matter, and a page this branch's sample doesn't have is skipped. The window is 1280 wide and starts
+// navigation menu into the DOM with live positions, so the menu's order doesn't matter (a
+// profile-gen build starts with every group of the menu expanded), and a page this branch's sample doesn't have is skipped. The window is 1280 wide and starts
 // 900 high; it grows until the whole menu fits, because the positions are only right while the menu is
 // unscrolled. Clicks inside a page are still coordinates from the page's top-left corner - check the
 // screenshots in the work folder if a page's layout changes. The accessibility layer's own code is
@@ -133,11 +133,11 @@ async function startApp(page, url) {
     }
     try {
         await page.waitForFunction(() => [...document.querySelectorAll("#uno-semantics-root [aria-label]")]
-            .some(element => element.getAttribute("aria-label") === "Overview"), null, { timeout: 180000 });
+            .some(element => element.getAttribute("aria-label") === "Home"), null, { timeout: 180000 });
     } catch {
         throw new Error("The app started but its navigation menu never appeared - see the console log and startup screenshot.");
     }
-    await page.waitForTimeout(3000); // let the Overview table finish loading its data
+    await page.waitForTimeout(3000); // let the home page's preview table finish loading
 }
 
 // The live center of a menu item, or null when the menu has no item of that name.
@@ -177,7 +177,7 @@ async function fitMenu(page) {
 const titleClip = { x: 340, y: 15, width: 600, height: 50 };
 
 function createNavigator(page) {
-    let current = "Overview";
+    let current = "Home";
     // Opens a page from the menu; false when this sample has no such page.
     return async function navigate(name) {
         if (name === current) return true;
@@ -220,8 +220,8 @@ async function wheel(page, steps, delta = 80) {
 // Scrolls every common page's templates, jumps deep into the 10,000-row table, groups and expands a group,
 // and toggles the theme, so row create/recycle paths dominate the recording.
 async function recordScrolling(page, navigate) {
-    await wheel(page, 20); // Overview, the landing page
-    for (const name of ["Grid Lines", "Grouping", "Virtualization", "Selection", "Corner Button", "Alternate Row Color",
+    await wheel(page, 20); // Home, the landing page
+    for (const name of ["Overview", "Sales Pipeline", "Market Watchlist", "Issue Tracker", "Inbox", "Grid Lines", "Grouping", "Virtualization", "Selection", "Corner Button", "Alternate Row Color",
         "Context Flyouts", "Row Reorder", "Column Reorder", "Pagination", "Incremental Loading", "Editing", "Clipboard Actions", "Data Export",
         "Conditional Cell Styling", "Column Sizing", "Star Columns", "Headers Visibility"]) {
         if (await navigate(name)) await wheel(page, 20);

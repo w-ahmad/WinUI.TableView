@@ -1,0 +1,129 @@
+<Page x:Class="WinUI.TableView.SampleApp.Pages.ColumnTypesPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:pages="using:WinUI.TableView.SampleApp.Pages"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:tv="using:WinUI.TableView"
+      xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
+      xmlns:helpers="using:WinUI.TableView.SampleApp.Helpers"
+      d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
+      mc:Ignorable="d"
+      DataContextChanged="OnDataContextChanged">
+
+    <Grid>
+        <controls:SamplePresenter x:Name="presenter"
+                                  Header="Column Types"
+                                  Description="Every built-in column type in one table. Double-click a cell to see the editor each type brings: a number box, a combo box, date and time pickers, and so on.">
+            <controls:SamplePresenter.Example>
+                <tv:TableView ItemsSource="{Binding Items}"
+                              AutoGenerateColumns="False">
+                    <tv:TableView.Columns>
+                        <tv:TableViewNumberColumn Header="Number"
+                                                  Width="100"
+                                                  Binding="{Binding Id}" />
+                        <tv:TableViewTextColumn Header="Text"
+                                                Width="140"
+                                                Binding="{Binding FirstName}" />
+                        <tv:TableViewComboBoxColumn Header="ComboBox"
+                                                    Width="140"
+                                                    Binding="{Binding Gender}"
+                                                    ItemsSource="{x:Bind Genders}" />
+                        <tv:TableViewDateColumn Header="Date"
+                                                Width="140"
+                                                Binding="{Binding Dob}" />
+                        <tv:TableViewTimeColumn Header="Time"
+                                                Width="130"
+                                                Binding="{Binding ActiveAt}" />
+                        <tv:TableViewCheckBoxColumn Header="CheckBox"
+                                                    Width="110"
+                                                    Binding="{Binding IsActive}" />
+                        <tv:TableViewToggleSwitchColumn Header="ToggleSwitch"
+                                                        Width="150"
+                                                        OnContent="Active"
+                                                        OffContent="Away"
+                                                        Binding="{Binding IsActive}" />
+                        <tv:TableViewHyperlinkColumn Header="Hyperlink"
+                                                     Width="150"
+                                                     IsReadOnly="True"
+                                                     Binding="{Binding AvatarUrl}"
+                                                     ContentBinding="{Binding FirstName}" />
+                        <tv:TableViewTemplateColumn Header="Template"
+                                                    Width="220">
+                            <tv:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate x:DataType="local:ExampleModel">
+                                    <StackPanel Orientation="Horizontal"
+                                                Spacing="8"
+                                                Margin="12,0">
+                                        <FontIcon Glyph="&#xE821;"
+                                                  FontSize="14"
+                                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                        <TextBlock Text="{x:Bind Designation, Mode=OneWay}"
+                                                   VerticalAlignment="Center"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </tv:TableViewTemplateColumn.CellTemplate>
+                        </tv:TableViewTemplateColumn>
+                    </tv:TableView.Columns>
+                </tv:TableView>
+            </controls:SamplePresenter.Example>
+            <controls:SamplePresenter.Xaml>
+                <x:String xml:space="preserve">
+&lt;tv:TableView ItemsSource="{Binding Items}"
+              AutoGenerateColumns="False">
+    &lt;tv:TableView.Columns>
+        &lt;tv:TableViewNumberColumn Header="Number"
+                                  Width="100"
+                                  Binding="{Binding Id}" />
+        &lt;tv:TableViewTextColumn Header="Text"
+                                Width="140"
+                                Binding="{Binding FirstName}" />
+        &lt;tv:TableViewComboBoxColumn Header="ComboBox"
+                                    Width="140"
+                                    Binding="{Binding Gender}"
+                                    ItemsSource="{x:Bind Genders}" />
+        &lt;tv:TableViewDateColumn Header="Date"
+                                Width="140"
+                                Binding="{Binding Dob}" />
+        &lt;tv:TableViewTimeColumn Header="Time"
+                                Width="130"
+                                Binding="{Binding ActiveAt}" />
+        &lt;tv:TableViewCheckBoxColumn Header="CheckBox"
+                                    Width="110"
+                                    Binding="{Binding IsActive}" />
+        &lt;tv:TableViewToggleSwitchColumn Header="ToggleSwitch"
+                                        Width="150"
+                                        OnContent="Active"
+                                        OffContent="Away"
+                                        Binding="{Binding IsActive}" />
+        &lt;tv:TableViewHyperlinkColumn Header="Hyperlink"
+                                     Width="150"
+                                     IsReadOnly="True"
+                                     Binding="{Binding AvatarUrl}"
+                                     ContentBinding="{Binding FirstName}" />
+        &lt;tv:TableViewTemplateColumn Header="Template"
+                                    Width="220">
+            &lt;tv:TableViewTemplateColumn.CellTemplate>
+                &lt;DataTemplate x:DataType="local:ExampleModel">
+                    &lt;StackPanel Orientation="Horizontal"
+                                Spacing="8"
+                                Margin="12,0">
+                        &lt;FontIcon Glyph="&amp;#xE821;"
+                                  FontSize="14"
+                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                        &lt;TextBlock Text="{x:Bind Designation, Mode=OneWay}"
+                                   VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis" />
+                    &lt;/StackPanel>
+                &lt;/DataTemplate>
+            &lt;/tv:TableViewTemplateColumn.CellTemplate>
+        &lt;/tv:TableViewTemplateColumn>
+    &lt;/tv:TableView.Columns>
+&lt;/tv:TableView>
+                </x:String>
+            </controls:SamplePresenter.Xaml>
+        </controls:SamplePresenter>
+    </Grid>
+</Page>

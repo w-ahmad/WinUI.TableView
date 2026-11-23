@@ -115,15 +115,14 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <Image Width="20"
-                                   Height="20"
-                                   VerticalAlignment="Center"
-                                   Source="ms-appx:///Assets/TitlebarLogo.png" />
+                            <FontIcon VerticalAlignment="Center"
+                                      FontSize="20"
+                                      Glyph="&#xE80A;" />
                             <StackPanel Grid.Column="1"
                                         VerticalAlignment="Center">
-                                <TextBlock Text="WinUI.TableView Sample App" />
+                                <TextBlock Text="WinUI.TableView Gallery" />
                                 <TextBlock Style="{StaticResource SettingsCardDescriptionTextBlockStyle}"
-                                           Text="A sample app to demonstrate the features available in WinUI.TableView." />
+                                           Text="Samples of the features and customization of WinUI.TableView. The version is the library's." />
                             </StackPanel>
                             <TextBlock Grid.Column="2"
                                        VerticalAlignment="Center"
@@ -133,30 +132,18 @@
                         </Grid>
                     </Expander.Header>
                     <StackPanel>
-                        <Grid Padding="52,12,16,12"
-                              ColumnSpacing="16">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock VerticalAlignment="Center"
-                                       Text="To clone this repository" />
-                            <TextBlock Grid.Column="1"
-                                       VerticalAlignment="Center"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                       IsTextSelectionEnabled="True"
-                                       Text="git clone https://GitHub.com/w-ahmad/WinUI.TableView.SampleApp" />
-                        </Grid>
-                        <Border Height="1"
-                                Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
                         <StackPanel Padding="52,12,16,12">
                             <TextBlock Text="Useful links" />
                             <StackPanel Margin="-12,4,0,0"
                                         Orientation="Vertical">
-                                <HyperlinkButton Content="GitHub Repo"
-                                                 NavigateUri="https://GitHub.com/w-ahmad/WinUI.TableView.SampleApp" />
-                                <HyperlinkButton Content="WinUI.TableView"
-                                                 NavigateUri="https://GitHub.com/w-ahmad/WinUI.TableView" />
+                                <HyperlinkButton Content="GitHub repository"
+                                                 NavigateUri="https://github.com/w-ahmad/WinUI.TableView" />
+                                <HyperlinkButton Content="Sample app source"
+                                                 NavigateUri="https://github.com/w-ahmad/WinUI.TableView/tree/main/samples" />
+                                <HyperlinkButton Content="Documentation"
+                                                 NavigateUri="https://w-ahmad.dev/WinUI.TableView/" />
+                                <HyperlinkButton Content="NuGet package"
+                                                 NavigateUri="https://www.nuget.org/packages/WinUI.TableView/" />
                             </StackPanel>
                         </StackPanel>
                     </StackPanel>

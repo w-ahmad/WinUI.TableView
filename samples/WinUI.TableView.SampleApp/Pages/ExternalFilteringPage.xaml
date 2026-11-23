@@ -11,7 +11,7 @@
 
     <Grid>
         <controls:SamplePresenter Header="External Filter"
-                                  Description="This sample demonstrate how a items can be fitlered using a textbox.">
+                                  Description="Filter from outside the table: add a FilterDescription with your own predicate and call RefreshFilter when the search text changes.">
             <controls:SamplePresenter.Example>
                 <Grid RowSpacing="12">
                     <Grid.RowDefinitions>

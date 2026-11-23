@@ -1,0 +1,179 @@
+<Page x:Class="WinUI.TableView.SampleApp.Pages.CellStylingPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:pages="using:WinUI.TableView.SampleApp.Pages"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:tv="using:WinUI.TableView"
+      xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
+      xmlns:helpers="using:WinUI.TableView.SampleApp.Helpers"
+      d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
+      mc:Ignorable="d"
+      DataContextChanged="OnDataContextChanged">
+
+    <Grid>
+        <controls:SamplePresenter x:Name="presenter"
+                                  Header="Cell Styling"
+                                  Description="Three levels of styling: CellStyle for the cell itself (table-wide or per column), ElementStyle for the element that shows the value, and EditingElementStyle for the editor.">
+            <controls:SamplePresenter.Example>
+                <tv:TableView ItemsSource="{Binding Items}"
+                              AutoGenerateColumns="False">
+                    <!--  Every cell of the table  -->
+                    <tv:TableView.CellStyle>
+                        <Style TargetType="tv:TableViewCell">
+                            <Setter Property="FontSize" Value="13" />
+                        </Style>
+                    </tv:TableView.CellStyle>
+
+                    <tv:TableView.Columns>
+                        <!--  The cells of one column  -->
+                        <tv:TableViewNumberColumn Header="Id"
+                                                  Width="90"
+                                                  Binding="{Binding Id}">
+                            <tv:TableViewNumberColumn.CellStyle>
+                                <Style TargetType="tv:TableViewCell">
+                                    <Setter Property="FontWeight" Value="SemiBold" />
+                                    <Setter Property="Background" Value="{ThemeResource SubtleFillColorSecondaryBrush}" />
+                                </Style>
+                            </tv:TableViewNumberColumn.CellStyle>
+                        </tv:TableViewNumberColumn>
+
+                        <!--  The element that shows the value  -->
+                        <tv:TableViewTextColumn Header="First Name"
+                                                Width="160"
+                                                Binding="{Binding FirstName}">
+                            <tv:TableViewTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontWeight" Value="SemiBold" />
+                                    <Setter Property="Foreground" Value="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                </Style>
+                            </tv:TableViewTextColumn.ElementStyle>
+                        </tv:TableViewTextColumn>
+
+                        <!--  The element that edits the value: double-click a cell to see it  -->
+                        <tv:TableViewTextColumn Header="Email"
+                                                Width="300"
+                                                Binding="{Binding Email}">
+                            <tv:TableViewTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontStyle" Value="Italic" />
+                                    <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </Style>
+                            </tv:TableViewTextColumn.ElementStyle>
+                            <tv:TableViewTextColumn.EditingElementStyle>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="MaxLength" Value="40" />
+                                    <Setter Property="FontStyle" Value="Italic" />
+                                    <Setter Property="PlaceholderText" Value="name@example.com" />
+                                </Style>
+                            </tv:TableViewTextColumn.EditingElementStyle>
+                        </tv:TableViewTextColumn>
+
+                        <!--  A cell is a control: borders, padding and alignment are all there  -->
+                        <tv:TableViewTextColumn Header="Department"
+                                                Width="220"
+                                                Binding="{Binding Department}">
+                            <tv:TableViewTextColumn.CellStyle>
+                                <Style TargetType="tv:TableViewCell">
+                                    <Setter Property="BorderThickness" Value="3,0,0,0" />
+                                    <Setter Property="BorderBrush" Value="{ThemeResource AccentFillColorDefaultBrush}" />
+                                </Style>
+                            </tv:TableViewTextColumn.CellStyle>
+                        </tv:TableViewTextColumn>
+
+                        <tv:TableViewTextColumn Header="Designation"
+                                                Width="240"
+                                                Binding="{Binding Designation}">
+                            <tv:TableViewTextColumn.CellStyle>
+                                <Style TargetType="tv:TableViewCell">
+                                    <Setter Property="HorizontalContentAlignment" Value="Right" />
+                                </Style>
+                            </tv:TableViewTextColumn.CellStyle>
+                        </tv:TableViewTextColumn>
+                    </tv:TableView.Columns>
+                </tv:TableView>
+            </controls:SamplePresenter.Example>
+            <controls:SamplePresenter.Xaml>
+                <x:String xml:space="preserve">
+&lt;tv:TableView ItemsSource="{Binding Items}"
+              AutoGenerateColumns="False">
+    &lt;!--  Every cell of the table  -->
+    &lt;tv:TableView.CellStyle>
+        &lt;Style TargetType="tv:TableViewCell">
+            &lt;Setter Property="FontSize" Value="13" />
+        &lt;/Style>
+    &lt;/tv:TableView.CellStyle>
+
+    &lt;tv:TableView.Columns>
+        &lt;!--  The cells of one column  -->
+        &lt;tv:TableViewNumberColumn Header="Id"
+                                  Width="90"
+                                  Binding="{Binding Id}">
+            &lt;tv:TableViewNumberColumn.CellStyle>
+                &lt;Style TargetType="tv:TableViewCell">
+                    &lt;Setter Property="FontWeight" Value="SemiBold" />
+                    &lt;Setter Property="Background" Value="{ThemeResource SubtleFillColorSecondaryBrush}" />
+                &lt;/Style>
+            &lt;/tv:TableViewNumberColumn.CellStyle>
+        &lt;/tv:TableViewNumberColumn>
+
+        &lt;!--  The element that shows the value  -->
+        &lt;tv:TableViewTextColumn Header="First Name"
+                                Width="160"
+                                Binding="{Binding FirstName}">
+            &lt;tv:TableViewTextColumn.ElementStyle>
+                &lt;Style TargetType="TextBlock">
+                    &lt;Setter Property="FontWeight" Value="SemiBold" />
+                    &lt;Setter Property="Foreground" Value="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                &lt;/Style>
+            &lt;/tv:TableViewTextColumn.ElementStyle>
+        &lt;/tv:TableViewTextColumn>
+
+        &lt;!--  The element that edits the value: double-click a cell to see it  -->
+        &lt;tv:TableViewTextColumn Header="Email"
+                                Width="300"
+                                Binding="{Binding Email}">
+            &lt;tv:TableViewTextColumn.ElementStyle>
+                &lt;Style TargetType="TextBlock">
+                    &lt;Setter Property="FontStyle" Value="Italic" />
+                    &lt;Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+                &lt;/Style>
+            &lt;/tv:TableViewTextColumn.ElementStyle>
+            &lt;tv:TableViewTextColumn.EditingElementStyle>
+                &lt;Style TargetType="TextBox">
+                    &lt;Setter Property="MaxLength" Value="40" />
+                    &lt;Setter Property="FontStyle" Value="Italic" />
+                    &lt;Setter Property="PlaceholderText" Value="name@example.com" />
+                &lt;/Style>
+            &lt;/tv:TableViewTextColumn.EditingElementStyle>
+        &lt;/tv:TableViewTextColumn>
+
+        &lt;!--  A cell is a control: borders, padding and alignment are all there  -->
+        &lt;tv:TableViewTextColumn Header="Department"
+                                Width="220"
+                                Binding="{Binding Department}">
+            &lt;tv:TableViewTextColumn.CellStyle>
+                &lt;Style TargetType="tv:TableViewCell">
+                    &lt;Setter Property="BorderThickness" Value="3,0,0,0" />
+                    &lt;Setter Property="BorderBrush" Value="{ThemeResource AccentFillColorDefaultBrush}" />
+                &lt;/Style>
+            &lt;/tv:TableViewTextColumn.CellStyle>
+        &lt;/tv:TableViewTextColumn>
+
+        &lt;tv:TableViewTextColumn Header="Designation"
+                                Width="240"
+                                Binding="{Binding Designation}">
+            &lt;tv:TableViewTextColumn.CellStyle>
+                &lt;Style TargetType="tv:TableViewCell">
+                    &lt;Setter Property="HorizontalContentAlignment" Value="Right" />
+                &lt;/Style>
+            &lt;/tv:TableViewTextColumn.CellStyle>
+        &lt;/tv:TableViewTextColumn>
+    &lt;/tv:TableView.Columns>
+&lt;/tv:TableView>
+                </x:String>
+            </controls:SamplePresenter.Xaml>
+        </controls:SamplePresenter>
+    </Grid>
+</Page>

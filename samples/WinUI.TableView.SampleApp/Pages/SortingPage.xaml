@@ -2,43 +2,78 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:pages="using:WinUI.TableView.SampleApp.Pages"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:tv="using:WinUI.TableView"
       xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
+      xmlns:helpers="using:WinUI.TableView.SampleApp.Helpers"
       d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
       mc:Ignorable="d">
 
     <Grid>
-        <controls:SamplePresenter Header="Sorting"
-                                  Description="Showcasing built in column sorting feature.">
+        <controls:SamplePresenter x:Name="presenter"
+                                  Header="Sorting"
+                                  Description="Click a column header to sort by it, click again to reverse, and once more to clear. Ctrl+click a second header to sort by both. Sorts can also be set in code through SortDescriptions.">
             <controls:SamplePresenter.Example>
-                <tv:TableView ItemsSource="{Binding Items}"
-                              CanSortColumns="{Binding IsOn, ElementName=canSort, Mode=TwoWay}"
-                              ShowSortableColumnIcon="{Binding IsOn, ElementName=showSortableColumnIcon, Mode=TwoWay}"
-                              AutoGeneratingColumn="{x:Bind local:ExampleModelColumnsHelper.OnAutoGeneratingColumns}"/>
+                <tv:TableView x:Name="tableView"
+                              ItemsSource="{Binding Items}"
+                              CanSortColumns="{x:Bind canSort.IsOn, Mode=OneWay}"
+                              ShowSortableColumnIcon="{x:Bind showSortableColumnIcon.IsOn, Mode=OneWay}"
+                              AutoGeneratingColumn="{x:Bind local:ExampleModelColumnsHelper.OnAutoGeneratingColumns}" />
             </controls:SamplePresenter.Example>
             <controls:SamplePresenter.Options>
-                <StackPanel VerticalAlignment="Top">
+                <StackPanel Spacing="16"
+                            Width="260">
                     <ToggleSwitch x:Name="canSort"
                                   IsOn="True"
-                                  Header="Can Sort Columns"
+                                  Header="CanSortColumns"
                                   OnContent="True"
                                   OffContent="False" />
                     <ToggleSwitch x:Name="showSortableColumnIcon"
-                                  IsOn="False"
-                                  Header="Show Sortable Column Icon"
+                                  Header="ShowSortableColumnIcon"
                                   OnContent="True"
                                   OffContent="False" />
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Sort in code"
+                                   Style="{StaticResource BodyStrongTextBlockStyle}" />
+                        <Button Content="Department, then last name"
+                                HorizontalAlignment="Stretch"
+                                Click="OnSortByDepartmentClicked" />
+                        <Button Content="Youngest first"
+                                HorizontalAlignment="Stretch"
+                                Click="OnSortByAgeClicked" />
+                        <Button Content="Clear sorting"
+                                HorizontalAlignment="Stretch"
+                                Click="OnClearSortingClicked" />
+                    </StackPanel>
+                    <TextBlock x:Name="sortState"
+                               TextWrapping="Wrap"
+                               Text="Not sorted in code."
+                               Style="{StaticResource CaptionTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 </StackPanel>
             </controls:SamplePresenter.Options>
             <controls:SamplePresenter.Xaml>
                 <x:String xml:space="preserve">
-&lt;tv:TableView ItemsSource="{Binding Items}"
-    CanSortColumns="$(CanSortColumns)"
-    ShowSortableColumnIcon="$(ShowSortableColumnIcon)">
+&lt;tv:TableView x:Name="tableView"
+              ItemsSource="{Binding Items}"
+              CanSortColumns="$(CanSortColumns)"
+              ShowSortableColumnIcon="$(ShowSortableColumnIcon)" />
                 </x:String>
             </controls:SamplePresenter.Xaml>
+            <controls:SamplePresenter.CSharp>
+                <x:String xml:space="preserve">
+// Sort by department, then by last name from Z to A.
+tableView.ClearAllSorting();
+tableView.SortDescriptions.Add(new SortDescription(nameof(ExampleModel.Department)));
+tableView.SortDescriptions.Add(new SortDescription(nameof(ExampleModel.LastName), SortDirection.Descending));
+
+// A column can opt out, or sort by another property than the one it shows.
+column.CanSort = false;
+column.SortMemberPath = nameof(ExampleModel.LastName);
+                </x:String>
+            </controls:SamplePresenter.CSharp>
             <controls:SamplePresenter.Substitutions>
                 <controls:CodeSubstitution Key="CanSortColumns"
                                            Value="{x:Bind canSort.IsOn, Mode=OneWay}" />

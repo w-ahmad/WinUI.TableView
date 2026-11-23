@@ -8,13 +8,13 @@ public sealed partial class ColumnSizingPage : Page
     public ColumnSizingPage()
     {
         InitializeComponent();
-
     }
 
     private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
     {
-        if (DataContext is not ExampleViewModel viewModel) return;
-
-        viewModel.Items = [.. ExampleViewModel.ItemsList.Take(20)];
+        if (DataContext is ExampleViewModel viewModel)
+        {
+            viewModel.Items = [.. ExampleViewModel.ItemsList.Take(40)];
+        }
     }
 }

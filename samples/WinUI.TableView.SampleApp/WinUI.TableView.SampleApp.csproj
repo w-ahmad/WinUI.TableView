@@ -42,6 +42,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The sample pages display their own source files -->
+    <EmbeddedResource Include="Pages\**\*.xaml;Pages\**\*.xaml.cs;Showcases\*.cs"
+                      LogicalName="Source/%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="ColorCode.WinUI" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" />
