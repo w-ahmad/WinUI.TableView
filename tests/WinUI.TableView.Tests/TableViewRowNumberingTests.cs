@@ -143,7 +143,116 @@ public class TableViewRowNumberingTests
         var wideRowNumberText = wideRow!.FindDescendant<TextBlock>(x => x.Name == "RowNumberText");
         Assert.IsNotNull(wideRowNumberText);
         // Proves the shared width was actually applied to this row, not just computed.
-        Assert.AreEqual(tableView.RowNumberColumnWidth, wideRowNumberText!.Width);
+        Assert.AreEqual(tableView.RowNumberColumnWidth, wideRowNumberText!.MinWidth);
+    }
+
+    [UITestMethod]
+    public async Task ShowRowNumbers_ColumnWidthSettles()
+    {
+        var tableView = await CreateTableViewAsync(CreateItems());
+        tableView.ShowRowNumbers = true;
+
+        await TableViewRowHostTestHelpers.WaitForLayoutAsync(tableView);
+        await TableViewRowHostTestHelpers.WaitForLayoutAsync(tableView);
+        var settled = tableView.RowNumberColumnWidth;
+
+        for (var i = 0; i < 5; i++)
+        {
+            await TableViewRowHostTestHelpers.WaitForLayoutAsync(tableView);
+        }
+
+        Assert.AreEqual(settled, tableView.RowNumberColumnWidth);
+        Assert.IsTrue(settled < 60, $"Width {settled}");
+    }
+
+    [UITestMethod]
+    public async Task ShowRowNumbers_HeaderCellsStayAlignedWithRowCells()
+    {
+        var tableView = await CreateTableViewAsync(CreateItems());
+        tableView.ShowRowNumbers = true;
+
+        for (var i = 0; i < 4; i++)
+        {
+            await TableViewRowHostTestHelpers.WaitForLayoutAsync(tableView);
+        }
+
+        var row = await tableView.ScrollRowIntoView(0);
+        var cell = row!.Cells[0];
+        var header = tableView.HeaderRow!.Headers[0];
+        var cellLeft = cell.TransformToVisual(tableView).TransformPoint(default).X;
+        var headerLeft = header.TransformToVisual(tableView).TransformPoint(default).X;
+
+        Assert.AreEqual(headerLeft, cellLeft, 0.5);
+    }
+
+    [UITestMethod]
+    public async Task RowNumber_Grouped_RefreshesWhenAnItemIsAddedToACollapsedGroup()
+    {
+        var items = new ObservableCollection<RowNumberingTestItem>(CreateItems());
+        var tableView = await CreateTableViewAsync(items);
+        tableView.ShowRowNumbers = true;
+        var collectionView = await GroupByCategoryAsync(tableView);
+        SetGroupExpanded(collectionView, "A", isExpanded: false);
+        await TableViewRowHostTestHelpers.WaitForLayoutAsync(tableView);
+
+        var row = await tableView.ScrollRowIntoView(0);
+        var rowNumberText = row!.FindDescendant<TextBlock>(x => x.Name == "RowNumberText");
+        Assert.AreEqual("3", rowNumberText!.Text);
+
+        items.Insert(0, new RowNumberingTestItem { Category = "A" });
+        await TableViewRowHostTestHelpers.WaitForLayoutAsync(tableView);
+        await Task.Delay(50);
+
+        row = await tableView.ScrollRowIntoView(0);
+        rowNumberText = row!.FindDescendant<TextBlock>(x => x.Name == "RowNumberText");
+        Assert.AreEqual("B", ((RowNumberingTestItem)row.Content!).Category);
+        Assert.AreEqual(4, row.RowNumber);
+        Assert.AreEqual("4", rowNumberText!.Text);
+    }
+
+    [UITestMethod]
+    public async Task ShowRowNumbers_ReachesRowsThatWerePooledWhenItChanged()
+    {
+        var tableView = await CreateTableViewAsync(CreateManyItems(100));
+        await TableViewRowHostTestHelpers.WaitForLayoutAsync(tableView);
+        var realized = tableView.Rows.Count;
+
+        tableView.ItemsSource = CreateManyItems(1);
+        await TableViewRowHostTestHelpers.WaitForLayoutAsync(tableView);
+        tableView.ShowRowNumbers = true;
+        tableView.ItemsSource = CreateManyItems(100);
+        await TableViewRowHostTestHelpers.WaitForLayoutAsync(tableView);
+        await TableViewRowHostTestHelpers.WaitForLayoutAsync(tableView);
+
+        Assert.IsTrue(tableView.Rows.Count >= realized && realized > 3);
+
+        foreach (var row in tableView.Rows)
+        {
+            var text = row.FindDescendant<TextBlock>(x => x.Name == "RowNumberText");
+            Assert.AreEqual(Visibility.Visible, text!.Visibility, $"Row {row.Index}");
+            Assert.AreEqual((row.Index + 1).ToString(), text.Text);
+        }
+    }
+
+    [UITestMethod]
+    public async Task ShowRowNumbers_ColumnWidthGrows_ForARecycledRow()
+    {
+        var tableView = await CreateTableViewAsync(CreateManyItems(200_000));
+        tableView.ShowRowNumbers = true;
+        await TableViewRowHostTestHelpers.WaitForLayoutAsync(tableView);
+        await TableViewRowHostTestHelpers.WaitForLayoutAsync(tableView);
+
+        var row = await tableView.ScrollRowIntoView(199_999);
+        await TableViewRowHostTestHelpers.WaitForLayoutAsync(tableView);
+        await TableViewRowHostTestHelpers.WaitForLayoutAsync(tableView);
+
+        var text = row!.FindDescendant<TextBlock>(x => x.Name == "RowNumberText")!;
+        text.Measure(new Windows.Foundation.Size(double.PositiveInfinity, double.PositiveInfinity));
+        var probe = new TextBlock { Text = "200000", FontSize = text.FontSize };
+        probe.Measure(new Windows.Foundation.Size(double.PositiveInfinity, double.PositiveInfinity));
+
+        Assert.IsTrue(text.ActualWidth >= probe.DesiredSize.Width - 1, $"{text.ActualWidth} < {probe.DesiredSize.Width}");
+        Assert.IsTrue(text.ActualWidth < probe.DesiredSize.Width + 20, $"{text.ActualWidth}");
     }
 
     private static async Task<TableView> CreateTableViewAsync(IEnumerable<RowNumberingTestItem> items)

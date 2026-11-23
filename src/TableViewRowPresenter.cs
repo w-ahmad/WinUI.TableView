@@ -25,6 +25,8 @@ public partial class TableViewRowPresenter : Control
 {
     private TableViewRowHeader? _rowHeader;
     private TextBlock? _rowNumberText;
+    private double _rowNumberMinWidth;
+    private int _rowNumber = int.MinValue;
     private Panel? _rootPanel;
     private StackPanel? _scrollableCellsPanel;
     private StackPanel? _frozenCellsPanel;
@@ -68,6 +70,8 @@ public partial class TableViewRowPresenter : Control
 
         _rowHeader = GetTemplateChild("RowHeader") as TableViewRowHeader;
         _rowNumberText = GetTemplateChild("RowNumberText") as TextBlock;
+        _rowNumberMinWidth = _rowNumberText?.MinWidth ?? 0d;
+        _rowNumber = int.MinValue;
         _rootPanel = GetTemplateChild("RootPanel") as Panel;
         _scrollableCellsPanel = GetTemplateChild("ScrollableCellsPanel") as StackPanel;
         _frozenCellsPanel = GetTemplateChild("FrozenCellsPanel") as StackPanel;
@@ -218,16 +222,16 @@ public partial class TableViewRowPresenter : Control
 
         var result = base.MeasureOverride(availableSize);
 
-        // Each row presenter has its own RowNumberColumn ("Auto" width), measured independently of every
-        // other row - without synchronizing them, a row whose number is wider than the rest would grow only
-        // its own header area, shifting that row's cells out of alignment with the others. Broadcasting the
-        // running maximum through TableView.RowNumberColumnWidth (mirrors RowHeaderActualWidth) keeps every
-        // row's column the same width. Math.Max against the current value first, like RowHeaderActualWidth
-        // does, keeps this non-decreasing within a layout pass instead of only after the deferred broadcast.
+        // Rows measure their number independently; the widest one sets the width they all share.
         if (TableView is { ShowRowNumbers: true } tableView && _rowNumberText is { Visibility: Visibility.Visible })
         {
-            var desiredWidth = Math.Max(tableView.RowNumberColumnWidth, _rowNumberText.DesiredSize.Width);
-            tableView.SetValue(TableView.RowNumberColumnWidthProperty, desiredWidth);
+            var margin = _rowNumberText.Margin;
+            var width = _rowNumberText.DesiredSize.Width - margin.Left - margin.Right;
+
+            if (width > tableView.RowNumberColumnWidth)
+            {
+                tableView.SetValue(TableView.RowNumberColumnWidthProperty, width);
+            }
         }
 
         return result;
@@ -525,30 +529,39 @@ public partial class TableViewRowPresenter : Control
     }
 
     /// <summary>
-    /// Sets the visibility of the row number based on the <see cref="TableView.ShowRowNumbers"/> setting.
-    /// Deliberately independent of multi-selection, the details toggle button, and <see cref="TableView.RowHeaderTemplate"/> -
-    /// the row number lives in its own column and must never be suppressed by any of those.
+    /// Shows the row number when <see cref="TableView.ShowRowNumbers"/> is set and row headers are visible.
     /// </summary>
     internal void SetRowNumberVisibility()
     {
         if (_rowNumberText is not null && TableView is not null)
         {
             var areHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
+            var visibility = TableView.ShowRowNumbers && areHeadersVisible ? Visibility.Visible : Visibility.Collapsed;
 
-            _rowNumberText.Visibility = TableView.ShowRowNumbers && areHeadersVisible ? Visibility.Visible : Visibility.Collapsed;
+            if (_rowNumberText.Visibility != visibility)
+            {
+                _rowNumberText.Visibility = visibility;
+            }
         }
     }
 
     /// <summary>
-    /// Sets the displayed row number and <see cref="TableViewRowHeader.Tag"/> - the latter kept up to date
-    /// regardless of <see cref="TableView.ShowRowNumbers"/> so a custom <see cref="TableView.RowHeaderTemplate"/>
-    /// can bind to it via <c>{RelativeSource Mode=TemplatedParent}</c>.
+    /// Sets the displayed row number and <see cref="TableViewRowHeader.Tag"/>, which a custom
+    /// <see cref="TableView.RowHeaderTemplate"/> can bind to whether or not the number is shown.
     /// </summary>
     internal void SetRowNumber()
     {
         if (TableView is null || TableViewRow is null) return;
 
+        // A pooled row missed any change made while it was released.
+        SetRowNumberVisibility();
+        SetRowNumberWidth();
+
         var rowNumber = TableViewRow.RowNumber;
+
+        if (rowNumber == _rowNumber) return;
+
+        _rowNumber = rowNumber;
 
         if (_rowHeader is not null)
         {
@@ -562,14 +575,19 @@ public partial class TableViewRowPresenter : Control
     }
 
     /// <summary>
-    /// Applies the width synchronized across every row's row-number column (see the push in
-    /// <see cref="MeasureOverride"/>), so a row with a wider number doesn't grow only its own header area.
+    /// Applies the width shared by every row's number, so a wider number does not shift only its own row's cells.
     /// </summary>
     internal void SetRowNumberWidth()
     {
-        if (_rowNumberText is not null && TableView is not null && TableView.RowNumberColumnWidth > 0)
+        if (_rowNumberText is not null && TableView is not null)
         {
-            _rowNumberText.Width = TableView.RowNumberColumnWidth;
+            // A minimum, not a fixed width, so a number wider than the shared width still measures in full.
+            var minWidth = Math.Max(_rowNumberMinWidth, TableView.RowNumberColumnWidth);
+
+            if (_rowNumberText.MinWidth != minWidth)
+            {
+                _rowNumberText.MinWidth = minWidth;
+            }
         }
     }
 

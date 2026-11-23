@@ -1011,7 +1011,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     /// Returns the item's position among <see cref="_groupingSourceItems"/> - the full filtered+sorted set,
     /// in source order - unlike <see cref="IndexOf"/>, unaffected by items being hidden by a collapsed group.
     /// <paramref name="viewIndex"/> (the item's current position in the pruned/visible <see cref="_view"/>) is
-    /// used to disambiguate duplicates by occurrence rather than by value: <see cref="List{T}.IndexOf"/> would
+    /// used to disambiguate duplicates by occurrence rather than by value: <see cref="List{T}.IndexOf(T)"/> would
     /// use value equality and always resolve to the *first* matching item, so every duplicate - whether a
     /// distinct instance a custom <see cref="object.Equals(object?)"/> treats as equal, or literally the same
     /// instance repeated - would collide on one number. Instead this counts, by reference, which occurrence of

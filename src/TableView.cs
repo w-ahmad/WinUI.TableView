@@ -35,6 +35,7 @@ public partial class TableView : Control
     private RowDefinition? _headerRowDefinition;
     private bool _ensureColumns = true;
     private bool _isItemsSourceSuspended;
+    private bool _isRowNumbersRefreshQueued;
     private TableViewCell? _editingCell;
     private bool _isReattachingItemsSource;
     private List<object>? _selectionBeforeReattachReset;
@@ -114,12 +115,21 @@ public partial class TableView : Control
     }
 
     /// <summary>
-    /// Refreshes every realized row's number after a collection change. With grouping a row's number is its
-    /// position in the full item list, which an insert or removal elsewhere shifts without re-indexing the row.
+    /// Refreshes the realized rows' numbers after a collection change while grouped. A grouped row's number is its
+    /// position in the full item list, which a change elsewhere shifts without re-indexing the row.
     /// </summary>
     private void OnCollectionViewVectorChangedForRowNumbers(IObservableVector<object> sender, IVectorChangedEventArgs args)
     {
-        DispatcherQueue.TryEnqueue(RefreshRowNumbers);
+        if (!ShowRowNumbers || _isRowNumbersRefreshQueued || _collectionView.GroupDescriptions.Count is 0)
+        {
+            return;
+        }
+
+        _isRowNumbersRefreshQueued = DispatcherQueue?.TryEnqueue(() =>
+        {
+            _isRowNumbersRefreshQueued = false;
+            RefreshRowNumbers();
+        }) ?? false;
     }
 
     /// <summary>
