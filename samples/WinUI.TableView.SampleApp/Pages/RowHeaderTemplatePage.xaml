@@ -57,15 +57,48 @@
             </controls:SamplePresenter.Example>
             <controls:SamplePresenter.Options>
                 <StackPanel Spacing="16"
-                            MinWidth="200">
+                            MinWidth="200"
+                            MaxWidth="260">
                     <RadioButtons x:Name="rowHeaderContent"
                                   Header="Row Header Content"
                                   SelectedIndex="2"
                                   SelectionChanged="OnRowHeaderContentChanged">
-                        <x:String>None (default)</x:String>
-                        <x:String>Row Number</x:String>
-                        <x:String>Avatar</x:String>
-                        <x:String>Active status</x:String>
+                        <RadioButton AutomationProperties.Name="None (default)">
+                            <StackPanel>
+                                <TextBlock Text="None (default)" />
+                                <TextBlock Text="Empty row headers."
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </RadioButton>
+                        <RadioButton AutomationProperties.Name="Row Number">
+                            <StackPanel>
+                                <TextBlock Text="Row Number" />
+                                <TextBlock Text="Built in: set ShowRowNumbers. No template needed."
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </RadioButton>
+                        <RadioButton AutomationProperties.Name="Avatar">
+                            <StackPanel>
+                                <TextBlock Text="Avatar" />
+                                <TextBlock Text="RowHeaderTemplate showing an image from the item."
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </RadioButton>
+                        <RadioButton AutomationProperties.Name="Active status">
+                            <StackPanel>
+                                <TextBlock Text="Active status" />
+                                <TextBlock Text="RowHeaderTemplate bound to IsActive. Updates as the value changes."
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </RadioButton>
                     </RadioButtons>
                     <NumberBox Header="Row Header Width"
                                Minimum="0"
