@@ -551,6 +551,106 @@ public class TableViewColumnVirtualizationTests
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }
 
+    [UITestMethod]
+    public async Task MovingAColumn_MovesItsHeaderAndCells()
+    {
+        var tableView = await CreateTableViewAsync();
+        var moved = tableView.Columns.VisibleColumns[1];
+
+        tableView.Columns.Move(1, 3);
+        tableView.UpdateLayout();
+
+        Assert.AreSame(moved, tableView.Columns.VisibleColumns[3]);
+        Assert.AreEqual(3 * ColumnWidth, moved.HeaderControl!.ActualOffset.X, 0.01);
+
+        foreach (var row in Rows(tableView))
+        {
+            Assert.AreEqual(3 * ColumnWidth, row.GetCell(moved)!.ActualOffset.X, 0.01);
+        }
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task FrozenColumns_StayInColumnOrder_WhenMovedOrHidden()
+    {
+        var tableView = await CreateTableViewAsync(frozenColumnCount: 3);
+        var headerRow = tableView.FindDescendants().OfType<TableViewHeaderRow>().Single();
+
+        tableView.Columns.Move(0, 1);
+        tableView.UpdateLayout();
+        AssertFrozenInOrder();
+
+        tableView.Columns.VisibleColumns[0].Visibility = Visibility.Collapsed;
+        tableView.UpdateLayout();
+        AssertFrozenInOrder();
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+
+        void AssertFrozenInOrder()
+        {
+            var columns = tableView.Columns.VisibleColumns;
+
+            for (var i = 0; i < 3; i++)
+            {
+                Assert.AreSame(columns[i], headerRow.Headers[i].Column, $"header {i}");
+                Assert.AreEqual(i * ColumnWidth, headerRow.Headers[i].ActualOffset.X, 0.01, $"header {i}");
+            }
+
+            foreach (var row in Rows(tableView))
+            {
+                for (var i = 0; i < 3; i++)
+                {
+                    Assert.AreSame(columns[i], row.Cells[i].Column, $"cell {i}");
+                    Assert.AreEqual(i * ColumnWidth, row.Cells[i].ActualOffset.X, 0.01, $"cell {i}");
+                }
+            }
+        }
+    }
+
+    [UITestMethod]
+    public async Task ScrollingSideways_WhileEditing_GivesReusedCellsTheirColumnsContent()
+    {
+        var tableView = await CreateTableViewAsync();
+
+        tableView.SetIsEditing(true);
+        tableView.SetValue(TableView.HorizontalOffsetProperty, 5 * ColumnWidth);
+        tableView.UpdateLayout();
+        tableView.SetIsEditing(false);
+
+        await Task.Delay(50);
+        tableView.UpdateLayout();
+
+        var columns = tableView.Columns.VisibleColumns;
+
+        foreach (var row in Rows(tableView))
+        {
+            for (var index = 5; index <= 12; index++)
+            {
+                var expected = index % 2 == 0 ? ((HostItem)row.Content).Name : ((HostItem)row.Content).Category;
+                Assert.AreEqual(expected, (row.GetCell(index)?.Content as TextBlock)?.Text, $"column {index}");
+            }
+        }
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task CellsCreatedOnDemand_DoNotPileUp()
+    {
+        var tableView = await CreateTableViewAsync();
+        var row = Rows(tableView).OrderBy(x => x.Index).First();
+
+        for (var index = 0; index < ColumnCount; index++)
+        {
+            Assert.IsNotNull(row.GetOrRealizeCell(index));
+        }
+
+        Assert.IsTrue(row.RowPresenter!.Cells.Count < ColumnCount / 2, $"{row.RowPresenter.Cells.Count} cells");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
     private static List<TableViewRow> Rows(TableView tableView)
     {
         return [.. tableView.FindDescendants().OfType<TableViewRow>().Where(x => x.IsLoaded)];

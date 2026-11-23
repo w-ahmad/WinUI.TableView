@@ -7,7 +7,6 @@ using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Linq;
 using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;

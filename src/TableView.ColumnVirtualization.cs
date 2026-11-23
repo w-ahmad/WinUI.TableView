@@ -1,4 +1,6 @@
+using Microsoft.UI.Xaml;
 using System;
+using System.Diagnostics;
 
 namespace WinUI.TableView;
 
@@ -25,7 +27,7 @@ public partial class TableView
     private (int Version, int Frozen)? _realizedColumnsLayout;
     private bool _isLeadPending;
     private bool _hasStaleRows;
-    private Microsoft.UI.Xaml.DispatcherTimer? _columnsIdleTimer;
+    private DispatcherTimer? _columnsIdleTimer;
 
     // How long the view has to rest after a jump before what the jump left out is filled in.
     private static readonly TimeSpan ColumnsIdleDelay = TimeSpan.FromMilliseconds(100);
@@ -34,7 +36,7 @@ public partial class TableView
     {
         if (_columnsIdleTimer is null)
         {
-            _columnsIdleTimer = new Microsoft.UI.Xaml.DispatcherTimer { Interval = ColumnsIdleDelay };
+            _columnsIdleTimer = new DispatcherTimer { Interval = ColumnsIdleDelay };
             _columnsIdleTimer.Tick += (_, _) => CompleteColumnJump();
         }
 
@@ -96,6 +98,18 @@ public partial class TableView
 
         return top + height > viewportTop && top < viewportTop + scrollViewer.ViewportHeight;
     }
+
+    /// <summary>
+    /// Stops the timers that bring cells in line after a jump or a drag; the table is being unloaded.
+    /// </summary>
+    private void StopColumnTimers()
+    {
+        _columnsIdleTimer?.Stop();
+        _deferredColumnsTimer?.Stop();
+        _deferredColumns = null;
+        _syncedColumns = null; // the rows are synced anew when the table is loaded again
+    }
+
     private bool _isResizePreviewActive;
     private double _resizePreviewLead;
 
@@ -173,6 +187,7 @@ public partial class TableView
         // A resize preview moves cells with transforms; they are synced once it ends.
         if (_isResizePreviewActive)
         {
+            _deferredColumnsTimer?.Stop();
             return;
         }
 
@@ -220,7 +235,7 @@ public partial class TableView
         _deferredColumnsTimer?.Stop();
         _syncedColumns = range;
 
-        var started = System.Diagnostics.Stopwatch.GetTimestamp();
+        var started = Stopwatch.GetTimestamp();
 
         foreach (var row in _rows)
         {
@@ -245,7 +260,7 @@ public partial class TableView
 
         if (isFar)
         {
-            FarCellsSyncCost = System.Diagnostics.Stopwatch.GetElapsedTime(started);
+            FarCellsSyncCost = Stopwatch.GetElapsedTime(started);
         }
     }
 
@@ -260,7 +275,7 @@ public partial class TableView
 
     private (int First, int Last)? _syncedHeaderColumns;
     private (int First, int Last)? _deferredColumns;
-    private Microsoft.UI.Xaml.DispatcherTimer? _deferredColumnsTimer;
+    private DispatcherTimer? _deferredColumnsTimer;
 
     /// <summary>
     /// Gets or sets a value indicating whether the horizontal scroll bar's thumb is being dragged.
@@ -283,9 +298,9 @@ public partial class TableView
     /// </summary>
     internal TimeSpan MaxCellsDeferral { get; set; } = TimeSpan.FromMilliseconds(120);
 
-    private Microsoft.UI.Xaml.DispatcherTimer CreateDeferredColumnsTimer()
+    private DispatcherTimer CreateDeferredColumnsTimer()
     {
-        var timer = new Microsoft.UI.Xaml.DispatcherTimer { Interval = DeferredColumnsDelay };
+        var timer = new DispatcherTimer { Interval = DeferredColumnsDelay };
         timer.Tick += (_, _) => UpdateRealizedColumns(flush: true);
 
         return timer;

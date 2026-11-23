@@ -205,7 +205,7 @@ public partial class TableViewHeaderRow : Control
     /// </summary>
     private void OnTableViewColumnsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        SyncHeaders();
+        SyncHeaders(reordered: e.Action is NotifyCollectionChangedAction.Move);
 
         if (e.Action is not NotifyCollectionChangedAction.Move)
         {
@@ -228,7 +228,7 @@ public partial class TableViewHeaderRow : Control
             e.PropertyName is nameof(TableViewColumn.IsFrozen)) &&
             e.Column.Visibility is Visibility.Visible)
         {
-            SyncHeaders();
+            SyncHeaders(reordered: true);
             CalculateHeaderWidths();
         }
         else if (e.PropertyName is nameof(TableViewColumn.Width) or
@@ -298,7 +298,8 @@ public partial class TableViewHeaderRow : Control
     /// A scrollable panel that is not a <see cref="TableViewCellsPanel"/>, as in a custom template, keeps a header
     /// for every column. Headers out of view are kept while a column is being resized or dragged.
     /// </remarks>
-    internal void SyncHeaders()
+    /// <param name="reordered">Whether the columns may have changed places, which moves headers that stay.</param>
+    internal void SyncHeaders(bool reordered = false)
     {
         if (TableView is null || _scrollableHeadersPanel is null || _frozenHeadersPanel is null)
         {
@@ -311,7 +312,8 @@ public partial class TableViewHeaderRow : Control
         var frozenCount = Math.Clamp(TableView.FrozenColumnCount, 0, count);
         var (first, last) = _scrollableHeadersPanel is TableViewCellsPanel ? TableView.RealizedColumns : (frozenCount, count - 1);
         var canRemove = !TableView.IsColumnResizing;
-        var changed = false;
+        var changed = reordered;
+        var frozenChanged = reordered;
 
         foreach (var header in _headersByColumn.Values)
         {
@@ -334,6 +336,7 @@ public partial class TableViewHeaderRow : Control
 
         foreach (var header in _leavingHeaders)
         {
+            frozenChanged |= header.IsInFrozenPanel;
             Forget(header);
         }
 
@@ -394,6 +397,13 @@ public partial class TableViewHeaderRow : Control
             }
 
             _headersByColumn[(column, occurrence)] = header;
+
+            if (occurrence > 0)
+            {
+                column.EnsureHeaderStyle();
+            }
+
+            frozenChanged |= isFrozen;
             changed = true;
         }
 
@@ -408,7 +418,11 @@ public partial class TableViewHeaderRow : Control
 
         if (changed)
         {
-            EnsureStackOrder(_frozenHeadersPanel, isFrozen: true);
+            if (frozenChanged)
+            {
+                EnsureStackOrder(_frozenHeadersPanel, isFrozen: true);
+            }
+
             EnsureStackOrder(_scrollableHeadersPanel, isFrozen: false);
             _scrollableHeadersPanel.InvalidateArrange();
         }
@@ -646,11 +660,12 @@ public partial class TableViewHeaderRow : Control
         });
     }
 
+    // The width of an auto column nothing of which has been measured; the collection estimates with the same.
+    private const double UnmeasuredColumnWidth = 100d;
+
     /// <summary>
     /// Gets the desired width of a column based on its header and cells.
     /// </summary>
-    private const double UnmeasuredColumnWidth = 100d;
-
     internal double GetColumnDesiredWidth(TableViewColumn column)
     {
         var autoWidthMode = column.ColumnAutoWidthMode ?? TableView?.ColumnAutoWidthMode;

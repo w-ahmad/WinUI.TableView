@@ -492,7 +492,29 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     private void OnSortDirectionChanged()
     {
-        HeaderControl?.OnSortDirectionChanged();
+        ForEachHeader(static header => header.OnSortDirectionChanged());
+    }
+
+    /// <summary>
+    /// Runs an action on the column's header, and on its other headers when the column was added more than once.
+    /// </summary>
+    private void ForEachHeader(Action<TableViewColumnHeader> action)
+    {
+        if (HeaderControl is { } first)
+        {
+            action(first);
+        }
+
+        if (OwningCollection is { HasDuplicateColumns: true } && TableView?.HeaderRow is { } headerRow)
+        {
+            foreach (var header in headerRow.Headers)
+            {
+                if (header.Column == this && !ReferenceEquals(header, HeaderControl))
+                {
+                    action(header);
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -500,7 +522,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     private void OnIsFilteredChanged()
     {
-        HeaderControl?.OnIsFilteredChanged();
+        ForEachHeader(static header => header.OnIsFilteredChanged());
     }
 
     /// <summary>
@@ -508,11 +530,19 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     internal void EnsureHeaderStyle()
     {
-        HeaderControl?.Style = HeaderStyle ?? TableView?.ColumnHeaderStyle;
+        var style = HeaderStyle ?? TableView?.ColumnHeaderStyle;
+
+        ForEachHeader(header =>
+        {
+            if (!ReferenceEquals(header.Style, style))
+            {
+                header.Style = style;
+            }
+        });
     }
 
     /// <summary>
-    /// Handles changes to the Width property.
+    /// Handles changes to the properties a cell's style comes from.
     /// </summary>
     private static void OnCellStyleSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
@@ -563,6 +593,9 @@ public abstract partial class TableViewColumn : DependencyObject
     private Visibility _visibility = Visibility.Visible;
     private int? _order;
 
+    /// <summary>
+    /// Handles changes to the column's dependency properties.
+    /// </summary>
     private static void OnPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is TableViewColumn changed)
@@ -650,10 +683,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     private static void OnCanFilterChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableViewColumn column && column.HeaderControl is not null)
-        {
-            column.HeaderControl.SetFilterButtonVisibility();
-        }
+        (d as TableViewColumn)?.ForEachHeader(static header => header.SetFilterButtonVisibility());
     }
 
     /// <summary>
@@ -661,10 +691,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     private static void OnCanSortChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableViewColumn column && column.HeaderControl is not null)
-        {
-            column.HeaderControl.OnSortDirectionChanged();
-        }
+        (d as TableViewColumn)?.ForEachHeader(static header => header.OnSortDirectionChanged());
     }
 
     /// <summary>

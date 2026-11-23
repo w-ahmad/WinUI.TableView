@@ -745,6 +745,7 @@ public partial class TableViewCell : ContentControl
         if (wasDetached)
         {
             EnsureGridLines();
+            TableView?.ApplyRowHeights(this);
         }
 
         if (_isPointerOverApplied)
@@ -825,14 +826,8 @@ public partial class TableViewCell : ContentControl
     /// </summary>
     private void OnColumnChanged()
     {
-        if (TableView?.IsEditing == true)
-        {
-            SetEditingElement();
-        }
-        else
-        {
-            SetElement();
-        }
+        // Never the cell being edited: that one keeps its column.
+        SetElement();
     }
 
     /// <summary>

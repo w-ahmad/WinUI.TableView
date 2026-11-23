@@ -1310,6 +1310,7 @@ public partial class TableView : Control
 
         EndDragSelection();
         StopAutoScroll();
+        StopColumnTimers();
 
         if (IsEditing && CurrentCellSlot.HasValue && GetCellFromSlot(CurrentCellSlot.Value) is { } currentCell)
         {

@@ -7,7 +7,6 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Windows.Foundation;
 using WinUI.TableView.Extensions;
 using WinUI.TableView.Helpers;
@@ -649,6 +648,8 @@ public partial class TableViewRowPresenter : Control
             else if (cell.Index != index)
             {
                 cell.Index = index;
+                ApplyCellState(cell); // selection and the current cell go by index
+                frozenChanged |= cell.IsInFrozenPanel;
                 changed = true;
             }
         }
@@ -683,6 +684,7 @@ public partial class TableViewRowPresenter : Control
         }
 
         _leavingCells.Clear();
+        _syncedCellCount = _cellsByColumn.Count;
 
         if (_spareCells.Count > MaxSpareCells)
         {
@@ -709,6 +711,8 @@ public partial class TableViewRowPresenter : Control
 
     // Cells kept for reuse between syncs; a sideways scroll trades a few columns at a time.
     private const int MaxSpareCells = 8;
+    private const int MaxCellsOnDemand = 32;
+    private int _syncedCellCount;
     private readonly List<TableViewCell> _spareCells = [];
 
     /// <summary>
@@ -735,6 +739,7 @@ public partial class TableViewRowPresenter : Control
                 leaving.Reuse(column, index, wasDetached: false);
                 _cellsByColumn[(column, occurrence)] = leaving;
                 ApplyCellState(leaving);
+                frozenChanged |= isFrozen;
 
                 return true;
             }
@@ -779,6 +784,12 @@ public partial class TableViewRowPresenter : Control
         }
 
         var column = TableView.Columns.VisibleColumns[columnIndex];
+
+        // Cells created on demand stay until the next sync; a caller asking for column after column gets one.
+        if (_cellsByColumn.Count >= _syncedCellCount + MaxCellsOnDemand)
+        {
+            SyncCells();
+        }
 
         var frozenChanged = false;
 
