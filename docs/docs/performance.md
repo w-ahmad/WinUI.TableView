@@ -122,7 +122,7 @@ Columns are virtualized like rows, and it needs no configuration. A row has a ce
 only for:
 
 - every frozen column, and
-- the scrollable columns in the viewport, plus a margin of about 200 px either side.
+- the scrollable columns in the viewport, plus a margin of up to about 200 px either side.
 
 So the number of cells is `realized rows × columns in view`, whatever the number of columns: a table with 500
 columns creates about as many elements as one whose columns just fill the viewport.
@@ -144,6 +144,11 @@ A few things follow from a column out of view having no cells and no header:
   can move the columns after it. Give wide tables fixed widths where that matters.
 - **The current cell keeps its cell** when its column is scrolled out of view, so keyboard focus and an open edit
   are not lost.
+- **A column that is in `Columns` more than once** has a header and a cell in each of its places, and its
+  `HeaderControl` is the header of the first.
+
+The horizontal scroll extent is computed from the column widths rather than from whichever rows happen to be
+realized, so the horizontal scrollbar does not change size as you scroll vertically.
 
 ### Scrolling sideways
 
@@ -156,9 +161,9 @@ The cost of a scroll step does not depend on how many columns the table has.
 
 ### Adding many columns
 
-Adding a column to a table still does work in proportion to the columns it already has, so adding a thousand of
-them one by one takes a few seconds. Add the columns before the table is loaded where you can: it is faster than
-adding them to a table that is already on screen.
+Adding a column does a little work for every column the table already has, which only shows with thousands of
+columns. Add the columns before the table is loaded where you can: a table that is on screen also updates its
+headers and rows for each column added.
 
 ### Custom templates
 
@@ -167,9 +172,6 @@ default templates use for the `ScrollableCellsPanel` part of `TableViewRowPresen
 `ScrollableHeadersPanel` part of `TableViewHeaderRow`. A template of your own that uses another panel there,
 such as a horizontal `StackPanel`, keeps working and keeps a cell or header for every column; change the part to
 a `TableViewCellsPanel` to virtualize.
-
-The horizontal scroll extent is computed from the column widths rather than from whichever rows happen to be
-realized, so the horizontal scrollbar does not change size as you scroll vertically.
 
 ## Garbage collection pauses on Windows
 
