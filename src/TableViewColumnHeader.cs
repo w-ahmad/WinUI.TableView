@@ -741,6 +741,34 @@ public partial class TableViewColumnHeader : ContentControl
     public TableViewColumn? Column { get; internal set; }
 
     /// <summary>
+    /// Takes over a column from a header whose own column has gone out of view.
+    /// </summary>
+    internal void Reuse(TableViewColumn column)
+    {
+        HideFlyout();
+        FilterItemsControl?.FilterItems = null;
+        CachedDesiredWidth = null;
+        Column = column;
+        DataContext = column;
+        Content = column.Header;
+
+        if (!(column.ActualWidth > 0d))
+        {
+            Width = double.NaN; // sized with the other columns
+        }
+        else if (Width != column.ActualWidth)
+        {
+            Width = column.ActualWidth;
+        }
+
+        VisualStates.GoToState(this, false, VisualStates.StateNormal);
+        SetFilterButtonVisibility();
+        OnSortDirectionChanged();
+        OnIsFilteredChanged();
+        InvalidateMeasure();
+    }
+
+    /// <summary>
     /// Gets or sets a value indicating whether the header is among the frozen headers.
     /// </summary>
     internal bool IsInFrozenPanel { get; set; }

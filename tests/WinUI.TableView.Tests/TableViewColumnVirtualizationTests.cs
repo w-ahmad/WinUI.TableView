@@ -44,6 +44,12 @@ public class TableViewColumnVirtualizationTests
 
         await tableView.ScrollCellIntoView(new TableViewCellSlot(0, 120));
         tableView.UpdateLayout();
+        tableView.CompleteColumnJump();
+        tableView.UpdateLayout();
+
+        // Uno gives a cell that has just been created its bound value a tick later.
+        await Task.Delay(50);
+        tableView.UpdateLayout();
 
         var columns = tableView.Columns.VisibleColumns;
 
@@ -82,6 +88,8 @@ public class TableViewColumnVirtualizationTests
 
         await tableView.ScrollCellIntoView(new TableViewCellSlot(0, 150));
         tableView.UpdateLayout();
+        tableView.CompleteColumnJump();
+        tableView.UpdateLayout();
 
         foreach (var row in Rows(tableView))
         {
@@ -103,6 +111,8 @@ public class TableViewColumnVirtualizationTests
         await Task.Delay(100);
 
         await tableView.ScrollCellIntoView(new TableViewCellSlot(1, 150));
+        tableView.UpdateLayout();
+        tableView.CompleteColumnJump();
         tableView.UpdateLayout();
 
         var rows = Rows(tableView).OrderBy(x => x.Index).ToList();
@@ -262,6 +272,8 @@ public class TableViewColumnVirtualizationTests
 
         await tableView.ScrollCellIntoView(new TableViewCellSlot(0, 130));
         tableView.UpdateLayout();
+        tableView.CompleteColumnJump();
+        tableView.UpdateLayout();
 
         Assert.IsTrue(headerRow.Headers.Count <= MaxRealizedColumns + 1, $"{headerRow.Headers.Count} headers after scrolling");
         Assert.IsNotNull(columns[0].HeaderControl, "the frozen column lost its header");
@@ -320,6 +332,131 @@ public class TableViewColumnVirtualizationTests
 
         Assert.IsNull(last.HeaderControl);
         Assert.IsTrue(last.ActualWidth > 0d, "a column out of view has no width");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task DraggingTheScrollBarFar_MovesTheHeadersAtOnce_AndTheCellsWhenItRests()
+    {
+        var tableView = await CreateTableViewAsync();
+        var row = Rows(tableView).First();
+        var columns = tableView.Columns.VisibleColumns;
+
+        tableView.MaxCellsDeferral = System.TimeSpan.FromHours(1);
+        tableView.FarCellsSyncCost = System.TimeSpan.FromSeconds(1);
+        tableView.IsHorizontalThumbTracking = true;
+        tableView.SetValue(TableView.HorizontalOffsetProperty, 140 * ColumnWidth);
+        tableView.UpdateLayout();
+
+        Assert.IsTrue(tableView.AreCellsDeferred, "the cells should wait while the thumb is dragged far");
+        Assert.IsNotNull(columns[142].HeaderControl, "the headers should follow the thumb");
+        Assert.IsNull(row.GetCell(142), "the cells should not follow the thumb yet");
+
+        tableView.IsHorizontalThumbTracking = false;
+        tableView.UpdateRealizedColumns(flush: true);
+        tableView.UpdateLayout();
+
+        Assert.IsFalse(tableView.AreCellsDeferred);
+        Assert.IsNotNull(row.GetCell(142), "the cells should follow once the thumb is let go");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task DraggingTheScrollBarFar_MovesTheCellsAtOnce_WhenThatIsCheap()
+    {
+        var tableView = await CreateTableViewAsync();
+        var row = Rows(tableView).First();
+
+        tableView.FarCellsSyncCost = System.TimeSpan.Zero;
+        tableView.IsHorizontalThumbTracking = true;
+        tableView.SetValue(TableView.HorizontalOffsetProperty, 140 * ColumnWidth);
+        tableView.UpdateLayout();
+
+        Assert.IsFalse(tableView.AreCellsDeferred);
+        Assert.IsNotNull(row.GetCell(142), "the cells should follow the thumb");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task DraggingTheScrollBarALittle_MovesTheCellsAtOnce()
+    {
+        var tableView = await CreateTableViewAsync();
+        var row = Rows(tableView).First();
+        var last = row.Cells[^1].Index;
+
+        tableView.MaxCellsDeferral = System.TimeSpan.FromHours(1);
+        tableView.FarCellsSyncCost = System.TimeSpan.FromSeconds(1);
+        tableView.IsHorizontalThumbTracking = true;
+        tableView.SetValue(TableView.HorizontalOffsetProperty, 3 * ColumnWidth);
+        tableView.UpdateLayout();
+
+        Assert.IsFalse(tableView.AreCellsDeferred, "a short drag keeps most cells, so nothing waits");
+        Assert.IsTrue(row.Cells[^1].Index > last, "the cells did not follow a short drag");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task ReusedHeadersAndCells_ShowTheColumnTheyHaveNow()
+    {
+        var tableView = await CreateTableViewAsync();
+        var headerRow = tableView.FindDescendants().OfType<TableViewHeaderRow>().Single();
+        var columns = tableView.Columns.VisibleColumns;
+        var firstHeader = columns[0].HeaderControl;
+
+        tableView.SetValue(TableView.HorizontalOffsetProperty, 100 * ColumnWidth);
+        tableView.UpdateLayout();
+        tableView.CompleteColumnJump();
+        tableView.UpdateLayout();
+
+        // Headers are taken over, not created, when the view moves.
+        Assert.IsTrue(headerRow.Headers.Any(x => ReferenceEquals(x, firstHeader)), "the first header was not reused");
+        Assert.IsNull(columns[0].HeaderControl);
+
+        foreach (var header in headerRow.Headers)
+        {
+            var index = columns.IndexOf(header.Column!);
+
+            Assert.AreSame(header, columns[index].HeaderControl, $"header {index}");
+            Assert.AreEqual($"Column {index}", header.Content, $"header {index}");
+            Assert.AreEqual(index * ColumnWidth, header.ActualOffset.X, 0.01, $"header {index}");
+        }
+
+        foreach (var cell in Rows(tableView).First().Cells)
+        {
+            Assert.AreSame(columns[cell.Index], cell.Column);
+            Assert.AreEqual(cell.Index * ColumnWidth, cell.ActualOffset.X, 0.01, $"cell {cell.Index}");
+        }
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task AJumpAcrossManyColumns_FillsRowsInViewAtOnce_AndTheRestWhenTheViewRests()
+    {
+        var tableView = await CreateTableViewAsync();
+        var rows = Rows(tableView).OrderBy(x => x.Index).ToList();
+        var inView = rows[0];
+        var outOfView = rows[^1];
+
+        tableView.SetValue(TableView.HorizontalOffsetProperty, 140 * ColumnWidth);
+        tableView.UpdateLayout();
+
+        Assert.IsNotNull(inView.GetCell(142), "a row in view should have its cells at once");
+        Assert.IsTrue(outOfView.HasStaleCells, "a row kept below the view should wait");
+        Assert.IsNull(outOfView.GetCell(142));
+
+        var cellsAfterJump = inView.Cells.Count;
+
+        tableView.CompleteColumnJump();
+        tableView.UpdateLayout();
+
+        Assert.IsFalse(outOfView.HasStaleCells);
+        Assert.IsNotNull(outOfView.GetCell(142), "the row should be filled in once the view rests");
+        Assert.IsTrue(inView.Cells.Count > cellsAfterJump, "the columns either side of the view should follow");
 
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }

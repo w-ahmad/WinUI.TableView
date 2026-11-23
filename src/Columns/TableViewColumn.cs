@@ -514,8 +514,54 @@ public abstract partial class TableViewColumn : DependencyObject
     /// <summary>
     /// Handles changes to the Width property.
     /// </summary>
+    private static void OnCellStyleSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        (d as TableViewColumn)?._hasCellStyleSource = false;
+    }
+
+    private bool _hasCellStyleSource;
+    private Style? _cellStyle;
+    private IList<TableViewConditionalCellStyle>? _conditionalCellStyles;
+
+    /// <summary>
+    /// Reads <see cref="CellStyle"/> and <see cref="ConditionalCellStyles"/> once per change: every cell asks for
+    /// them each time it shows another item or column, and each read is a call into XAML.
+    /// </summary>
+    private void EnsureCellStyleSource()
+    {
+        if (!_hasCellStyleSource)
+        {
+            _cellStyle = CellStyle;
+            _conditionalCellStyles = ConditionalCellStyles;
+            _hasCellStyleSource = true;
+        }
+    }
+
+    internal Style? CachedCellStyle
+    {
+        get
+        {
+            EnsureCellStyleSource();
+            return _cellStyle;
+        }
+    }
+
+    internal IList<TableViewConditionalCellStyle>? CachedConditionalCellStyles
+    {
+        get
+        {
+            EnsureCellStyleSource();
+            return _conditionalCellStyles;
+        }
+    }
+
     private static void OnPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
+        if (e.Property == CellStyleProperty)
+        {
+            (d as TableViewColumn)?._hasCellStyleSource = false;
+        }
+
         if (d is TableViewColumn { OwningCollection: { } } column)
         {
             if (e.Property == CellStyleProperty)
@@ -713,5 +759,5 @@ public abstract partial class TableViewColumn : DependencyObject
     /// <summary>
     /// Identifies the <see cref="ConditionalCellStyles"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty ConditionalCellStylesProperty = DependencyProperty.Register(nameof(ConditionalCellStyles), typeof(IList<TableViewConditionalCellStyle>), typeof(TableViewColumn), new PropertyMetadata(default));
+    public static readonly DependencyProperty ConditionalCellStylesProperty = DependencyProperty.Register(nameof(ConditionalCellStyles), typeof(IList<TableViewConditionalCellStyle>), typeof(TableViewColumn), new PropertyMetadata(default, OnCellStyleSourceChanged));
 }

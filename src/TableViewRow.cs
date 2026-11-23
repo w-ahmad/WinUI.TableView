@@ -126,11 +126,19 @@ public partial class TableViewRow : ContentControl
     /// </summary>
     internal void SyncCells()
     {
+        HasStaleCells = false;
+
         if (!_ensureCells)
         {
             RowPresenter?.SyncCells();
         }
     }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the row was out of view when the columns in view changed, and
+    /// still has the cells of the columns that were in view before.
+    /// </summary>
+    internal bool HasStaleCells { get; set; }
 
     /// <summary>
     /// Gets the visible-column index of the cell the row keeps wherever it is scrolled to, or -1.
@@ -673,7 +681,7 @@ public partial class TableViewRow : ContentControl
                 && cell.Column is TableViewBoundColumn boundColumn
                 && (TableView?.IsEditing is false || TableView?.CurrentCellSlot != cell.Slot))
             {
-                element.Style = boundColumn.ElementStyle ?? boundColumn.DefaultElementStyle;
+                cell.SetElementStyle(element, boundColumn.ElementStyle ?? boundColumn.DefaultElementStyle);
             }
         }
     }

@@ -1194,6 +1194,7 @@ public partial class TableView : Control
         }
 
         SetValue(VerticalOffsetProperty, _scrollViewer?.VerticalOffset ?? 0d);
+        SyncStaleRows(); // rows a sideways jump left out may be coming into view
 
 #if !WINDOWS
         UpdateRenderCullingAfterViewChange();
@@ -1267,6 +1268,16 @@ public partial class TableView : Control
             Mode = BindingMode.TwoWay,
             Source = this
         });
+
+        xScrollBar?.Scroll += (_, e) =>
+        {
+            IsHorizontalThumbTracking = e.ScrollEventType is ScrollEventType.ThumbTrack;
+
+            if (!IsHorizontalThumbTracking)
+            {
+                UpdateRealizedColumns(flush: true); // the cells wait while the thumb is dragged far
+            }
+        };
     }
 
     /// <summary>

@@ -172,10 +172,23 @@ public partial class TableViewRowPresenter : Control
         // Content lays out just before its column scrolls into view, not on the frame it appears.
         const double LayoutLead = 200d;
 
+        var columns = TableView.Columns as TableViewColumnsCollection;
+        var firstOffset = columns?.GetVisibleColumnOffset(Math.Clamp(TableView.FrozenColumnCount, 0, columns.VisibleColumns.Count)) ?? 0d;
+
         foreach (var cell in _scrollableCellsPanel.Children)
         {
-            var x = cell.ActualOffset.X;
+            var x = (double)cell.ActualOffset.X;
             var right = x + cell.ActualSize.X;
+
+            // A cell that has just been given its column is not arranged there yet; the column says where it will be.
+            if (columns is not null
+                && cell is TableViewCell { Column: { } column }
+                && columns.GetVisibleColumnIndex(column) is >= 0 and var index)
+            {
+                x = columns.GetVisibleColumnOffset(index) - firstOffset;
+                right = columns.GetVisibleColumnOffset(index + 1) - firstOffset;
+            }
+
             SetCellInView(
                 cell,
                 isInView: !cullCells || (right >= start && x <= end),
@@ -619,8 +632,11 @@ public partial class TableViewRowPresenter : Control
         var (first, last) = _scrollableCellsPanel is TableViewCellsPanel ? TableView.RealizedColumns : (frozenCount, count - 1);
         var pinned = TableViewRow.GetPinnedColumnIndex();
         var changed = false;
+        var frozenChanged = false;
 
         // Cells whose column is gone, out of view, or now on the other side of the frozen boundary.
+        _leavingCells.Clear();
+
         foreach (var cell in Cells)
         {
             var index = cell.Column is { } column ? columns.GetVisibleColumnIndex(column) : -1;
@@ -628,9 +644,7 @@ public partial class TableViewRowPresenter : Control
 
             if (!isWanted || cell.IsInFrozenPanel != (index < frozenCount))
             {
-                DetachCell(cell);
-                _spareCells.Add(cell);
-                changed = true;
+                _leavingCells.Add(cell);
             }
             else if (cell.Index != index)
             {
@@ -639,20 +653,39 @@ public partial class TableViewRowPresenter : Control
             }
         }
 
+        foreach (var cell in _leavingCells)
+        {
+            if (cell.Column is { } column && _cellsByColumn.TryGetValue(column, out var current) && ReferenceEquals(current, cell))
+            {
+                _cellsByColumn.Remove(column);
+            }
+        }
+
         for (var i = 0; i < frozenCount; i++)
         {
-            changed |= EnsureCell(visibleColumns[i], i, isFrozen: true);
+            changed |= EnsureCell(visibleColumns[i], i, isFrozen: true, ref frozenChanged);
         }
 
         for (var i = Math.Max(first, frozenCount); i <= last && i < count; i++)
         {
-            changed |= EnsureCell(visibleColumns[i], i, isFrozen: false);
+            changed |= EnsureCell(visibleColumns[i], i, isFrozen: false, ref frozenChanged);
         }
 
         if (pinned >= frozenCount && pinned < count)
         {
-            changed |= EnsureCell(visibleColumns[pinned], pinned, isFrozen: false);
+            changed |= EnsureCell(visibleColumns[pinned], pinned, isFrozen: false, ref frozenChanged);
         }
+
+        // Cells no column took over.
+        foreach (var cell in _leavingCells)
+        {
+            frozenChanged |= cell.IsInFrozenPanel;
+            (cell.IsInFrozenPanel ? _frozenCellsPanel : _scrollableCellsPanel).Children.Remove(cell);
+            _spareCells.Add(cell);
+            changed = true;
+        }
+
+        _leavingCells.Clear();
 
         if (_spareCells.Count > MaxSpareCells)
         {
@@ -662,25 +695,49 @@ public partial class TableViewRowPresenter : Control
         if (changed)
         {
             _cells = null;
-            EnsureStackOrder(_frozenCellsPanel, isFrozen: true);
+
+            if (frozenChanged)
+            {
+                EnsureStackOrder(_frozenCellsPanel, isFrozen: true);
+            }
+
             EnsureStackOrder(_scrollableCellsPanel, isFrozen: false);
             _scrollableCellsPanel.InvalidateArrange();
             InvalidateMeasure();
         }
     }
 
+    // Cells whose column no longer needs one, while the cells are being synced.
+    private readonly List<TableViewCell> _leavingCells = [];
+
     // Cells kept for reuse between syncs; a sideways scroll trades a few columns at a time.
     private const int MaxSpareCells = 8;
     private readonly List<TableViewCell> _spareCells = [];
 
     /// <summary>
-    /// Gives a column a cell if it has none, reusing a spare one when there is one.
+    /// Gives a column a cell if it has none: one that is leaving the same panel, where it stays, else a spare
+    /// one, else a new one.
     /// </summary>
-    private bool EnsureCell(TableViewColumn column, int index, bool isFrozen)
+    private bool EnsureCell(TableViewColumn column, int index, bool isFrozen, ref bool frozenChanged)
     {
         if (TableViewRow is null || _cellsByColumn.ContainsKey(column))
         {
             return false;
+        }
+
+        for (var i = _leavingCells.Count - 1; i >= 0; i--)
+        {
+            var leaving = _leavingCells[i];
+
+            if (leaving.IsInFrozenPanel == isFrozen)
+            {
+                _leavingCells.RemoveAt(i);
+                leaving.Reuse(column, index, wasDetached: false);
+                _cellsByColumn[column] = leaving;
+                ApplyCellState(leaving);
+
+                return true;
+            }
         }
 
         TableViewCell cell;
@@ -689,16 +746,24 @@ public partial class TableViewRowPresenter : Control
         {
             cell = _spareCells[^1];
             _spareCells.RemoveAt(_spareCells.Count - 1);
-            cell.Reuse(column, index);
+            cell.Reuse(column, index, wasDetached: true);
         }
         else
         {
             cell = TableViewRow.CreateCell(column, index);
         }
 
+        frozenChanged |= isFrozen;
         AttachCell(cell, isFrozen);
 
         return true;
+    }
+
+    private void ApplyCellState(TableViewCell cell)
+    {
+        cell.EnsureStyle(TableViewRow?.Content);
+        cell.ApplySelectionState();
+        cell.ApplyCurrentVisualState();
     }
 
     /// <summary>
@@ -713,7 +778,9 @@ public partial class TableViewRowPresenter : Control
 
         var column = TableView.Columns.VisibleColumns[columnIndex];
 
-        if (EnsureCell(column, columnIndex, isFrozen: columnIndex < TableView.FrozenColumnCount))
+        var frozenChanged = false;
+
+        if (EnsureCell(column, columnIndex, isFrozen: columnIndex < TableView.FrozenColumnCount, ref frozenChanged))
         {
             _cells = null;
             _scrollableCellsPanel?.InvalidateArrange();
@@ -734,9 +801,7 @@ public partial class TableViewRowPresenter : Control
         _cellsByColumn[column] = cell;
         _cells = null;
 
-        cell.EnsureStyle(TableViewRow?.Content);
-        cell.ApplySelectionState();
-        cell.ApplyCurrentVisualState();
+        ApplyCellState(cell);
     }
 
     private void DetachCell(TableViewCell cell)
