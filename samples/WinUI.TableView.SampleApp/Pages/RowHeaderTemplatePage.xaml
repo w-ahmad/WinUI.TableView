@@ -25,12 +25,30 @@
                 </Border>
             </Grid>
         </DataTemplate>
+
+        <DataTemplate x:Key="StatusHeaderTemplate"
+                      x:DataType="local:ExampleModel">
+            <Grid MinWidth="32">
+                <Ellipse Width="10"
+                         Height="10"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"
+                         StrokeThickness="1.5"
+                         Stroke="{ThemeResource ControlStrongStrokeColorDefaultBrush}" />
+                <Ellipse Width="10"
+                         Height="10"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"
+                         Fill="{ThemeResource SystemFillColorSuccessBrush}"
+                         Visibility="{x:Bind IsActive, Mode=OneWay}" />
+            </Grid>
+        </DataTemplate>
     </Page.Resources>
 
     <Grid>
         <controls:SamplePresenter x:Name="presenter"
-                                  Header="Row Header Template"
-                                  Description="Showcasing custom content in row headers, such as avatars or any other content, using RowHeaderTemplate. Row numbers need no template: set ShowRowNumbers to show each row's number in its own column.">
+                                  Header="Row Header"
+                                  Description="Showcasing custom content in row headers, such as avatars, status indicators or any other content, using RowHeaderTemplate. Row numbers need no template: set ShowRowNumbers to show each row's number in its own column.">
             <controls:SamplePresenter.Example>
                 <tv:TableView x:Name="tableView"
                               ItemsSource="{Binding Items}"
@@ -47,6 +65,7 @@
                         <x:String>None (default)</x:String>
                         <x:String>Row Number</x:String>
                         <x:String>Avatar</x:String>
+                        <x:String>Active status</x:String>
                     </RadioButtons>
                     <NumberBox Header="Row Header Width"
                                Minimum="0"
