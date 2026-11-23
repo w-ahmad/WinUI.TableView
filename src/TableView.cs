@@ -35,6 +35,7 @@ public partial class TableView : Control
     private RowDefinition? _headerRowDefinition;
     private bool _ensureColumns = true;
     private bool _isItemsSourceSuspended;
+    private bool _isRowNumbersRefreshQueued;
     private TableViewCell? _editingCell;
     private bool _isReattachingItemsSource;
     private List<object>? _selectionBeforeReattachReset;
@@ -98,6 +99,7 @@ public partial class TableView : Control
         _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
         _collectionView.ViewResetting += OnCollectionViewResetting;
         _collectionView.VectorChanged += OnCollectionViewVectorChanged;
+        _collectionView.VectorChanged += OnCollectionViewVectorChangedForRowNumbers;
         _groupStyle.CollectionChanged += delegate { RefreshGroupHeaderTemplates(); };
         Columns.ColumnPropertyChanged += OnColumnPropertyChanged;
         Columns.CollectionChanged += delegate { UpdateRowsMinWidth(); };
@@ -110,6 +112,24 @@ public partial class TableView : Control
             LastCellsHorizontalOffset = CellsHorizontalOffset;
             UpdateRowsMinWidth();
         });
+    }
+
+    /// <summary>
+    /// Refreshes the realized rows' numbers after a collection change while grouped. A grouped row's number is its
+    /// position in the full item list, which a change elsewhere shifts without re-indexing the row.
+    /// </summary>
+    private void OnCollectionViewVectorChangedForRowNumbers(IObservableVector<object> sender, IVectorChangedEventArgs args)
+    {
+        if (!ShowRowNumbers || _isRowNumbersRefreshQueued || _collectionView.GroupDescriptions.Count is 0)
+        {
+            return;
+        }
+
+        _isRowNumbersRefreshQueued = DispatcherQueue?.TryEnqueue(() =>
+        {
+            _isRowNumbersRefreshQueued = false;
+            RefreshRowNumbers();
+        }) ?? false;
     }
 
     /// <summary>
@@ -3234,6 +3254,32 @@ public partial class TableView : Control
     }
 
     /// <summary>
+    /// Gets <paramref name="row"/>'s real, stable position among all rows - unlike <see cref="TableViewRow.Index"/>,
+    /// unaffected by other rows being hidden by a collapsed ancestor group. Only worth the lookup cost while
+    /// grouping is actually active; otherwise the display index already is the real index.
+    /// </summary>
+    internal int GetRealRowIndex(TableViewRow row)
+    {
+        if (_collectionView.GroupDescriptions.Count > 0)
+        {
+            return _collectionView.IndexOfSourceItem(row.Content, row.Index);
+        }
+
+        return row.Index;
+    }
+
+    /// <summary>
+    /// Refreshes the displayed row number (and <see cref="TableViewRowHeader.Tag"/>) for every realized row.
+    /// </summary>
+    internal void RefreshRowNumbers()
+    {
+        foreach (var row in _rows)
+        {
+            row.RowPresenter?.SetRowNumber();
+        }
+    }
+
+    /// <summary>
     /// Resets the auto-calculated widths of the specified columns and recalculates them.
     /// </summary>
     /// <param name="columns">The columns to refresh. When null, all columns are refreshed.</param>
@@ -3405,6 +3451,7 @@ public partial class TableView : Control
         foreach (var row in _rows)
         {
             row.RowPresenter?.SetRowHeaderVisibility();
+            row.RowPresenter?.SetRowNumberVisibility();
         }
     }
 

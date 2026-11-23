@@ -243,6 +243,16 @@ public partial class TableView
     public static readonly DependencyProperty HeadersVisibilityProperty = DependencyProperty.Register(nameof(HeadersVisibility), typeof(TableViewHeadersVisibility), typeof(TableView), new PropertyMetadata(TableViewHeadersVisibility.All, OnRowHeadersVisibilityChanged));
 
     /// <summary>
+    /// Identifies the ShowRowNumbers dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ShowRowNumbersProperty = DependencyProperty.Register(nameof(ShowRowNumbers), typeof(bool), typeof(TableView), new PropertyMetadata(false, OnShowRowNumbersChanged));
+
+    /// <summary>
+    /// Identifies the RowNumberColumnWidth dependency property.
+    /// </summary>
+    public static readonly DependencyProperty RowNumberColumnWidthProperty = DependencyProperty.Register(nameof(RowNumberColumnWidth), typeof(double), typeof(TableView), new PropertyMetadata(0d, OnRowNumberColumnWidthChanged));
+
+    /// <summary>
     /// Identifies the RowHeaderContent dependency property.
     /// </summary>
     public static readonly DependencyProperty RowHeaderTemplateProperty = DependencyProperty.Register(nameof(RowHeaderTemplate), typeof(DataTemplate), typeof(TableView), new PropertyMetadata(null, OnRowHeaderTemplateChanged));
@@ -913,6 +923,21 @@ public partial class TableView
     }
 
     /// <summary>
+    /// Gets or sets a value indicating whether each row shows its number in the row header area.
+    /// </summary>
+    public bool ShowRowNumbers
+    {
+        get => (bool)GetValue(ShowRowNumbersProperty);
+        set => SetValue(ShowRowNumbersProperty, value);
+    }
+
+    /// <summary>
+    /// Gets the synchronized width of the row number column, shared across every row so that numbers of
+    /// differing digit counts don't leave each row's cells starting at a different horizontal position.
+    /// </summary>
+    public double RowNumberColumnWidth => (double)GetValue(RowNumberColumnWidthProperty);
+
+    /// <summary>
     /// Gets or sets the data template for the row header.
     /// </summary>
     public DataTemplate? RowHeaderTemplate
@@ -1404,6 +1429,44 @@ public partial class TableView
             tableView.SetHeadersVisibility();
             tableView._headerRow?.SetCellsHorizontalOffset();
             tableView.UpdateHorizontalScrollBarMargin();
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the ShowRowNumbers property.
+    /// </summary>
+    private static void OnShowRowNumbersChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            // Reset rather than carry over a width computed against a previous, possibly differently-sized
+            // dataset the last time the feature was on.
+            tableView.SetValue(RowNumberColumnWidthProperty, 0d);
+
+            foreach (var row in tableView._rows)
+            {
+                row.RowPresenter?.SetRowNumberVisibility();
+                row.RowPresenter?.SetRowNumber();
+                row.RowPresenter?.SetRowNumberWidth();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the RowNumberColumnWidth property - deferred (see <see cref="OnRowHeaderWidthChanged"/>
+    /// for why) so broadcasting the new shared width back to every row's <c>RowNumberText</c> never mutates
+    /// another row's layout mid-measure.
+    /// </summary>
+    private static async void OnRowNumberColumnWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            await Task.Yield();
+
+            foreach (var row in tableView._rows)
+            {
+                row.RowPresenter?.SetRowNumberWidth();
+            }
         }
     }
 

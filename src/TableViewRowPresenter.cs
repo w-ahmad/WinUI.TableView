@@ -24,6 +24,9 @@ namespace WinUI.TableView;
 public partial class TableViewRowPresenter : Control
 {
     private TableViewRowHeader? _rowHeader;
+    private TextBlock? _rowNumberText;
+    private double _rowNumberMinWidth;
+    private int _rowNumber = int.MinValue;
     private Panel? _rootPanel;
     private StackPanel? _scrollableCellsPanel;
     private StackPanel? _frozenCellsPanel;
@@ -66,6 +69,9 @@ public partial class TableViewRowPresenter : Control
         }
 
         _rowHeader = GetTemplateChild("RowHeader") as TableViewRowHeader;
+        _rowNumberText = GetTemplateChild("RowNumberText") as TextBlock;
+        _rowNumberMinWidth = _rowNumberText?.MinWidth ?? 0d;
+        _rowNumber = int.MinValue;
         _rootPanel = GetTemplateChild("RootPanel") as Panel;
         _scrollableCellsPanel = GetTemplateChild("ScrollableCellsPanel") as StackPanel;
         _frozenCellsPanel = GetTemplateChild("FrozenCellsPanel") as StackPanel;
@@ -102,6 +108,8 @@ public partial class TableViewRowPresenter : Control
         SetRowDetailsVisibility();
         SetRowDetailsTemplate();
         SetGroupIndent();
+        SetRowNumberVisibility();
+        SetRowNumberWidth();
         IsTemplateApplied = true;
 
         // A new row is prepared before this template exists, so its per-item visuals are applied now.
@@ -212,7 +220,21 @@ public partial class TableViewRowPresenter : Control
 
         LimitDetailsToViewport();
 
-        return base.MeasureOverride(availableSize);
+        var result = base.MeasureOverride(availableSize);
+
+        // Rows measure their number independently; the widest one sets the width they all share.
+        if (TableView is { ShowRowNumbers: true } tableView && _rowNumberText is { Visibility: Visibility.Visible })
+        {
+            var margin = _rowNumberText.Margin;
+            var width = _rowNumberText.DesiredSize.Width - margin.Left - margin.Right;
+
+            if (width > tableView.RowNumberColumnWidth)
+            {
+                tableView.SetValue(TableView.RowNumberColumnWidthProperty, width);
+            }
+        }
+
+        return result;
     }
 
     // Rows are measured at an unbounded width; wide details stay within the viewport instead of widening the row.
@@ -438,13 +460,22 @@ public partial class TableViewRowPresenter : Control
     /// <summary>
     /// Sets the widths of the row header column.
     /// </summary>
+    // Until the shared width is known a header takes its own content's width, so its row never shows it collapsed.
+    private static double GetRowHeaderWidth(TableView tableView)
+    {
+        if (!double.IsNaN(tableView.RowHeaderWidth))
+        {
+            return tableView.RowHeaderWidth;
+        }
+
+        return tableView.RowHeaderActualWidth > 0d ? tableView.RowHeaderActualWidth : double.NaN;
+    }
+
     internal void SetRowHeaderWidth()
     {
         if (_rowHeader is not null && TableView is not null)
         {
-            var headerWidth = TableView.RowHeaderWidth is double.NaN ? TableView.RowHeaderActualWidth : TableView.RowHeaderWidth;
-
-            _rowHeader.Width = headerWidth;
+            _rowHeader.Width = GetRowHeaderWidth(TableView);
             _rowHeader.MinWidth = TableView.RowHeaderMinWidth;
             _rowHeader.MaxWidth = TableView.RowHeaderMaxWidth;
 
@@ -469,9 +500,7 @@ public partial class TableViewRowPresenter : Control
             return;
         }
 
-        var headerWidth = TableView.RowHeaderWidth is double.NaN ? TableView.RowHeaderActualWidth : TableView.RowHeaderWidth;
-
-        if (_rowHeader.Width != headerWidth
+        if (!_rowHeader.Width.Equals(GetRowHeaderWidth(TableView))
             || _rowHeader.MinWidth != TableView.RowHeaderMinWidth
             || _rowHeader.MaxWidth != TableView.RowHeaderMaxWidth)
         {
@@ -503,6 +532,69 @@ public partial class TableViewRowPresenter : Control
             }
 
             EnsurePresenterGridLines();
+        }
+    }
+
+    /// <summary>
+    /// Shows the row number when <see cref="TableView.ShowRowNumbers"/> is set and row headers are visible.
+    /// </summary>
+    internal void SetRowNumberVisibility()
+    {
+        if (_rowNumberText is not null && TableView is not null)
+        {
+            var areHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
+            var visibility = TableView.ShowRowNumbers && areHeadersVisible ? Visibility.Visible : Visibility.Collapsed;
+
+            if (_rowNumberText.Visibility != visibility)
+            {
+                _rowNumberText.Visibility = visibility;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Sets the displayed row number and <see cref="TableViewRowHeader.Tag"/>, which a custom
+    /// <see cref="TableView.RowHeaderTemplate"/> can bind to whether or not the number is shown.
+    /// </summary>
+    internal void SetRowNumber()
+    {
+        if (TableView is null || TableViewRow is null) return;
+
+        // A pooled row missed any change made while it was released.
+        SetRowNumberVisibility();
+        SetRowNumberWidth();
+
+        var rowNumber = TableViewRow.RowNumber;
+
+        if (rowNumber == _rowNumber) return;
+
+        _rowNumber = rowNumber;
+
+        if (_rowHeader is not null)
+        {
+            _rowHeader.Tag = rowNumber;
+        }
+
+        if (_rowNumberText is not null)
+        {
+            _rowNumberText.Text = rowNumber > 0 ? rowNumber.ToString() : string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// Applies the width shared by every row's number, so a wider number does not shift only its own row's cells.
+    /// </summary>
+    internal void SetRowNumberWidth()
+    {
+        if (_rowNumberText is not null && TableView is not null)
+        {
+            // A minimum, not a fixed width, so a number wider than the shared width still measures in full.
+            var minWidth = Math.Max(_rowNumberMinWidth, TableView.RowNumberColumnWidth);
+
+            if (_rowNumberText.MinWidth != minWidth)
+            {
+                _rowNumberText.MinWidth = minWidth;
+            }
         }
     }
 

@@ -11,16 +11,6 @@
       DataContextChanged="OnDataContextChanged">
 
     <Page.Resources>
-        <DataTemplate x:Key="RowNumberHeaderTemplate"
-                      x:DataType="local:ExampleModel">
-            <Border MinWidth="40">
-                <TextBlock Text="{x:Bind Id}"
-                           Opacity="0.6"
-                           FontSize="12"
-                           HorizontalAlignment="Center" />
-            </Border>
-        </DataTemplate>
-
         <DataTemplate x:Key="AvatarHeaderTemplate"
                       x:DataType="local:ExampleModel">
             <Grid MinWidth="48"
@@ -35,11 +25,30 @@
                 </Border>
             </Grid>
         </DataTemplate>
+
+        <DataTemplate x:Key="StatusHeaderTemplate"
+                      x:DataType="local:ExampleModel">
+            <Grid MinWidth="32">
+                <Ellipse Width="10"
+                         Height="10"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"
+                         StrokeThickness="1.5"
+                         Stroke="{ThemeResource ControlStrongStrokeColorDefaultBrush}" />
+                <Ellipse Width="10"
+                         Height="10"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"
+                         Fill="{ThemeResource SystemFillColorSuccessBrush}"
+                         Visibility="{x:Bind IsActive, Mode=OneWay}" />
+            </Grid>
+        </DataTemplate>
     </Page.Resources>
 
     <Grid>
-        <controls:SamplePresenter Header="Row Header Template"
-                                  Description="Showcasing custom content in row headers, such as row numbers, avatars, or any other content, using RowHeaderTemplate.">
+        <controls:SamplePresenter x:Name="presenter"
+                                  Header="Row Header"
+                                  Description="Showcasing custom content in row headers, such as avatars, status indicators or any other content, using RowHeaderTemplate. Row numbers need no template: set ShowRowNumbers to show each row's number in its own column.">
             <controls:SamplePresenter.Example>
                 <tv:TableView x:Name="tableView"
                               ItemsSource="{Binding Items}"
@@ -48,14 +57,48 @@
             </controls:SamplePresenter.Example>
             <controls:SamplePresenter.Options>
                 <StackPanel Spacing="16"
-                            MinWidth="200">
+                            MinWidth="200"
+                            MaxWidth="260">
                     <RadioButtons x:Name="rowHeaderContent"
                                   Header="Row Header Content"
                                   SelectedIndex="2"
                                   SelectionChanged="OnRowHeaderContentChanged">
-                        <x:String>None (default)</x:String>
-                        <x:String>Row Number</x:String>
-                        <x:String>Avatar</x:String>
+                        <RadioButton AutomationProperties.Name="None (default)">
+                            <StackPanel>
+                                <TextBlock Text="None (default)" />
+                                <TextBlock Text="Empty row headers."
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </RadioButton>
+                        <RadioButton AutomationProperties.Name="Row Number">
+                            <StackPanel>
+                                <TextBlock Text="Row Number" />
+                                <TextBlock Text="Built in: set ShowRowNumbers. No template needed."
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </RadioButton>
+                        <RadioButton AutomationProperties.Name="Avatar">
+                            <StackPanel>
+                                <TextBlock Text="Avatar" />
+                                <TextBlock Text="RowHeaderTemplate showing an image from the item."
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </RadioButton>
+                        <RadioButton AutomationProperties.Name="Active status">
+                            <StackPanel>
+                                <TextBlock Text="Active status" />
+                                <TextBlock Text="RowHeaderTemplate bound to IsActive. Updates as the value changes."
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </RadioButton>
                     </RadioButtons>
                     <NumberBox Header="Row Header Width"
                                Minimum="0"

@@ -266,7 +266,7 @@ async function recordControls(page, navigate) {
         await page.waitForTimeout(1000);
         await page.keyboard.press("Escape");
     }
-    for (const name of ["Row Header Template", "Row Details", "Compact Sizing"]) {
+    for (const name of ["Row Header", "Row Details", "Compact Sizing"]) {
         if (!await navigate(name)) continue;
         if (name === "Row Details") await page.mouse.click(350, 185); // expand a details row
         await wheel(page, 10);

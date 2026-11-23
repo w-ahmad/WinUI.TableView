@@ -110,7 +110,7 @@ public static class SampleCatalog
             "Show or hide the column headers and the row headers."),
         new("Corner Button", "", typeof(CornerButtonPage),
             "Choose what the top-left corner button does: select all, options, or nothing."),
-        new("Row Header Template", "", typeof(RowHeaderTemplatePage),
+        new("Row Header", "", typeof(RowHeaderTemplatePage),
             "Put row numbers, avatars or any content in the row headers."),
         new("Row Details", "", typeof(RowDetailsPage),
             "Expand a row to show a details section under it."));
