@@ -461,6 +461,96 @@ public class TableViewColumnVirtualizationTests
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }
 
+    [UITestMethod]
+    public async Task ColumnAddedTwice_HasACellAndAHeaderInBothPlaces()
+    {
+        var tableView = new TableView { Width = 500, Height = 300, AutoGenerateColumns = false };
+        var name = new TableViewTextColumn
+        {
+            Header = "Name",
+            Width = new GridLength(ColumnWidth),
+            Binding = new Binding { Path = new PropertyPath(nameof(HostItem.Name)) }
+        };
+        var category = new TableViewTextColumn
+        {
+            Header = "Category",
+            Width = new GridLength(ColumnWidth),
+            Binding = new Binding { Path = new PropertyPath(nameof(HostItem.Category)) }
+        };
+
+        tableView.Columns.Add(name);
+        tableView.Columns.Add(category);
+        tableView.Columns.Add(name);
+        tableView.ItemsSource = new List<HostItem> { new() { Id = 1, Name = "Item 1", Category = "Category 1" } };
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        tableView.UpdateLayout();
+
+        var row = Rows(tableView)[0];
+        var cells = row.Cells;
+
+        Assert.AreEqual(3, cells.Count);
+        Assert.AreSame(name, cells[0].Column);
+        Assert.AreSame(category, cells[1].Column);
+        Assert.AreSame(name, cells[2].Column);
+        Assert.AreNotSame(cells[0], cells[2]);
+        Assert.AreSame(cells[0], row.GetCell(0));
+        Assert.AreSame(cells[2], row.GetCell(2));
+        Assert.AreEqual(2 * ColumnWidth, cells[2].TransformToVisual(cells[0]).TransformPoint(default).X, 0.5);
+
+        var headers = tableView.HeaderRow!.Headers;
+
+        Assert.AreEqual(3, headers.Count);
+        Assert.AreSame(headers[0], name.HeaderControl);
+        Assert.AreSame(name, headers[2].Column);
+
+        name.Width = new GridLength(150);
+        tableView.UpdateLayout();
+
+        Assert.AreEqual(150d, cells[0].ActualWidth, 0.5);
+        Assert.AreEqual(150d, cells[2].ActualWidth, 0.5);
+        Assert.AreEqual(150d, headers[2].ActualWidth, 0.5);
+
+        tableView.Columns.RemoveAt(0);
+        tableView.UpdateLayout();
+
+        Assert.AreEqual(2, row.Cells.Count);
+        Assert.AreSame(category, row.Cells[0].Column);
+        Assert.AreSame(name, row.Cells[1].Column);
+        Assert.AreEqual(2, tableView.HeaderRow!.Headers.Count);
+        Assert.IsNotNull(name.HeaderControl);
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task ColumnAddedTwice_InAWideTable_GetsItsSecondCellWhenScrolledTo()
+    {
+        var tableView = await CreateTableViewAsync();
+        var first = tableView.Columns[0];
+
+        tableView.Columns.Add(first);
+        tableView.UpdateLayout();
+
+        var row = Rows(tableView).OrderBy(x => x.Index).First();
+
+        Assert.IsNotNull(row.GetCell(0));
+        Assert.IsNull(row.GetCell(ColumnCount), "the second place is out of view");
+
+        await tableView.ScrollCellIntoView(new TableViewCellSlot(0, ColumnCount));
+        tableView.UpdateLayout();
+        tableView.CompleteColumnJump();
+        tableView.UpdateLayout();
+
+        var cell = row.GetCell(ColumnCount);
+
+        Assert.IsNotNull(cell);
+        Assert.AreSame(first, cell.Column);
+        Assert.AreEqual(1, row.Cells.Count(x => x.Column == first), "the first place is out of view now");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
     private static List<TableViewRow> Rows(TableView tableView)
     {
         return [.. tableView.FindDescendants().OfType<TableViewRow>().Where(x => x.IsLoaded)];

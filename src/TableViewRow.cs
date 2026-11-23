@@ -107,8 +107,8 @@ public partial class TableViewRow : ContentControl
     /// </summary>
     internal TableViewCell? GetCell(int columnIndex)
     {
-        return TableView?.Columns.VisibleColumns is { } columns && columnIndex >= 0 && columnIndex < columns.Count
-            ? GetCell(columns[columnIndex])
+        return TableView?.Columns is TableViewColumnsCollection { VisibleColumns: { } columns } collection && columnIndex >= 0 && columnIndex < columns.Count
+            ? RowPresenter?.GetCell(columns[columnIndex], collection.GetColumnOccurrence(columnIndex))
             : null;
     }
 
@@ -518,6 +518,17 @@ public partial class TableViewRow : ContentControl
             if (GetCell(e.Column) is { } cell)
             {
                 cell.Width = e.Column.ActualWidth;
+            }
+
+            if (TableView?.Columns is TableViewColumnsCollection { HasDuplicateColumns: true })
+            {
+                foreach (var other in Cells)
+                {
+                    if (other.Column == e.Column && other.ColumnOccurrence > 0)
+                    {
+                        other.Width = e.Column.ActualWidth;
+                    }
+                }
             }
         }
         else if (e.PropertyName is nameof(TableViewColumn.IsReadOnly))

@@ -39,7 +39,7 @@ public partial class TableViewRowPresenter : Control
     private RectangleGeometry? _detailsPanelClip;
     private RectangleGeometry? _scrollableCellsClip;
     private TableViewCell[]? _cells;
-    private readonly Dictionary<TableViewColumn, TableViewCell> _cellsByColumn = [];
+    private readonly Dictionary<(TableViewColumn Column, int Occurrence), TableViewCell> _cellsByColumn = [];
 
     private const double MultiSelectInset = 44d;
 
@@ -182,8 +182,8 @@ public partial class TableViewRowPresenter : Control
 
             // A cell that has just been given its column is not arranged there yet; the column says where it will be.
             if (columns is not null
-                && cell is TableViewCell { Column: { } column }
-                && columns.GetVisibleColumnIndex(column) is >= 0 and var index)
+                && cell is TableViewCell { Column: { } column } columnCell
+                && columns.GetVisibleColumnIndex(column, columnCell.ColumnOccurrence) is >= 0 and var index)
             {
                 x = columns.GetVisibleColumnOffset(index) - firstOffset;
                 right = columns.GetVisibleColumnOffset(index + 1) - firstOffset;
@@ -639,7 +639,7 @@ public partial class TableViewRowPresenter : Control
 
         foreach (var cell in Cells)
         {
-            var index = cell.Column is { } column ? columns.GetVisibleColumnIndex(column) : -1;
+            var index = cell.Column is { } column ? columns.GetVisibleColumnIndex(column, cell.ColumnOccurrence) : -1;
             var isWanted = index >= 0 && (index < frozenCount || (index >= first && index <= last) || index == pinned);
 
             if (!isWanted || cell.IsInFrozenPanel != (index < frozenCount))
@@ -655,10 +655,7 @@ public partial class TableViewRowPresenter : Control
 
         foreach (var cell in _leavingCells)
         {
-            if (cell.Column is { } column && _cellsByColumn.TryGetValue(column, out var current) && ReferenceEquals(current, cell))
-            {
-                _cellsByColumn.Remove(column);
-            }
+            Forget(cell);
         }
 
         for (var i = 0; i < frozenCount; i++)
@@ -720,7 +717,9 @@ public partial class TableViewRowPresenter : Control
     /// </summary>
     private bool EnsureCell(TableViewColumn column, int index, bool isFrozen, ref bool frozenChanged)
     {
-        if (TableViewRow is null || _cellsByColumn.ContainsKey(column))
+        var occurrence = TableView?.Columns is TableViewColumnsCollection columns ? columns.GetColumnOccurrence(index) : 0;
+
+        if (TableViewRow is null || _cellsByColumn.ContainsKey((column, occurrence)))
         {
             return false;
         }
@@ -732,8 +731,9 @@ public partial class TableViewRowPresenter : Control
             if (leaving.IsInFrozenPanel == isFrozen)
             {
                 _leavingCells.RemoveAt(i);
+                leaving.ColumnOccurrence = occurrence;
                 leaving.Reuse(column, index, wasDetached: false);
-                _cellsByColumn[column] = leaving;
+                _cellsByColumn[(column, occurrence)] = leaving;
                 ApplyCellState(leaving);
 
                 return true;
@@ -746,11 +746,13 @@ public partial class TableViewRowPresenter : Control
         {
             cell = _spareCells[^1];
             _spareCells.RemoveAt(_spareCells.Count - 1);
+            cell.ColumnOccurrence = occurrence;
             cell.Reuse(column, index, wasDetached: true);
         }
         else
         {
             cell = TableViewRow.CreateCell(column, index);
+            cell.ColumnOccurrence = occurrence;
         }
 
         frozenChanged |= isFrozen;
@@ -786,7 +788,18 @@ public partial class TableViewRowPresenter : Control
             _scrollableCellsPanel?.InvalidateArrange();
         }
 
-        return GetCell(column);
+        return GetCell(column, ((TableViewColumnsCollection)TableView.Columns).GetColumnOccurrence(columnIndex));
+    }
+
+    // Takes a cell out of the lookup, unless another cell has taken its place there.
+    private void Forget(TableViewCell cell)
+    {
+        if (cell.Column is { } column
+            && _cellsByColumn.TryGetValue((column, cell.ColumnOccurrence), out var current)
+            && ReferenceEquals(current, cell))
+        {
+            _cellsByColumn.Remove((column, cell.ColumnOccurrence));
+        }
     }
 
     private void AttachCell(TableViewCell cell, bool isFrozen)
@@ -798,7 +811,7 @@ public partial class TableViewRowPresenter : Control
 
         cell.IsInFrozenPanel = isFrozen;
         (isFrozen ? _frozenCellsPanel : _scrollableCellsPanel)?.Children.Add(cell);
-        _cellsByColumn[column] = cell;
+        _cellsByColumn[(column, cell.ColumnOccurrence)] = cell;
         _cells = null;
 
         ApplyCellState(cell);
@@ -807,11 +820,7 @@ public partial class TableViewRowPresenter : Control
     private void DetachCell(TableViewCell cell)
     {
         (cell.IsInFrozenPanel ? _frozenCellsPanel : _scrollableCellsPanel)?.Children.Remove(cell);
-
-        if (cell.Column is { } column && _cellsByColumn.TryGetValue(column, out var current) && ReferenceEquals(current, cell))
-        {
-            _cellsByColumn.Remove(column);
-        }
+        Forget(cell);
 
         _cells = null;
     }
@@ -868,7 +877,7 @@ public partial class TableViewRowPresenter : Control
     {
         if (TableView is null || cell is not { Column: { } column } || _frozenCellsPanel is null || _scrollableCellsPanel is null) return;
 
-        if (_cellsByColumn.TryGetValue(column, out var existing))
+        if (_cellsByColumn.TryGetValue((column, cell.ColumnOccurrence), out var existing))
         {
             DetachCell(existing);
         }
@@ -912,9 +921,9 @@ public partial class TableViewRowPresenter : Control
     /// <summary>
     /// Gets the cell the row shows for a column, or null when it has none.
     /// </summary>
-    internal TableViewCell? GetCell(TableViewColumn column)
+    internal TableViewCell? GetCell(TableViewColumn column, int occurrence = 0)
     {
-        return _cellsByColumn.TryGetValue(column, out var cell) ? cell : null;
+        return _cellsByColumn.TryGetValue((column, occurrence), out var cell) ? cell : null;
     }
 
     /// <summary>
@@ -931,7 +940,7 @@ public partial class TableViewRowPresenter : Control
 
             int GetOrder(TableViewCell cell)
             {
-                return cell.Column is { } column && columns.GetVisibleColumnIndex(column) is >= 0 and var index ? index : int.MaxValue;
+                return cell.Column is { } column && columns.GetVisibleColumnIndex(column, cell.ColumnOccurrence) is >= 0 and var index ? index : int.MaxValue;
             }
         }
 

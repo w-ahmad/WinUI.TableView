@@ -23,6 +23,8 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
     private double[]? _visibleColumnOffsets;
     private double[]? _estimatedColumnOffsets;
     private Dictionary<TableViewColumn, int>? _visibleColumnIndexes;
+    private Dictionary<(TableViewColumn Column, int Occurrence), int>? _duplicateColumnIndexes;
+    private Dictionary<int, int>? _duplicateColumnOccurrences;
 
     /// <inheritdoc/>
     public event EventHandler<TableViewColumnPropertyChangedEventArgs>? ColumnPropertyChanged;
@@ -228,23 +230,71 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
     /// <summary>
     /// Gets the index of a column among the visible columns, or -1 when it is not one of them.
     /// </summary>
-    internal int GetVisibleColumnIndex(TableViewColumn column)
+    /// <param name="column">The column.</param>
+    /// <param name="occurrence">Which of its places, for a column that is in the collection more than once.</param>
+    internal int GetVisibleColumnIndex(TableViewColumn column, int occurrence = 0)
+    {
+        var indexes = EnsureVisibleColumnIndexes();
+
+        if (occurrence > 0)
+        {
+            return _duplicateColumnIndexes is { } duplicates && duplicates.TryGetValue((column, occurrence), out var place) ? place : -1;
+        }
+
+        return indexes.TryGetValue(column, out var index) ? index : -1;
+    }
+
+    /// <summary>
+    /// Gets which place of its column a visible index is: 0, unless the column is in the collection more than once.
+    /// </summary>
+    internal int GetColumnOccurrence(int visibleIndex)
+    {
+        EnsureVisibleColumnIndexes();
+
+        return _duplicateColumnOccurrences is { } occurrences && occurrences.TryGetValue(visibleIndex, out var occurrence) ? occurrence : 0;
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether a column is among the visible columns more than once.
+    /// </summary>
+    internal bool HasDuplicateColumns
+    {
+        get
+        {
+            EnsureVisibleColumnIndexes();
+
+            return _duplicateColumnOccurrences is not null;
+        }
+    }
+
+    private Dictionary<TableViewColumn, int> EnsureVisibleColumnIndexes()
     {
         if (_visibleColumnIndexes is null)
         {
             var columns = VisibleColumns;
             var indexes = new Dictionary<TableViewColumn, int>(columns.Count);
+            Dictionary<TableViewColumn, int>? counts = null;
+
+            _duplicateColumnIndexes = null;
+            _duplicateColumnOccurrences = null;
 
             for (var i = 0; i < columns.Count; i++)
             {
-                // A column added twice goes by its first place.
-                indexes.TryAdd(columns[i], i);
+                var column = columns[i];
+
+                if (!indexes.TryAdd(column, i))
+                {
+                    counts ??= [];
+                    var occurrence = counts[column] = counts.TryGetValue(column, out var seen) ? seen + 1 : 1;
+                    (_duplicateColumnIndexes ??= [])[(column, occurrence)] = i;
+                    (_duplicateColumnOccurrences ??= [])[i] = occurrence;
+                }
             }
 
             _visibleColumnIndexes = indexes;
         }
 
-        return _visibleColumnIndexes.TryGetValue(column, out var index) ? index : -1;
+        return _visibleColumnIndexes;
     }
 
     /// <summary>

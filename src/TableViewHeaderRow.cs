@@ -39,7 +39,7 @@ public partial class TableViewHeaderRow : Control
     private FrameworkElement? _h_gridLine;
     private Panel? _frozenHeadersPanel; // a custom template may use a StackPanel for either
     private Panel? _scrollableHeadersPanel;
-    private readonly Dictionary<TableViewColumn, TableViewColumnHeader> _headersByColumn = [];
+    private readonly Dictionary<(TableViewColumn Column, int Occurrence), TableViewColumnHeader> _headersByColumn = [];
     private readonly List<TableViewColumnHeader> _leavingHeaders = [];
     private Border? _columnDropIndicator;
     private TranslateTransform? _columnDropIndicatorTransform;
@@ -188,8 +188,8 @@ public partial class TableViewHeaderRow : Control
 
             // A header that has just been given its column is not arranged there yet; the column says where it will be.
             if (columns is not null
-                && header is TableViewColumnHeader { Column: { } column }
-                && columns.GetVisibleColumnIndex(column) is >= 0 and var index)
+                && header is TableViewColumnHeader { Column: { } column } columnHeader
+                && columns.GetVisibleColumnIndex(column, columnHeader.ColumnOccurrence) is >= 0 and var index)
             {
                 x = columns.GetVisibleColumnOffset(index) - firstOffset;
                 right = columns.GetVisibleColumnOffset(index + 1) - firstOffset;
@@ -238,6 +238,20 @@ public partial class TableViewHeaderRow : Control
             if (!_calculatingHeaderWidths)
             {
                 CalculateHeaderWidths();
+            }
+        }
+        else if (e.PropertyName is nameof(TableViewColumn.ActualWidth))
+        {
+            // A column added twice is sized through its first header; the others follow.
+            if (TableView?.Columns is TableViewColumnsCollection { HasDuplicateColumns: true })
+            {
+                foreach (var header in _headersByColumn.Values)
+                {
+                    if (header.Column == e.Column && header.ColumnOccurrence > 0 && header.Width != e.Column.ActualWidth)
+                    {
+                        header.Width = e.Column.ActualWidth;
+                    }
+                }
             }
         }
         else if (e.PropertyName is nameof(TableViewColumn.DesiredWidth))
@@ -309,7 +323,7 @@ public partial class TableViewHeaderRow : Control
 
         foreach (var header in Headers)
         {
-            var index = header.Column is { } column ? columns.GetVisibleColumnIndex(column) : -1;
+            var index = header.Column is { } column ? columns.GetVisibleColumnIndex(column, header.ColumnOccurrence) : -1;
             var isWanted = index >= 0 && (index < frozenCount || (index >= first && index <= last) || !canRemove);
 
             if (!isWanted || header.IsInFrozenPanel != (index < frozenCount))
@@ -320,18 +334,7 @@ public partial class TableViewHeaderRow : Control
 
         foreach (var header in _leavingHeaders)
         {
-            if (header.Column is { } column)
-            {
-                if (column.HeaderControl == header)
-                {
-                    column.HeaderControl = null;
-                }
-
-                if (_headersByColumn.TryGetValue(column, out var current) && ReferenceEquals(current, header))
-                {
-                    _headersByColumn.Remove(column);
-                }
-            }
+            Forget(header);
         }
 
         for (var i = 0; i < count; i++)
@@ -348,7 +351,9 @@ public partial class TableViewHeaderRow : Control
 
             var column = visibleColumns[i];
 
-            if (_headersByColumn.ContainsKey(column))
+            var occurrence = columns.GetColumnOccurrence(i);
+
+            if (_headersByColumn.ContainsKey((column, occurrence)))
             {
                 continue;
             }
@@ -363,6 +368,7 @@ public partial class TableViewHeaderRow : Control
                 {
                     header = _leavingHeaders[j];
                     _leavingHeaders.RemoveAt(j);
+                    header.ColumnOccurrence = occurrence;
                     header.Reuse(column);
                     break;
                 }
@@ -370,7 +376,7 @@ public partial class TableViewHeaderRow : Control
 
             if (header is null)
             {
-                header = new TableViewColumnHeader { DataContext = column, Column = column, Content = column.Header };
+                header = new TableViewColumnHeader { DataContext = column, Column = column, Content = column.Header, ColumnOccurrence = occurrence };
 
                 // A column that has been sized keeps its width; a new one is sized with the others.
                 if (column.ActualWidth > 0d)
@@ -381,8 +387,13 @@ public partial class TableViewHeaderRow : Control
                 AddToPanel(header, isFrozen);
             }
 
-            column.HeaderControl = header;
-            _headersByColumn[column] = header;
+            // A column added twice goes by its first header.
+            if (occurrence == 0)
+            {
+                column.HeaderControl = header;
+            }
+
+            _headersByColumn[(column, occurrence)] = header;
             changed = true;
         }
 
@@ -986,12 +997,12 @@ public partial class TableViewHeaderRow : Control
     {
         if (TableView is null || header is not { Column: { } column } || _frozenHeadersPanel is null || _scrollableHeadersPanel is null) return;
 
-        if (_headersByColumn.TryGetValue(column, out var existing) && !ReferenceEquals(existing, header))
+        if (_headersByColumn.TryGetValue((column, header.ColumnOccurrence), out var existing) && !ReferenceEquals(existing, header))
         {
             RemoveHeader(existing);
         }
 
-        _headersByColumn[column] = header;
+        _headersByColumn[(column, header.ColumnOccurrence)] = header;
         AddToPanel(header, column.IsFrozen);
         EnsureStackOrder(_frozenHeadersPanel, isFrozen: true);
         EnsureStackOrder(_scrollableHeadersPanel, isFrozen: false);
@@ -1003,6 +1014,13 @@ public partial class TableViewHeaderRow : Control
     /// <param name="header">The header to remove.</param>
     public void RemoveHeader(TableViewColumnHeader header)
     {
+        Forget(header);
+        RemoveFromPanel(header);
+    }
+
+    // Takes a header out of the lookup, unless another header has taken its place there.
+    private void Forget(TableViewColumnHeader header)
+    {
         if (header.Column is { } column)
         {
             if (column.HeaderControl == header)
@@ -1010,13 +1028,11 @@ public partial class TableViewHeaderRow : Control
                 column.HeaderControl = null;
             }
 
-            if (_headersByColumn.TryGetValue(column, out var current) && ReferenceEquals(current, header))
+            if (_headersByColumn.TryGetValue((column, header.ColumnOccurrence), out var current) && ReferenceEquals(current, header))
             {
-                _headersByColumn.Remove(column);
+                _headersByColumn.Remove((column, header.ColumnOccurrence));
             }
         }
-
-        RemoveFromPanel(header);
     }
 
     private void RemoveFromPanel(TableViewColumnHeader header)
@@ -1136,7 +1152,7 @@ public partial class TableViewHeaderRow : Control
 
                 int GetOrder(TableViewColumnHeader header)
                 {
-                    return header.Column is { } column && columns.GetVisibleColumnIndex(column) is >= 0 and var index ? index : int.MaxValue;
+                    return header.Column is { } column && columns.GetVisibleColumnIndex(column, header.ColumnOccurrence) is >= 0 and var index ? index : int.MaxValue;
                 }
             }
 

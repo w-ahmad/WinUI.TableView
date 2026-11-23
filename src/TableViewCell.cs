@@ -710,6 +710,11 @@ public partial class TableViewCell : ContentControl
     internal bool IsInFrozenPanel { get; set; }
 
     /// <summary>
+    /// Gets or sets which place of its column the cell shows; 0 unless the column was added more than once.
+    /// </summary>
+    internal int ColumnOccurrence { get; set; }
+
+    /// <summary>
     /// Takes over a column from a cell the row no longer needs for the column it had.
     /// </summary>
     /// <param name="column">The column the cell now shows.</param>

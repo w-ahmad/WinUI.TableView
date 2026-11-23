@@ -774,6 +774,11 @@ public partial class TableViewColumnHeader : ContentControl
     internal bool IsInFrozenPanel { get; set; }
 
     /// <summary>
+    /// Gets or sets which place of its column the header shows; 0 unless the column was added more than once.
+    /// </summary>
+    internal int ColumnOccurrence { get; set; }
+
+    /// <summary>
     /// Gets a value indicating whether the header is being dragged to another place.
     /// </summary>
     internal bool IsReordering => _reorderStarted;

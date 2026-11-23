@@ -38,7 +38,7 @@ public partial class TableViewCellsPanel : Panel
             stackedWidth += child.DesiredSize.Width;
             height = Math.Max(height, child.DesiredSize.Height);
 
-            if (columns is not null && GetColumn(child) is { } column && columns.GetVisibleColumnIndex(column) >= 0)
+            if (columns is not null && GetColumn(child) is { } column && GetIndex(columns, child, column) >= 0)
             {
                 shift += child.DesiredSize.Width - GetWidth(column);
             }
@@ -58,7 +58,7 @@ public partial class TableViewCellsPanel : Panel
 
         foreach (var child in Children)
         {
-            if (columns is not null && GetColumn(child) is { } column && columns.GetVisibleColumnIndex(column) is >= 0 and var index)
+            if (columns is not null && GetColumn(child) is { } column && GetIndex(columns, child, column) is >= 0 and var index)
             {
                 _placed.Add((index, child));
             }
@@ -84,6 +84,18 @@ public partial class TableViewCellsPanel : Panel
         _placed.Clear();
 
         return finalSize;
+    }
+
+    private static int GetIndex(TableViewColumnsCollection columns, UIElement element, TableViewColumn column)
+    {
+        var occurrence = element switch
+        {
+            TableViewCell cell => cell.ColumnOccurrence,
+            TableViewColumnHeader header => header.ColumnOccurrence,
+            _ => 0
+        };
+
+        return columns.GetVisibleColumnIndex(column, occurrence);
     }
 
     private static TableViewColumn? GetColumn(UIElement element)
