@@ -11,16 +11,6 @@
       DataContextChanged="OnDataContextChanged">
 
     <Page.Resources>
-        <DataTemplate x:Key="RowNumberHeaderTemplate"
-                      x:DataType="local:ExampleModel">
-            <Border MinWidth="40">
-                <TextBlock Text="{x:Bind Id}"
-                           Opacity="0.6"
-                           FontSize="12"
-                           HorizontalAlignment="Center" />
-            </Border>
-        </DataTemplate>
-
         <DataTemplate x:Key="AvatarHeaderTemplate"
                       x:DataType="local:ExampleModel">
             <Grid MinWidth="48"
@@ -38,8 +28,9 @@
     </Page.Resources>
 
     <Grid>
-        <controls:SamplePresenter Header="Row Header Template"
-                                  Description="Showcasing custom content in row headers, such as row numbers, avatars, or any other content, using RowHeaderTemplate.">
+        <controls:SamplePresenter x:Name="presenter"
+                                  Header="Row Header Template"
+                                  Description="Showcasing custom content in row headers, such as avatars or any other content, using RowHeaderTemplate. Row numbers need no template: set ShowRowNumbers to show each row's number in its own column.">
             <controls:SamplePresenter.Example>
                 <tv:TableView x:Name="tableView"
                               ItemsSource="{Binding Items}"
