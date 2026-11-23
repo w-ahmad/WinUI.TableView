@@ -254,6 +254,15 @@ public class TableViewGroupingHostTests
     }
 
     [UITestMethod]
+    public void GroupInfo_CreatedByAnApp_HasBindableKeyAndCount()
+    {
+        var group = new TableViewGroupInfo { Key = "A", Count = 2 };
+
+        Assert.AreEqual("A", group.GetValue(TableViewGroupInfo.KeyProperty));
+        Assert.AreEqual(2, group.GetValue(TableViewGroupInfo.CountProperty));
+    }
+
+    [UITestMethod]
     public async Task ShowGroupExpandCollapseButton_UpdatesRealizedHeaders()
     {
         var tableView = await CreateTableViewAsync(CreateItems(6));

@@ -64,8 +64,12 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
                 if (args.Index < _itemsCopy.Length)
                 {
                     var column = _itemsCopy[index];
-                    column.SetOwningCollection(null!);
-                    column.SetOwningTableView(null!);
+                    // A column added twice is still owned while one of them remains.
+                    if (!Contains(column))
+                    {
+                        column.SetOwningCollection(null!);
+                        column.SetOwningTableView(null!);
+                    }
                     CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, column, (int)args.Index));
                 }
                 break;

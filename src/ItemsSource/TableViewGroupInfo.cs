@@ -9,7 +9,25 @@ namespace WinUI.TableView;
 /// </summary>
 public partial class TableViewGroupInfo : DependencyObject
 {
+    private readonly object? _key;
+    private readonly int _count;
     private bool _isPublished;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TableViewGroupInfo"/> class.
+    /// </summary>
+    public TableViewGroupInfo()
+    {
+    }
+
+    /// <summary>
+    /// Creates a group whose <see cref="Key"/> and <see cref="Count"/> reach their dependency properties on demand.
+    /// </summary>
+    internal TableViewGroupInfo(object? key, int count)
+    {
+        _key = key;
+        _count = count;
+    }
 
     private static void OnIsExpandedChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
@@ -38,16 +56,32 @@ public partial class TableViewGroupInfo : DependencyObject
     /// <summary>
     /// Gets the group's key, e.g. the value of the column/property being grouped by.
     /// </summary>
-    public object? Key { get; init; }
+    public object? Key
+    {
+        get => _key;
+        init
+        {
+            _key = value;
+            SetValue(KeyProperty, value);
+        }
+    }
 
     /// <summary>
     /// Gets the number of items in this group (including all descendant subgroups/items, if any).
     /// </summary>
-    public int Count { get; init; }
+    public int Count
+    {
+        get => _count;
+        init
+        {
+            _count = value;
+            SetValue(CountProperty, value);
+        }
+    }
 
     /// <summary>
     /// Copies <see cref="Key"/> and <see cref="Count"/> to their dependency properties, which is where a binding
-    /// reads them. Deferred until the group is handed out, since every rebuild creates all groups anew.
+    /// reads them. Deferred until a group the library built is handed out, since every rebuild creates all groups anew.
     /// </summary>
     internal void PublishBindableValues()
     {

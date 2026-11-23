@@ -474,6 +474,43 @@ public class TableViewHeaderRowTests
         }
     }
 
+    [UITestMethod]
+    public async Task ColumnAddedTwice_RemovingOne_KeepsTheOtherFollowingHeaderChanges()
+    {
+        var tableView = new TableView { Width = 400, Height = 300, AutoGenerateColumns = false };
+        var column = new TableViewTextColumn
+        {
+            Header = "Name",
+            Width = new GridLength(100),
+            Binding = new Binding { Path = new PropertyPath(nameof(HeaderRowTestItem.Name)) }
+        };
+        tableView.Columns.Add(column);
+        tableView.Columns.Add(column);
+        tableView.ItemsSource = new[] { new HeaderRowTestItem { Name = "Alpha" } };
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        try
+        {
+            tableView.Columns.RemoveAt(1);
+            Assert.AreSame(tableView, column.TableView);
+            Assert.AreSame(tableView.Columns, column.OwningCollection);
+
+            column.Header = "Renamed";
+
+            var headers = tableView.FindDescendants().OfType<TableViewColumnHeader>().ToList();
+            Assert.AreEqual(1, headers.Count);
+            Assert.AreEqual("Renamed", headers[0].Content);
+
+            tableView.Columns.RemoveAt(0);
+            Assert.IsNull(column.TableView);
+            Assert.IsNull(column.OwningCollection);
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
     private static async Task<TableView> CreateTableViewAsync(int frozenColumnCount)
     {
         return await CreateTableViewAsync(frozenColumnCount, new[]

@@ -679,13 +679,11 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
             // into CollectionView.OnGroupExpandedChanged (which triggers a full group rebuild), and setting it
             // here is just restoring already-computed state, not a real toggle - assigning CollectionView first
             // would make that callback fire mid-rebuild and recurse into BuildGroupLevel until the stack overflows.
-            var groupInfo = new TableViewGroupInfo
+            var groupInfo = new TableViewGroupInfo(key, groupedItems.Count)
             {
-                Key = key,
                 Level = level,
                 GroupPath = groupPath,
                 Description = description,
-                Count = groupedItems.Count,
                 IsExpanded = isExpanded,
                 CollectionView = this,
             };

@@ -107,6 +107,32 @@ public class TableViewDateColumnTests
     }
 
     [UITestMethod]
+    public async Task TableViewDateColumn_AddedTwice_RemovingOne_KeepsTheOtherFollowingDateFormat()
+    {
+        var column = new TableViewDateColumn
+        {
+            Binding = new Binding { Path = new PropertyPath(nameof(ColumnTestItem.DueDate)) },
+            DateFormat = "shortdate"
+        };
+        var tableView = new TableView { Width = 400, Height = 300, AutoGenerateColumns = false };
+        tableView.Columns.Add(column);
+        tableView.Columns.Add(column);
+        tableView.ItemsSource = Enumerable.Range(0, 5).Select(_ => new ColumnTestItem { DueDate = new DateOnly(2024, 6, 15) }).ToList();
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        await WaitForLayoutAsync(tableView);
+
+        tableView.Columns.RemoveAt(1);
+        column.DateFormat = "longdate";
+
+        var elements = GetDisplayElements(tableView, column);
+        Assert.AreEqual(5, elements.Count);
+        Assert.IsTrue(elements.All(x => DateTimeFormatHelper.GetFormat(x) is "longdate"));
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
     public void TableViewDateColumn_UsesCustomPlaceholderAndDateTimeOffsetFallback()
     {
         var column = new TableViewDateColumn
