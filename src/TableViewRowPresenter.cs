@@ -460,13 +460,22 @@ public partial class TableViewRowPresenter : Control
     /// <summary>
     /// Sets the widths of the row header column.
     /// </summary>
+    // Until the shared width is known a header takes its own content's width, so its row never shows it collapsed.
+    private static double GetRowHeaderWidth(TableView tableView)
+    {
+        if (!double.IsNaN(tableView.RowHeaderWidth))
+        {
+            return tableView.RowHeaderWidth;
+        }
+
+        return tableView.RowHeaderActualWidth > 0d ? tableView.RowHeaderActualWidth : double.NaN;
+    }
+
     internal void SetRowHeaderWidth()
     {
         if (_rowHeader is not null && TableView is not null)
         {
-            var headerWidth = TableView.RowHeaderWidth is double.NaN ? TableView.RowHeaderActualWidth : TableView.RowHeaderWidth;
-
-            _rowHeader.Width = headerWidth;
+            _rowHeader.Width = GetRowHeaderWidth(TableView);
             _rowHeader.MinWidth = TableView.RowHeaderMinWidth;
             _rowHeader.MaxWidth = TableView.RowHeaderMaxWidth;
 
@@ -491,9 +500,7 @@ public partial class TableViewRowPresenter : Control
             return;
         }
 
-        var headerWidth = TableView.RowHeaderWidth is double.NaN ? TableView.RowHeaderActualWidth : TableView.RowHeaderWidth;
-
-        if (_rowHeader.Width != headerWidth
+        if (!_rowHeader.Width.Equals(GetRowHeaderWidth(TableView))
             || _rowHeader.MinWidth != TableView.RowHeaderMinWidth
             || _rowHeader.MaxWidth != TableView.RowHeaderMaxWidth)
         {
