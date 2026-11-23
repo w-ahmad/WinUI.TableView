@@ -73,6 +73,33 @@ public class TableViewRowHeaderWidthTests
     }
 
     [UITestMethod]
+    public async Task RowHeaderWidth_GrowsAgain_WhenTheTemplateIsRemovedAndSetAgain()
+    {
+        const string wide = "<DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'><Border Width='150' Height='10' /></DataTemplate>";
+        var tableView = CreateTableView(itemCount: 200);
+        tableView.RowHeaderTemplate = (DataTemplate)XamlReader.Load(wide);
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        await WaitForLayoutAsync(tableView);
+
+        tableView.RowHeaderTemplate = null;
+        await WaitForLayoutAsync(tableView);
+        await Task.Delay(100);
+        await WaitForLayoutAsync(tableView);
+        Assert.IsTrue(tableView.RowHeaderActualWidth < 150d, $"the headers kept the removed template's width ({tableView.RowHeaderActualWidth}px)");
+
+        tableView.RowHeaderTemplate = (DataTemplate)XamlReader.Load(wide);
+        await WaitForLayoutAsync(tableView);
+        await Task.Delay(100);
+        await WaitForLayoutAsync(tableView);
+
+        Assert.IsTrue(tableView.RowHeaderActualWidth >= 150d, $"the headers did not grow back ({tableView.RowHeaderActualWidth}px)");
+        AssertHeadersShareTheWidth(tableView);
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
     public async Task RowHeaderWidth_FollowsAFixedWidth()
     {
         var tableView = CreateTableView(itemCount: 200);

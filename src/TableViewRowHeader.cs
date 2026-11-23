@@ -35,12 +35,15 @@ public partial class TableViewRowHeader : ContentControl
     {
         if (TableView is not null && TableViewRow is not null && _contentPresenter is not null)
         {
-#if WINDOWS
-            var element = ContentTemplateRoot as FrameworkElement;
-#else
-            // Uno only exposes the template's root on the presenter that realizes it.
-            var element = (_contentPresenter as ContentPresenter)?.GetContentTemplateRoot();
-#endif
+            var element = GetTemplateRoot();
+
+            // A template that was just set has no content until the presenter measures.
+            if (element is null && ContentTemplate is not null)
+            {
+                _contentPresenter.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                element = GetTemplateRoot();
+            }
+
             element?.Measure(availableSize: new Size(double.PositiveInfinity, double.PositiveInfinity));
 
             var desiredWidth = GetContentDesiredWidth(element);
@@ -53,6 +56,16 @@ public partial class TableViewRowHeader : ContentControl
         }
 
         return base.MeasureOverride(availableSize);
+    }
+
+    private FrameworkElement? GetTemplateRoot()
+    {
+#if WINDOWS
+        return ContentTemplateRoot as FrameworkElement;
+#else
+        // Uno only exposes the template's root on the presenter that realizes it.
+        return (_contentPresenter as ContentPresenter)?.GetContentTemplateRoot();
+#endif
     }
 
     private double GetContentDesiredWidth(FrameworkElement? element)
