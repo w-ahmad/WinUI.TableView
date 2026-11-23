@@ -22,8 +22,8 @@ You do not need to opt in. Accessibility support is always active. This page exp
 
 - **`RowCount`** — number of data rows currently loaded
 - **`ColumnCount`** — number of visible columns
-- **`GetItem(row, column)`** — returns the automation element for the specified cell (only for realized, on-screen cells)
-- **`GetColumnHeaders()`** — returns automation elements for all visible column headers
+- **`GetItem(row, column)`** — returns the automation element for the specified cell, creating the row and the cell when they are not on screen
+- **`GetColumnHeaders()`** — returns automation elements for the column headers that exist, which are those of the frozen columns and the columns in or near the viewport
 - **`RowOrColumnMajor`** — always `RowMajor`
 
 ### GridItemPattern / TableItemPattern (cells)
@@ -49,7 +49,7 @@ Each `TableViewCell` exposes `IGridItemProvider` and `ITableItemProvider`:
 Rows that are scrolled out of view have no automation peer, which is normal for a virtualizing control. Clients
 reach them two ways, both of which realize the row on demand:
 
-- `IGridProvider.GetItem(row, column)` returns a cell provider for any row, on screen or not
+- `IGridProvider.GetItem(row, column)` returns a cell provider for any row and column, on screen or not
 - `IItemContainerProvider.FindItemByProperty` walks forward from a given row
 
 ### InvokePattern (column headers)
@@ -171,7 +171,7 @@ To override the automation name of a column header (for example, to provide a lo
 
 ## Notes and limitations
 
-- **Virtualized cells**: `IGridProvider.GetItem(row, column)` realizes an off-screen row on demand (see [Virtualized rows](#virtualized-rows)) and returns `null` only for an index outside `RowCount` or `ColumnCount`. Items inside a collapsed group are not rows until the group is expanded, so they are not counted in `RowCount`.
+- **Virtualized cells**: `IGridProvider.GetItem(row, column)` realizes an off-screen row on demand (see [Virtualized rows](#virtualized-rows)), and the cell of a column that is out of view sideways, and returns `null` only for an index outside `RowCount` or `ColumnCount`. A cell created this way for a column out of view stays until the table next scrolls sideways, unless it has become the current cell. A row's children are the cells that exist; its help text describes every visible column. Items inside a collapsed group are not rows until the group is expanded, so they are not counted in `RowCount`.
 - **IValueProvider on cells**: `IValueProvider` is not implemented on the cell peer. Instead, the editing element (for example, a `TextBox`) exposes `IValueProvider` while the cell is in edit mode.
 - **Custom column types**: cells in `TableViewTemplateColumn` show developer-defined content. Accessible names for those cells default to the column header and row index unless the template explicitly sets `AutomationProperties.Name`.
 - **Non-Windows platforms**: automation peers are compiled and run on all platforms (WinUI and Uno Platform). However, not all Uno Platform targets expose a full UIA tree to assistive technologies. On WebAssembly (WASM), the platform relies on ARIA attributes managed by Uno. On Desktop Skia targets, accessibility support depends on the native platform's accessibility APIs.

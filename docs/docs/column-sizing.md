@@ -131,6 +131,7 @@ Control row heights with the following `TableView` properties:
 - Star widths require the `TableView` to have a defined width (or be inside a container that constrains it). In an unconstrained panel they fall back to `Auto`.
 - [`ActualWidth`](xref:WinUI.TableView.TableViewColumn.ActualWidth) is a read-only property on each column that reflects the column's rendered width.
 - [`ColumnAutoWidthMode`](xref:WinUI.TableView.TableView.ColumnAutoWidthMode) measures visible cells only. If the widest content is in a row that has not been rendered yet (due to virtualization), the column may be narrower than expected.
+- A `Width="Auto"` column that is out of view sideways has no header or cells to measure. It takes a provisional width, and the width its content wants the first time it is scrolled into view, which can move the columns after it. See [Column virtualization](performance.md#column-virtualization).
 
 ## Related articles
 
