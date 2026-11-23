@@ -2,6 +2,7 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using WinUI.TableView.SampleApp.Helpers;
 using WinUI.TableView.SampleApp.Pages;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -33,6 +34,7 @@ public sealed partial class MainWindow : Window
     private async void RootGridLoaded(object sender, RoutedEventArgs e)
     {
         BuildNavigation();
+        ThemeHelper.Initialize();
 
         await ExampleViewModel.InitializeItemsAsync();
 
