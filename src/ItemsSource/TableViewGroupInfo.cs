@@ -9,6 +9,7 @@ namespace WinUI.TableView;
 /// </summary>
 public partial class TableViewGroupInfo : DependencyObject
 {
+    private bool _isPublished;
 
     private static void OnIsExpandedChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
@@ -37,26 +38,24 @@ public partial class TableViewGroupInfo : DependencyObject
     /// <summary>
     /// Gets the group's key, e.g. the value of the column/property being grouped by.
     /// </summary>
-    public object? Key
-    {
-        get;
-        init
-        {
-            field = value;
-            SetValue(KeyProperty, value);
-        }
-    }
+    public object? Key { get; init; }
 
     /// <summary>
     /// Gets the number of items in this group (including all descendant subgroups/items, if any).
     /// </summary>
-    public int Count
+    public int Count { get; init; }
+
+    /// <summary>
+    /// Copies <see cref="Key"/> and <see cref="Count"/> to their dependency properties, which is where a binding
+    /// reads them. Deferred until the group is handed out, since every rebuild creates all groups anew.
+    /// </summary>
+    internal void PublishBindableValues()
     {
-        get;
-        init
+        if (!_isPublished)
         {
-            field = value;
-            SetValue(CountProperty, value);
+            _isPublished = true;
+            SetValue(KeyProperty, Key);
+            SetValue(CountProperty, Count);
         }
     }
 

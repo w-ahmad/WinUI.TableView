@@ -422,6 +422,58 @@ public class TableViewHeaderRowTests
         return panel!;
     }
 
+    [UITestMethod]
+    public async Task ColumnHeader_ShowsTheColumnHeader_AndFollowsChanges()
+    {
+        var tableView = await CreateTableViewAsync(frozenColumnCount: 0);
+        try
+        {
+            var column = tableView.Columns[1];
+            Assert.AreEqual("Column 1", column.HeaderControl!.Content);
+
+            column.Header = "Renamed";
+            Assert.AreEqual("Renamed", column.HeaderControl.Content);
+
+            column.Visibility = Visibility.Collapsed;
+            column.Header = "Hidden";
+            column.Visibility = Visibility.Visible;
+            Assert.AreEqual("Hidden", column.HeaderControl!.Content);
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
+    [UITestMethod]
+    public async Task ColumnAddedTwice_BothHeadersFollowHeaderChanges()
+    {
+        var tableView = new TableView { Width = 400, Height = 300, AutoGenerateColumns = false };
+        var column = new TableViewTextColumn
+        {
+            Header = "Name",
+            Width = new GridLength(100),
+            Binding = new Binding { Path = new PropertyPath(nameof(HeaderRowTestItem.Name)) }
+        };
+        tableView.Columns.Add(column);
+        tableView.Columns.Add(column);
+        tableView.ItemsSource = new[] { new HeaderRowTestItem { Name = "Alpha" } };
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        try
+        {
+            column.Header = "Renamed";
+
+            var headers = tableView.FindDescendants().OfType<TableViewColumnHeader>().ToList();
+            Assert.AreEqual(2, headers.Count);
+            Assert.IsTrue(headers.All(x => Equals(x.Content, "Renamed")));
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
     private static async Task<TableView> CreateTableViewAsync(int frozenColumnCount)
     {
         return await CreateTableViewAsync(frozenColumnCount, new[]

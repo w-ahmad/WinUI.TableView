@@ -692,7 +692,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
 
             CollectionGroups?.Add(new CollectionViewGroup
             {
-                Group = groupInfo,
+                GroupInfo = groupInfo,
                 GroupItems = new ObservableVector<object?>(isLeafLevel && isExpanded ? groupedItems : [])
             });
 

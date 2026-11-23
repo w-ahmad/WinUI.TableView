@@ -112,6 +112,7 @@ public partial class TableView
         if (!ReferenceEquals(header.Content, group))
         {
             header.ContentTemplate = GetGroupHeaderTemplate(group, header);
+            group.PublishBindableValues();
             header.Content = group;
         }
 

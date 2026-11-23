@@ -60,10 +60,6 @@ public partial class TableViewGroupHeaderRow : ContentControl
     /// <summary>
     /// Gets the group this header currently shows.
     /// </summary>
-    /// <remarks>
-    /// Being public also puts <see cref="TableViewGroupInfo"/> in the library's XAML type metadata, which a
-    /// <c>{Binding Key}</c> in a group header template needs under Native AOT.
-    /// </remarks>
     public TableViewGroupInfo? GroupInfo => Content as TableViewGroupInfo;
 
     /// <summary>
