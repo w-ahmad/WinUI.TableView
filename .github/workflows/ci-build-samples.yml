@@ -190,12 +190,11 @@ jobs:
           ###### End of Repository/Build Configurations ######
 
   build-uno-mobile:
-    if: false # Disabled for now.
     runs-on: macos-latest
 
     strategy:
       matrix:
-        target_framework: [net10.0-android, net10.0-ios]
+        target_framework: [net10.0-android]
 
     steps:
     - name: Checkout

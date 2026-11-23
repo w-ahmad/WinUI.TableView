@@ -2,25 +2,24 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                     xmlns:local="using:WinUI.TableView"
-                    xmlns:helpers="using:WinUI.TableView.Helpers"
-                    xmlns:win="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+                    xmlns:helpers="using:WinUI.TableView.Helpers">
 
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="ms-appx:///WinUI.TableView/Themes/Resources.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
-    <win:DataTemplate x:Key="DefaultTableViewGroupHeaderTemplate">
+    <DataTemplate x:Key="DefaultTableViewGroupHeaderTemplate">
         <Grid>
             <TextBlock Text="{Binding Key}" />
             <TextBlock HorizontalAlignment="Right"
                        Text="{Binding Count}" />
         </Grid>
-    </win:DataTemplate>
+    </DataTemplate>
 
-    <win:GroupStyle x:Key="DefaultTableViewGroupStyle"
+    <GroupStyle x:Key="DefaultTableViewGroupStyle"
                 HeaderTemplate="{StaticResource DefaultTableViewGroupHeaderTemplate}" />
 
-    <win:Style x:Key="DefaultTableViewGroupHeaderRowStyle"
+    <Style x:Key="DefaultTableViewGroupHeaderRowStyle"
            TargetType="local:TableViewGroupHeaderRow">
         <Setter Property="FontFamily" Value="{ThemeResource ContentControlThemeFontFamily}" />
         <Setter Property="FontSize" Value="{ThemeResource TableViewGroupHeaderRowFontSize}" />
@@ -31,14 +30,15 @@
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="MinHeight" Value="{ThemeResource TableViewGroupHeaderRowMinHeight}" />
+        <Setter Property="IsTabStop" Value="False" />
         <Setter Property="UseSystemFocusVisuals" Value="{StaticResource UseSystemFocusVisuals}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:TableViewGroupHeaderRow">
-                    <Grid Background="{TemplateBinding Background}"
-                          BorderBrush="{TemplateBinding BorderBrush}"
-                          BorderThickness="{TemplateBinding BorderThickness}"
-                          CornerRadius="{TemplateBinding CornerRadius}">
+                    <!-- Backs the header with an opaque fill while it is pinned over scrolling rows, since the
+                         header's own background is translucent by default. -->
+                    <Border x:Name="PinnedBackground"
+                            CornerRadius="{TemplateBinding CornerRadius}">
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="ExpandCollapseStates">
                                 <VisualState x:Name="Expanded" />
@@ -49,58 +49,80 @@
                                     </VisualState.Setters>
                                 </VisualState>
                             </VisualStateGroup>
+                            <VisualStateGroup x:Name="PinStates">
+                                <VisualState x:Name="Unpinned" />
+                                <VisualState x:Name="Pinned">
+                                    <VisualState.Setters>
+                                        <Setter Target="PinnedBackground.Background"
+                                                Value="{ThemeResource TableViewGroupHeaderRowPinnedBackground}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
 
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
+                        <Grid Background="{TemplateBinding Background}"
+                              BorderBrush="{TemplateBinding BorderBrush}"
+                              BorderThickness="{TemplateBinding BorderThickness}"
+                              CornerRadius="{TemplateBinding CornerRadius}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
 
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
 
-                        <Border x:Name="IndentPlaceholder"
-                                IsHitTestVisible="False" />
+                            <Border x:Name="IndentPlaceholder"
+                                    IsHitTestVisible="False" />
                         
-                        <Button x:Name="ExpandCollapseButton"
-                                Grid.Column="1"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                Padding="4"
-                                Margin="{ThemeResource TableViewGroupHeaderRowExpanderMargin}"
-                                MinWidth="24"
-                                MinHeight="24"
-                                VerticalAlignment="Center">
-                            <FontIcon x:Name="ExpandCollapseIcon"
-                                      FontSize="12"
-                                      Glyph="&#xE70D;"
-                                      RenderTransformOrigin="0.5,0.5">
-                                <FontIcon.RenderTransform>
-                                    <RotateTransform x:Name="ExpandCollapseIconRotation" />
-                                </FontIcon.RenderTransform>
-                            </FontIcon>
-                        </Button>
+                            <Button x:Name="ExpandCollapseButton"
+                                    Grid.Column="1"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Padding="4"
+                                    Margin="{ThemeResource TableViewGroupHeaderRowExpanderMargin}"
+                                    MinWidth="24"
+                                    MinHeight="24"
+                                    VerticalAlignment="Center">
+                                <FontIcon x:Name="ExpandCollapseIcon"
+                                          FontSize="12"
+                                          Glyph="&#xE70D;"
+                                          RenderTransformOrigin="0.5,0.5">
+                                    <FontIcon.RenderTransform>
+                                        <RotateTransform x:Name="ExpandCollapseIconRotation" />
+                                    </FontIcon.RenderTransform>
+                                </FontIcon>
+                            </Button>
 
-                        <ContentPresenter x:Name="ContentPresenter"
-                                          Grid.Column="2"
-                                          Margin="{TemplateBinding Padding}"
-                                          Content="{TemplateBinding Content}"
-                                          ContentTemplate="{TemplateBinding ContentTemplate}"
-                                          ContentTransitions="{TemplateBinding ContentTransitions}"
-                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+                            <ContentPresenter x:Name="ContentPresenter"
+                                              Grid.Column="2"
+                                              Margin="{TemplateBinding Padding}"
+                                              Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                                              ContentTransitions="{TemplateBinding ContentTransitions}"
+                                              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
 
-                        <Rectangle x:Name="HorizontalGridLine"
-                                   Grid.Row="1"
-                                   Grid.ColumnSpan="3"
-                                   HorizontalAlignment="Stretch" />
-                    </Grid>
+                            <!--  The grid line is the bottom edge of a border as tall as the row, with the space below the content
+                                  kept for it. Far down a very long table, positions are kept to whole even pixels or coarser, and an
+                                  element only a pixel tall ends up with no height at all and is not drawn.  -->
+                            <Border x:Name="HorizontalGridLineSpace"
+                                    Grid.Row="1"
+                                    Grid.ColumnSpan="3"
+                                    IsHitTestVisible="False" />
+
+                            <Border x:Name="HorizontalGridLine"
+                                    Grid.RowSpan="2"
+                                    Grid.ColumnSpan="3"
+                                    IsHitTestVisible="False" />
+                        </Grid>
+                    </Border>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-    </win:Style>
+    </Style>
 
 </ResourceDictionary>

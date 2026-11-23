@@ -5,18 +5,25 @@
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>x86;x64;ARM64</Platforms>
-    <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="'$(StorePackaging)' != 'true' and '$(RuntimeIdentifier)' == ''">win-$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture.ToString().ToLowerInvariant());</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="'$(StorePackaging)' == 'true'">win-x86;win-x64;win-arm64</RuntimeIdentifiers>
     <PublishProfile Condition="Exists('Properties\PublishProfiles\win-$(Platform).pubxml')">win-$(Platform).pubxml</PublishProfile>
     <ApplicationIcon>Assets/TableView.ico</ApplicationIcon>
     <UseWinUI>true</UseWinUI>
     <WinUISDKReferences>false</WinUISDKReferences>
     <EnableMsixTooling>true</EnableMsixTooling>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PublishAot Condition="'$(Platform)' != 'x86' and '$(RuntimeIdentifier)' != 'win-x86'">true</PublishAot>
+    <CsWinRTAotWarningLevel>2</CsWinRTAotWarningLevel>
     <DefineConstants>
       DISABLE_XAML_GENERATED_BINDING_DEBUG_OUTPUT;
       DISABLE_XAML_GENERATED_BREAK_ON_UNHANDLED_EXCEPTION;
       DISABLE_XAML_GENERATED_RESOURCE_REFERENCE_DEBUG_OUTPUT;
     </DefineConstants>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <PackageType>None</PackageType>
+    <GenerateTemporaryStoreCertificate>True</GenerateTemporaryStoreCertificate>
+    <UseTableViewNuGet Condition="'$(UseTableViewNuGet)' == ''">false</UseTableViewNuGet>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,21 +38,24 @@
 
   <ItemGroup>
     <None Remove="Package.Debug.appxmanifest" />
+    <Content Update="Assets\TableView.ico" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="ColorCode.WinUI" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
-    <PackageReference Include="CommunityToolkit.WinUI.Controls.ColorPicker" />
-    <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" />
     <PackageReference Include="Microsoft.WindowsAppSDK" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools.WinApp" />
     <PackageReference Include="ClosedXML" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(UseTableViewNuGet)' != 'true'">
     <ProjectReference Include="..\..\src\WinUI.TableView.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(UseTableViewNuGet)' == 'true'">
+    <PackageReference Include="WinUI.TableView" VersionOverride="$(TableViewPackageVersion)" />
   </ItemGroup>
 
   <!--

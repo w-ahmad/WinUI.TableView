@@ -19,17 +19,12 @@ partial class CollectionView
         {
             if (field == value) return;
 
-            DetachCollectionChangedHandlers(field);
-            DetachPropertyChangedHandlers(field);
+            // Detaches from the old source, then attaches to the new one.
+            DetachFromSource();
             OnPropertyChanging();
             field = value;
 
-            AttachCollectionChangedHandlers(field);
-            AttachPropertyChangedHandlers(field);
-
-            CreateItemsCopy(field);
-
-            HandleSourceChanged();
+            AttachToSource(alwaysReset: true);
             OnPropertyChanged();
         }
     } = new List<object>();
@@ -60,7 +55,6 @@ partial class CollectionView
         set => _view[index] = value;
     }
 
-#if WINDOWS
     /// <summary>
     /// Gets the collection of group descriptions.
     /// </summary>
@@ -100,9 +94,6 @@ partial class CollectionView
             OnPropertyChanged();
         }
     }
-#else
-    public IObservableVector<object?>? CollectionGroups { get; } = null;
-#endif
 
     /// <summary>
     /// Gets or sets the current item in the view.

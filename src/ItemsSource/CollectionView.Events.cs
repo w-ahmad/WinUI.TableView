@@ -57,6 +57,15 @@ partial class CollectionView
     }
 
     /// <summary>
+    /// Raises <see cref="ViewResetting"/>. Not suppressed by a pending defer: the view is rebuilt either way, and a
+    /// listener holding indexes into it needs to know before they stop meaning anything.
+    /// </summary>
+    private void OnViewResetting()
+    {
+        ViewResetting?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
     /// Property changed event invoker
     /// </summary>
     /// <param name="propertyName">name of the property that changed</param>
@@ -103,4 +112,10 @@ partial class CollectionView
     /// Occurs when an item's property value changes.
     /// </summary>
     public event PropertyChangedEventHandler? ItemPropertyChanged;
+
+    /// <summary>
+    /// Occurs just before the view is rebuilt from scratch (the change that is then reported as a reset), while
+    /// every index into it still refers to the item it did before.
+    /// </summary>
+    internal event EventHandler? ViewResetting;
 }

@@ -1,3 +1,4 @@
+using System;
 ﻿namespace WinUI.TableView;
 
 /// <summary>
@@ -33,7 +34,13 @@ public class TableViewCellSlotRange
     /// <summary>
     /// Gets the total number of cell slots in the range.
     /// </summary>
-    public int Length => Rows * Columns;
+    /// <remarks>Limited to <see cref="int.MaxValue"/> for a range with more cells than that.</remarks>
+    public int Length => (int)Math.Min(LongLength, int.MaxValue);
+
+    /// <summary>
+    /// Gets the total number of cell slots in the range, without limit.
+    /// </summary>
+    internal long LongLength => Rows <= 0 || Columns <= 0 ? 0L : (long)Rows * Columns;
 
     /// <summary>
     /// Gets the last row index included in the range.

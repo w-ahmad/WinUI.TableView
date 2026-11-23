@@ -4,6 +4,9 @@ using System.Globalization;
 
 namespace WinUI.TableView.SampleApp;
 
+#if WINDOWS
+[WinRT.GeneratedBindableCustomProperty]
+#endif
 public partial class SalesExampleModel : ObservableObject
 {
     [ObservableProperty]

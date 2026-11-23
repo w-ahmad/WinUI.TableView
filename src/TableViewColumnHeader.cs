@@ -13,6 +13,7 @@ using Windows.UI.Core;
 using WinUI.TableView.Collections;
 using WinUI.TableView.Controls;
 using WinUI.TableView.Extensions;
+using WinUI.TableView.Helpers;
 using SD = WinUI.TableView.SortDirection;
 
 namespace WinUI.TableView;
@@ -37,8 +38,8 @@ public partial class TableViewColumnHeader : ContentControl
     private TableViewHeaderRow? _headerRow;
     private Button? _optionsButton;
     private TableViewFilterMenuFlyout? _optionsFlyout;
-    private ContentPresenter? _contentPresenter;
-    private Rectangle? _v_gridLine;
+    private FrameworkElement? _contentPresenter; // not ContentPresenter: Native AOT can wrap it as a base class
+    private FrameworkElement? _v_gridLine;
     private bool _resizeStarted;
     private double _resizeStartingWidth;
     private double _resizeStartPointerX;
@@ -97,7 +98,6 @@ public partial class TableViewColumnHeader : ContentControl
         }
     }
 
-#if WINDOWS
     /// <summary>
     /// Gets a value indicating whether the column is currently grouped.
     /// </summary>
@@ -156,7 +156,7 @@ public partial class TableViewColumnHeader : ContentControl
     /// Gets a value indicating whether this grouped column currently orders its groups by item count
     /// rather than by key.
     /// </summary>
-    private bool IsGroupSortedByCount => 
+    private bool IsGroupSortedByCount =>
         _tableView?.GroupDescriptions.OfType<ColumnGroupDescription>()
                                      .FirstOrDefault(x => x.Column == Column) is { SortMode: GroupSortMode.Count };
 
@@ -176,7 +176,6 @@ public partial class TableViewColumnHeader : ContentControl
 
         _tableView?.RefreshGrouping();
     }
-#endif
 
     /// <summary>
     /// Sorts the column in the specified direction.
@@ -209,7 +208,6 @@ public partial class TableViewColumnHeader : ContentControl
 
         if (direction is not null)
         {
-#if WINDOWS
             if (sortDescription is ColumnSortDescription && IsGrouped)
             {
                 var groupDescription = collectionView.GroupDescriptions
@@ -217,7 +215,6 @@ public partial class TableViewColumnHeader : ContentControl
 
                 groupDescription?.Direction = direction.Value;
             }
-#endif
 
             var boundColumn = Column as TableViewBoundColumn;
             Column.SortDirection = direction;
@@ -327,21 +324,19 @@ public partial class TableViewColumnHeader : ContentControl
 
     /// <summary>
     /// Computes the next sort direction for a tap/invoke on this header. A grouped column with no
-    /// independent <see cref="ColumnSortDescription"/> of its own (<see cref="HasGroupSortCompanion"/>)
+    /// independent <see cref="ColumnSortDescription"/> of its own (HasGroupSortCompanion)
     /// cycles between just <see cref="SD.Ascending"/> and <see cref="SD.Descending"/> - its order is owned
     /// entirely by its group and always needs a direction, so it never lands on the cleared/unsorted state
     /// a three-state cycle's third click does. A grouped column that still has a leftover independent sort
     /// from before it was grouped keeps three-state cycling until that description is cleared (see
-    /// <see cref="HandOffToGroupDescription"/>), at which point it falls into the two-state case above.
+    /// HandOffToGroupDescription), at which point it falls into the two-state case above.
     /// </summary>
     private SD? GetNextSortDirection()
     {
-#if WINDOWS
         if (IsGrouped)
         {
             return Column?.SortDirection == SD.Ascending ? SD.Descending : SD.Ascending;
         }
-#endif
 
         return Column?.SortDirection switch
         {
@@ -366,8 +361,8 @@ public partial class TableViewColumnHeader : ContentControl
         _headerRow = this.FindAscendant<TableViewHeaderRow>();
         _optionsButton = GetTemplateChild("OptionsButton") as Button;
         _optionsFlyout = GetTemplateChild("OptionsFlyout") as TableViewFilterMenuFlyout;
-        _contentPresenter = GetTemplateChild("ContentPresenter") as ContentPresenter;
-        _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
+        _contentPresenter = GetTemplateChild("ContentPresenter") as FrameworkElement;
+        _v_gridLine = GetTemplateChild("VerticalGridLine") as FrameworkElement;
 
         if (_tableView is null || _optionsButton is null || _optionsFlyout is null)
         {
@@ -499,6 +494,8 @@ public partial class TableViewColumnHeader : ContentControl
         if ((_resizeStarted || _resizePreviousStarted) && _resizingColumn is not null
             && _resizeTargetHeader is not null && _tableView is not null)
         {
+            if (!_resizingColumn.IsResizing) BeginResize(_resizingColumn);
+
             var delta = e.GetCurrentPoint(_headerRow).Position.X - _resizeStartPointerX;
             var minWidth = _resizingColumn.MinWidth ?? _tableView.MinColumnWidth;
             var maxWidth = _resizingColumn.MaxWidth ?? _tableView.MaxColumnWidth;
@@ -569,7 +566,6 @@ public partial class TableViewColumnHeader : ContentControl
             _resizeStartingWidth = ActualWidth;
             _resizeStartPointerX = e.GetCurrentPoint(_headerRow).Position.X;
             _activeResizeMode = _tableView.ColumnResizeMode;
-            BeginResize(Column);
             CapturePointer(e.Pointer);
         }
         else if (IsSizingCursor && IsCursorInLeftResizeArea(e) && _tableView is not null
@@ -581,7 +577,6 @@ public partial class TableViewColumnHeader : ContentControl
             _resizeStartingWidth = header.ActualWidth;
             _resizeStartPointerX = e.GetCurrentPoint(_headerRow).Position.X;
             _activeResizeMode = _tableView.ColumnResizeMode;
-            BeginResize(header.Column);
             CapturePointer(e.Pointer);
         }
         else if (_tableView?.CanReorderColumns is true && Column?.CanReorder is true)
@@ -725,8 +720,8 @@ public partial class TableViewColumnHeader : ContentControl
     {
         if (_v_gridLine is not null && _tableView is not null)
         {
-            _v_gridLine.Fill = _tableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
-                               ? _tableView.VerticalGridLinesStroke : new SolidColorBrush(Colors.Transparent);
+            GridLineSprite.SetShapeFill(_v_gridLine, _tableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                                                     ? _tableView.VerticalGridLinesStroke : SharedResources.TransparentBrush);
             _v_gridLine.Width = _tableView.VerticalGridLinesStrokeThickness;
             _v_gridLine.Visibility = _tableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
                                      || _tableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
@@ -745,12 +740,10 @@ public partial class TableViewColumnHeader : ContentControl
     /// </summary>
     public TableViewColumn? Column { get; internal set; }
 
-#if WINDOWS
     /// <summary>
     /// Gets a value indicating whether the column can be grouped.
     /// </summary>
     private bool CanGroup => _tableView?.CanGroupColumns == true && Column?.CanGroup == true;
-#endif
 
     /// <summary>
     /// Gets a value indicating whether the column can be resized.

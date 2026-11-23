@@ -4,14 +4,10 @@
       xmlns:local="using:WinUI.TableView.SampleApp"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-      xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
       mc:Ignorable="d"
       Loaded="OnPageLoaded">
 
     <Page.Resources>
-        <!-- These styles can be referenced to create a consistent SettingsPage layout -->
-        <!-- Reference SettingsExpander Page in Windows Community Toolkit Gallery for the full sample -->
-
         <!-- Spacing between cards -->
         <x:Double x:Key="SettingsCardSpacing">4</x:Double>
 
@@ -23,6 +19,32 @@
                 <Setter Property="Margin"
                         Value="1,30,0,6" />
             </Style.Setters>
+        </Style>
+
+        <!-- A settings card: an icon, a header with a description, and the setting's control at the end -->
+        <Style x:Key="SettingsCardBorderStyle"
+               TargetType="Border">
+            <Setter Property="Background"
+                    Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush"
+                    Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+            <Setter Property="BorderThickness"
+                    Value="1" />
+            <Setter Property="CornerRadius"
+                    Value="{ThemeResource ControlCornerRadius}" />
+            <Setter Property="Padding"
+                    Value="16" />
+            <Setter Property="MinHeight"
+                    Value="68" />
+        </Style>
+
+        <Style x:Key="SettingsCardDescriptionTextBlockStyle"
+               BasedOn="{StaticResource CaptionTextBlockStyle}"
+               TargetType="TextBlock">
+            <Setter Property="Foreground"
+                    Value="{ThemeResource TextFillColorSecondaryBrush}" />
+            <Setter Property="TextWrapping"
+                    Value="Wrap" />
         </Style>
     </Page.Resources>
 
@@ -47,53 +69,98 @@
             <StackPanel Spacing="{StaticResource SettingsCardSpacing}">
                 <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}"
                            Text="Appearance &amp; behavior" />
-                <toolkit:SettingsCard Description="Select which app theme to display"
-                                      Header="App theme">
-                    <toolkit:SettingsCard.HeaderIcon>
-                        <FontIcon Glyph="&#xE790;" />
-                    </toolkit:SettingsCard.HeaderIcon>
-                    <ComboBox x:Name="themeMode"
-                              SelectionChanged="OnThemeModeSelectionChanged">
-                        <ComboBoxItem Content="Light"
-                                      Tag="Light" />
-                        <ComboBoxItem Content="Dark"
-                                      Tag="Dark" />
-                        <ComboBoxItem Content="Use system setting"
-                                      Tag="Default" />
-                    </ComboBox>
-                </toolkit:SettingsCard>
+                <Border Style="{StaticResource SettingsCardBorderStyle}">
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon VerticalAlignment="Center"
+                                  FontSize="20"
+                                  Glyph="&#xE790;" />
+                        <StackPanel Grid.Column="1"
+                                    VerticalAlignment="Center">
+                            <TextBlock Text="App theme" />
+                            <TextBlock Style="{StaticResource SettingsCardDescriptionTextBlockStyle}"
+                                       Text="Select which app theme to display" />
+                        </StackPanel>
+                        <ComboBox x:Name="themeMode"
+                                  Grid.Column="2"
+                                  VerticalAlignment="Center"
+                                  AutomationProperties.Name="App theme"
+                                  SelectionChanged="OnThemeModeSelectionChanged">
+                            <ComboBoxItem Content="Light"
+                                          Tag="Light" />
+                            <ComboBoxItem Content="Dark"
+                                          Tag="Dark" />
+                            <ComboBoxItem Content="Use system setting"
+                                          Tag="Default" />
+                        </ComboBox>
+                    </Grid>
+                </Border>
 
                 <!--  About  -->
                 <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}"
                            Text="About" />
-                <toolkit:SettingsExpander Header="WinUI.TableView Sample App"
-                                          Description="A sample app to demonstrate the features available in WinUI.TableView.">
-                    <toolkit:SettingsExpander.HeaderIcon>
-                        <BitmapIcon ShowAsMonochrome="False"
-                                    UriSource="ms-appx:///Assets/TitlebarLogo.png" />
-                    </toolkit:SettingsExpander.HeaderIcon>
-                    <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                               IsTextSelectionEnabled="True"
-                               Text="{x:Bind Version}" />
-                    <toolkit:SettingsExpander.Items>
-                        <toolkit:SettingsCard Header="To clone this repository">
-                            <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                <Expander HorizontalAlignment="Stretch"
+                          HorizontalContentAlignment="Stretch"
+                          Padding="0">
+                    <Expander.Header>
+                        <Grid MinHeight="68"
+                              Padding="0,12"
+                              ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Image Width="20"
+                                   Height="20"
+                                   VerticalAlignment="Center"
+                                   Source="ms-appx:///Assets/TitlebarLogo.png" />
+                            <StackPanel Grid.Column="1"
+                                        VerticalAlignment="Center">
+                                <TextBlock Text="WinUI.TableView Sample App" />
+                                <TextBlock Style="{StaticResource SettingsCardDescriptionTextBlockStyle}"
+                                           Text="A sample app to demonstrate the features available in WinUI.TableView." />
+                            </StackPanel>
+                            <TextBlock Grid.Column="2"
+                                       VerticalAlignment="Center"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       IsTextSelectionEnabled="True"
+                                       Text="{x:Bind Version}" />
+                        </Grid>
+                    </Expander.Header>
+                    <StackPanel>
+                        <Grid Padding="52,12,16,12"
+                              ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock VerticalAlignment="Center"
+                                       Text="To clone this repository" />
+                            <TextBlock Grid.Column="1"
+                                       VerticalAlignment="Center"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                        IsTextSelectionEnabled="True"
                                        Text="git clone https://GitHub.com/w-ahmad/WinUI.TableView.SampleApp" />
-                        </toolkit:SettingsCard>
-                        <toolkit:SettingsCard HorizontalContentAlignment="Left"
-                                              ContentAlignment="Vertical"
-                                              Header="Useful links">
-                            <StackPanel Margin="-12,0,0,0"
+                        </Grid>
+                        <Border Height="1"
+                                Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+                        <StackPanel Padding="52,12,16,12">
+                            <TextBlock Text="Useful links" />
+                            <StackPanel Margin="-12,4,0,0"
                                         Orientation="Vertical">
                                 <HyperlinkButton Content="GitHub Repo"
                                                  NavigateUri="https://GitHub.com/w-ahmad/WinUI.TableView.SampleApp" />
                                 <HyperlinkButton Content="WinUI.TableView"
                                                  NavigateUri="https://GitHub.com/w-ahmad/WinUI.TableView" />
                             </StackPanel>
-                        </toolkit:SettingsCard>
-                    </toolkit:SettingsExpander.Items>
-                </toolkit:SettingsExpander>
+                        </StackPanel>
+                    </StackPanel>
+                </Expander>
             </StackPanel>
         </ScrollViewer>
     </Grid>

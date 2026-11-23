@@ -13,6 +13,7 @@ using System.Linq;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using WinUI.TableView.Extensions;
+using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
 
@@ -34,8 +35,8 @@ public partial class TableViewHeaderRow : Control
     private Button? _selectAllButton;
     private CheckBox? _selectAllCheckBox;
     private bool _isSyncingSelectAllCheckBox;
-    private Rectangle? _v_gridLine;
-    private Rectangle? _h_gridLine;
+    private FrameworkElement? _v_gridLine;
+    private FrameworkElement? _h_gridLine;
     private StackPanel? _frozenHeadersPanel;
     private StackPanel? _scrollableHeadersPanel;
     private Border? _columnDropIndicator;
@@ -43,6 +44,9 @@ public partial class TableViewHeaderRow : Control
     private Image? _dragHeaderImage;
     private DispatcherTimer? _desiredWidthTimer;
     private bool _calculatingHeaderWidths;
+    private RectangleGeometry? _scrollableHeadersClip;
+    private bool _cellsAvailableWidthPending;
+    private bool _isPaddingApplied;
     private int _dropColumnIndex;
     private bool _isValidDropTarget;
     private readonly Dictionary<DependencyProperty, long> _callbackTokens = [];
@@ -68,8 +72,8 @@ public partial class TableViewHeaderRow : Control
         _optionsButton = GetTemplateChild("optionsButton") as Button;
         _selectAllButton = GetTemplateChild("selectAllButton") as Button;
         _selectAllCheckBox = GetTemplateChild("selectAllCheckBox") as CheckBox;
-        _v_gridLine = GetTemplateChild("VerticalGridLine") as Rectangle;
-        _h_gridLine = GetTemplateChild("HorizontalGridLine") as Rectangle;
+        _v_gridLine = GetTemplateChild("VerticalGridLine") as FrameworkElement;
+        _h_gridLine = GetTemplateChild("HorizontalGridLine") as FrameworkElement;
         _frozenHeadersPanel = GetTemplateChild("FrozenHeadersPanel") as StackPanel;
         _scrollableHeadersPanel = GetTemplateChild("ScrollableHeadersPanel") as StackPanel;
         _columnDropIndicator = GetTemplateChild("ColumnDropIndicator") as Border;
@@ -100,6 +104,8 @@ public partial class TableViewHeaderRow : Control
         SetExportOptionsVisibility();
         SetCornerButtonState();
         SetHeadersVisibility();
+        SetCellsHorizontalOffset();
+        TableView.UpdateHorizontalScrollBarMargin();
         EnsureGridLines();
     }
 
@@ -112,18 +118,67 @@ public partial class TableViewHeaderRow : Control
         {
             var frozenOffset = _frozenHeadersPanel.ActualOffset.X + _frozenHeadersPanel.ActualWidth;
             var headersOffset = -TableView.HorizontalOffset + frozenOffset;
-            var xClip = (headersOffset * -1) + frozenOffset;
+            // This reduces to TableView.HorizontalOffset, which is read live from the scroll viewer,
+            // while ActualWidth is left over from the previous arrange. Narrowing a column while the
+            // view is scrolled right can therefore leave the offset past the panel's own extent, which
+            // would give the clip below a zero or negative width - not a valid rectangle, and it hides
+            // every header. Clamp it into the panel's extent so the clip is always well formed.
+            var xClip = Math.Clamp((headersOffset * -1) + frozenOffset, 0, _scrollableHeadersPanel.ActualWidth);
 
             _scrollableHeadersPanel.Arrange(new Rect(headersOffset, 0, _scrollableHeadersPanel.ActualWidth, _scrollableHeadersPanel.ActualHeight));
-            _scrollableHeadersPanel.Clip = headersOffset >= frozenOffset ? null :
-                new RectangleGeometry
-                {
-                    Rect = new Rect(xClip, 0, _scrollableHeadersPanel.ActualWidth - xClip, finalSize.Height)
-                };
+
+            if (headersOffset >= frozenOffset)
+            {
+                _scrollableHeadersPanel.Clip = null;
+            }
+            else
+            {
+                // Cached rather than reallocated: horizontal scrolling re-arranges this panel every frame
+                // (see TableView.OnHorizontalOffsetChanged).
+                _scrollableHeadersClip ??= new RectangleGeometry();
+                _scrollableHeadersClip.Rect = new Rect(xClip, 0, _scrollableHeadersPanel.ActualWidth - xClip, finalSize.Height);
+                _scrollableHeadersPanel.Clip = _scrollableHeadersClip;
+            }
+
+#if !WINDOWS
+            UpdateRenderCulling(cullHeaders: !TableView.IsColumnResizing);
+#endif
         }
 
         return finalSize;
     }
+
+#if !WINDOWS
+    /// <summary>
+    /// Shows the column headers in view and hides the scrollable ones scrolled out of view sideways (see
+    /// <see cref="TableView.UpdateRenderCulling"/>).
+    /// </summary>
+    /// <param name="cullHeaders">Whether to hide the headers out of view, rather than show every header.</param>
+    internal void UpdateRenderCulling(bool cullHeaders)
+    {
+        if (_scrollableHeadersPanel is null || _frozenHeadersPanel is null || TableView is null || ElementVisuals.AreKnownNotComposed)
+        {
+            return;
+        }
+
+        foreach (var header in _frozenHeadersPanel.Children)
+        {
+            ElementVisuals.SetInView(header, isInView: true);
+        }
+
+        // The scrollable panel is arranged at the frozen headers' right edge less the horizontal offset and clipped
+        // there, so in its own coordinates the part in view starts at the offset and runs to this row's right edge.
+        var start = TableView.HorizontalOffset;
+        var end = start + ActualWidth - (_frozenHeadersPanel.ActualOffset.X + _frozenHeadersPanel.ActualWidth);
+        cullHeaders &= ActualWidth > 0d;
+
+        foreach (var header in _scrollableHeadersPanel.Children)
+        {
+            var x = header.ActualOffset.X;
+            ElementVisuals.SetInView(header, isInView: !cullHeaders || (x + header.ActualSize.X >= start && x <= end));
+        }
+    }
+#endif
 
     /// <summary>
     /// Handles the collection changed event for the columns.
@@ -158,14 +213,14 @@ public partial class TableViewHeaderRow : Control
     {
         if (Headers.FirstOrDefault(h => h.Column == column) is { } header)
         {
-            RemoveHeader(header);
+            RemoveFromPanel(header);
             InsertHeader(header);
         }
 
         if (newIndex >= 0 && newIndex < TableView?.FrozenColumnCount &&
             _frozenHeadersPanel?.Children.OfType<TableViewColumnHeader>().LastOrDefault() is { } frozenHeader)
         {
-            RemoveHeader(frozenHeader);
+            RemoveFromPanel(frozenHeader);
             InsertHeader(frozenHeader);
         }
     }
@@ -184,6 +239,9 @@ public partial class TableViewHeaderRow : Control
             else
             {
                 RemoveHeaders([e.Column]);
+
+                // Star columns share the width the hidden column leaves; AddHeaders does this for the other direction.
+                CalculateHeaderWidths();
             }
         }
         else if ((e.PropertyName is nameof(TableViewColumn.Order) ||
@@ -214,11 +272,23 @@ public partial class TableViewHeaderRow : Control
     }
 
     /// <summary>
-    /// Recalculates header widths after deferred desired-width updates.
+    /// Recalculates header widths after deferred desired-width updates, once the view is not scrolling.
     /// </summary>
+    /// <remarks>
+    /// Applying grown widths changes every affected column's cells in every realized row, and the re-measure of
+    /// all that text lands in one or two frames - long ones, in the middle of whatever scroll let the timer
+    /// expire. The widths themselves are already up to a debounce stale, so while a scroll is in flight the
+    /// timer re-arms and the same widths are applied on a frame where nothing is moving.
+    /// </remarks>
     private void OnDesiredWidthTimerTick(object? sender, object e)
     {
         _desiredWidthTimer?.Stop();
+
+        if (TableView?.IsViewChangeInFlight is true)
+        {
+            _desiredWidthTimer?.Start();
+            return;
+        }
 
         if (!_calculatingHeaderWidths)
         {
@@ -242,6 +312,20 @@ public partial class TableViewHeaderRow : Control
             if (column.HeaderControl == header)
             {
                 column.HeaderControl = null;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Shows the column's current <see cref="TableViewColumn.Header"/> in its headers.
+    /// </summary>
+    internal void UpdateHeaderContent(TableViewColumn column)
+    {
+        foreach (var header in Headers)
+        {
+            if (header.Column == column)
+            {
+                header.Content = column.Header;
             }
         }
     }
@@ -279,11 +363,11 @@ public partial class TableViewHeaderRow : Control
             var autoColumns = allColumns.Where(x => x.Width.IsAuto).ToList();
             var absoluteColumns = allColumns.Where(x => x.Width.IsAbsolute).ToList();
 
-            var availableWidth = TableView.ActualWidth - 32;
+            var availableWidth = GetCellsAvailableWidth();
             var starUnitWeight = starColumns.Sum(x => x.Width.Value);
 
-            var fixedWidth = autoColumns.Sum(GetColumnDesiredWidth);
-            fixedWidth += absoluteColumns.Sum(x => x.ActualWidth);
+            var fixedWidth = autoColumns.Sum(x => ClampColumnWidth(x, GetColumnDesiredWidth(x)));
+            fixedWidth += absoluteColumns.Sum(x => ClampColumnWidth(x, x.Width.Value));
 
             availableWidth -= fixedWidth;
             var starUnitWidth = starUnitWeight > 0 ? availableWidth / starUnitWeight : 0;
@@ -320,6 +404,10 @@ public partial class TableViewHeaderRow : Control
             } while (starWidthAdjusted);
 
 
+            var scale = XamlRoot?.RasterizationScale ?? 1d;
+            var starEdge = 0d;
+            var starPixels = 0d;
+
             foreach (var column in allColumns)
             {
                 if (column.HeaderControl is { } header)
@@ -331,9 +419,19 @@ public partial class TableViewHeaderRow : Control
 
                     var minWidth = column.MinWidth ?? TableView.MinColumnWidth;
                     var maxWidth = column.MaxWidth ?? TableView.MaxColumnWidth;
+                    var isShared = column.Width.IsStar && width >= minWidth && width <= maxWidth;
 
                     width = width < minWidth ? minWidth : width;
                     width = width > maxWidth ? maxWidth : width;
+
+                    // Snap to whole pixels so layout rounding can't push the columns past the viewport.
+                    if (isShared)
+                    {
+                        starEdge += width * scale;
+                        width = ClampColumnWidth(column, (Math.Floor(starEdge + 0.001) - starPixels) / scale);
+                        starPixels += width * scale;
+                    }
+
                     header.Width = width;
                 }
             }
@@ -342,6 +440,68 @@ public partial class TableViewHeaderRow : Control
 
             TableView.UpdateHorizontalScrollBarMargin();
         }
+    }
+
+    /// <summary>
+    /// Limits a width to the column's minimum and maximum widths.
+    /// </summary>
+    private double ClampColumnWidth(TableViewColumn column, double width)
+    {
+        var minWidth = column.MinWidth ?? TableView?.MinColumnWidth ?? 0d;
+        var maxWidth = column.MaxWidth ?? TableView?.MaxColumnWidth ?? double.PositiveInfinity;
+
+        width = width < minWidth ? minWidth : width;
+        return width > maxWidth ? maxWidth : width;
+    }
+
+    /// <summary>
+    /// Gets the width the columns can share without overflowing the rows.
+    /// </summary>
+    private double GetCellsAvailableWidth()
+    {
+        if (TableView is null) return 0d;
+
+        var offset = TableView.CellsHorizontalOffset;
+        offset = double.IsNaN(offset) ? _cornerButtonPanel?.ActualWidth ?? 0d : offset;
+        offset += _v_gridLine?.Visibility is Visibility.Visible ? _v_gridLine.Width : 0d;
+
+        var border = TableView.BorderThickness;
+        var padding = TableView.Padding;
+
+        return Math.Max(0d, TableView.ActualWidth - border.Left - border.Right - padding.Left - padding.Right - offset);
+    }
+
+    /// <summary>
+    /// Insets the header row by the TableView's horizontal padding, which its rows are already inset by.
+    /// </summary>
+    private void ApplyTableViewPadding()
+    {
+        var padding = TableView?.Padding ?? default;
+
+        if (!_isPaddingApplied && padding.Left == 0 && padding.Right == 0) return;
+
+        Margin = new Thickness(padding.Left, 0, padding.Right, 0);
+        _isPaddingApplied = true;
+    }
+
+    /// <summary>
+    /// Handles changes to the properties that set the width left for the cells.
+    /// </summary>
+    private void OnTableViewCellsAvailableWidthChanged(DependencyObject sender, DependencyProperty dp)
+    {
+        if (dp == PaddingProperty)
+        {
+            ApplyTableViewPadding();
+        }
+
+        if (_cellsAvailableWidthPending || TableView?.Columns.VisibleColumns.Any(x => x.Width.IsStar) is not true) return;
+
+        // Deferred: the offset changes while the rows are being arranged.
+        _cellsAvailableWidthPending = DispatcherQueue.TryEnqueue(() =>
+        {
+            _cellsAvailableWidthPending = false;
+            CalculateHeaderWidths();
+        });
     }
 
     /// <summary>
@@ -453,7 +613,7 @@ public partial class TableViewHeaderRow : Control
     {
         var stateName = VisualStates.StateNoButton;
 
-        if (TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple })
+        if (TableView is { SelectionMode: ListViewSelectionMode.Multiple })
         {
             stateName = TableView.IsEditing ? VisualStates.StateSelectAllCheckBoxDisabled : VisualStates.StateSelectAllCheckBox;
         }
@@ -467,6 +627,32 @@ public partial class TableViewHeaderRow : Control
         }
 
         VisualStates.GoToState(this, false, stateName);
+    }
+
+    /// <summary>
+    /// Sets the horizontal offset of the cells in the header row based on the TableView settings.
+    /// </summary>
+    internal void SetCellsHorizontalOffset()
+    {
+        // if there are no items, we want to reset the horizontal offset
+        // so that the header row corner can take up the desired width.
+        if (TableView?.CollectionView.Count == 0)
+        {
+            if (TableView.SelectionMode is ListViewSelectionMode.Multiple)
+            {
+                TableView.CellsHorizontalOffset = double.NaN;
+            }
+            else if (TableView.HeadersVisibility is TableViewHeadersVisibility.All)
+            {
+                var rowHeaderWidth = TableView.RowHeaderWidth is double.NaN ? 0 : TableView.RowHeaderWidth;
+                TableView.CellsHorizontalOffset = Math.Min(TableView.RowHeaderMaxWidth,
+                    Math.Max(TableView.RowHeaderMinWidth, rowHeaderWidth));
+            }
+            else
+            {
+                TableView.CellsHorizontalOffset = 0;
+            }
+        }
     }
 
     /// <summary>
@@ -507,7 +693,7 @@ public partial class TableViewHeaderRow : Control
     {
         if (_h_gridLine is not null && TableView is not null)
         {
-            _h_gridLine.Fill = TableView.HorizontalGridLinesStroke;
+            GridLineSprite.SetShapeFill(_h_gridLine, TableView.HorizontalGridLinesStroke);
             _h_gridLine.Height = TableView.HorizontalGridLinesStrokeThickness;
             _h_gridLine.Visibility = TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Horizontal
                                      ? Visibility.Visible : Visibility.Collapsed;
@@ -517,13 +703,13 @@ public partial class TableViewHeaderRow : Control
                 var vGridLinesVisibility = TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
                                            || TableView.GridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical;
                 var areHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
-                var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
+                var isMultiSelection = TableView is { SelectionMode: ListViewSelectionMode.Multiple };
                 var isDetailsToggleButtonVisible = TableView.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded
                                                     && (TableView.RowDetailsTemplate is not null || TableView.RowDetailsTemplateSelector is not null);
 
 
-                _v_gridLine.Fill = TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
-                                   ? TableView.VerticalGridLinesStroke : new SolidColorBrush(Colors.Transparent);
+                GridLineSprite.SetShapeFill(_v_gridLine, TableView.HeaderGridLinesVisibility is TableViewGridLinesVisibility.All or TableViewGridLinesVisibility.Vertical
+                                                         ? TableView.VerticalGridLinesStroke : SharedResources.TransparentBrush);
                 _v_gridLine.Width = TableView.VerticalGridLinesStrokeThickness;
                 _v_gridLine.Visibility = vGridLinesVisibility && (areHeadersVisible || isMultiSelection || isDetailsToggleButtonVisible) ? Visibility.Visible : Visibility.Collapsed;
             }
@@ -566,7 +752,7 @@ public partial class TableViewHeaderRow : Control
         if (_cornerButtonPanel is not null && TableView is not null)
         {
             var areRowHeadersVisible = TableView.HeadersVisibility is TableViewHeadersVisibility.All or TableViewHeadersVisibility.Rows;
-            var isMultiSelection = TableView is ListView { SelectionMode: ListViewSelectionMode.Multiple };
+            var isMultiSelection = TableView is { SelectionMode: ListViewSelectionMode.Multiple };
             var isRowDetailExpandable = TableView.RowDetailsVisibilityMode is TableViewRowDetailsVisibilityMode.VisibleWhenExpanded;
 
             _cornerButtonPanel.Visibility = areRowHeadersVisible || isMultiSelection || isRowDetailExpandable
@@ -620,6 +806,8 @@ public partial class TableViewHeaderRow : Control
             var sourceIndex = TableView.Columns.VisibleColumns.IndexOf(column);
             var dropIndex = sourceIndex > _dropColumnIndex ? _dropColumnIndex + 1 : _dropColumnIndex;
             dropIndex = Math.Clamp(dropIndex, 0, TableView.Columns.VisibleColumns.Count - 1);
+
+            if (dropIndex == sourceIndex) return;
 
             var reorderingArgs = new TableViewColumnReorderingEventArgs(column, dropIndex);
             TableView.OnColumnReordering(reorderingArgs);
@@ -692,6 +880,11 @@ public partial class TableViewHeaderRow : Control
             header.Column.HeaderControl = null;
         }
 
+        RemoveFromPanel(header);
+    }
+
+    private void RemoveFromPanel(TableViewColumnHeader header)
+    {
         if (_frozenHeadersPanel?.Children.Contains(header) ?? false)
         {
             _frozenHeadersPanel.Children.Remove(header);
@@ -747,30 +940,40 @@ public partial class TableViewHeaderRow : Control
         {
             oldTableView.SizeChanged -= OnTableViewSizeChanged;
             oldTableView.SelectionChanged -= OnTableViewSelectionChanged;
-            oldTableView.Items.VectorChanged -= OnTableViewItemsVectorChanged;
+            oldTableView.CollectionView.VectorChanged -= OnTableViewItemsVectorChanged;
             oldTableView.Columns.CollectionChanged -= OnTableViewColumnsCollectionChanged;
             oldTableView.Columns.ColumnPropertyChanged -= OnColumnPropertyChanged;
 
-            UnregisterPropertyChangedCallback(oldTableView, ListViewBase.SelectionModeProperty);
+            UnregisterPropertyChangedCallback(oldTableView, TableView.SelectionModeProperty);
             UnregisterPropertyChangedCallback(oldTableView, TableView.CornerButtonModeProperty);
             UnregisterPropertyChangedCallback(oldTableView, TableView.ItemsSourceProperty);
+            UnregisterPropertyChangedCallback(oldTableView, TableView.CellsHorizontalOffsetProperty);
+            UnregisterPropertyChangedCallback(oldTableView, BorderThicknessProperty);
+            UnregisterPropertyChangedCallback(oldTableView, PaddingProperty);
         }
 
         if (e.NewValue is TableView newTableView)
         {
             newTableView.SizeChanged += OnTableViewSizeChanged;
             newTableView.SelectionChanged += OnTableViewSelectionChanged;
-            newTableView.Items.VectorChanged += OnTableViewItemsVectorChanged;
+            newTableView.CollectionView.VectorChanged += OnTableViewItemsVectorChanged;
             newTableView.Columns.CollectionChanged += OnTableViewColumnsCollectionChanged;
             newTableView.Columns.ColumnPropertyChanged += OnColumnPropertyChanged;
 
-            _callbackTokens[ListViewBase.SelectionModeProperty] =
-                newTableView.RegisterPropertyChangedCallback(ListViewBase.SelectionModeProperty, OnTableViewSelectionModePropertyChanged);
+            _callbackTokens[TableView.SelectionModeProperty] =
+                newTableView.RegisterPropertyChangedCallback(TableView.SelectionModeProperty, OnTableViewSelectionModePropertyChanged);
             _callbackTokens[TableView.CornerButtonModeProperty] =
                 newTableView.RegisterPropertyChangedCallback(TableView.CornerButtonModeProperty, OnTableViewCornerButtonModePropertyChanged);
             _callbackTokens[TableView.ItemsSourceProperty] =
                 newTableView.RegisterPropertyChangedCallback(TableView.ItemsSourceProperty, OnTableViewItemsSourcePropertyChanged);
+
+            foreach (var property in new[] { TableView.CellsHorizontalOffsetProperty, BorderThicknessProperty, PaddingProperty })
+            {
+                _callbackTokens[property] = newTableView.RegisterPropertyChangedCallback(property, OnTableViewCellsAvailableWidthChanged);
+            }
         }
+
+        ApplyTableViewPadding();
     }
 
     /// <summary>

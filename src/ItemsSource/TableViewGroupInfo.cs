@@ -1,4 +1,3 @@
-#if WINDOWS
 using Microsoft.UI.Xaml;
 
 namespace WinUI.TableView;
@@ -40,8 +39,12 @@ public partial class TableViewGroupInfo : DependencyObject
     /// </summary>
     public object? Key
     {
-        get => GetValue(KeyProperty);
-        init => SetValue(KeyProperty, value);
+        get;
+        init
+        {
+            field = value;
+            SetValue(KeyProperty, value);
+        }
     }
 
     /// <summary>
@@ -49,8 +52,12 @@ public partial class TableViewGroupInfo : DependencyObject
     /// </summary>
     public int Count
     {
-        get => (int)GetValue(CountProperty);
-        init => SetValue(CountProperty, value);
+        get;
+        init
+        {
+            field = value;
+            SetValue(CountProperty, value);
+        }
     }
 
     /// <summary>
@@ -89,4 +96,3 @@ public partial class TableViewGroupInfo : DependencyObject
         return $"{Key}";
     }
 }
-#endif

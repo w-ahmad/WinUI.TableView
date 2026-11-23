@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WinUI.TableView.SampleApp;
 
@@ -12,6 +13,14 @@ public partial class App : Application
     /// Initializes the singleton application object.  This is the first line of authored code
     /// executed, and as such is the logical equivalent of main() or WinMain().
     /// </summary>
+    /// <remarks>
+    /// TableView reads the models' properties through reflection (auto-generated columns, sorting, filtering,
+    /// grouping and copy/export by property name), so keep them when the app is trimmed or published with Native AOT.
+    /// </remarks>
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(ExampleModel))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(SalesExampleModel))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(TransactionModel))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Pages.VirtualizationItem))]
     public App()
     {
         InitializeComponent();
@@ -57,6 +66,16 @@ public partial class App : Application
 #endif
 #endif
         MainWindow.Activate();
+
+#if WINDOWS
+        // WinUI reacts to XAML allocation churn by inducing gen2 collections, whose reference-tracker phase
+        // suspends the process for as long as there are live XAML objects to walk - measured at 100-400 ms
+        // landing in the middle of scrolling. Sustained low latency defers non-forced blocking collections
+        // to background ones, whose suspensions are far shorter.
+        System.Runtime.GCSettings.LatencyMode = System.Runtime.GCLatencyMode.SustainedLowLatency;
+
+        ScrollProbe.TryStart();
+#endif
     }
 
     public static void InitializeLogging()

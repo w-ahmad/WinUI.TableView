@@ -36,8 +36,13 @@
 
   <PropertyGroup Condition="$(IsBrowserWasm) == 'true'">
     <WasmShellMonoRuntimeExecutionMode>InterpreterAndAOT</WasmShellMonoRuntimeExecutionMode>
-    <WasmShellEmccLinkOptimization>false</WasmShellEmccLinkOptimization>
-    <WasmShellEnableEmccProfiling>true</WasmShellEnableEmccProfiling>
+    <!-- Keep fallback IL: scrollbar hover reaches a nullable type-converter delegate that the
+         published mixed-mode runtime tries to interpret after its body has been stripped. -->
+    <WasmStripILAfterAOT>false</WasmStripILAfterAOT>
+    <!-- Optimize the native link and leave profiling instrumentation out: the renderer's per-frame work
+         runs in this native code. Set the profiling flag back to true to get symbol names in CPU profiles. -->
+    <WasmShellEmccLinkOptimization>true</WasmShellEmccLinkOptimization>
+    <WasmShellEnableEmccProfiling>false</WasmShellEnableEmccProfiling>
 
     <!--
 		Uncomment this block to generate a profile
@@ -82,8 +87,6 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" />
-    <PackageReference Include="CommunityToolkit.WinUI.Controls.ColorPicker" />
-    <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" />
     <PackageReference Include="ClosedXML" />
   </ItemGroup>
 

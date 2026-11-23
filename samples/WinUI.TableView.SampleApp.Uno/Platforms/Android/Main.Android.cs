@@ -9,6 +9,7 @@ using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 using Microsoft.UI.Xaml.Media;
+using Uno.UI.Hosting;
 
 namespace WinUI.TableView.SampleApp.Droid;
 [global::Android.App.ApplicationAttribute(
@@ -18,7 +19,7 @@ namespace WinUI.TableView.SampleApp.Droid;
     HardwareAccelerated = true,
     Theme = "@style/Theme.App.Starting"
 )]
-public class Application : Microsoft.UI.Xaml.NativeApplication
+public class Application : Uno.UI.Runtime.Android.NativeApplication
 {
     static Application()
     {
@@ -26,9 +27,12 @@ public class Application : Microsoft.UI.Xaml.NativeApplication
     }
 
     public Application(IntPtr javaReference, JniHandleOwnership transfer)
-        : base(() => new App(), javaReference, transfer)
+        : base(javaReference, transfer)
     {
     }
+    protected override UnoPlatformHost CreateHost() =>
+        UnoPlatformHostBuilder.Create().App(() => new App()).UseAndroid().Build();
+
 
 }
 

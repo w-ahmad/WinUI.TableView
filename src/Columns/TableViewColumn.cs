@@ -51,6 +51,11 @@ public abstract partial class TableViewColumn : DependencyObject
     public virtual void RefreshElement(TableViewCell cell, object? dataItem) { }
 
     /// <summary>
+    /// Applies the column's display format to the cell's element after the format changed.
+    /// </summary>
+    internal virtual void UpdateElementFormat(TableViewCell cell) { }
+
+    /// <summary>
     /// Called to prepare the cell for editing.
     /// </summary>
     /// <param name="cell">The cell to prepare for editing.</param>
@@ -567,9 +572,9 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     private static void OnHeaderChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableViewColumn column && column.HeaderControl is not null)
+        if (d is TableViewColumn column)
         {
-            column.HeaderControl.Content = e.NewValue;
+            column.TableView?.HeaderRow?.UpdateHeaderContent(column);
         }
     }
 

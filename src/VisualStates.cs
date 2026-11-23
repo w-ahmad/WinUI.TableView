@@ -32,11 +32,66 @@ internal static class VisualStates
     public const string StateDisabled = "Disabled";
 
     /// <summary>
+    /// Identifies the "PointerOverSelected" state of a row.
+    /// </summary>
+    public const string StatePointerOverSelected = "PointerOverSelected";
+
+    /// <summary>
+    /// Identifies the "PressedSelected" state of a row.
+    /// </summary>
+    public const string StatePressedSelected = "PressedSelected";
+
+    /// <summary>
+    /// Selection indicator hidden state.
+    /// </summary>
+    public const string StateSelectionIndicatorHidden = "SelectionIndicatorHidden";
+
+    /// <summary>
+    /// Selection indicator shown state.
+    /// </summary>
+    public const string StateSelectionIndicatorShown = "SelectionIndicatorShown";
+
+    /// <summary>
+    /// Selection indicator pressed state.
+    /// </summary>
+    public const string StateSelectionIndicatorPressed = "SelectionIndicatorPressed";
+
+    /// <summary>
+    /// Identifies the "Enabled" state.
+    /// </summary>
+    public const string StateEnabled = "Enabled";
+
+    /// <summary>
+    /// Identifies the name of the visual state group holding the enabled and disabled states.
+    /// </summary>
+    public const string GroupDisabled = "DisabledStates";
+
+    /// <summary>
+    /// Identifies the "MultiSelectEnabled" state of a row.
+    /// </summary>
+    public const string StateMultiSelectEnabled = "MultiSelectEnabled";
+
+    /// <summary>
+    /// Identifies the "MultiSelectDisabled" state of a row.
+    /// </summary>
+    public const string StateMultiSelectDisabled = "MultiSelectDisabled";
+
+    /// <summary>
+    /// Identifies the name of the visual state group holding the multi-select states.
+    /// </summary>
+    public const string GroupMultiSelect = "MultiSelectStates";
+
+    /// <summary>
     /// Common state group
     /// </summary>
     public const string GroupCommon = "CommonStates";
 
     // GroupExpanded
+
+    /// <summary>
+    /// Identifies the name of the visual state group holding a group header's expanded/collapsed states.
+    /// </summary>
+    public const string GroupExpandCollapse = "ExpandCollapseStates";
 
     /// <summary>
     /// Expanded state
@@ -47,6 +102,23 @@ internal static class VisualStates
     /// Collapsed state
     /// </summary>
     public const string StateCollapsed = "Collapsed";
+
+    // GroupPin
+
+    /// <summary>
+    /// Identifies the name of the visual state group holding a group header's pinned/unpinned states.
+    /// </summary>
+    public const string GroupPin = "PinStates";
+
+    /// <summary>
+    /// Unpinned state: the header scrolls with its rows.
+    /// </summary>
+    public const string StateUnpinned = "Unpinned";
+
+    /// <summary>
+    /// Pinned state: the header is held at the top of the viewport over the rows scrolling beneath it.
+    /// </summary>
+    public const string StatePinned = "Pinned";
 
     /// <summary>
     /// Empty state
@@ -347,6 +419,30 @@ internal static class VisualStates
     /// </summary>
     public const string GroupRowDetailsButton = "DetailsButtonStates";
 
+
+    /// <summary>
+    /// Use VisualStateManager to change the visual state of the control.
+    /// </summary>
+    /// <param name="control">
+    /// Control whose visual state is being changed.
+    /// </param>
+    /// <param name="useTransitions">
+    /// true to use transitions when updating the visual state, false to
+    /// snap directly to the new visual state.
+    /// </param>
+    /// <param name="stateName">
+    /// The state to transition into.
+    /// </param>
+    /// <remarks>
+    /// Separate from the <c>params</c> overload so the calls made for every row the table shows do not allocate an
+    /// array each.
+    /// </remarks>
+    public static void GoToState(Control control, bool useTransitions, string stateName)
+    {
+        Debug.Assert(control != null, "Expected non-null control.");
+
+        VisualStateManager.GoToState(control, stateName, useTransitions);
+    }
 
     /// <summary>
     /// Use VisualStateManager to change the visual state of the control.

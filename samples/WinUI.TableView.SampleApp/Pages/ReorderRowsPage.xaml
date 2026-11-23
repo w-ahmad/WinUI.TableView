@@ -11,24 +11,19 @@
 
     <Grid>
         <controls:SamplePresenter Header="Drag, Drop, and Reordering"
-                                  Description="Showcasing how row drag &amp; drop and row reorder functionality works.">
+                                  Description="Row drag and drop is not currently supported. It used to come from the ListView base class; now that TableView hosts its own rows it has to be reimplemented, which is tracked as follow-up work.">
             <controls:SamplePresenter.Example>
                 <tv:TableView x:Name="tableView"
                               ItemsSource="{Binding Items}"
-                              AllowDrop="True"
-                              CanDragItems="True"
-                              CanReorderItems="True"
                               SelectionMode="Single"
                               AutoGeneratingColumn="{x:Bind local:ExampleModelColumnsHelper.OnAutoGeneratingColumns}">
                 </tv:TableView>
             </controls:SamplePresenter.Example>
             <controls:SamplePresenter.Xaml>
                 <x:String xml:space="preserve">
+&lt;!-- Row reorder is not currently supported. --&gt;
 &lt;tv:TableView x:Name="tableView"
     ItemsSource="{Binding Items}"
-    AllowDrop="True"
-    CanDragItems="True"
-    CanReorderItems="True"
     SelectionMode="Single" /&gt;
                 </x:String>
             </controls:SamplePresenter.Xaml>

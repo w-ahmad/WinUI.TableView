@@ -1,0 +1,20 @@
+using Android.App;
+using Android.Content.PM;
+using Android.OS;
+using Android.Views;
+
+namespace WinUI.TableView.Tests.Droid;
+
+[Activity(
+    MainLauncher = true,
+    Exported = true,
+    ConfigurationChanges = global::Uno.UI.ActivityHelper.AllConfigChanges,
+    WindowSoftInputMode = SoftInput.AdjustNothing | SoftInput.StateHidden)]
+public class MainActivity : global::Uno.UI.Runtime.Android.ApplicationActivity
+{
+    protected override void OnCreate(Bundle? savedInstanceState)
+    {
+        global::AndroidX.Core.SplashScreen.SplashScreen.InstallSplashScreen(this);
+        base.OnCreate(savedInstanceState);
+    }
+}

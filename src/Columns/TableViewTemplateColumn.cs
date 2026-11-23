@@ -27,12 +27,16 @@ public partial class TableViewTemplateColumn : TableViewColumn
     /// <returns>A ContentControl element.</returns>
     public override FrameworkElement GenerateElement(TableViewCell cell, object? dataItem)
     {
-        return new ContentControl
+        var element = new ContentControl
         {
             VerticalContentAlignment = VerticalAlignment.Stretch,
             HorizontalContentAlignment = HorizontalAlignment.Stretch,
             ContentTemplate = CellTemplateSelector?.SelectTemplate(dataItem) ?? CellTemplate
         };
+
+        element.SetValue(IsTemplateHostProperty, true);
+
+        return element;
     }
 
     /// <summary>
@@ -58,10 +62,32 @@ public partial class TableViewTemplateColumn : TableViewColumn
     }
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// A row reused for another item keeps its cells, and the item reaches the template through the inherited
+    /// <c>DataContext</c>, so the cell keeps its element and only a different template
+    /// replaces the content. Inflating the template again for every row the table shows was the costliest part of
+    /// scrolling a table with template columns.
+    /// </remarks>
     public override void RefreshElement(TableViewCell cell, object? dataItem)
     {
+        // Only an element this class made is reused: a derived column's own element may be built for its item.
+        if (cell.Content is ContentControl contentControl && contentControl.GetValue(IsTemplateHostProperty) is true)
+        {
+            var template = CellTemplateSelector?.SelectTemplate(dataItem) ?? CellTemplate;
+
+            if (!ReferenceEquals(contentControl.ContentTemplate, template))
+            {
+                contentControl.ContentTemplate = template;
+                cell.InvalidateAutoWidth();
+            }
+
+            return;
+        }
+
         cell.Content = GenerateElement(cell, dataItem);
     }
+
+    private static readonly DependencyProperty IsTemplateHostProperty = DependencyProperty.RegisterAttached("IsTemplateHost", typeof(bool), typeof(TableViewTemplateColumn), new PropertyMetadata(false));
 
     /// <summary>
     /// Gets or sets the DataTemplate for the cell content.

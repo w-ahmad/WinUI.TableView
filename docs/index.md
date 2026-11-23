@@ -1,6 +1,6 @@
 # WinUI.TableView
 
-**WinUI.TableView** is a lightweight and fast data grid control for [WinUI](https://learn.microsoft.com/en-us/windows/apps/winui/winui3) apps with support for the [Uno Platform](https://platform.uno/). It is derived from `ListView`, giving it a Fluent Design look and feel, and is designed to handle large datasets efficiently.
+**WinUI.TableView** is a lightweight and fast data grid control for [WinUI](https://learn.microsoft.com/en-us/windows/apps/winui/winui3) apps with support for the [Uno Platform](https://platform.uno/). It hosts its rows in a virtualizing `ItemsRepeater`, giving it a Fluent Design look and feel while handling very large datasets efficiently.
 
 Use WinUI.TableView when you need a tabular data display with sorting, filtering, editing, row details, and clipboard support in a WinUI or Uno Platform application.
 
@@ -79,7 +79,7 @@ Explore interactive samples with code snippets in the Samples App on Microsoft S
 | [Auto-generating columns](docs/defining-columns.md) | Automatically generate columns based on the data source properties |
 | [Column types](docs/column-types.md) | Text, Number, CheckBox, ComboBox, ToggleSwitch, Date, Time, Hyperlink, Template |
 | [Sorting](docs/sorting.md) | Built-in column sorting with sort direction indicators |
-| [Grouping](docs/grouping.md) | Multi-level column grouping with expand/collapse (Windows only) |
+| [Grouping](docs/grouping.md) | Multi-level column grouping with expand/collapse |
 | [Filtering](docs/filtering.md) | Excel-like column filter flyout |
 | [Editing](docs/editing.md) | Double-tap a cell to edit; full editing lifecycle events |
 | [Selection](docs/selection.md) | Row, cell, or combined selection modes |

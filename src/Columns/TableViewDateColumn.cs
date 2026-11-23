@@ -52,7 +52,7 @@ public partial class TableViewDateColumn : TableViewBoundColumn
     }
 
     /// <inheritdoc/>
-    public override void RefreshElement(TableViewCell cell, object? dataItem)
+    internal override void UpdateElementFormat(TableViewCell cell)
     {
         if (cell.Content is TextBlock textBlock)
         {

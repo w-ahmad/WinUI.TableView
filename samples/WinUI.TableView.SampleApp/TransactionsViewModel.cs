@@ -2,6 +2,9 @@
 
 namespace WinUI.TableView.SampleApp;
 
+#if WINDOWS
+[WinRT.GeneratedBindableCustomProperty]
+#endif
 public partial class TransactionsViewModel : ObservableObject
 {
     public async static Task InitializeItemsAsync()

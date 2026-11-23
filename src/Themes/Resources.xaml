@@ -29,7 +29,6 @@
             <CornerRadius x:Key="TableViewRowCornerRadius">4</CornerRadius>
             <CornerRadius x:Key="TableViewRowCheckBoxCornerRadius">3</CornerRadius>
             <CornerRadius x:Key="TableViewRowSelectionIndicatorCornerRadius">1.5</CornerRadius>
-            <ListViewItemPresenterCheckMode x:Key="TableViewRowCheckMode">Inline</ListViewItemPresenterCheckMode>            
             <StaticResource x:Key="TableViewBorderBrush" ResourceKey="CardStrokeColorDefaultBrush" />
             <StaticResource x:Key="TableViewCellSelectionBrush" ResourceKey="FocusStrokeColorOuterBrush" />
             <StaticResource x:Key="TableViewCellBackgroundPointerOver" ResourceKey="SubtleFillColorSecondaryBrush" />
@@ -79,6 +78,7 @@
             <StaticResource x:Key="TableViewDragRectangleStroke" ResourceKey="AccentFillColorDefaultBrush" />
             <CornerRadius x:Key="TableViewDragRectangleCornerRadius">0</CornerRadius>
             <StaticResource x:Key="TableViewGroupHeaderRowBackground" ResourceKey="CardBackgroundFillColorSecondaryBrush" />
+            <StaticResource x:Key="TableViewGroupHeaderRowPinnedBackground" ResourceKey="SolidBackgroundFillColorBaseBrush" />
             <StaticResource x:Key="TableViewGroupHeaderRowForeground" ResourceKey="TextFillColorPrimaryBrush" />
             <x:Double x:Key="TableViewGroupHeaderRowMinHeight">36</x:Double>
             <Thickness x:Key="TableViewGroupHeaderRowExpanderMargin">4,0,4,0</Thickness>
@@ -108,7 +108,6 @@
             <CornerRadius x:Key="TableViewRowCornerRadius">4</CornerRadius>
             <CornerRadius x:Key="TableViewRowCheckBoxCornerRadius">3</CornerRadius>
             <CornerRadius x:Key="TableViewRowSelectionIndicatorCornerRadius">1.5</CornerRadius>
-            <ListViewItemPresenterCheckMode x:Key="TableViewRowCheckMode">Inline</ListViewItemPresenterCheckMode>
             <StaticResource x:Key="TableViewBorderBrush" ResourceKey="ControlStrokeColorDefaultBrush" />
             <StaticResource x:Key="TableViewCellSelectionBrush" ResourceKey="FocusStrokeColorOuterBrush" />
             <StaticResource x:Key="TableViewCellBackgroundPointerOver" ResourceKey="SubtleFillColorSecondaryBrush" />
@@ -158,6 +157,7 @@
             <StaticResource x:Key="TableViewDragRectangleStroke" ResourceKey="AccentFillColorDefaultBrush" />
             <CornerRadius x:Key="TableViewDragRectangleCornerRadius">0</CornerRadius>
             <StaticResource x:Key="TableViewGroupHeaderRowBackground" ResourceKey="CardBackgroundFillColorSecondaryBrush" />
+            <StaticResource x:Key="TableViewGroupHeaderRowPinnedBackground" ResourceKey="SolidBackgroundFillColorBaseBrush" />
             <StaticResource x:Key="TableViewGroupHeaderRowForeground" ResourceKey="TextFillColorPrimaryBrush" />
             <x:Double x:Key="TableViewGroupHeaderRowMinHeight">36</x:Double>
             <Thickness x:Key="TableViewGroupHeaderRowExpanderMargin">4,0,0,0</Thickness>
@@ -187,7 +187,6 @@
             <CornerRadius x:Key="TableViewRowCornerRadius">4</CornerRadius>
             <CornerRadius x:Key="TableViewRowCheckBoxCornerRadius">3</CornerRadius>
             <CornerRadius x:Key="TableViewRowSelectionIndicatorCornerRadius">1.5</CornerRadius>
-            <ListViewItemPresenterCheckMode x:Key="TableViewRowCheckMode">Inline</ListViewItemPresenterCheckMode>
             <StaticResource x:Key="TableViewBorderBrush" ResourceKey="SystemColorButtonTextColorBrush" />
             <SolidColorBrush x:Key="TableViewCellSelectionBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
             <SolidColorBrush x:Key="TableViewCellBackgroundPointerOver" Color="{ThemeResource SystemColorHighlightColor}" />
@@ -237,6 +236,7 @@
             <SolidColorBrush x:Key="TableViewDragRectangleStroke" Color="{ThemeResource SystemColorHighlightColor}" />
             <CornerRadius x:Key="TableViewDragRectangleCornerRadius">0</CornerRadius>
             <SolidColorBrush x:Key="TableViewGroupHeaderRowBackground" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="TableViewGroupHeaderRowPinnedBackground" Color="{ThemeResource SystemColorWindowColor}" />
             <SolidColorBrush x:Key="TableViewGroupHeaderRowForeground" Color="{ThemeResource SystemColorWindowTextColor}" />
             <x:Double x:Key="TableViewGroupHeaderRowMinHeight">36</x:Double>
             <Thickness x:Key="TableViewGroupHeaderRowExpanderMargin">4,0,0,0</Thickness>

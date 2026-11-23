@@ -160,7 +160,7 @@
                                         <MenuFlyoutSeparator />
                                         <MenuFlyoutItem x:Name="ClearSortingMenuItem" />
                                         <MenuFlyoutItem x:Name="ClearFilterMenuItem" />
-                                        <win:MenuFlyoutItem x:Name="UngroupAllMenuItem" />
+                                        <MenuFlyoutItem x:Name="UngroupAllMenuItem" />
                                         <MenuFlyoutSeparator Visibility="{Binding Visibility, ElementName=ExportAllMenuItem}" />
                                         <MenuFlyoutItem x:Name="ExportAllMenuItem">
                                             <MenuFlyoutItem.Icon>
@@ -178,7 +178,7 @@
 
                             <CheckBox x:Name="selectAllCheckBox"
                                       Padding="0"
-                                      Margin="10,0,0,0"
+                                      Margin="10,0,10,0"
                                       MinWidth="20"
                                       MinHeight="20"
                                       IsTabStop="False"
