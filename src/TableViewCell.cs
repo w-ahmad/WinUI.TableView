@@ -21,9 +21,6 @@ namespace WinUI.TableView;
 [TemplateVisualState(Name = VisualStates.StateCurrent, GroupName = VisualStates.GroupCurrent)]
 [TemplateVisualState(Name = VisualStates.StateSelected, GroupName = VisualStates.GroupSelection)]
 [TemplateVisualState(Name = VisualStates.StateUnselected, GroupName = VisualStates.GroupSelection)]
-#if WINDOWS
-[WinRT.GeneratedBindableCustomProperty]
-#endif
 public partial class TableViewCell : ContentControl
 {
     private FrameworkElement? _contentPresenter; // not ContentPresenter: Native AOT can wrap it as a base class

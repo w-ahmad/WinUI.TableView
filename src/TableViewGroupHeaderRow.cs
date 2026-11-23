@@ -60,7 +60,7 @@ public partial class TableViewGroupHeaderRow : ContentControl
     /// <summary>
     /// Gets the group this header currently shows.
     /// </summary>
-    internal TableViewGroupInfo? GroupInfo => Content as TableViewGroupInfo;
+    public TableViewGroupInfo? GroupInfo => Content as TableViewGroupInfo;
 
     /// <summary>
     /// Gets or sets a value indicating whether this header is pinned to the top of the viewport by

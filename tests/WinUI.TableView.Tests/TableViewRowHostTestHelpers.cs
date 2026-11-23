@@ -140,6 +140,19 @@ internal static class TableViewRowHostTestHelpers
     }
 
     /// <summary>
+    /// Returns the text blocks the realized rows show for a column.
+    /// </summary>
+    public static List<TextBlock> GetDisplayElements(TableView tableView, TableViewColumn column)
+    {
+        return [.. tableView.FindDescendants().OfType<TableViewRow>()
+                            .Where(row => row.Index >= 0)
+                            .SelectMany(row => row.Cells)
+                            .Where(cell => cell.Column == column)
+                            .Select(cell => cell.Content)
+                            .OfType<TextBlock>()];
+    }
+
+    /// <summary>
     /// Runs layout until the repeater has realized and arranged what the last change asked for.
     /// </summary>
     public static async Task WaitForLayoutAsync(TableView tableView)

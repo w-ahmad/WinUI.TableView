@@ -46,17 +46,17 @@ public partial class TableView
     /// <summary>
     /// Identifies the RowHeight dependency property.
     /// </summary>
-    public static readonly DependencyProperty RowHeightProperty = DependencyProperty.Register(nameof(RowHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.NaN));
+    public static readonly DependencyProperty RowHeightProperty = DependencyProperty.Register(nameof(RowHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.NaN, OnRowHeightChanged));
 
     /// <summary>
     /// Identifies the RowMaxHeight dependency property.
     /// </summary>
-    public static readonly DependencyProperty RowMaxHeightProperty = DependencyProperty.Register(nameof(RowMaxHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.PositiveInfinity));
+    public static readonly DependencyProperty RowMaxHeightProperty = DependencyProperty.Register(nameof(RowMaxHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.PositiveInfinity, OnRowHeightChanged));
 
     /// <summary>
     /// Identifies the RowMinHeight dependency property.
     /// </summary>
-    public static readonly DependencyProperty RowMinHeightProperty = DependencyProperty.Register(nameof(RowMinHeight), typeof(double), typeof(TableView), new PropertyMetadata(40d));
+    public static readonly DependencyProperty RowMinHeightProperty = DependencyProperty.Register(nameof(RowMinHeight), typeof(double), typeof(TableView), new PropertyMetadata(40d, OnRowHeightChanged));
 
     /// <summary>
     /// Identifies the ShowExportOptions dependency property.
@@ -1154,6 +1154,18 @@ public partial class TableView
         if (d is TableView tableView)
         {
             tableView.RefreshGroupHeaderTemplates();
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the RowHeight, RowMinHeight and RowMaxHeight properties.
+    /// </summary>
+    private static void OnRowHeightChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            tableView._rowHeights = null;
+            tableView.RowHeightsChanged?.Invoke();
         }
     }
 

@@ -317,6 +317,20 @@ public partial class TableViewHeaderRow : Control
     }
 
     /// <summary>
+    /// Shows the column's current <see cref="TableViewColumn.Header"/> in its headers.
+    /// </summary>
+    internal void UpdateHeaderContent(TableViewColumn column)
+    {
+        foreach (var header in Headers)
+        {
+            if (header.Column == column)
+            {
+                header.Content = column.Header;
+            }
+        }
+    }
+
+    /// <summary>
     /// Adds headers for the specified columns.
     /// </summary>
     private void AddHeaders(IEnumerable<TableViewColumn> columns)
@@ -325,12 +339,10 @@ public partial class TableViewHeaderRow : Control
         {
             foreach (var column in columns)
             {
-                var header = new TableViewColumnHeader { DataContext = column, Column = column };
+                var header = new TableViewColumnHeader { DataContext = column, Column = column, Content = column.Header };
                 column.HeaderControl = header;
 
                 InsertHeader(header);
-
-                header.SetBinding(ContentControl.ContentProperty, SharedResources.HeaderBinding);
             }
 
             CalculateHeaderWidths();

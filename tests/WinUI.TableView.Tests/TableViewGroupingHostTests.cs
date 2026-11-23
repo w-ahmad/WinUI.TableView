@@ -217,6 +217,52 @@ public class TableViewGroupingHostTests
     }
 
     [UITestMethod]
+    public async Task DefaultGroupHeaderTemplate_ShowsKeyAndCount()
+    {
+        var tableView = await CreateTableViewAsync(CreateItems(6));
+        await GroupAsync(tableView, TableViewGroupState.Collapsed);
+
+        Assert.AreEqual(3, tableView.GroupHeaderRows.Count);
+
+        foreach (var header in tableView.GroupHeaderRows)
+        {
+            var group = header.GroupInfo!;
+            var texts = header.FindDescendants().OfType<TextBlock>().Select(x => x.Text).ToList();
+
+            Assert.AreEqual(group.Key, group.GetValue(TableViewGroupInfo.KeyProperty));
+            Assert.AreEqual(group.Count, group.GetValue(TableViewGroupInfo.CountProperty));
+            CollectionAssert.Contains(texts, (string)group.Key!);
+            CollectionAssert.Contains(texts, "2");
+        }
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public void CollectionGroups_Group_HasBindableKeyAndCount()
+    {
+        var collectionView = CreateGroupedView(TableViewGroupState.Expanded, nameof(GroupItem.Category));
+
+        foreach (var entry in collectionView.CollectionGroups!.Cast<Microsoft.UI.Xaml.Data.ICollectionViewGroup>())
+        {
+            var group = (TableViewGroupInfo)entry.Group;
+
+            Assert.IsNotNull(group.Key);
+            Assert.AreEqual(group.Key, group.GetValue(TableViewGroupInfo.KeyProperty));
+            Assert.AreEqual(2, group.GetValue(TableViewGroupInfo.CountProperty));
+        }
+    }
+
+    [UITestMethod]
+    public void GroupInfo_CreatedByAnApp_HasBindableKeyAndCount()
+    {
+        var group = new TableViewGroupInfo { Key = "A", Count = 2 };
+
+        Assert.AreEqual("A", group.GetValue(TableViewGroupInfo.KeyProperty));
+        Assert.AreEqual(2, group.GetValue(TableViewGroupInfo.CountProperty));
+    }
+
+    [UITestMethod]
     public async Task ShowGroupExpandCollapseButton_UpdatesRealizedHeaders()
     {
         var tableView = await CreateTableViewAsync(CreateItems(6));

@@ -66,6 +66,10 @@ When a `TableViewTemplateColumn` uses `{x:Bind}` exclusively in its templates, t
 </tv:TableViewTemplateColumn>
 ```
 
+### TableView's own types (attribute not used)
+
+The library's own types (`TableViewRow`, `TableViewCell`, `TableViewRowHeader`, `TableViewGroupInfo` and the column types) do not carry the attribute, and the library does not need it on them. In your own styles and templates, reach them with `{x:Bind}` or `TemplateBinding`, or bind to a dependency property of the `TableView`; a `{Binding}` path through one of their plain properties (`TableView`, `Column`, `Cells`, `IsCurrent`) does not resolve under Native AOT. `{Binding Key}` and `{Binding Count}` in a group header template do, because both are dependency properties.
+
 ## How to apply the attribute
 
 Add `[WinRT.GeneratedBindableCustomProperty]` to your model class and mark it as `partial`:

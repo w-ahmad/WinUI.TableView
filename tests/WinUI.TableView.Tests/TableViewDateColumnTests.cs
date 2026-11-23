@@ -4,8 +4,12 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
 using System;
+using System.Linq;
+using System.Threading.Tasks;
 using WinUI.TableView.Controls;
+using WinUI.TableView.Extensions;
 using WinUI.TableView.Helpers;
+using static WinUI.TableView.Tests.TableViewRowHostTestHelpers;
 
 namespace WinUI.TableView.Tests;
 
@@ -47,7 +51,7 @@ public class TableViewDateColumnTests
     }
 
     [UITestMethod]
-    public void TableViewDateColumn_GeneratesDisplayElement_WithFormatBindings()
+    public void TableViewDateColumn_GeneratesDisplayElement_WithValueBindingAndFormat()
     {
         var column = new TableViewDateColumn
         {
@@ -58,8 +62,74 @@ public class TableViewDateColumnTests
         var element = (TextBlock)column.GenerateElement(new TableViewCell(), new ColumnTestItem());
 
         Assert.IsNotNull(element.GetBindingExpression(DateTimeFormatHelper.ValueProperty));
-        Assert.IsNotNull(element.GetBindingExpression(DateTimeFormatHelper.FormatProperty));
+        Assert.AreEqual("shortdate", DateTimeFormatHelper.GetFormat(element));
         Assert.AreEqual(new Thickness(12, 0, 12, 0), element.Margin);
+    }
+
+    [UITestMethod]
+    public async Task TableViewDateColumn_DateFormatChange_UpdatesRealizedAndRecycledCells()
+    {
+        var date = new DateOnly(2024, 6, 15);
+        var column = new TableViewDateColumn
+        {
+            Binding = new Binding { Path = new PropertyPath(nameof(ColumnTestItem.DueDate)) },
+            DateFormat = "shortdate"
+        };
+        var tableView = new TableView { Width = 400, Height = 300, AutoGenerateColumns = false };
+        tableView.Columns.Add(column);
+        tableView.ItemsSource = Enumerable.Range(0, 500).Select(_ => new ColumnTestItem { DueDate = date }).ToList();
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        await WaitForLayoutAsync(tableView);
+
+        var expected = DateTimeFormatHelper.GetDateTimeFormatter("longdate").Format(date.ToDateTimeOffset());
+        Assert.AreNotEqual(expected, GetDisplayElements(tableView, column).First().Text);
+
+        column.DateFormat = "longdate";
+        AssertDisplayElements();
+
+        await ScrollToAsync(tableView, 10_000d);
+        AssertDisplayElements();
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+
+        void AssertDisplayElements()
+        {
+            var elements = GetDisplayElements(tableView, column);
+            Assert.IsTrue(elements.Count > 1);
+
+            foreach (var element in elements)
+            {
+                Assert.AreEqual("longdate", DateTimeFormatHelper.GetFormat(element));
+                Assert.AreEqual(expected, element.Text);
+            }
+        }
+    }
+
+    [UITestMethod]
+    public async Task TableViewDateColumn_AddedTwice_RemovingOne_KeepsTheOtherFollowingDateFormat()
+    {
+        var column = new TableViewDateColumn
+        {
+            Binding = new Binding { Path = new PropertyPath(nameof(ColumnTestItem.DueDate)) },
+            DateFormat = "shortdate"
+        };
+        var tableView = new TableView { Width = 400, Height = 300, AutoGenerateColumns = false };
+        tableView.Columns.Add(column);
+        tableView.Columns.Add(column);
+        tableView.ItemsSource = Enumerable.Range(0, 5).Select(_ => new ColumnTestItem { DueDate = new DateOnly(2024, 6, 15) }).ToList();
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        await WaitForLayoutAsync(tableView);
+
+        tableView.Columns.RemoveAt(1);
+        column.DateFormat = "longdate";
+
+        var elements = GetDisplayElements(tableView, column);
+        Assert.AreEqual(5, elements.Count);
+        Assert.IsTrue(elements.All(x => DateTimeFormatHelper.GetFormat(x) is "longdate"));
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }
 
     [UITestMethod]

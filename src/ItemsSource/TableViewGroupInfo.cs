@@ -7,11 +7,27 @@ namespace WinUI.TableView;
 /// count, nesting level, and expanded/collapsed state. This is the object bound as a <see cref="CollectionViewGroup"/>'s
 /// <see cref="CollectionViewGroup.Group"/>.
 /// </summary>
-#if WINDOWS
-[WinRT.GeneratedBindableCustomProperty]
-#endif
 public partial class TableViewGroupInfo : DependencyObject
 {
+    private readonly object? _key;
+    private readonly int _count;
+    private bool _isPublished;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TableViewGroupInfo"/> class.
+    /// </summary>
+    public TableViewGroupInfo()
+    {
+    }
+
+    /// <summary>
+    /// Creates a group whose <see cref="Key"/> and <see cref="Count"/> reach their dependency properties on demand.
+    /// </summary>
+    internal TableViewGroupInfo(object? key, int count)
+    {
+        _key = key;
+        _count = count;
+    }
 
     private static void OnIsExpandedChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
@@ -40,12 +56,42 @@ public partial class TableViewGroupInfo : DependencyObject
     /// <summary>
     /// Gets the group's key, e.g. the value of the column/property being grouped by.
     /// </summary>
-    public object? Key { get; init; }
+    public object? Key
+    {
+        get => _key;
+        init
+        {
+            _key = value;
+            SetValue(KeyProperty, value);
+        }
+    }
 
     /// <summary>
     /// Gets the number of items in this group (including all descendant subgroups/items, if any).
     /// </summary>
-    public int Count { get; init; }
+    public int Count
+    {
+        get => _count;
+        init
+        {
+            _count = value;
+            SetValue(CountProperty, value);
+        }
+    }
+
+    /// <summary>
+    /// Copies <see cref="Key"/> and <see cref="Count"/> to their dependency properties, which is where a binding
+    /// reads them. Deferred until a group the library built is handed out, since every rebuild creates all groups anew.
+    /// </summary>
+    internal void PublishBindableValues()
+    {
+        if (!_isPublished)
+        {
+            _isPublished = true;
+            SetValue(KeyProperty, Key);
+            SetValue(CountProperty, Count);
+        }
+    }
 
     /// <summary>
     /// Gets the zero-based nesting level of this group among the active <see cref="GroupDescription"/> entries.
@@ -61,6 +107,16 @@ public partial class TableViewGroupInfo : DependencyObject
         get => (bool)GetValue(IsExpandedProperty);
         set => SetValue(IsExpandedProperty, value);
     }
+
+    /// <summary>
+    /// Identifies the <see cref="Key"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty KeyProperty = DependencyProperty.Register(nameof(Key), typeof(object), typeof(TableViewGroupInfo), new PropertyMetadata(null));
+
+    /// <summary>
+    /// Identifies the <see cref="Count"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty CountProperty = DependencyProperty.Register(nameof(Count), typeof(int), typeof(TableViewGroupInfo), new PropertyMetadata(0));
 
     /// <summary>
     /// Identifies the <see cref="IsExpanded"/> dependency property.

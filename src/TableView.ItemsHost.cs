@@ -24,6 +24,7 @@ public partial class TableView
     private TableViewRealizedRows? _realizedRows;
     private int _selectionModeVersion;
     private double _suspendedVerticalOffset;
+    private (double Height, double MinHeight, double MaxHeight)? _rowHeights;
 
     /// <summary>
     /// Gets the items produced by the current sorting and filtering.
@@ -204,6 +205,24 @@ public partial class TableView
     internal int GetItemIndexFromVisualIndex(int visualIndex)
     {
         return _visualRows?.GetItemIndex(visualIndex) ?? visualIndex;
+    }
+
+    /// <summary>
+    /// Occurs when <see cref="RowHeight"/>, <see cref="RowMinHeight"/> or <see cref="RowMaxHeight"/> changes.
+    /// </summary>
+    internal event Action? RowHeightsChanged;
+
+    /// <summary>
+    /// Applies <see cref="RowHeight"/>, <see cref="RowMinHeight"/> and <see cref="RowMaxHeight"/> to a cell, a row
+    /// header or another element that is as tall as a row's cells.
+    /// </summary>
+    internal void ApplyRowHeights(FrameworkElement element)
+    {
+        var (height, minHeight, maxHeight) = _rowHeights ??= (RowHeight, RowMinHeight, RowMaxHeight);
+
+        element.Height = height;
+        element.MinHeight = minHeight;
+        element.MaxHeight = maxHeight;
     }
 
     /// <summary>

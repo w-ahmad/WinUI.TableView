@@ -300,10 +300,7 @@
                                 CornerRadius="{ThemeResource TableViewRowCornerRadius}" />
 
                         <Grid x:Name="HeaderGrid"
-                              VerticalAlignment="Top"
-                              Height="{Binding TableView.RowHeight, RelativeSource={RelativeSource TemplatedParent}}"
-                              MinHeight="{Binding TableView.RowMinHeight, RelativeSource={RelativeSource TemplatedParent}}"
-                              MaxHeight="{Binding TableView.RowMaxHeight, RelativeSource={RelativeSource TemplatedParent}}">
+                              VerticalAlignment="Top">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition x:Name="SelectionIndicatorColumn"
                                                   Width="Auto" />

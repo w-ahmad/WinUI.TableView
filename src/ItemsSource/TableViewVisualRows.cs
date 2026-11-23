@@ -338,7 +338,7 @@ internal sealed partial class TableViewVisualRows : IList, INotifyCollectionChan
         {
             foreach (var entry in groups)
             {
-                if (entry is not CollectionViewGroup { Group: TableViewGroupInfo header } group)
+                if (entry is not CollectionViewGroup { GroupInfo: { } header } group)
                 {
                     continue;
                 }

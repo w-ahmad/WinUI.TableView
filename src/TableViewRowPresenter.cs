@@ -2,7 +2,6 @@ using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
@@ -96,7 +95,7 @@ public partial class TableViewRowPresenter : Control
 
         TableViewRow?.EnsureCells();
         EnsureGridLines();
-        SetRowHeaderBindings();
+        SetRowHeaderHeights();
         SetRowHeaderVisibility();
         SetRowHeaderTemplate();
         SetRowHeaderWidth();
@@ -507,11 +506,15 @@ public partial class TableViewRowPresenter : Control
         }
     }
 
-    internal void SetRowHeaderBindings()
+    /// <summary>
+    /// Applies the table's row heights to the row header.
+    /// </summary>
+    internal void SetRowHeaderHeights()
     {
-        _rowHeader?.SetBinding(HeightProperty, SharedResources.RowHeightBinding);
-        _rowHeader?.SetBinding(MaxHeightProperty, SharedResources.RowMaxHeightBinding);
-        _rowHeader?.SetBinding(MinHeightProperty, SharedResources.RowMinHeightBinding);
+        if (_rowHeader is not null)
+        {
+            TableView?.ApplyRowHeights(_rowHeader);
+        }
     }
 
     /// <summary>

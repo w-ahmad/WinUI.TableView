@@ -2,7 +2,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using System;
@@ -21,9 +20,6 @@ namespace WinUI.TableView;
 /// over its lifetime. Assigning <see cref="ContentControl.Content"/> is the reuse hook: it builds the cells the
 /// first time and refreshes them on every subsequent reuse.
 /// </remarks>
-#if WINDOWS
-[WinRT.GeneratedBindableCustomProperty]
-#endif
 [TemplateVisualState(Name = VisualStates.StateNormal, GroupName = VisualStates.GroupCommon)]
 [TemplateVisualState(Name = VisualStates.StatePointerOver, GroupName = VisualStates.GroupCommon)]
 [TemplateVisualState(Name = VisualStates.StatePressed, GroupName = VisualStates.GroupCommon)]
@@ -222,6 +218,8 @@ public partial class TableViewRow : ContentControl
         RowPresenter = GetTemplateChild("RowPresenter") as TableViewRowPresenter;
         _selectionBackground = GetTemplateChild(Selection_Background) as Border;
         _selectionIndicator = GetTemplateChild("SelectionIndicator") as Border;
+
+        ApplyRowHeights();
 
         UpdateVisualStates(useTransitions: false);
     }
@@ -521,6 +519,16 @@ public partial class TableViewRow : ContentControl
         {
             EnsureEditingElementStyle(e.Column);
         }
+        else if (e.PropertyName is nameof(TableViewDateColumn.DateFormat) or nameof(TableViewTimeColumn.ClockIdentifier))
+        {
+            foreach (var cell in Cells)
+            {
+                if (cell.Column == e.Column)
+                {
+                    e.Column.UpdateElementFormat(cell);
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -569,11 +577,35 @@ public partial class TableViewRow : ContentControl
             Width = column.ActualWidth
         };
 
-        cell.SetBinding(HeightProperty, SharedResources.RowHeightBinding);
-        cell.SetBinding(MaxHeightProperty, SharedResources.RowMaxHeightBinding);
-        cell.SetBinding(MinHeightProperty, SharedResources.RowMinHeightBinding);
+        TableView?.ApplyRowHeights(cell);
 
         return cell;
+    }
+
+    /// <summary>
+    /// Applies the table's row heights to the row's cells, row header and selection indicator area.
+    /// </summary>
+    private void ApplyRowHeights()
+    {
+        if (TableView is not { } tableView)
+        {
+            return;
+        }
+
+        if (GetTemplateChild("HeaderGrid") is FrameworkElement headerGrid)
+        {
+            tableView.ApplyRowHeights(headerGrid);
+        }
+
+        if (RowPresenter is { } presenter)
+        {
+            presenter.SetRowHeaderHeights();
+
+            foreach (var cell in presenter.Cells)
+            {
+                tableView.ApplyRowHeights(cell);
+            }
+        }
     }
 
     /// <summary>
@@ -584,6 +616,7 @@ public partial class TableViewRow : ContentControl
         if (TableView is not null)
         {
             TableView.IsReadOnlyChanged -= OnTableViewIsReadOnlyChanged;
+            TableView.RowHeightsChanged -= ApplyRowHeights;
 
             if (TableView.Columns is not null)
             {
@@ -601,6 +634,7 @@ public partial class TableViewRow : ContentControl
         if (TableView is not null)
         {
             TableView.IsReadOnlyChanged += OnTableViewIsReadOnlyChanged;
+            TableView.RowHeightsChanged += ApplyRowHeights;
 
             if (TableView.Columns is not null)
             {

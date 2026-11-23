@@ -55,6 +55,7 @@ internal sealed partial class TableViewRowElementFactory
             var header = _groupHeaderPool.Count > 0 ? _groupHeaderPool.Pop() : new TableViewGroupHeaderRow();
             header.TableView = _tableView;
             header.ContentTemplate = _tableView.GetGroupHeaderTemplate(groupInfo, header);
+            groupInfo.PublishBindableValues();
             header.Content = groupInfo;
 
             return header;
