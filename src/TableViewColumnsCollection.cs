@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using Windows.Foundation.Collections;
@@ -17,6 +18,7 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
 {
     private TableViewColumn[] _itemsCopy = []; // To keep a copy of the items to keep track of removed items
     private bool _movingColumn;
+    private ReadOnlyCollection<TableViewColumn>? _visibleColumns;
 
     /// <inheritdoc/>
     public event EventHandler<TableViewColumnPropertyChangedEventArgs>? ColumnPropertyChanged;
@@ -42,6 +44,7 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
     {
         if (_movingColumn) return; // Skip processing if it's a move action
 
+        InvalidateVisibleColumns();
         UpdateFrozenColumns();
 
         var index = (int)args.Index;
@@ -82,10 +85,21 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
 
     internal void UpdateFrozenColumns()
     {
+        var visibleColumns = VisibleColumns;
+        var frozenColumnCount = TableView?.FrozenColumnCount ?? 0;
+        // A hidden column (index -1) counts as frozen, and a column added twice goes by its first place.
         foreach (var column in this.OfType<TableViewColumn>())
         {
-            column.IsFrozen = VisibleColumns.IndexOf(column) < (TableView?.FrozenColumnCount ?? 0);
+            column.IsFrozen = visibleColumns.IndexOf(column) < frozenColumnCount;
         }
+    }
+
+    /// <summary>
+    /// Drops the cached <see cref="VisibleColumns"/> projection so the next read rebuilds it.
+    /// </summary>
+    internal void InvalidateVisibleColumns()
+    {
+        _visibleColumns = null;
     }
 
     /// <summary>
@@ -93,6 +107,11 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
     /// </summary>
     internal void HandleColumnPropertyChanged(TableViewColumn column, string propertyName)
     {
+        if (propertyName is nameof(TableViewColumn.Visibility) or nameof(TableViewColumn.Order))
+        {
+            InvalidateVisibleColumns();
+        }
+
         if (Contains(column) && !_movingColumn)
         {
             var index = IndexOf(column);
@@ -104,9 +123,16 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
     public TableView? TableView { get; }
 
     /// <inheritdoc/>
-    public IList<TableViewColumn> VisibleColumns => [.. this.OfType<TableViewColumn>()
-                                                            .Where(x => x.Visibility == Visibility.Visible)
-                                                            .OrderBy(x => x.Order ?? 0)];
+    /// <remarks>
+    /// The projection is cached and rebuilt only when the collection changes or a column's
+    /// <see cref="TableViewColumn.Visibility"/> or <see cref="TableViewColumn.Order"/> changes. It is read on
+    /// hot paths (hit testing, cell insertion, clipboard) that used to allocate and sort a new list per access,
+    /// sometimes once per loop iteration.
+    /// </remarks>
+    public IList<TableViewColumn> VisibleColumns => _visibleColumns ??= new ReadOnlyCollection<TableViewColumn>(
+        [.. this.OfType<TableViewColumn>()
+               .Where(x => x.Visibility == Visibility.Visible)
+               .OrderBy(x => x.Order ?? 0)]);
 
     TableViewColumn IList<TableViewColumn>.this[int index]
     {
@@ -203,6 +229,10 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
             RemoveAt(oldIndex);
             Insert(newIndex, column);
 
+            // OnVectorChanged is suppressed while _movingColumn is set, so its bookkeeping is done here.
+            InvalidateVisibleColumns();
+            _itemsCopy = new TableViewColumn[Count];
+            CopyTo(_itemsCopy, 0);
             UpdateFrozenColumns();
             CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, column, newIndex, oldIndex));
         }

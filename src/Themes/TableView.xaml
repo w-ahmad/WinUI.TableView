@@ -24,8 +24,6 @@
                 Value="False" />
         <Setter Property="TabNavigation"
                 Value="Cycle" />
-        <win:Setter Property="IsSwipeEnabled"
-                    Value="False" />
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility"
                 Value="Auto" />
         <Setter Property="ScrollViewer.VerticalScrollBarVisibility"
@@ -52,8 +50,6 @@
                 Value="{ThemeResource TableViewBorderBrush}" />
         <Setter Property="BorderThickness"
                 Value="1" />
-        <Setter Property="SingleSelectionFollowsFocus"
-                Value="False" />
         <Setter Property="HorizontalGridLinesStroke"
                 Value="{ThemeResource TableViewHorizontalGridLineStroke}" />
         <Setter Property="VerticalGridLinesStroke"
@@ -62,32 +58,8 @@
                 Value="{ThemeResource TableViewHorizontalGridLineStrokeThickness}" />
         <Setter Property="VerticalGridLinesStrokeThickness"
                 Value="{ThemeResource TableViewVerticalGridLineStrokeThickness}" />
-        <win:Setter Property="DefaultGroupStyle"
-                    Value="{StaticResource DefaultTableViewGroupStyle}" />
-        <win:Setter Property="ItemContainerTransitions">
-            <win:Setter.Value>
-                <TransitionCollection>
-                    <AddDeleteThemeTransition />
-                    <ContentThemeTransition />
-                    <ReorderThemeTransition />
-                    <EntranceThemeTransition IsStaggeringEnabled="False" />
-                </TransitionCollection>
-            </win:Setter.Value>
-        </win:Setter>
-        <Setter Property="ItemsPanel">
-            <Setter.Value>
-                <ItemsPanelTemplate>
-                    <ItemsStackPanel Orientation="Vertical" />
-                </ItemsPanelTemplate>
-            </Setter.Value>
-        </Setter>
-        <win:Setter Property="ItemTemplate">
-            <win:Setter.Value>
-                <DataTemplate>
-                    <local:TableViewRowPresenter IsTabStop="False" />
-                </DataTemplate>
-            </win:Setter.Value>
-        </win:Setter>
+        <Setter Property="DefaultGroupStyle"
+                Value="{StaticResource DefaultTableViewGroupStyle}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:TableView">
@@ -127,7 +99,13 @@
                                           BringIntoViewOnFocusChange="{TemplateBinding ScrollViewer.BringIntoViewOnFocusChange}"
                                           win:AutomationProperties.AccessibilityView="Raw"
                                           Template="{StaticResource TableViewScrollViewerTemplate}">
-                                <ItemsPresenter Padding="{TemplateBinding Padding}" />
+                                <Border Padding="{TemplateBinding Padding}">
+                                    <ItemsRepeater x:Name="RowsRepeater" >
+                                        <ItemsRepeater.Layout>
+                                            <StackLayout x:Name="RowsRepeaterLayout" />
+                                        </ItemsRepeater.Layout>
+                                    </ItemsRepeater>
+                                </Border>
                             </ScrollViewer>
 
                             <Canvas x:Name="DragRectangleCanvas"
@@ -381,6 +359,12 @@
                                         Margin="{TemplateBinding Padding}" />
                 <Grid Grid.RowSpan="2"
                       Grid.ColumnSpan="2" />
+                <!--  Hosts the sticky group header: over the rows, under the scrollbars, in viewport coordinates.  -->
+                <Grid x:Name="StickyGroupHeaderHost"
+                      Grid.RowSpan="2"
+                      Grid.ColumnSpan="2"
+                      VerticalAlignment="Top"
+                      win:AutomationProperties.AccessibilityView="Raw" />
                 <Grid Grid.Column="1"
                       Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
                       win:Padding="{ThemeResource ScrollViewerScrollBarMargin}">

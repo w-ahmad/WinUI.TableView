@@ -1,3 +1,23 @@
+<#
+.SYNOPSIS
+Builds the Microsoft Store upload package (.msixupload) of the WinUI sample against a released NuGet package.
+
+.DESCRIPTION
+The Store build of the sample app references the WinUI.TableView package from NuGet, not the library project,
+so what goes to the Store is what users of that package version get. The version given is used for both: as the
+NuGet dependency, and (with a fourth component of 0, as the Store requires) as the package version written into
+Package.appxmanifest for the duration of the build only; the manifest is restored afterwards, so the repository
+stays clean.
+
+The sample's bin and obj folders are removed first, because switching between a ProjectReference and a
+PackageReference leaves restore assets behind that break the build.
+
+.EXAMPLE
+.\tools\build-store-package.ps1 1.5.1            # package the sample against WinUI.TableView 1.5.1
+.\tools\build-store-package.ps1 v1.5.1.0         # the same, in the Store's own version form
+.\tools\build-store-package.ps1 1.5.1 -OutputDirectory some\dir
+#>
+[CmdletBinding()]
 param(
     [Parameter(Mandatory = $true, Position = 0)]
     [string]$Version,
@@ -9,8 +29,9 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$projectPath = "samples\WinUI.TableView.SampleApp\WinUI.TableView.SampleApp.csproj"
-$manifestPath = "samples\WinUI.TableView.SampleApp\Package.appxmanifest"
+$repoRoot = Split-Path -Parent $PSScriptRoot
+$projectPath = Join-Path $repoRoot "samples\WinUI.TableView.SampleApp\WinUI.TableView.SampleApp.csproj"
+$manifestPath = Join-Path $repoRoot "samples\WinUI.TableView.SampleApp\Package.appxmanifest"
 $bundlePlatforms = "x86|x64|ARM64"
 
 function Get-MSBuildPath {
@@ -34,7 +55,7 @@ function Get-MSBuildPath {
         return $command.Source
     }
 
-    throw "MSBuild could not be found. Install Visual Studio 2022 with the Windows App SDK/.NET desktop development workloads, or run this script from a Visual Studio Developer PowerShell."
+    throw "MSBuild could not be found. Install Visual Studio with the Windows App SDK/.NET desktop development workloads, or run this script from a Visual Studio Developer PowerShell."
 }
 
 # Accept:
@@ -86,7 +107,7 @@ if ($major -lt 1) {
 }
 
 if (-not (Test-Path $projectPath)) {
-    throw "Project not found: $projectPath`nRun this script from the WinUI.TableView repository root."
+    throw "Project not found: $projectPath"
 }
 
 if (-not (Test-Path $manifestPath)) {
@@ -94,7 +115,7 @@ if (-not (Test-Path $manifestPath)) {
 }
 
 $msbuild = Get-MSBuildPath
-$outputPath = [System.IO.Path]::GetFullPath((Join-Path (Get-Location) $OutputDirectory))
+$outputPath = [System.IO.Path]::GetFullPath((Join-Path $repoRoot $OutputDirectory))
 $manifestFullPath = (Resolve-Path $manifestPath).Path
 $projectDirectory = Split-Path $projectPath
 
@@ -141,7 +162,7 @@ try {
     & $msbuild $projectPath `
         /t:Restore `
         /p:Configuration=$Configuration `
-		/p:StorePackaging=true `
+        /p:StorePackaging=true `
         /p:UseTableViewNuGet=true `
         /p:TableViewPackageVersion=$nugetVersion
 
@@ -156,14 +177,14 @@ try {
         /p:Configuration=$Configuration `
         /p:Platform=x86 `
         /p:StorePackaging=true `
-		/p:UseTableViewNuGet=true `
+        /p:UseTableViewNuGet=true `
         /p:TableViewPackageVersion=$nugetVersion `
-		"/p:AppxBundlePlatforms=$bundlePlatforms" `
+        "/p:AppxBundlePlatforms=$bundlePlatforms" `
         /p:AppxBundle=Always `
         /p:UapAppxPackageBuildMode=StoreUpload `
         "/p:AppxPackageDir=$outputPath\" `
         /p:AppxPackageSigningEnabled=false `
-		/p:GenerateTemporaryStoreCertificate=false `
+        /p:GenerateTemporaryStoreCertificate=false `
         /p:GenerateAppxPackageOnBuild=true
 
     if ($LASTEXITCODE -ne 0) {

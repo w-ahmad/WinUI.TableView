@@ -43,7 +43,7 @@
     <Style TargetType="controls:TableViewTimePicker"
            BasedOn="{StaticResource DefaultTableViewTimePickerStyle}" />
 
-    <win:Style TargetType="local:TableViewGroupHeaderRow"
+    <Style TargetType="local:TableViewGroupHeaderRow"
            BasedOn="{StaticResource DefaultTableViewGroupHeaderRowStyle}" />
 
 </ResourceDictionary>

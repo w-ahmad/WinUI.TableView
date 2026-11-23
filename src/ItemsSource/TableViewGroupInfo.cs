@@ -1,6 +1,4 @@
-#if WINDOWS
 using Microsoft.UI.Xaml;
-using WinRT;
 
 namespace WinUI.TableView;
 
@@ -9,7 +7,9 @@ namespace WinUI.TableView;
 /// count, nesting level, and expanded/collapsed state. This is the object bound as a <see cref="CollectionViewGroup"/>'s
 /// <see cref="CollectionViewGroup.Group"/>.
 /// </summary>
-[GeneratedBindableCustomProperty]
+#if WINDOWS
+[WinRT.GeneratedBindableCustomProperty]
+#endif
 public partial class TableViewGroupInfo : DependencyObject
 {
 
@@ -73,4 +73,3 @@ public partial class TableViewGroupInfo : DependencyObject
         return $"{Key}";
     }
 }
-#endif

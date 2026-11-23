@@ -44,7 +44,7 @@ xmlns:tv="using:WinUI.TableView"
 | [`AutoGenerateColumns`](xref:WinUI.TableView.TableView.AutoGenerateColumns) | [`AutoGenerateColumns`](xref:WinUI.TableView.TableView.AutoGenerateColumns) | Same behavior. |
 | [`IsReadOnly`](xref:WinUI.TableView.TableView.IsReadOnly) | [`IsReadOnly`](xref:WinUI.TableView.TableView.IsReadOnly) | Same behavior. |
 | `CanUserSortColumns` | [`CanSortColumns`](xref:WinUI.TableView.TableView.CanSortColumns) | Same behavior. |
-| *(no equivalent)* | [`CanGroupColumns`](xref:WinUI.TableView.TableView.CanGroupColumns) | WCT DataGrid group descriptions were applied to the source `CollectionViewSource`, not the grid itself. WinUI.TableView supports multi-level grouping directly on Windows targets — see [Grouping](grouping.md). |
+| *(no equivalent)* | [`CanGroupColumns`](xref:WinUI.TableView.TableView.CanGroupColumns) | WCT DataGrid group descriptions were applied to the source `CollectionViewSource`, not the grid itself. WinUI.TableView supports multi-level grouping directly — see [Grouping](grouping.md). |
 | `CanUserReorderColumns` | [`CanReorderColumns`](xref:WinUI.TableView.TableView.CanReorderColumns) | Same behavior. |
 | `CanUserResizeColumns` | [`CanResizeColumns`](xref:WinUI.TableView.TableView.CanResizeColumns) | Same behavior. |
 | [`FrozenColumnCount`](xref:WinUI.TableView.TableView.FrozenColumnCount) | [`FrozenColumnCount`](xref:WinUI.TableView.TableView.FrozenColumnCount) | Same behavior. |
@@ -85,7 +85,7 @@ xmlns:tv="using:WinUI.TableView"
 | [`ColumnReordered`](xref:WinUI.TableView.TableView.ColumnReordered) | [`ColumnReordered`](xref:WinUI.TableView.TableView.ColumnReordered) | Same purpose. |
 | `LoadingRowGroup` | *(no direct equivalent)* | WinUI.TableView supports grouping (see [Grouping](grouping.md)) but has no per-group-header loading event; customize the group header appearance instead via `GroupStyle`/`DefaultGroupStyle`. |
 | *(no equivalent)* | [`Grouping`](xref:WinUI.TableView.TableView.Grouping) | WCT DataGrid has no grouping event. Fires before a column's group/ungroup action runs. |
-| `LoadingRow` | *(no equivalent)* | WinUI.TableView does not have a `LoadingRow` event. Use `ContainerContentChanging` inherited from `ListView`. |
+| `LoadingRow` | *(no equivalent)* | WinUI.TableView does not have a `LoadingRow` event. Use [`CellDoubleTapped`](xref:WinUI.TableView.TableView.CellDoubleTapped) or a conditional cell style for row-level customization. |
 
 ## Sorting
 

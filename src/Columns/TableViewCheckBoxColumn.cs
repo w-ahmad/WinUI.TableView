@@ -14,6 +14,9 @@ namespace WinUI.TableView;
 #endif
 public partial class TableViewCheckBoxColumn : TableViewBoundColumn
 {
+    [ThreadStatic]
+    private static Style? t_cellCheckBoxStyle;
+
     /// <summary>
     /// Initializes a new instance of the TableViewCheckBoxColumn class.
     /// </summary>
@@ -43,6 +46,22 @@ public partial class TableViewCheckBoxColumn : TableViewBoundColumn
         UpdateCheckBoxState(checkBox);
 
         return checkBox;
+    }
+
+    /// <summary>
+    /// Gets the check box style that draws its check without animating it, since a cell's check box is reused for
+    /// row after row as the table scrolls.
+    /// </summary>
+    /// <remarks>
+    /// Loaded once per UI thread, since a style belongs to the thread that loaded it.
+    /// </remarks>
+    internal override Style? DefaultElementStyle => t_cellCheckBoxStyle ??= LoadCellCheckBoxStyle();
+
+    private static Style? LoadCellCheckBoxStyle()
+    {
+        var resources = new ResourceDictionary { Source = new Uri("ms-appx:///WinUI.TableView/Themes/TableViewCheckBoxColumn.xaml") };
+
+        return resources["TableViewCellCheckBoxStyle"] as Style;
     }
 
     /// <inheritdoc/>

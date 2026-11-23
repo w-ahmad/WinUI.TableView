@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**WinUI.TableView** is a lightweight and fast data grid control for WinUI 3 apps with support for the Uno Platform. It's derived from `ListView` and provides an Excel-like data table experience with features like column filtering, sorting, editing, and data export.
+**WinUI.TableView** is a lightweight and fast data grid control for WinUI 3 apps with support for the Uno Platform. It derives from `Control` and hosts its rows in an `ItemsRepeater` with the platform's virtualizing `StackLayout`, and provides an Excel-like data table experience with features like column filtering, sorting, editing, and data export.
 
 - **Repository**: https://github.com/w-ahmad/WinUI.TableView
 - **Documentation**: https://w-ahmad.github.io/WinUI.TableView/
@@ -27,14 +27,17 @@
 ```
 /
 ├── src/                          # Main library source code
+│   ├── AutomationPeers/          # UI Automation peers
+│   ├── Collections/              # Observable collection primitives
 │   ├── Columns/                  # Column type implementations
 │   ├── Controls/                 # Custom control implementations
 │   ├── Converters/               # XAML value converters
 │   ├── EventArgs/                # Custom event argument classes
 │   ├── Extensions/               # Extension methods
 │   ├── Helpers/                  # Helper classes and utilities
-│   ├── ItemsSource/              # Data source handling
-│   ├── Primitives/               # Base/primitive control classes
+│   ├── ItemsSource/              # Data source handling (CollectionView, grouping, visual rows)
+│   ├── Layout/                   # Row host: the realized rows index and the row element factory (pooling)
+│   ├── Selection/                # Range-based row and cell selection
 │   ├── Strings/                  # Localization resources
 │   ├── Themes/                   # XAML styles and control templates
 │   ├── TableView.cs              # Main TableView control
@@ -125,7 +128,7 @@ The project supports both WinUI 3 and Uno Platform. When writing platform-specif
 
 ### Core Components
 
-1. **TableView**: Main control derived from ListView
+1. **TableView**: Main control derived from `Control`; owns the row host (an `ItemsRepeater` with the stock `StackLayout`), the flattened visual row sequence (`ItemsSource/TableViewVisualRows`) and row selection (`Selection/TableViewSelectionModel`)
 2. **TableViewColumn Types**:
    - TableViewTextColumn
    - TableViewCheckBoxColumn

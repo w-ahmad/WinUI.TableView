@@ -82,6 +82,23 @@ public class CollectionViewTests
     }
 
     [UITestMethod]
+    public void DeferredChange_Of_An_Item_Removed_Meanwhile_Does_Not_Add_It()
+    {
+        var src = CreateItems(3); // Values: 3,2,1
+        var view = new CollectionView(src, liveShapingEnabled: true);
+        view.FilterDescriptions.Add(FilterByValueGreaterThan(1));
+        var filteredOut = src[2];
+
+        view.DeferItemChanges();
+        filteredOut.Value = 5;
+        src.Remove(filteredOut);
+        view.ApplyDeferredItemChanges();
+
+        Assert.AreEqual(2, view.Count);
+        Assert.IsFalse(view.Contains(filteredOut));
+    }
+
+    [UITestMethod]
     public void LiveShaping_Reacts_To_Property_Changes_Sort()
     {
         var src = CreateItems(3); // Values: 3,2,1
@@ -308,7 +325,6 @@ public class CollectionViewTests
         Assert.AreEqual(0, view.Count);
     }
 
-#if WINDOWS
     [UITestMethod]
     public void Single_Group_Description_Groups_Items()
     {
@@ -927,7 +943,6 @@ public class CollectionViewTests
     {
         return new GroupDescription(null, valueDelegate: item => ((TestItem)item!).Name);
     }
-#endif
 
     // Enabling live shaping while detached must not subscribe to the items: attaching subscribes to all of
     // them, and a second subscription would survive the next detach.

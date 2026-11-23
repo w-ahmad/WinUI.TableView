@@ -159,7 +159,7 @@ public class TableViewLifecycleTests
 
         var selectedItemValues = new List<object?>();
         var selectionChangedCount = 0;
-        tableView.RegisterPropertyChangedCallback(Microsoft.UI.Xaml.Controls.Primitives.Selector.SelectedItemProperty,
+        tableView.RegisterPropertyChangedCallback(TableView.SelectedItemProperty,
             (_, _) => selectedItemValues.Add(tableView.SelectedItem));
         tableView.SelectionChanged += (_, _) => selectionChangedCount++;
 
@@ -238,7 +238,6 @@ public class TableViewLifecycleTests
         {
             await WaitForRenderedFramesAsync(20);
 
-            Assert.AreEqual(Visibility.Visible, tableView.ItemsPanelRoot.Visibility, "A reloaded table must show its rows again");
             Assert.AreEqual(offset, scrollViewer.VerticalOffset, 1d, "A reloaded table must keep its scroll position");
 
             var realizedRows = tableView.FindDescendants().OfType<TableViewRow>().Where(row => row.ActualHeight > 0).ToList();
@@ -330,7 +329,7 @@ public class TableViewLifecycleTests
             await Task.Delay(200);
 
             Assert.IsTrue(sizeChanged, "Precondition: the row's height changed");
-            Assert.IsNull(row.TableView, "Precondition: the row was detached from its table");
+            Assert.AreEqual(-1, row.Index, "Precondition: the row was recycled");
             Assert.IsNull(unhandled, $"The detached row threw: {unhandled}");
         }
         finally

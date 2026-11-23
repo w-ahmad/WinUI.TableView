@@ -23,6 +23,22 @@ public class DragSelectionRectangleTests
         return tv;
     }
 
+    [UITestMethod]
+    public async Task LosingPointerCapture_EndsDragSelection()
+    {
+        var tv = await CreateAndLoadTableView(ListViewSelectionMode.Extended);
+        tv.StartDragSelection(new Point(10, 10));
+        Assert.IsTrue(tv.IsDragSelecting);
+
+        // What the table's PointerCaptureLost does: on the platforms where the table captures the pointer itself,
+        // nothing else would end the drag.
+        tv.EndDragSelectionOnCaptureLost();
+
+        Assert.IsFalse(tv.IsDragSelecting, "a lost capture should end the drag selection");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tv);
+    }
+
     private static async Task<TableView> CreateAndLoadTableView(ListViewSelectionMode selectionMode = ListViewSelectionMode.Extended)
     {
         var tv = CreateTableView(selectionMode);
@@ -89,7 +105,7 @@ public class DragSelectionRectangleTests
 
         // Drag selection and auto-scroll are active, but rectangle visual is not shown
         Assert.IsTrue(tv.IsDragSelecting);
-        Assert.AreEqual(Visibility.Collapsed, tv.DragRectangleCanvas?.Children.OfType<Border>().FirstOrDefault()?.Visibility);
+        Assert.AreEqual(Visibility.Collapsed, (tv.DragRectangleCanvas as Panel)?.Children.OfType<Border>().FirstOrDefault()?.Visibility);
 
         tv.EndDragSelection();
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tv);
