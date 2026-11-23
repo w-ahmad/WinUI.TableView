@@ -477,22 +477,32 @@ public partial class TableViewHeaderRow : Control
         {
             _calculatingHeaderWidths = true;
 
-            var allColumns = TableView.Columns.VisibleColumns.ToList();
-            var starColumns = allColumns.Where(x => x.Width.IsStar).ToList();
-            var autoColumns = allColumns.Where(x => x.Width.IsAuto).ToList();
-            var absoluteColumns = allColumns.Where(x => x.Width.IsAbsolute).ToList();
+            var allColumns = TableView.Columns.VisibleColumns;
+            var tableMinWidth = TableView.MinColumnWidth;
+            var tableMaxWidth = TableView.MaxColumnWidth;
+            var starUnitWeight = 0d;
+            var fixedWidth = 0d;
+            var startColumnsToAdjust = new List<TableViewColumn>();
 
-            var availableWidth = GetCellsAvailableWidth();
-            var starUnitWeight = starColumns.Sum(x => x.Width.Value);
+            foreach (var column in allColumns)
+            {
+                var columnWidth = column.Width;
 
-            var fixedWidth = autoColumns.Sum(x => ClampColumnWidth(x, GetColumnDesiredWidth(x)));
-            fixedWidth += absoluteColumns.Sum(x => ClampColumnWidth(x, x.Width.Value));
+                if (columnWidth.IsStar)
+                {
+                    starUnitWeight += columnWidth.Value;
+                    startColumnsToAdjust.Add(column);
+                }
+                else
+                {
+                    fixedWidth += ClampColumnWidth(column, columnWidth.IsAbsolute ? columnWidth.Value : GetColumnDesiredWidth(column), tableMinWidth, tableMaxWidth);
+                }
+            }
 
-            availableWidth -= fixedWidth;
+            var availableWidth = GetCellsAvailableWidth() - fixedWidth;
             var starUnitWidth = starUnitWeight > 0 ? availableWidth / starUnitWeight : 0;
 
             var starWidthAdjusted = false;
-            var startColumnsToAdjust = starColumns.ToList();
             do
             {
                 starWidthAdjusted = false;
@@ -500,8 +510,8 @@ public partial class TableViewHeaderRow : Control
                 foreach (var column in startColumnsToAdjust)
                 {
                     var width = starUnitWidth * column.Width.Value;
-                    var minWidth = column.MinWidth ?? TableView.MinColumnWidth;
-                    var maxWidth = column.MaxWidth ?? TableView.MaxColumnWidth;
+                    var minWidth = column.MinWidth ?? tableMinWidth;
+                    var maxWidth = column.MaxWidth ?? tableMaxWidth;
 
                     width = width < minWidth ? minWidth : width;
                     width = width > maxWidth ? maxWidth : width;
@@ -531,8 +541,8 @@ public partial class TableViewHeaderRow : Control
                             : column.Width.IsAbsolute ? column.Width.Value
                             : GetColumnDesiredWidth(column);
 
-                var minWidth = column.MinWidth ?? TableView.MinColumnWidth;
-                var maxWidth = column.MaxWidth ?? TableView.MaxColumnWidth;
+                var minWidth = column.MinWidth ?? tableMinWidth;
+                var maxWidth = column.MaxWidth ?? tableMaxWidth;
                 var isShared = column.Width.IsStar && width >= minWidth && width <= maxWidth;
 
                 width = width < minWidth ? minWidth : width;
@@ -542,7 +552,7 @@ public partial class TableViewHeaderRow : Control
                 if (isShared)
                 {
                     starEdge += width * scale;
-                    width = ClampColumnWidth(column, (Math.Floor(starEdge + 0.001) - starPixels) / scale);
+                    width = ClampColumnWidth(column, (Math.Floor(starEdge + 0.001) - starPixels) / scale, tableMinWidth, tableMaxWidth);
                     starPixels += width * scale;
                 }
 
@@ -566,10 +576,10 @@ public partial class TableViewHeaderRow : Control
     /// <summary>
     /// Limits a width to the column's minimum and maximum widths.
     /// </summary>
-    private double ClampColumnWidth(TableViewColumn column, double width)
+    private static double ClampColumnWidth(TableViewColumn column, double width, double tableMinWidth, double tableMaxWidth)
     {
-        var minWidth = column.MinWidth ?? TableView?.MinColumnWidth ?? 0d;
-        var maxWidth = column.MaxWidth ?? TableView?.MaxColumnWidth ?? double.PositiveInfinity;
+        var minWidth = column.MinWidth ?? tableMinWidth;
+        var maxWidth = column.MaxWidth ?? tableMaxWidth;
 
         width = width < minWidth ? minWidth : width;
         return width > maxWidth ? maxWidth : width;

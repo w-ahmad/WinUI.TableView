@@ -278,4 +278,68 @@ public class TableViewColumnsCollectionTests
 
         Assert.AreEqual(1, collection.VisibleColumns.Count);
     }
+
+    [UITestMethod]
+    public void InsertRemoveAndReplace_KeepVisibleColumnsAndIndexesInStep()
+    {
+        var tableView = new TableView();
+        var collection = new TableViewColumnsCollection(tableView);
+        var a = new TableViewTextColumn();
+        var b = new TableViewTextColumn();
+        var c = new TableViewTextColumn();
+        var d = new TableViewTextColumn();
+        var index = -1;
+        collection.ColumnPropertyChanged += (_, e) => index = e.Index;
+
+        collection.Add(a);
+        collection.Add(b);
+        collection.Insert(0, c);
+        CollectionAssert.AreEqual(new[] { c, a, b }, collection.VisibleColumns.ToArray());
+
+        b.Width = new GridLength(120);
+        Assert.AreEqual(2, index);
+
+        collection.RemoveAt(1);
+        collection[0] = d;
+        CollectionAssert.AreEqual(new[] { d, b }, collection.VisibleColumns.ToArray());
+
+        b.Width = new GridLength(130);
+        Assert.AreEqual(1, index);
+
+        index = -1;
+        c.Width = new GridLength(130);
+        Assert.AreEqual(-1, index, "a column that was replaced is not in the collection");
+    }
+
+    [UITestMethod]
+    public void ColumnProperties_ReadBackWhatWasSet()
+    {
+        var column = new TableViewTextColumn();
+
+        Assert.IsTrue(column.Width.IsAuto);
+        Assert.AreEqual(Visibility.Visible, column.Visibility);
+        Assert.IsNull(column.MinWidth);
+        Assert.IsNull(column.Order);
+
+        column.Width = new GridLength(2, GridUnitType.Star);
+        column.MinWidth = 40;
+        column.MaxWidth = 300;
+        column.ActualWidth = 150;
+        column.Visibility = Visibility.Collapsed;
+        column.Order = 3;
+        column.SetValue(TableViewColumn.MinWidthProperty, 50d);
+
+        Assert.AreEqual(new GridLength(2, GridUnitType.Star), column.Width);
+        Assert.AreEqual(50d, column.MinWidth);
+        Assert.AreEqual(300d, column.MaxWidth);
+        Assert.AreEqual(150d, column.ActualWidth);
+        Assert.AreEqual(Visibility.Collapsed, column.Visibility);
+        Assert.AreEqual(3, column.Order);
+
+        column.ClearValue(TableViewColumn.OrderProperty);
+        column.ClearValue(TableViewColumn.WidthProperty);
+
+        Assert.IsNull(column.Order);
+        Assert.IsTrue(column.Width.IsAuto);
+    }
 }

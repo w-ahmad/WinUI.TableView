@@ -211,7 +211,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     public GridLength Width
     {
-        get => (GridLength)GetValue(WidthProperty);
+        get => _width;
         set => SetValue(WidthProperty, value);
     }
 
@@ -220,7 +220,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     public double? MinWidth
     {
-        get => (double?)GetValue(MinWidthProperty);
+        get => _minWidth;
         set => SetValue(MinWidthProperty, value);
     }
 
@@ -229,7 +229,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     public double? MaxWidth
     {
-        get => (double?)GetValue(MaxWidthProperty);
+        get => _maxWidth;
         set => SetValue(MaxWidthProperty, value);
     }
 
@@ -238,7 +238,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     public double ActualWidth
     {
-        get => (double)GetValue(ActualWidthProperty);
+        get => _actualWidth;
         set => SetValue(ActualWidthProperty, value);
     }
 
@@ -323,7 +323,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     public Visibility Visibility
     {
-        get => (Visibility)GetValue(VisibilityProperty);
+        get => _visibility;
         set => SetValue(VisibilityProperty, value);
     }
 
@@ -359,7 +359,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     public int? Order
     {
-        get => (int?)GetValue(OrderProperty);
+        get => _order;
         set => SetValue(OrderProperty, value);
     }
 
@@ -555,11 +555,32 @@ public abstract partial class TableViewColumn : DependencyObject
         }
     }
 
+    // Copies of the properties the layout reads for every column, kept by OnPropertyChanged.
+    private GridLength _width = GridLength.Auto;
+    private double? _minWidth;
+    private double? _maxWidth;
+    private double _actualWidth;
+    private Visibility _visibility = Visibility.Visible;
+    private int? _order;
+
     private static void OnPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (e.Property == CellStyleProperty)
+        if (d is TableViewColumn changed)
         {
-            (d as TableViewColumn)?._hasCellStyleSource = false;
+            if (e.Property == CellStyleProperty)
+                changed._hasCellStyleSource = false;
+            else if (e.Property == WidthProperty)
+                changed._width = (GridLength)e.NewValue;
+            else if (e.Property == MinWidthProperty)
+                changed._minWidth = (double?)e.NewValue;
+            else if (e.Property == MaxWidthProperty)
+                changed._maxWidth = (double?)e.NewValue;
+            else if (e.Property == ActualWidthProperty)
+                changed._actualWidth = (double)e.NewValue;
+            else if (e.Property == VisibilityProperty)
+                changed._visibility = (Visibility)e.NewValue;
+            else if (e.Property == OrderProperty)
+                changed._order = (int?)e.NewValue;
         }
 
         if (d is TableViewColumn { OwningCollection: { } } column)

@@ -16,7 +16,8 @@ namespace WinUI.TableView;
 /// property changes, enabling dynamic updates to the <see cref="WinUI.TableView.TableView"/>.</remarks>
 public partial class TableViewColumnsCollection : DependencyObjectCollection, ITableViewColumnsCollection
 {
-    private TableViewColumn[] _itemsCopy = []; // To keep a copy of the items to keep track of removed items
+    // The items, kept in step with the collection: reading them back from it costs a call per item.
+    private readonly List<TableViewColumn> _items = [];
     private bool _movingColumn;
     private ReadOnlyCollection<TableViewColumn>? _visibleColumns;
     private double[]? _visibleColumnOffsets;
@@ -47,28 +48,43 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
     {
         if (_movingColumn) return; // Skip processing if it's a move action
 
+        var index = (int)args.Index;
+        var isInsert = args.CollectionChange is CollectionChange.ItemInserted;
+        TableViewColumn[] removed = isInsert ? [] : [.. _items];
+
+        if (isInsert && index <= _items.Count && index < Count)
+        {
+            _items.Insert(index, (TableViewColumn)sender[index]);
+        }
+        else if (args.CollectionChange is CollectionChange.ItemRemoved && index < _items.Count)
+        {
+            _items.RemoveAt(index);
+        }
+        else
+        {
+            CopyItems();
+        }
+
         InvalidateVisibleColumns();
         UpdateFrozenColumns();
-
-        var index = (int)args.Index;
 
         switch (args.CollectionChange)
         {
             case CollectionChange.ItemInserted:
-                if (args.Index < Count)
+                if (index < _items.Count)
                 {
-                    var column = (TableViewColumn)sender[index];
+                    var column = _items[index];
                     column.SetOwningCollection(this);
                     column.SetOwningTableView(((ITableViewColumnsCollection)this).TableView!);
                     CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, column, (int)args.Index));
                 }
                 break;
             case CollectionChange.ItemRemoved:
-                if (args.Index < _itemsCopy.Length)
+                if (index < removed.Length)
                 {
-                    var column = _itemsCopy[index];
+                    var column = removed[index];
                     // A column added twice is still owned while one of them remains.
-                    if (!Contains(column))
+                    if (!_items.Contains(column))
                     {
                         column.SetOwningCollection(null!);
                         column.SetOwningTableView(null!);
@@ -77,7 +93,7 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
                 }
                 break;
             case CollectionChange.Reset:
-                foreach (var item in _itemsCopy)
+                foreach (var item in removed)
                 {
                     item.SetOwningCollection(null!);
                     item.SetOwningTableView(null!);
@@ -85,19 +101,21 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
                 }
                 break;
         }
+    }
 
-        _itemsCopy = new TableViewColumn[Count];
-        CopyTo(_itemsCopy, 0);
+    private void CopyItems()
+    {
+        _items.Clear();
+        _items.AddRange(this.OfType<TableViewColumn>());
     }
 
     internal void UpdateFrozenColumns()
     {
-        var visibleColumns = VisibleColumns;
         var frozenColumnCount = TableView?.FrozenColumnCount ?? 0;
         // A hidden column (index -1) counts as frozen, and a column added twice goes by its first place.
-        foreach (var column in this.OfType<TableViewColumn>())
+        foreach (var column in _items)
         {
-            column.IsFrozen = visibleColumns.IndexOf(column) < frozenColumnCount;
+            column.IsFrozen = GetVisibleColumnIndex(column) < frozenColumnCount;
         }
     }
 
@@ -266,10 +284,9 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
             InvalidateColumnOffsets();
         }
 
-        if (Contains(column) && !_movingColumn)
+        if (!_movingColumn && ColumnPropertyChanged is { } handler && _items.IndexOf(column) is >= 0 and var index)
         {
-            var index = IndexOf(column);
-            ColumnPropertyChanged?.Invoke(this, new TableViewColumnPropertyChangedEventArgs(column, propertyName, index));
+            handler.Invoke(this, new TableViewColumnPropertyChangedEventArgs(column, propertyName, index));
         }
     }
 
@@ -284,7 +301,7 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
     /// sometimes once per loop iteration.
     /// </remarks>
     public IList<TableViewColumn> VisibleColumns => _visibleColumns ??= new ReadOnlyCollection<TableViewColumn>(
-        [.. this.OfType<TableViewColumn>()
+        [.. _items
                .Where(x => x.Visibility == Visibility.Visible)
                .OrderBy(x => x.Order ?? 0)]);
 
@@ -384,9 +401,8 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
             Insert(newIndex, column);
 
             // OnVectorChanged is suppressed while _movingColumn is set, so its bookkeeping is done here.
+            CopyItems();
             InvalidateVisibleColumns();
-            _itemsCopy = new TableViewColumn[Count];
-            CopyTo(_itemsCopy, 0);
             UpdateFrozenColumns();
             CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, column, newIndex, oldIndex));
         }
