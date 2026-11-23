@@ -185,12 +185,22 @@ function createNavigator(page) {
         for (let attempt = 0; attempt < 3; attempt++) {
             await fitMenu(page); // opening a page can expand its group, which lengthens the menu
             const item = await findMenuItem(page, name);
-            if (!item) {
-                console.log(`  (no '${name}' page in this sample - skipped)`);
-                return false;
-            }
             const before = await page.screenshot({ clip: titleClip });
-            await page.mouse.click(item.x, item.y);
+            if (item) {
+                await page.mouse.click(item.x, item.y);
+            } else {
+                // The accessibility layer does not report the pages inside a menu group; the search box opens them.
+                const search = await findMenuItem(page, "Search samples");
+                if (!search) {
+                    console.log(`  (no '${name}' page in this sample - skipped)`);
+                    return false;
+                }
+                await page.mouse.click(search.x, search.y);
+                await page.keyboard.press("Control+A");
+                await page.keyboard.type(name);
+                await page.waitForTimeout(500);
+                await page.keyboard.press("Enter");
+            }
             await page.waitForTimeout(2000);
             if (!before.equals(await page.screenshot({ clip: titleClip }))) {
                 current = name;
