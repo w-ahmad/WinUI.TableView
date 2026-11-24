@@ -57,8 +57,7 @@ do not depend on the base class.
 ### Row drag-reorder
 
 Row drag and drop was entirely `ListView`'s, with no code in this library — which is why it disappeared with the
-base class rather than being ported. Reimplementing it on top of the new row host is tracked as follow-up work. The
-Row Reorder sample page documents the gap.
+base class rather than being ported. Reimplementing it on top of the new row host is tracked as follow-up work.
 
 Reordering items in your own collection and letting the control follow the change still works.
 
