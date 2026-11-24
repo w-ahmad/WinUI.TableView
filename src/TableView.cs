@@ -47,6 +47,9 @@ public partial class TableView : Control
     private Border? _dragRectangle;
     private Point? _dragStartPoint;
     private bool _suppressSelectionChangedCellClear;
+    private int _selectionBatchDepth;
+    private bool _isCellSelectionChangePending;
+    private TableViewSelectionModel? _rowSelectionBeforeBatch;
     private Point? _lastDragCanvasPoint;
     private DispatcherTimer? _autoScrollTimer;
     private double _autoScrollVerticalDelta;
@@ -655,6 +658,9 @@ public partial class TableView : Control
         _pointerCaptureElement.CapturePointer(e.Pointer);
         _tableViewDragPointer = e.Pointer;
 
+        // Deselecting the others and selecting the pressed row is one change.
+        BeginSelectionBatch();
+
         if (!ctrlKey && SelectionMode is not ListViewSelectionMode.Multiple && LastSelectionUnit is not TableViewSelectionUnit.Cell)
             DeselectAll();
 
@@ -662,6 +668,7 @@ public partial class TableView : Control
 
         if (!IsDragSelecting)
         {
+            EndSelectionBatch();
             _pointerCaptureElement?.ReleasePointerCaptures();
             _pointerCaptureElement = null;
             _tableViewDragPointer = null;
@@ -669,6 +676,7 @@ public partial class TableView : Control
         }
 
         MakeSelectionInDragRect();
+        EndSelectionBatch();
         return true;
     }
 
@@ -929,6 +937,8 @@ public partial class TableView : Control
     {
         if (_lastDragSelectionRowRange?.FirstIndex == rows.FirstIndex && _lastDragSelectionRowRange?.LastIndex == rows.LastIndex) return;
 
+        BeginSelectionBatch();
+
         if (SelectionMode is ListViewSelectionMode.Single && rows.Length is 1)
         {
             SelectedIndex = rows.FirstIndex;
@@ -945,6 +955,7 @@ public partial class TableView : Control
             SelectRange(rows);
         }
 
+        EndSelectionBatch();
         _lastDragSelectionRowRange = rows;
     }
 
@@ -957,6 +968,8 @@ public partial class TableView : Control
 
         DispatcherQueue.TryEnqueue(() =>
         {
+            BeginSelectionBatch();
+
             if (_lastDragSelectionCellRange is null
             && !KeyboardHelper.IsCtrlKeyDown()
             && SelectionMode is not ListViewSelectionMode.Multiple)
@@ -981,6 +994,7 @@ public partial class TableView : Control
                 SelectCellRange(cells);
             }
 
+            EndSelectionBatch();
             _lastDragSelectionCellRange = cells;
         });
     }
@@ -2210,6 +2224,7 @@ public partial class TableView : Control
 
         if (SelectionMode != ListViewSelectionMode.None)
         {
+            BeginSelectionBatch();
             ctrlKey = ctrlKey || SelectionMode is ListViewSelectionMode.Multiple;
             _suppressSelectionChangedCellClear = SelectionUnit is TableViewSelectionUnit.CellWithRow;
             var shouldSelectRows = SelectionUnit is TableViewSelectionUnit.Row
@@ -2238,6 +2253,8 @@ public partial class TableView : Control
                 SelectCells(slot, shiftKey, ctrlKey);
                 LastSelectionUnit = TableViewSelectionUnit.Cell;
             }
+
+            EndSelectionBatch();
         }
         else if (!IsReadOnly)
         {
@@ -2498,6 +2515,12 @@ public partial class TableView : Control
     /// </summary>
     private void OnCellSelectionChanged()
     {
+        if (_selectionBatchDepth > 0)
+        {
+            _isCellSelectionChangePending = true;
+            return;
+        }
+
         // Diff rectangles, not slots. The previous implementation expanded every selected range into a set of
         // individual slots on every change, which is rows x columns entries for a whole-grid selection.
         var currentRanges = SelectedCellRanges.Count is 0 ? [] : new List<TableViewCellSlotRange>(SelectedCellRanges);
