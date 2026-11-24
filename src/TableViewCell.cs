@@ -555,6 +555,9 @@ public partial class TableViewCell : ContentControl
     /// <inheritdoc/>
     protected override void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
     {
+#if !WINDOWS
+        TableView?.OnPlatformDoubleTapped(e);
+#endif
         e.Handled = HandleDoubleTap(e);
 
         if (!e.Handled)

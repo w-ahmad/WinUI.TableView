@@ -72,6 +72,46 @@ public class RepeatedTapDetectorTests
     }
 
     [TestMethod]
+    public void SecondTapAtTheTimeLimit_IsARepeat()
+    {
+        long now = 1000;
+        var detector = new RepeatedTapDetector(() => now);
+        var target = new object();
+
+        Tap(detector, 1, target);
+        now += RepeatedTapDetector.MaxDelay;
+
+        Assert.AreSame(target, Tap(detector, 2, target));
+    }
+
+    [TestMethod]
+    public void SecondTapPastTheTimeLimit_IsNotARepeat()
+    {
+        long now = 1000;
+        var detector = new RepeatedTapDetector(() => now);
+        var target = new object();
+
+        Tap(detector, 1, target);
+        now += RepeatedTapDetector.MaxDelay + 1;
+
+        Assert.IsNull(Tap(detector, 2, target));
+    }
+
+    [TestMethod]
+    public void Reset_StopsTheCurrentContactFromRepeating()
+    {
+        var detector = new RepeatedTapDetector();
+        var target = new object();
+
+        Tap(detector, 1, target);
+        detector.Pressed(2, new Point(10, 10), target);
+        detector.Reset();
+
+        Assert.IsNull(detector.Released(2, new Point(10, 10)));
+        Assert.IsNull(Tap(detector, 3, target));
+    }
+
+    [TestMethod]
     public void ReleaseOfAnUnknownContact_IsIgnored()
     {
         var detector = new RepeatedTapDetector();

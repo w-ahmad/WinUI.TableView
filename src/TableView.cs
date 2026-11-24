@@ -535,6 +535,17 @@ public partial class TableView : Control
     private readonly RepeatedTapDetector _touchTaps = new();
 
     /// <summary>
+    /// Stops the current touch contact from also counting as a double tap when the platform raised DoubleTapped for it.
+    /// </summary>
+    internal void OnPlatformDoubleTapped(DoubleTappedRoutedEventArgs e)
+    {
+        if (e.PointerDeviceType is Microsoft.UI.Input.PointerDeviceType.Touch)
+        {
+            _touchTaps.Reset();
+        }
+    }
+
+    /// <summary>
     /// Treats a second touch tap on the same cell or row as a double tap, which Uno does not raise for touch.
     /// </summary>
     private void OnTouchReleased(object sender, PointerRoutedEventArgs e)

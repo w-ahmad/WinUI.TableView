@@ -5,13 +5,14 @@ using Windows.Foundation;
 namespace WinUI.TableView.Helpers;
 
 /// <summary>
-/// Recognizes a touch double tap from two short contacts on the same target. Uno raises no DoubleTapped
-/// for touch, where every contact is a new pointer.
+/// Recognizes a touch double tap from two short contacts on the same target. Uno raises DoubleTapped for
+/// touch only when both contacts share a pointer id, which browsers never do.
 /// </summary>
-internal sealed class RepeatedTapDetector
+internal sealed class RepeatedTapDetector(Func<long>? clock = null)
 {
-    private const int MaxDelay = 500;
+    internal const int MaxDelay = 500;
     private const double MaxMove = 12;
+    private readonly Func<long> _clock = clock ?? (() => Environment.TickCount64);
     private uint? _pressId;
     private Point _pressPoint;
     private object? _pressTarget;
@@ -48,13 +49,23 @@ internal sealed class RepeatedTapDetector
             return null;
         }
 
-        var now = Environment.TickCount64;
+        var now = _clock();
         var isRepeat = ReferenceEquals(_lastTarget, target) && now - _lastTap <= MaxDelay;
 
         _lastTarget = isRepeat ? null : target;
         _lastTap = now;
 
         return isRepeat ? target : null;
+    }
+
+    /// <summary>
+    /// Forgets the current contact and the previous tap, after the platform raised DoubleTapped itself.
+    /// </summary>
+    public void Reset()
+    {
+        _pressId = null;
+        _pressTarget = null;
+        _lastTarget = null;
     }
 }
 #endif
