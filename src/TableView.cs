@@ -2872,25 +2872,15 @@ public partial class TableView : Control
         SelectionStartCellSlot = null;
 
 #if !WINDOWS
+        // The table held the pointer, so the cell and row the drag started on never heard it leave or lift.
         if (_dragStartCell is not null && slot != _dragStartCell.Slot)
         {
-            VisualStates.GoToState(_dragStartCell, false, VisualStates.StateNormal);
-
-            if (_dragStartCell.IsSelected)
-            {
-                VisualStates.GoToState(_dragStartCell, false, VisualStates.StateSelected);
-            }
+            _dragStartCell.ApplyPointerOverState(isPointerOver: false);
         }
 
-        if (_dragStartRow is not null && _dragStartRow.Index != slot?.Row)
-        {
-            VisualStates.GoToState(_dragStartRow, false, VisualStates.StateNormal);
-
-            if (_dragStartRow.IsSelected)
-            {
-                VisualStates.GoToState(_dragStartRow, false, VisualStates.StateSelected);
-            }
-        }
+        _dragStartRow?.EndPress(isPointerOver: _dragStartRow.Index == slot?.Row);
+        _dragStartCell = null;
+        _dragStartRow = null;
 #endif
     }
 

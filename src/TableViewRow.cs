@@ -410,6 +410,16 @@ public partial class TableViewRow : ContentControl
     }
 
     /// <summary>
+    /// Ends a press the row was not told the end of, because another element held the pointer.
+    /// </summary>
+    internal void EndPress(bool isPointerOver)
+    {
+        _isPressed = false;
+        _isPointerOver &= isPointerOver;
+        UpdateVisualStates();
+    }
+
+    /// <summary>
     /// Brings the row's visual states in line with its selection, pointer and the table's selection mode, without
     /// transitions.
     /// </summary>
