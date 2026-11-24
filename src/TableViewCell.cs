@@ -456,6 +456,9 @@ public partial class TableViewCell : ContentControl
     {
         base.OnPointerEntered(e);
 
+        // Touch has no hover, and its exit is not always reported.
+        if (e.Pointer.PointerDeviceType is Microsoft.UI.Input.PointerDeviceType.Touch) return;
+
         if ((TableView?.SelectionMode is not ListViewSelectionMode.None
            && TableView?.SelectionUnit is not TableViewSelectionUnit.Row)
            || !TableView.IsReadOnly)

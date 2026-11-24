@@ -340,6 +340,9 @@ public partial class TableViewRow : ContentControl
     {
         base.OnPointerEntered(e);
 
+        // Touch has no hover, and its exit is not always reported.
+        if (e.Pointer.PointerDeviceType is Microsoft.UI.Input.PointerDeviceType.Touch) return;
+
         _isPointerOver = true;
         UpdateVisualStates();
     }
