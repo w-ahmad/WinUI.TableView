@@ -35,6 +35,13 @@
                    TargetType="HyperlinkButton">
                 <Setter Property="Padding" Value="10,6" />
             </Style>
+
+            <!--  A style, so the brush follows the theme of the page  -->
+            <Style x:Key="GroupDescriptionStyle"
+                   TargetType="TextBlock">
+                <Setter Property="TextWrapping" Value="Wrap" />
+                <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+            </Style>
         </ResourceDictionary>
     </Page.Resources>
 

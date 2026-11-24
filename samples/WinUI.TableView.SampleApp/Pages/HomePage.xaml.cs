@@ -51,8 +51,7 @@ public sealed partial class HomePage : Page
         titles.Children.Add(new TextBlock
         {
             Text = group.Description,
-            TextWrapping = TextWrapping.Wrap,
-            Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+            Style = (Style)Resources["GroupDescriptionStyle"]
         });
         header.Children.Add(titles);
 
