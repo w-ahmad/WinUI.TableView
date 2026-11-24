@@ -7,13 +7,11 @@
       xmlns:tv="using:WinUI.TableView"
       xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
       d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
-      mc:Ignorable="d not_win"
-      xmlns:win="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:not_win="http://uno.ui/not_win">
+      mc:Ignorable="d">
 
     <Grid>
         <controls:SamplePresenter Header="Pagination"
-                                  Description="Paging is not built into TableView, but it takes little on top of it: bind the table to one page of the collection and add a pager.">
+                                  Description="Paging is not built into TableView, but it takes little on top of it: bind the table to one page of the collection and add a pager. The page size here follows the height of the table.">
             <controls:SamplePresenter.Example>
                 <Grid>
                     <Grid.RowDefinitions>
@@ -49,44 +47,66 @@
 
                     <Grid Grid.Row="1"
                           Margin="0,10,0,0"
-                          HorizontalAlignment="Right"
-                          CornerRadius="{ThemeResource ControlCornerRadius}">
-                        <win:ListBox x:Name="pageList"
-                                     ScrollViewer.HorizontalScrollMode="Enabled"
-                                     ScrollViewer.HorizontalScrollBarVisibility="Hidden"
-                                     SelectionChanged="OnPageSelectionChanged">
-                            <win:ListBox.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Horizontal" />
-                                </ItemsPanelTemplate>
-                            </win:ListBox.ItemsPanel>
-                        </win:ListBox>
-                        <not_win:ListView x:Name="pageList"
-                                          ScrollViewer.HorizontalScrollMode="Enabled"
-                                          ScrollViewer.HorizontalScrollBarVisibility="Hidden"
-                                          ScrollViewer.VerticalScrollMode="Disabled"
-                                          SelectionChanged="OnPageSelectionChanged">
-                            <ListView.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Horizontal" />
-                                </ItemsPanelTemplate>
-                            </ListView.ItemsPanel>
-                            <ListView.ItemContainerStyle>
-                                <Style TargetType="ListViewItem">
-                                    <Setter Property="MinWidth"
-                                            Value="40" />
-                                    <Setter Property="HorizontalContentAlignment"
-                                            Value="Center" />
-                                </Style>
-                            </ListView.ItemContainerStyle>
-                        </not_win:ListView>
+                          ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="rowsText"
+                                   VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <StackPanel Grid.Column="1"
+                                    Orientation="Horizontal"
+                                    Spacing="4">
+                            <Button x:Name="firstPage"
+                                    AutomationProperties.Name="First page"
+                                    ToolTipService.ToolTip="First page"
+                                    Click="OnFirstPageClicked">
+                                <FontIcon Glyph="&#xE892;"
+                                          FontSize="14" />
+                            </Button>
+                            <Button x:Name="previousPage"
+                                    AutomationProperties.Name="Previous page"
+                                    ToolTipService.ToolTip="Previous page"
+                                    Click="OnPreviousPageClicked">
+                                <FontIcon Glyph="&#xE76B;"
+                                          FontSize="14" />
+                            </Button>
+                            <TextBlock Text="Page"
+                                       Margin="8,0,4,0"
+                                       VerticalAlignment="Center" />
+                            <NumberBox x:Name="pageNumber"
+                                       AutomationProperties.Name="Page number"
+                                       MinWidth="64"
+                                       Minimum="1"
+                                       VerticalAlignment="Center"
+                                       ValueChanged="OnPageNumberChanged" />
+                            <TextBlock x:Name="pageCountText"
+                                       Margin="4,0,8,0"
+                                       VerticalAlignment="Center" />
+                            <Button x:Name="nextPage"
+                                    AutomationProperties.Name="Next page"
+                                    ToolTipService.ToolTip="Next page"
+                                    Click="OnNextPageClicked">
+                                <FontIcon Glyph="&#xE76C;"
+                                          FontSize="14" />
+                            </Button>
+                            <Button x:Name="lastPage"
+                                    AutomationProperties.Name="Last page"
+                                    ToolTipService.ToolTip="Last page"
+                                    Click="OnLastPageClicked">
+                                <FontIcon Glyph="&#xE893;"
+                                          FontSize="14" />
+                            </Button>
+                        </StackPanel>
                     </Grid>
                 </Grid>
             </controls:SamplePresenter.Example>
             <controls:SamplePresenter.Xaml>
                 <x:String xml:space="preserve">
 &lt;tv:TableView x:Name="tableView"
-    ItemsSource="{Binding PagedItems}"
+    ItemsSource="{Binding Items}"
     AutoGenerateColumns="False"
     SizeChanged="OnTableViewSizeChanged"
     DataContextChanged="OnDataContextChanged">
@@ -95,21 +115,69 @@
     &lt;/tv:TableView.Columns>
 &lt;/tv:TableView>
                     
-&lt;ListBox x:Name="pageList"
-    Grid.Row="1"
-    Margin="0,10,0,0"
-    HorizontalAlignment="Right"
-    SelectionChanged="OnPageSelectionChanged">
-   &lt;ListBox.ItemsPanel>
-        &lt;ItemsPanelTemplate>
-            &lt;StackPanel Orientation="Horizontal" />
-        &lt;/ItemsPanelTemplate>
-    &lt;/ListBox.ItemsPanel>
-&lt;/ListBox>
+&lt;Grid Grid.Row="1"
+      Margin="0,10,0,0"
+      ColumnSpacing="12">
+    &lt;Grid.ColumnDefinitions>
+        &lt;ColumnDefinition Width="*" />
+        &lt;ColumnDefinition Width="Auto" />
+    &lt;/Grid.ColumnDefinitions>
+    &lt;TextBlock x:Name="rowsText"
+               VerticalAlignment="Center"
+               TextTrimming="CharacterEllipsis"
+               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+    &lt;StackPanel Grid.Column="1"
+                Orientation="Horizontal"
+                Spacing="4">
+        &lt;Button x:Name="firstPage"
+                AutomationProperties.Name="First page"
+                ToolTipService.ToolTip="First page"
+                Click="OnFirstPageClicked">
+            &lt;FontIcon Glyph="&amp;#xE892;"
+                      FontSize="14" />
+        &lt;/Button>
+        &lt;Button x:Name="previousPage"
+                AutomationProperties.Name="Previous page"
+                ToolTipService.ToolTip="Previous page"
+                Click="OnPreviousPageClicked">
+            &lt;FontIcon Glyph="&amp;#xE76B;"
+                      FontSize="14" />
+        &lt;/Button>
+        &lt;TextBlock Text="Page"
+                   Margin="8,0,4,0"
+                   VerticalAlignment="Center" />
+        &lt;NumberBox x:Name="pageNumber"
+                   AutomationProperties.Name="Page number"
+                   MinWidth="64"
+                   Minimum="1"
+                   VerticalAlignment="Center"
+                   ValueChanged="OnPageNumberChanged" />
+        &lt;TextBlock x:Name="pageCountText"
+                   Margin="4,0,8,0"
+                   VerticalAlignment="Center" />
+        &lt;Button x:Name="nextPage"
+                AutomationProperties.Name="Next page"
+                ToolTipService.ToolTip="Next page"
+                Click="OnNextPageClicked">
+            &lt;FontIcon Glyph="&amp;#xE76C;"
+                      FontSize="14" />
+        &lt;/Button>
+        &lt;Button x:Name="lastPage"
+                AutomationProperties.Name="Last page"
+                ToolTipService.ToolTip="Last page"
+                Click="OnLastPageClicked">
+            &lt;FontIcon Glyph="&amp;#xE893;"
+                      FontSize="14" />
+        &lt;/Button>
+    &lt;/StackPanel>
+&lt;/Grid>
                 </x:String>
             </controls:SamplePresenter.Xaml>
             <controls:SamplePresenter.CSharp>
                 <x:String xml:space="preserve">
+private int _pageCount;
+private int _currentPage;
+
 private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
 {
     UpdatePages();
@@ -122,27 +190,57 @@ private void OnTableViewSizeChanged(object sender, SizeChangedEventArgs e)
 
 private void UpdatePages()
 {
-    if (DataContext is not ExampleViewModel viewModel) return;
+    if (DataContext is not ExampleViewModel) return;
 
-    var rowHeight = tableView.RowHeight;
-    var availableHeight = tableView.ActualHeight - tableView.HeaderRowHeight;
-    PageSize = (int)Math.Floor(availableHeight / rowHeight);
+    var rowHeight = tableView.RowHeight is not double.NaN ? tableView.RowHeight : tableView.RowMinHeight;
+    var headerHeight = tableView.HeaderRowHeight is not double.NaN ? tableView.HeaderRowHeight : tableView.HeaderRowMinHeight;
+    var availableHeight = tableView.ActualHeight - headerHeight;
+    var pageSize = Math.Max(1, (int)Math.Floor(availableHeight / (rowHeight + tableView.HorizontalGridLinesStrokeThickness)));
 
-    pageList.ItemsSource = Enumerable.Range(1, (int)Math.Ceiling(ExampleViewModel.ItemsList.Count / (double)PageSize));
-    pageList.SelectedItem = 1;
+    if (pageSize == PageSize &amp;&amp; _pageCount > 0) return;
 
-    viewModel.Items = new(ExampleViewModel.ItemsList.Take(PageSize));
+    // Stay on the page that holds the first row shown.
+    var firstRow = _currentPage * PageSize;
+
+    PageSize = pageSize;
+    _pageCount = Math.Max(1, (int)Math.Ceiling(ExampleViewModel.ItemsList.Count / (double)PageSize));
+    ShowPage(firstRow / PageSize);
 }
 
-private void OnPageSelectionChanged(object sender, SelectionChangedEventArgs e)
+private void ShowPage(int page)
 {
-    if (DataContext is not ExampleViewModel viewModel) return;
-    var currentPage = (pageList.SelectedItem as int?) ?? 1;
+    if (DataContext is not ExampleViewModel viewModel || _pageCount == 0) return;
 
-    viewModel.Items = new(ExampleViewModel.ItemsList.Skip((currentPage - 1) * PageSize).Take(PageSize));
+    _currentPage = Math.Clamp(page, 0, _pageCount - 1);
+
+    var total = ExampleViewModel.ItemsList.Count;
+    var firstRow = _currentPage * PageSize;
+    viewModel.Items = new(ExampleViewModel.ItemsList.Skip(firstRow).Take(PageSize));
+
+    pageNumber.Maximum = _pageCount;
+    pageNumber.Value = _currentPage + 1;
+    pageCountText.Text = $"of {_pageCount}";
+    rowsText.Text = $"Rows {Math.Min(firstRow + 1, total)} to {Math.Min(firstRow + PageSize, total)} of {total}";
+
+    firstPage.IsEnabled = previousPage.IsEnabled = _currentPage > 0;
+    nextPage.IsEnabled = lastPage.IsEnabled = _currentPage &lt; _pageCount - 1;
 }
 
-public int PageSize { get; set; } = 10;
+private void OnFirstPageClicked(object sender, RoutedEventArgs e) => ShowPage(0);
+
+private void OnPreviousPageClicked(object sender, RoutedEventArgs e) => ShowPage(_currentPage - 1);
+
+private void OnNextPageClicked(object sender, RoutedEventArgs e) => ShowPage(_currentPage + 1);
+
+private void OnLastPageClicked(object sender, RoutedEventArgs e) => ShowPage(_pageCount - 1);
+
+private void OnPageNumberChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+{
+    // An emptied box goes back to the page shown.
+    ShowPage(double.IsNaN(args.NewValue) ? _currentPage : (int)args.NewValue - 1);
+}
+
+public int PageSize { get; set; }
                 </x:String>
             </controls:SamplePresenter.CSharp>
         </controls:SamplePresenter>
