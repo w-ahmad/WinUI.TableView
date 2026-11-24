@@ -1,12 +1,28 @@
 ﻿# Performance guidance
 
-`TableView` is built on `ListView`, which provides UI virtualization out of the box. This means only the rows currently visible on screen are instantiated. The following guidance helps you get the best performance when working with large datasets.
+`TableView` hosts its rows in a virtualizing `ItemsRepeater`, so only the rows currently visible on screen exist as elements. The following guidance helps you get the best performance when working with large datasets.
 
 ## Row virtualization
 
-Row virtualization is always active. `TableView` does not render all items at once; only the rows in the visible viewport (plus a small buffer) are created. When the user scrolls, rows are recycled.
+Row virtualization is always active and needs no configuration. Only the rows in the visible viewport plus a small
+cache exist as elements; scrolling recycles them rather than creating more.
 
-You do not need to do anything to enable virtualization — it is the default behavior inherited from `ListView`.
+The layout estimates the scroll extent from the rows it has realized instead of measuring every row, so the cost of
+scrolling, of jumping to a distant row, and of reporting the extent are all independent of how many items there
+are. Concretely, with the same viewport size, 1,000 items and 1,000,000 items realize the same number of row
+elements.
+
+### Selection scales with ranges, not items
+
+Selected rows are stored as index ranges. Selecting every row of a million-row source is one range, and no row
+needs to be realized for it. [`SelectedItems`](xref:WinUI.TableView.TableView.SelectedItems) is a projection over
+those ranges rather than a materialised list, so reading its `Count` is cheap; enumerating it still walks the
+selection, so avoid doing that on a hot path when the selection is large. Prefer
+[`SelectedRanges`](xref:WinUI.TableView.TableView.SelectedRanges) or
+[`IsRowSelected`](xref:WinUI.TableView.TableView.IsRowSelected*) when you only need to test membership.
+
+Cell selection is stored the same way, as rectangles, so selecting all cells is one rectangle rather than one
+entry per cell.
 
 ## Collection type
 
@@ -65,7 +81,9 @@ Filtering and sorting operate on the internal collection view. These run on the 
 
 ## Grouping
 
-Grouping (Windows only) rebuilds group headers from the full filtered/sorted item set on every regroup, add, remove, or expand/collapse toggle. Collapsing a group removes its items from the view entirely, which reduces the number of rows virtualization has to realize - collapsing large groups by default (`DefaultGroupState="Collapsed"`, the default) can improve initial render time for grouped data. See [Grouping](grouping.md).
+Group headers are virtualized with the rows: only the headers and rows in the viewport are realized, and mapping between row indexes and display positions is a binary search over the visible groups, so scrolling a grouped table costs the same as an ungrouped one.
+
+What does cost time is rebuilding the groups, which happens from the full filtered and sorted item set on every regroup, add, remove, or expand/collapse toggle. Collapsing a group removes its items from the view entirely, so collapsing large groups by default (`DefaultGroupState="Collapsed"`, the default) keeps both that rebuild and the initial render cheap for grouped data. See [Grouping](grouping.md).
 
 ## Refreshing the view after bulk data changes
 
@@ -100,7 +118,28 @@ By default, dragging a column divider ([`ColumnResizeMode="Live"`](xref:WinUI.Ta
 
 ## Horizontal scrolling and column count
 
-Unlike rows, columns are not virtualized — all column headers are instantiated regardless of whether they are visible. A very large number of columns (100+) may affect horizontal scroll performance. In practice, most data grids have far fewer columns than rows.
+Unlike rows, columns are not virtualized — every visible column produces a cell in every realized row. A very
+large number of columns (100+) therefore costs `realized rows × columns` elements and may affect horizontal
+scroll performance. In practice, most data grids have far fewer columns than rows.
+
+The horizontal scroll extent is computed from the column widths rather than from whichever rows happen to be
+realized, so the horizontal scrollbar does not change size as you scroll vertically.
+
+## Garbage collection pauses on Windows
+
+A WinUI app's blocking gen2 collections pause the process for longer the more XAML objects are alive, and a page
+of tables is many thousands of them. A pause that lands mid-scroll shows as a dropped frame or a visible hitch.
+This is the app's to tune, not the control's, and both of the following are optional. The Sample App does both,
+which is worth knowing when you compare its scrolling with your own app's:
+
+- **Sustained low latency.** `GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency`, set once at startup,
+  has the runtime prefer background collections over blocking ones. The cost is a larger heap between collections.
+- **Collect after navigating.** Leaving a page frees a lot at once, and the collection that follows tends to land
+  in the first scroll on the next page. Calling `GC.Collect()` a moment after navigation (the Sample App waits
+  500 ms) takes that pause while nothing is moving.
+
+Measure before adopting either: they trade memory and an explicit pause for smoother scrolling, and an app with
+few XAML objects alive gains nothing from them.
 
 ## Uno Platform
 

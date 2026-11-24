@@ -4,7 +4,7 @@ This is the single source of instructions for every coding agent working in this
 
 ## Project Overview
 
-**WinUI.TableView** is a lightweight and fast data grid control for WinUI apps with support for the Uno Platform. It derives from `ListView` and provides an Excel-like data table experience with column filtering, sorting, editing, and data export.
+**WinUI.TableView** is a lightweight and fast data grid control for WinUI apps with support for the Uno Platform. It derives from `Control`, hosts its rows in an `ItemsRepeater` with the platform's virtualizing `StackLayout`, and provides an Excel-like data table experience with column filtering, sorting, editing, and data export.
 
 - **Repository**: https://github.com/w-ahmad/WinUI.TableView
 - **Documentation**: https://w-ahmad.github.io/WinUI.TableView/
@@ -25,14 +25,17 @@ This is the single source of instructions for every coding agent working in this
 ```
 /
 ├── src/                                   # Library source
+│   ├── AutomationPeers/                   # UI Automation peers
+│   ├── Collections/                       # Observable collection primitives
 │   ├── Columns/                           # Column types
-│   ├── Controls/                          # Custom controls
+│   ├── Controls/                          # Editor controls (date/time pickers, filter list)
 │   ├── Converters/                        # XAML value converters
 │   ├── EventArgs/                         # Event argument classes
 │   ├── Extensions/                        # Extension methods
 │   ├── Helpers/                           # Helpers and utilities
-│   ├── ItemsSource/                       # Data source handling
-│   ├── Primitives/                        # Base/primitive controls
+│   ├── ItemsSource/                       # CollectionView, grouping, visual rows
+│   ├── Layout/                            # Row host: realized rows index, row element factory (pooling)
+│   ├── Selection/                         # Range-based row and cell selection
 │   ├── Strings/                           # Localization (.resw)
 │   ├── Themes/                            # Styles and control templates
 │   ├── TableView.cs                       # Main control
@@ -43,6 +46,7 @@ This is the single source of instructions for every coding agent working in this
 ├── samples/
 │   ├── WinUI.TableView.SampleApp/         # WinUI sample app
 │   └── WinUI.TableView.SampleApp.Uno/     # Uno sample app
+├── tools/                                 # Publish, AOT profile and Store package scripts
 ├── docs/                                  # DocFX documentation
 ├── .github/                               # Workflows, issue and PR templates
 └── WinUI.TableView.slnx
@@ -104,9 +108,9 @@ Formatting is defined in `.editorconfig`. Key conventions:
 
 ## Core Components
 
-- **TableView**: main control, derived from `ListView`
+- **TableView**: main control, derived from `Control`; owns the row host (`ItemsRepeater` + `StackLayout`), the flattened visual row sequence (`ItemsSource/TableViewVisualRows`) and selection (`Selection/TableViewSelectionModel`)
 - **Columns**: `TableViewTextColumn`, `TableViewCheckBoxColumn`, `TableViewComboBoxColumn`, `TableViewNumberColumn`, `TableViewToggleSwitchColumn`, `TableViewTemplateColumn`, `TableViewTimeColumn`, `TableViewDateColumn`
-- **Supporting classes**: `TableViewCell`, `TableViewRow`, `TableViewColumnHeader`, `TableViewHeaderRow`, `TableViewColumnsCollection`
+- **Supporting classes**: `TableViewCell`, `TableViewRow`, `TableViewRowPresenter`, `TableViewRowHeader`, `TableViewGroupHeaderRow`, `TableViewColumnHeader`, `TableViewHeaderRow`, `TableViewColumnsCollection`
 
 ## Performance and Memory (Non-Negotiable)
 

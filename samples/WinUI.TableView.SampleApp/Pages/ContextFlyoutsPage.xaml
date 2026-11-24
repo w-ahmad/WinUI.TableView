@@ -11,7 +11,7 @@
 
     <Grid>
         <controls:SamplePresenter Header="Context Flyouts"
-                                  Description="Showcasing how context flyouts can be attached to rows and cells.">
+                                  Description="Right-click a row header or a cell: each has its own context flyout, and the Opening events say which row and cell were hit, so the menu can adapt or be cancelled.">
             <controls:SamplePresenter.Example>
                 <tv:TableView x:Name="tableView"
                               ItemsSource="{Binding Items}"

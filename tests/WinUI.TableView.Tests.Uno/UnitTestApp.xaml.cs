@@ -29,6 +29,8 @@ public partial class UnitTestApp : Application
         var exitAfterTests = Environment.GetCommandLineArgs()
             .Contains("--exit-after-tests", StringComparer.Ordinal);
         MainWindow.Activate();
-        await UnoTestRunner.RunAsync(MainWindow, exitAfterTests);
+
+        // In a browser the arguments are the query string, so ?--filter=<text> works there as it does on the command line.
+        await UnoTestRunner.RunAsync(MainWindow, exitAfterTests, args.Arguments);
     }
 }

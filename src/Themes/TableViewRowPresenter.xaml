@@ -78,14 +78,28 @@
 
                             <Grid>
                                 <Grid.ColumnDefinitions>
+                                    <ColumnDefinition x:Name="RowNumberColumn" Width="Auto" />
                                     <ColumnDefinition x:Name="RowHeaderColumn" Width="Auto" />
                                     <ColumnDefinition x:Name="DetailsExpandChevronColumn" Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
-                                <local:TableViewRowHeader x:Name="RowHeader" />
-                                
+                                <TextBlock x:Name="RowNumberText"
+                                           Grid.Column="0"
+                                           Visibility="Collapsed"
+                                           TextAlignment="Right"
+                                           HorizontalAlignment="Stretch"
+                                           VerticalAlignment="Center"
+                                           MinWidth="{ThemeResource TableViewRowNumberMinWidth}"
+                                           Margin="{ThemeResource TableViewRowNumberMargin}"
+                                           FontSize="{ThemeResource TableViewRowNumberFontSize}"
+                                           Foreground="{ThemeResource TableViewRowNumberForeground}"
+                                           AutomationProperties.AccessibilityView="Raw" />
+
+                                <local:TableViewRowHeader x:Name="RowHeader"
+                                                           Grid.Column="1" />
+
                                 <ToggleButton x:Name="DetailsToggleButton"
-                                              Grid.Column="1"
+                                              Grid.Column="2"
                                               VerticalAlignment="Stretch"
                                               Visibility="Collapsed"
                                               Margin="{ThemeResource TableViewDetailsToggleButtonMargin}"
@@ -128,11 +142,9 @@
                                     <RowDefinition Height="*" />
                                 </Grid.RowDefinitions>
 
-                                <Rectangle HorizontalAlignment="Stretch"
-                                           IsHitTestVisible="False"
-                                           Fill="{Binding Fill, ElementName=HorizontalGridLine}"
-                                           Height="{Binding Height, ElementName=HorizontalGridLine}"
-                                           Visibility="{Binding Visibility, ElementName=HorizontalGridLine}" />
+                                <Rectangle x:Name="DetailsGridLine"
+                                           HorizontalAlignment="Stretch"
+                                           IsHitTestVisible="False" />
 
                                 <ContentPresenter x:Name="DetailsPresenter"
                                                   Grid.Row="1"
@@ -140,10 +152,16 @@
                             </Grid>
                         </Grid>
 
-                        <Rectangle x:Name="HorizontalGridLine"
-                                   Grid.Row="1"
-                                   HorizontalAlignment="Stretch"
-                                   IsHitTestVisible="False" />
+                        <!--  The grid line is the bottom edge of a border as tall as the row, with the space below the content
+                              kept for it. Far down a very long table, positions are kept to whole even pixels or coarser, and an
+                              element only a pixel tall ends up with no height at all and is not drawn.  -->
+                        <Border x:Name="HorizontalGridLineSpace"
+                                Grid.Row="1"
+                                IsHitTestVisible="False" />
+
+                        <Border x:Name="HorizontalGridLine"
+                                Grid.RowSpan="2"
+                                IsHitTestVisible="False" />
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>

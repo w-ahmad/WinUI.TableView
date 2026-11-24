@@ -51,6 +51,11 @@ public abstract partial class TableViewColumn : DependencyObject
     public virtual void RefreshElement(TableViewCell cell, object? dataItem) { }
 
     /// <summary>
+    /// Applies the column's display format to the cell's element after the format changed.
+    /// </summary>
+    internal virtual void UpdateElementFormat(TableViewCell cell) { }
+
+    /// <summary>
     /// Called to prepare the cell for editing.
     /// </summary>
     /// <param name="cell">The cell to prepare for editing.</param>
@@ -563,6 +568,17 @@ public abstract partial class TableViewColumn : DependencyObject
     }
 
     /// <summary>
+    /// Handles changes to the Header property.
+    /// </summary>
+    private static void OnHeaderChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableViewColumn column)
+        {
+            column.TableView?.HeaderRow?.UpdateHeaderContent(column);
+        }
+    }
+
+    /// <summary>
     /// Handles changes to the CanFilter property.
     /// </summary>
     private static void OnCanFilterChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -622,7 +638,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// <summary>
     /// Identifies the Header dependency property.
     /// </summary>
-    public static readonly DependencyProperty HeaderProperty = DependencyProperty.Register(nameof(Header), typeof(object), typeof(TableViewColumn), new PropertyMetadata(null));
+    public static readonly DependencyProperty HeaderProperty = DependencyProperty.Register(nameof(Header), typeof(object), typeof(TableViewColumn), new PropertyMetadata(null, OnHeaderChanged));
 
     /// <summary>
     /// Identifies the Width dependency property.

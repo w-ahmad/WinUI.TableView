@@ -1,4 +1,3 @@
-#if WINDOWS
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 using Windows.Foundation.Collections;
@@ -18,11 +17,22 @@ internal partial class CollectionViewGroup : DependencyObject, ICollectionViewGr
     /// Gets the <see cref="TableViewGroupInfo"/> describing this group (its name, nesting level, item count,
     /// and expanded/collapsed state).
     /// </summary>
-    public object? Group { get; init; }
+    public object? Group
+    {
+        get
+        {
+            GroupInfo?.PublishBindableValues();
+            return GroupInfo;
+        }
+    }
+
+    /// <summary>
+    /// Gets the <see cref="TableViewGroupInfo"/> describing this group.
+    /// </summary>
+    internal TableViewGroupInfo? GroupInfo { get; init; }
 
     /// <summary>
     /// Gets the items belonging to this group. Empty for a non-leaf (parent) group or a collapsed group.
     /// </summary>
     public IObservableVector<object?>? GroupItems { get; init; }
 }
-#endif

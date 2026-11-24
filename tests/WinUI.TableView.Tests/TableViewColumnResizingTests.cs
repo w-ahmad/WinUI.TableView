@@ -46,7 +46,6 @@ public class TableViewColumnResizingTests
             "Column.Width GridLength must remain Auto until a resize is actually committed");
     }
 
-#if WINDOWS
     [UITestMethod]
     public async Task HeaderWidthChange_Propagates_ToCellWidths()
     {
@@ -69,7 +68,6 @@ public class TableViewColumnResizingTests
                 $"Cell width must match new header width for row index {row.Index}");
         }
     }
-#endif
 
     [UITestMethod]
     public async Task CommittedResize_Stores_PixelGridLength()
@@ -93,7 +91,6 @@ public class TableViewColumnResizingTests
 
     // ── Resize-drag preview: layout must stay frozen while active ───────────
 
-#if WINDOWS
     [UITestMethod]
     public async Task WhileResizePreviewActive_ColumnLayout_DoesNotChange()
     {
@@ -135,7 +132,6 @@ public class TableViewColumnResizingTests
             tableView.EndColumnResizePreview(null);
         }
     }
-#endif
 
     [UITestMethod]
     public async Task ResizePreview_Cancel_LeavesColumnCompletelyUnchanged()
@@ -159,7 +155,6 @@ public class TableViewColumnResizingTests
 
     // ── Resize-drag preview: the illusion's numbers must be correct ─────────
 
-#if WINDOWS
     [UITestMethod]
     public async Task ResizePreview_UpdatesClipAndDownstreamShift_ToMatchLiveWidth()
     {
@@ -217,7 +212,6 @@ public class TableViewColumnResizingTests
 
         tableView.EndColumnResizePreview(null);
     }
-#endif
 
     // ── ColumnResizeMode toggle: Live mode relayouts for real, every frame ──
 

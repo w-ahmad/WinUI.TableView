@@ -65,6 +65,25 @@ public class TableViewTemplateColumnTests
     }
 
     [UITestMethod]
+    public void TableViewTemplateColumn_Refresh_ReusesItsOwnElementOnly()
+    {
+        var column = new TableViewTemplateColumn { CellTemplate = TableViewColumnTestHelpers.CreateTemplate("display") };
+        var cell = new TableViewCell();
+
+        column.RefreshElement(cell, new ColumnTestItem());
+        var own = cell.Content;
+        column.RefreshElement(cell, new ColumnTestItem());
+
+        Assert.AreSame(own, cell.Content);
+
+        var foreign = new ContentControl();
+        cell.Content = foreign;
+        column.RefreshElement(cell, new ColumnTestItem());
+
+        Assert.AreNotSame(foreign, cell.Content);
+    }
+
+    [UITestMethod]
     public void TableViewCell_IsNotReadOnly_WhenTemplateColumnUsesEditingTemplateSelector()
     {
         var cell = new TableViewCell();

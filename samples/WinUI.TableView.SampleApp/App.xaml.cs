@@ -19,7 +19,11 @@ public partial class App : Application
     /// </remarks>
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(ExampleModel))]
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(SalesExampleModel))]
-    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(TransactionModel))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Pages.VirtualizationItem))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Showcases.Deal))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Showcases.Stock))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Showcases.WorkItem))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Showcases.MailMessage))]
     public App()
     {
         InitializeComponent();
@@ -65,6 +69,16 @@ public partial class App : Application
 #endif
 #endif
         MainWindow.Activate();
+
+#if WINDOWS
+        // WinUI reacts to XAML allocation churn by inducing gen2 collections, whose reference-tracker phase
+        // suspends the process for as long as there are live XAML objects to walk - measured at 100-400 ms
+        // landing in the middle of scrolling. Sustained low latency defers non-forced blocking collections
+        // to background ones, whose suspensions are far shorter.
+        System.Runtime.GCSettings.LatencyMode = System.Runtime.GCLatencyMode.SustainedLowLatency;
+
+        ScrollProbe.TryStart();
+#endif
     }
 
     public static void InitializeLogging()

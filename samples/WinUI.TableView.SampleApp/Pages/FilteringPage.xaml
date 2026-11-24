@@ -2,47 +2,75 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:WinUI.TableView.SampleApp"
+      xmlns:pages="using:WinUI.TableView.SampleApp.Pages"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:tv="using:WinUI.TableView"
       xmlns:controls="using:WinUI.TableView.SampleApp.Controls"
+      xmlns:helpers="using:WinUI.TableView.SampleApp.Helpers"
       d:DataContext="{d:DesignInstance Type=local:ExampleViewModel}"
       mc:Ignorable="d">
 
     <Grid>
-        <controls:SamplePresenter Header="Filtering"
-                                  Description="Showcasing built in column filter feature.">
+        <controls:SamplePresenter x:Name="presenter"
+                                  Header="Filtering"
+                                  Description="Every column header has an Excel-like filter: open its options button, search or tick the values to keep, and combine filters across columns.">
             <controls:SamplePresenter.Example>
-                <tv:TableView ItemsSource="{Binding Items}"
-                              CanFilterColumns="{Binding IsOn, ElementName=canFilter, Mode=TwoWay}"
-                              ShowFilterItemsCount="{Binding IsOn, ElementName=filterItemsCount, Mode=TwoWay}" />
+                <tv:TableView x:Name="tableView"
+                              ItemsSource="{Binding Items}"
+                              CanFilterColumns="{x:Bind canFilter.IsOn, Mode=OneWay}"
+                              ShowFilterItemsCount="{x:Bind filterItemsCount.IsOn, Mode=OneWay}"
+                              AutoGeneratingColumn="{x:Bind local:ExampleModelColumnsHelper.OnAutoGeneratingColumns}" />
             </controls:SamplePresenter.Example>
             <controls:SamplePresenter.Options>
-                <StackPanel Spacing="16">
+                <StackPanel Spacing="16"
+                            Width="260">
                     <ToggleSwitch x:Name="canFilter"
                                   IsOn="True"
-                                  Header="Can Filter Columns"
+                                  Header="CanFilterColumns"
                                   OnContent="True"
                                   OffContent="False" />
                     <ToggleSwitch x:Name="filterItemsCount"
                                   IsOn="True"
-                                  Header="Show Filter Items Count"
+                                  Header="ShowFilterItemsCount"
                                   OnContent="True"
                                   OffContent="False" />
+                    <Button Content="Clear all filters"
+                            HorizontalAlignment="Stretch"
+                            Click="OnClearFiltersClicked" />
+                    <InfoBar IsOpen="True"
+                             IsClosable="False"
+                             Title="Showing">
+                        <TextBlock x:Name="visibleCount"
+                                   Margin="0,0,0,12" />
+                    </InfoBar>
                 </StackPanel>
             </controls:SamplePresenter.Options>
             <controls:SamplePresenter.Xaml>
                 <x:String xml:space="preserve">
-&lt;tv:TableView ItemsSource="{Binding Items}"
-    CanFilterColumns="$(CanFilterColumns)"
-    ShowFilterItemsCount="$(ShowFilterItemsCount)" />
+&lt;tv:TableView x:Name="tableView"
+              ItemsSource="{Binding Items}"
+              CanFilterColumns="$(CanFilterColumns)"
+              ShowFilterItemsCount="$(ShowFilterItemsCount)" />
                 </x:String>
             </controls:SamplePresenter.Xaml>
+            <controls:SamplePresenter.CSharp>
+                <x:String xml:space="preserve">
+// Remove every column filter at once.
+tableView.ClearAllFilters();
+
+// The filtered, sorted view of the items the table is showing.
+var visible = tableView.CollectionView.Count;
+
+// A column can opt out of filtering.
+column.CanFilter = false;
+                </x:String>
+            </controls:SamplePresenter.CSharp>
             <controls:SamplePresenter.Substitutions>
                 <controls:CodeSubstitution Key="CanFilterColumns"
                                            Value="{x:Bind canFilter.IsOn, Mode=OneWay}" />
-                 <controls:CodeSubstitution Key="ShowFilterItemsCount"
-                            Value="{x:Bind filterItemsCount.IsOn, Mode=OneWay}" />
+                <controls:CodeSubstitution Key="ShowFilterItemsCount"
+                                           Value="{x:Bind filterItemsCount.IsOn, Mode=OneWay}" />
             </controls:SamplePresenter.Substitutions>
         </controls:SamplePresenter>
     </Grid>

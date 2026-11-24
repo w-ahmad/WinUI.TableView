@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using System.Collections;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
@@ -17,6 +18,7 @@ using Windows.Storage.Pickers;
 using Windows.System;
 using WinUI.TableView.Extensions;
 using WinUI.TableView.Helpers;
+using WinUI.TableView.Selection;
 using Pointer = Microsoft.UI.Xaml.Input.Pointer;
 
 namespace WinUI.TableView;
@@ -26,18 +28,20 @@ namespace WinUI.TableView;
 /// </summary>
 [StyleTypedProperty(Property = nameof(ColumnHeaderStyle), StyleTargetType = typeof(TableViewColumnHeader))]
 [StyleTypedProperty(Property = nameof(CellStyle), StyleTargetType = typeof(TableViewCell))]
-public partial class TableView : ListView
+public partial class TableView : Control
 {
     private TableViewHeaderRow? _headerRow;
     private ScrollViewer? _scrollViewer;
     private RowDefinition? _headerRowDefinition;
-    private bool _shouldThrowBaseProeprtyChangedException = true;
     private bool _ensureColumns = true;
     private bool _isItemsSourceSuspended;
-#if WINDOWS
-    private bool _isRowsPanelSuspended;
-    private double _suspendedVerticalOffset;
-#endif
+    private bool _isRowNumbersRefreshQueued;
+    private TableViewCell? _editingCell;
+    private bool _isReattachingItemsSource;
+    private List<object>? _selectionBeforeReattachReset;
+    private List<object>? _selectedItemsRemovedWhileReattaching;
+    // Half of MinValue, so subtracting it from a tick count cannot overflow into "recent".
+    private long _lastIntermediateViewChange = long.MinValue / 2;
     private readonly List<TableViewRow> _rows = [];
     private readonly CollectionView _collectionView = [];
     private Border? _dragRectangle;
@@ -56,14 +60,20 @@ public partial class TableView : ListView
     private bool _cellStateDispatchPending;
     private bool _alternateRowColorsPending;
     private readonly HashSet<int> _pendingCellStateRows = [];
+    private bool _allCellStatesPending;
+    private List<TableViewCellSlotRange> _previousSelectedCellRanges = [];
     private TableViewColumn? _resizingColumn;
     private double _resizingOriginalWidth;
     private readonly List<TableViewCell> _resizingPreviewCells = [];
     private readonly List<TableViewCell> _resizingDownstreamCells = [];
     private readonly List<(Panel Panel, TranslateTransform Shift)> _resizingScrollableShifts = [];
-    // private bool _isScrollingRowIntoView;
-#if WINDOWS
-    private readonly List<TableViewGroupHeaderRow> _groupHeaderRows = [];
+    private readonly ObservableCollection<GroupStyle> _groupStyle = [];
+#if !WINDOWS
+    // Uno leaves the pressed row/cell stuck in their pointer states after a drag, so the drag start elements are
+    // tracked to repair them when it ends. These moved here from the deleted Uno-only partial, whose reason for
+    // existing (patching ListViewBase range selection through private reflection) is gone.
+    private TableViewRow? _dragStartRow;
+    private TableViewCell? _dragStartCell;
 #endif
 
     /// <summary>
@@ -76,117 +86,73 @@ public partial class TableView : ListView
         Columns = new TableViewColumnsCollection(this);
         FilterHandler = new ColumnFilterHandler(this);
 
-        base.ItemsSource = _collectionView;
-        base.SelectionMode = SelectionMode;
-
         SetValue(ConditionalCellStylesProperty, new TableViewConditionalCellStylesCollection());
-        RegisterPropertyChangedCallback(ItemsControl.ItemsSourceProperty, OnBaseItemsSourceChanged);
-        RegisterPropertyChangedCallback(ListViewBase.SelectionModeProperty, OnBaseSelectionModeChanged);
 
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
-        SelectionChanged += TableView_SelectionChanged;
-        Items.VectorChanged += OnItemsVectorChanged;
+#if !WINDOWS
+        foreach (var property in new[] { RowHeightProperty, RowMinHeightProperty, RowMaxHeightProperty })
+        {
+            RegisterPropertyChangedCallback(property, OnRowHeightsChanged);
+        }
+#endif
         _collectionView.ItemPropertyChanged += OnItemPropertyChanged;
+        _collectionView.ViewResetting += OnCollectionViewResetting;
         _collectionView.VectorChanged += OnCollectionViewVectorChanged;
-#if WINDOWS
-        _collectionView.PropertyChanging += OnCollectionViewPropertyChanging;
-        _collectionView.PropertyChanged += OnCollectionViewPropertyChanged;
-        ChoosingGroupHeaderContainer += OnChoosingGroupHeaderContainer;
-    }
-
-    /// <summary>
-    /// Handles the PropertyChanging event of the CollectionView.
-    /// </summary>
-    private void OnCollectionViewPropertyChanging(object? sender, PropertyChangingEventArgs e)
-    {
-        if (e.PropertyName == nameof(CollectionView.CollectionGroups))
-        {
-            _collectionView.CollectionGroups?.VectorChanged -= OnCollectionViewGroupDescriptionsChanged;
-        }
-    }
-
-    /// <summary>
-    /// Handles the PropertyChanged event of the CollectionView.
-    /// </summary>
-    private async void OnCollectionViewPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(CollectionView.CollectionGroups))
-        {
-            _collectionView.CollectionGroups?.VectorChanged += OnCollectionViewGroupDescriptionsChanged;
-
-            _shouldThrowBaseProeprtyChangedException = false;
-            base.ItemsSource = null;
-            await Task.Yield();
-            base.ItemsSource = _collectionView;
-            _shouldThrowBaseProeprtyChangedException = true;
-        }
-    }
-
-    /// <summary>
-    /// Handles the VectorChanged event of the CollectionGroups collection in the CollectionView.
-    /// </summary>
-    private void OnCollectionViewGroupDescriptionsChanged(IObservableVector<object> sender, IVectorChangedEventArgs args)
-    {
-        if (args.CollectionChange is CollectionChange.Reset)
-        {
-            DeselectAll();
-        }
-    }
-
-    private void OnChoosingGroupHeaderContainer(ListViewBase sender, ChoosingGroupHeaderContainerEventArgs args)
-    {
-        if (args.GroupHeaderContainer is not TableViewGroupHeaderRow)
-        {
-            var groupRow = new TableViewGroupHeaderRow { TableView = this };
-            _groupHeaderRows.Add(groupRow);
-            args.GroupHeaderContainer = groupRow;
-        }
-    }
-#else
-    }
+        _collectionView.VectorChanged += OnCollectionViewVectorChangedForRowNumbers;
+        _groupStyle.CollectionChanged += delegate { RefreshGroupHeaderTemplates(); };
+        Columns.ColumnPropertyChanged += OnColumnPropertyChanged;
+        Columns.CollectionChanged += delegate { UpdateRowsMinWidth(); };
+#if !WINDOWS
+        Columns.CollectionChanged += delegate { InvalidateRenderCulling(); };
+        Columns.ColumnPropertyChanged += delegate { InvalidateRenderCulling(); };
 #endif
+        RegisterPropertyChangedCallback(CellsHorizontalOffsetProperty, delegate
+        {
+            LastCellsHorizontalOffset = CellsHorizontalOffset;
+            UpdateRowsMinWidth();
+        });
+    }
 
     /// <summary>
-    /// Handles the VectorChanged event of the items collection. Inserting or removing an item shifts the index of every
-    /// row after it, which flips their alternate colors without their containers being prepared again.
+    /// Refreshes the realized rows' numbers after a collection change while grouped. A grouped row's number is its
+    /// position in the full item list, which a change elsewhere shifts without re-indexing the row.
     /// </summary>
-    private void OnItemsVectorChanged(IObservableVector<object> sender, IVectorChangedEventArgs args)
+    private void OnCollectionViewVectorChangedForRowNumbers(IObservableVector<object> sender, IVectorChangedEventArgs args)
     {
-        if (args.CollectionChange is CollectionChange.ItemInserted or CollectionChange.ItemRemoved &&
-            (AlternateRowBackground is not null || AlternateRowForeground is not null))
+        if (!ShowRowNumbers || _isRowNumbersRefreshQueued || _collectionView.GroupDescriptions.Count is 0)
         {
-            EnsureAlternateRowColors();
+            return;
+        }
+
+        _isRowNumbersRefreshQueued = DispatcherQueue?.TryEnqueue(() =>
+        {
+            _isRowNumbersRefreshQueued = false;
+            RefreshRowNumbers();
+        }) ?? false;
+    }
+
+    /// <summary>
+    /// Keeps the rows' minimum width in step with a column's width or visibility.
+    /// </summary>
+    private void OnColumnPropertyChanged(object? sender, TableViewColumnPropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(TableViewColumn.ActualWidth) or nameof(TableViewColumn.Visibility))
+        {
+            UpdateRowsMinWidth();
         }
     }
 
     /// <summary>
-    /// Handles the VectorChanged event of the CollectionView. When the collection is reset, it updates the group indent for each row.
+    /// Reconciles cell selection with a row selection change.
     /// </summary>
-    private void OnCollectionViewVectorChanged(IObservableVector<object> sender, IVectorChangedEventArgs args)
+    /// <remarks>
+    /// Reads the change as index ranges rather than as lists of items, so selecting a large span no longer costs
+    /// an <c>IndexOf</c> per selected item.
+    /// </remarks>
+    private void OnRowSelectionChanged(TableViewSelectionModel added, TableViewSelectionModel removed)
     {
-        if (_collectionView.Count == 0)
-        {
-            _headerRow?.SetCellsHorizontalOffset();
-            UpdateHorizontalScrollBarMargin();
-        }
-#if WINDOWS
-        if (args.CollectionChange == CollectionChange.Reset)
-        {
-            foreach (var row in _rows)
-            {
-                row.RowPresenter?.SetGroupIndent();
-            }
-        }
-#endif
-    }
-
-    /// <summary>
-    /// Handles the SelectionChanged event of the TableView control.
-    /// </summary>
-    private void TableView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        TableViewTrace.Write($"TableViewSelectionChanged: AddedItems={e.AddedItems.Count}, RemovedItems={e.RemovedItems.Count}");
+        TableViewTrace.Write($"TableViewSelectionChanged: Added={added.Count}, Removed={removed.Count}");
 
         if (_suppressSelectionChangedCellClear)
         {
@@ -198,15 +164,9 @@ public partial class TableView : ListView
             {
                 SelectedCellRanges.Clear();
             }
-            else
+            else if (Columns.VisibleColumns.Count > 0)
             {
-                var addedIndexes = e.AddedItems
-                    .Select(item => Items.IndexOf(item))
-                    .Where(i => i >= 0);
-
-                if (Columns.VisibleColumns.Count == 0) return;
-
-                foreach (var range in IndexRangeHelper.GetRanges(addedIndexes))
+                foreach (var range in added.GetRanges())
                 {
                     var slotRange = TableViewCellSlotRange.FromCoordinates(range.FirstIndex, 0, range.LastIndex, Columns.VisibleColumns.Count - 1);
                     SubtractCellRangeFromSelection(slotRange);
@@ -217,11 +177,9 @@ public partial class TableView : ListView
             OnCellSelectionChanged();
         }
 
-        if (SelectedItems?.Count == 1)
+        if (_rowSelection.Count is 1)
         {
-            // The items may change before the queued action runs, so the index is resolved then, not now.
-            var item = SelectedItem;
-            DispatcherQueue.TryEnqueue(async () => await ScrollRowIntoView(Items.IndexOf(item)));
+            DispatcherQueue.TryEnqueue(async () => await ScrollRowIntoView(_rowSelection.FirstIndex));
         }
     }
 
@@ -250,68 +208,6 @@ public partial class TableView : ListView
         var row = ContainerFromItem(sender) as TableViewRow;
 
         row?.EnsureCellsStyle(default, sender);
-    }
-
-    /// <inheritdoc/>
-    protected override void PrepareContainerForItemOverride(DependencyObject element, object item)
-    {
-        base.PrepareContainerForItemOverride(element, item);
-
-        DispatcherQueue.TryEnqueue(() =>
-        {
-            if (element is TableViewRow row)
-            {
-                if (!_rows.Contains(row))
-                {
-                    _rows.Add(row);
-                }
-
-                row.TableView = this;
-                // A recycled row has no TableView while its content changes, so that pass can't restyle it.
-                row.EnsureAlternateColors();
-                row.EnsureCellsStyle(default, item);
-
-                _pendingCellStateRows.Add(row.Index);
-                if (!_cellStateDispatchPending)
-                {
-                    _cellStateDispatchPending = true;
-                    DispatcherQueue.TryEnqueue(ApplyPendingCellStates);
-                }
-
-                row.RowPresenter?.ApplyDetailsPaneState(item);
-                row.RowPresenter?.SetGroupIndent();
-
-                if (CurrentCellSlot.HasValue)
-                {
-                    row.ApplyCurrentCellState(CurrentCellSlot.Value);
-                }
-            }
-        });
-    }
-
-    /// <inheritdoc/>
-    protected override void ClearContainerForItemOverride(DependencyObject element, object item)
-    {
-        if (element is TableViewRow row)
-        {
-            _rows.Remove(row);
-            row.TableView = null;
-        }
-
-        base.ClearContainerForItemOverride(element, item);
-    }
-
-    /// <inheritdoc/>
-    protected override DependencyObject GetContainerForItemOverride()
-    {
-        var row = new TableViewRow { TableView = this };
-
-        // Set bindings for FontFamily and FontSize to propagate from TableView to TableViewRow
-        row.SetBinding(FontFamilyProperty, SharedResources.FontFamilyBinding);
-        row.SetBinding(FontSizeProperty, SharedResources.FontSizeBinding);
-
-        _rows.Add(row);
-        return row;
     }
 
     /// <summary>
@@ -380,6 +276,11 @@ public partial class TableView : ListView
                 _resizingScrollableShifts.Add((scrollablePanel, shift));
             }
         }
+
+#if !WINDOWS
+        // The preview slides cells sideways without layout, so cells out of view now can come into view.
+        UpdateRenderCulling();
+#endif
     }
 
     /// <summary>
@@ -517,6 +418,18 @@ public partial class TableView : ListView
     /// <inheritdoc/>
     protected override void OnKeyDown(KeyRoutedEventArgs e)
     {
+        if (e.Handled) return;
+
+#if WINDOWS
+        // A key pressed inside the rows was dealt with as it passed the row host (see OnRowsHostKeyDown).
+        if (IsInRowsHost(e.OriginalSource as DependencyObject)) return;
+#endif
+
+        ProcessKeyDown(e);
+    }
+
+    private void ProcessKeyDown(KeyRoutedEventArgs e)
+    {
         var shiftKey = KeyboardHelper.IsShiftKeyDown();
         var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
 
@@ -528,6 +441,35 @@ public partial class TableView : ListView
 
         HandleNavigations(e, shiftKey, ctrlKey);
     }
+
+#if WINDOWS
+    /// <summary>
+    /// Handles the keys pressed inside the rows as they bubble past the row host, before the ScrollViewer
+    /// around it scrolls on them. A control inside a cell sees them first and keeps the ones it uses.
+    /// </summary>
+    private void OnRowsHostKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (!e.Handled)
+        {
+            ProcessKeyDown(e);
+        }
+    }
+
+    private bool IsInRowsHost(DependencyObject? element)
+    {
+        while (element is not null && !ReferenceEquals(element, this))
+        {
+            if (ReferenceEquals(element, _rowsRepeater))
+            {
+                return true;
+            }
+
+            element = VisualTreeHelper.GetParent(element);
+        }
+
+        return false;
+    }
+#endif
 
     /// <inheritdoc/>
     protected override void OnPointerPressed(PointerRoutedEventArgs e)
@@ -554,6 +496,32 @@ public partial class TableView : ListView
         EndDragSelection();
     }
 
+    /// <inheritdoc/>
+    protected override void OnPointerCaptureLost(PointerRoutedEventArgs e)
+    {
+        base.OnPointerCaptureLost(e);
+
+        EndDragSelectionOnCaptureLost();
+    }
+
+    /// <summary>
+    /// Ends a drag selection whose pointer capture was lost, such as to a window switch or a cancelled touch.
+    /// </summary>
+    /// <remarks>
+    /// On Windows the pressed row captures the pointer and handles the loss itself; on the other platforms the table
+    /// captures it (see <see cref="OnAnyPointerPressed"/>), so without this the table stayed in drag selection and
+    /// the rows stayed looking pressed.
+    /// </remarks>
+    internal void EndDragSelectionOnCaptureLost()
+    {
+        foreach (var row in _rows)
+        {
+            row.ResetPointerState();
+        }
+
+        EndDragSelection();
+    }
+
     /// <summary>
     /// Handles pointer-pressed for all cases, including when elements sets <c>e.Handled = true</c>.
     /// </summary>
@@ -571,13 +539,12 @@ public partial class TableView : ListView
             || canvasPoint.Value.Y < 0                                                  // Skip selection when the pointer is in the column header area (above the scroll canvas)
             || !pointerPoint.Properties.IsLeftButtonPressed                             // Skip selection when the left mouse button is not pressed
             || (pressedElement == this && !ShowDragRectangle)                           // Skip selection when the pointer is not over a Cell or Row, and ShowDragRectangle is false.
-            || (pressedElement != this && canvasPoint.Value.X < CellsHorizontalOffset))  // Skip selection when the pointer is in the row header area (and not on the TableView)
+            )
         {
             return false;
         }
 
-        // Shift extends the selection from the anchor instead of starting a new one. It has to be handled here:
-        // the base ListView never sees the plain clicks handled below, so its own anchor would be stale.
+        // Shift extends the selection from the anchor instead of starting a new one.
         if (isShiftKey && SelectionMode is ListViewSelectionMode.Extended or ListViewSelectionMode.Multiple)
         {
             return ExtendSelectionTo(pressedElement, ctrlKey);
@@ -621,6 +588,13 @@ public partial class TableView : ListView
         }
 
         pressedElement.Focus(FocusState.Programmatic);
+
+        // A press on a selected row takes it out of the selection instead of starting a drag from it.
+        if (LastSelectionUnit is TableViewSelectionUnit.Row && DeselectRowOnPress(SelectionStartRowIndex, ctrlKey))
+        {
+            return true;
+        }
+
 #if WINDOWS
         _pointerCaptureElement = pressedElement;
 #else
@@ -694,8 +668,9 @@ public partial class TableView : ListView
         // Drive the rect visual for all drag sources (cell-initiated drags bubble pointer events here).
         UpdateDragRectangleVisual(canvasPoint.Value);
 
-        // Selection-by-hit-test is only needed for TableView-initiated drags; cell-initiated
-        // drags perform selection in the cell's OnManipulationDelta via FindCell.
+        // _tableViewDragPointer is only set for drags this TableView captured (see OnAnyPointerPressed),
+        // which covers every drag in Multiple/Extended mode. The guard stops a foreign pointer capture
+        // from driving selection.
         if (_tableViewDragPointer is not null)
         {
             MakeSelectionInDragRect();
@@ -766,30 +741,22 @@ public partial class TableView : ListView
         var rectTop = Canvas.GetTop(_dragRectangle);
         var rectBottom = rectTop + _dragRectangle.Height;
 
-        // Find the min/max row indices whose bounds intersect the rect vertically.
-        var minRow = -1;
-        var maxRow = -1;
+        // The rect's top and bottom map straight to row indexes, so there is no scan over the items here.
+        var firstVisual = GetVisualRowIndexAtCanvasY(rectTop);
+        var lastVisual = GetVisualRowIndexAtCanvasY(Math.Max(rectTop, rectBottom - 1));
 
-        for (var rowIndex = 0; rowIndex < Items.Count; rowIndex++)
+        if (firstVisual < 0 && lastVisual < 0)
         {
-            if (ContainerFromIndex(rowIndex) is not TableViewRow row)
-            {
-                continue;
-            }
-
-            var rowTop = row.Position.Y;
-            var rowBottom = rowTop + row.ActualHeight;
-
-            if (rowBottom <= rectTop || rowTop >= rectBottom)
-            {
-                continue;
-            }
-
-            if (minRow == -1) minRow = rowIndex;
-            maxRow = rowIndex;
+            return null;
         }
 
-        if (minRow == -1)
+        firstVisual = firstVisual < 0 ? 0 : firstVisual;
+        lastVisual = lastVisual < 0 ? VisualRowCount - 1 : lastVisual;
+
+        var minRow = FirstItemIndexAtOrAfter(firstVisual, lastVisual);
+        var maxRow = LastItemIndexAtOrBefore(firstVisual, lastVisual);
+
+        if (minRow < 0 || maxRow < 0)
         {
             return null;
         }
@@ -1072,25 +1039,70 @@ public partial class TableView : ListView
 
             var row = (LastSelectionUnit is TableViewSelectionUnit.Row ? CurrentRowIndex : CurrentCellSlot?.Row) ?? -1;
             var column = CurrentCellSlot?.Column ?? -1;
-            var nextRow = e.Key == VirtualKey.PageDown
-                ? Math.Min(Items.Count - 1, row + pageSize)
-                : Math.Max(0, row - pageSize);
+            var nextRow = GetRowOnePageAway(row, pageSize, down: e.Key is VirtualKey.PageDown);
 
-            var newSlot = new TableViewCellSlot(nextRow, column);
-            MakeSelection(newSlot, shiftKey);
+            if (nextRow >= 0)
+            {
+                MakeSelection(new TableViewCellSlot(nextRow, column), shiftKey);
+            }
+
             e.Handled = true;
         }
     }
 
     /// <summary>
+    /// Returns the item index a page away from <paramref name="itemIndex"/>, or -1 when there are no rows.
+    /// </summary>
+    /// <remarks>
+    /// Pages are measured in displayed rows, group headers included, so the step is taken in visual space and
+    /// then settled on the nearest data row in the direction of travel.
+    /// </remarks>
+    private int GetRowOnePageAway(int itemIndex, int pageSize, bool down)
+    {
+        if (_visualRows is null || VisualRowCount is 0)
+        {
+            return _collectionView.Count is 0
+                ? -1
+                : Math.Clamp(down ? itemIndex + pageSize : itemIndex - pageSize, 0, _collectionView.Count - 1);
+        }
+
+        var visualIndex = Math.Max(0, GetVisualIndexFromItemIndex(itemIndex));
+        var target = Math.Clamp(down ? visualIndex + pageSize : visualIndex - pageSize, 0, VisualRowCount - 1);
+        var ahead = down ? _visualRows.FindItemIndexAtOrAfter(target) : _visualRows.FindItemIndexAtOrBefore(target);
+
+        return ahead >= 0 ? ahead : down ? _visualRows.FindItemIndexAtOrBefore(target) : _visualRows.FindItemIndexAtOrAfter(target);
+    }
+
+    /// <summary>
     /// Calculates how many rows should be able to fit within the actual height of the table without scrolling.
     /// </summary>
-    private int CalculateAvailablePageSize()
+    internal int CalculateAvailablePageSize()
     {
-        var rowHeight = RowHeight is not double.NaN ? RowHeight : RowMinHeight;
-        var headerHeight = HeaderRowHeight is not double.NaN ? HeaderRowHeight : HeaderRowMinHeight;
+        // The viewport over the height of a row: the configured one, else the realized row at the top of the viewport.
+        if (_scrollViewer is { ViewportHeight: > 0 } scrollViewer && VisualRowCount > 0)
+        {
+            var pageRowHeight = RowHeight;
+
+            if (double.IsNaN(pageRowHeight)
+                && RealizedRows.FindAtOffset(RowsViewportTop, out _) is >= 0 and var topRow
+                && RealizedRows.TryGetBounds(topRow, out _, out var height))
+            {
+                pageRowHeight = height;
+            }
+
+            if (double.IsNaN(pageRowHeight) || pageRowHeight <= 0d)
+            {
+                pageRowHeight = RowMinHeight;
+            }
+
+            return Math.Max(1, (int)(scrollViewer.ViewportHeight / pageRowHeight));
+        }
+
+        var rowHeight = double.IsNaN(RowHeight) ? RowMinHeight : RowHeight;
+        var headerHeight = double.IsNaN(HeaderRowHeight) ? HeaderRowMinHeight : HeaderRowHeight;
         var availableHeight = ActualHeight - headerHeight;
-        return (int)Math.Floor(availableHeight / rowHeight);
+
+        return rowHeight > 0 ? Math.Max(1, (int)Math.Floor(availableHeight / rowHeight)) : 1;
     }
 
     /// <summary>
@@ -1143,68 +1155,100 @@ public partial class TableView : ListView
     }
 
     /// <inheritdoc/>
-    protected async override void OnApplyTemplate()
+    protected override void OnApplyTemplate()
     {
         base.OnApplyTemplate();
 
         _headerRow = GetTemplateChild("HeaderRow") as TableViewHeaderRow;
         _scrollViewer = GetTemplateChild("ScrollViewer") as ScrollViewer;
         _headerRowDefinition = GetTemplateChild("HeaderRowDefinition") as RowDefinition;
-        DragRectangleCanvas = GetTemplateChild("DragRectangleCanvas") as Canvas;
+        DragRectangleCanvas = GetTemplateChild("DragRectangleCanvas") as FrameworkElement;
         _dragRectangle = GetTemplateChild("DragRectangle") as Border;
         _scrollViewer?.Loaded += OnScrollViewerLoaded;
         _scrollViewer?.ViewChanged += OnScrollViewerViewChanged;
+        _scrollViewer?.SizeChanged += OnScrollViewerSizeChanged;
+
+        if (GetTemplateChild("RowsRepeater") is ItemsRepeater rowsRepeater)
+        {
+            InitializeRowsHost(rowsRepeater);
+        }
 
         if (IsLoaded)
         {
-            while (ItemsPanelRoot is null) await Task.Yield();
-
             EnsureAutoColumns();
-#if WINDOWS
             ApplyStickyGroupHeadersSetting();
-        }
-
-        // GroupStyle is a get-only collection, so it can only be populated (never Setter-assigned); this default
-        // only applies when the consumer hasn't already added their own entry.
-        if (GroupStyle.Count == 0 && DefaultGroupStyle is { } defaultGroupStyle)
-        {
-            GroupStyle.Add(defaultGroupStyle);
-#endif
         }
 
         SetHeadersVisibility();
     }
 
-#if WINDOWS
     /// <summary>
-    /// Applies <see cref="AreStickyGroupHeadersEnabled"/> to the underlying <see cref="ItemsStackPanel"/>, if the
-    /// current <see cref="ItemsControl.ItemsPanelRoot"/> is one.
+    /// Applies <see cref="AreStickyGroupHeadersEnabled"/> to the sticky group header.
     /// </summary>
     private void ApplyStickyGroupHeadersSetting()
     {
-        if (ItemsPanelRoot is ItemsStackPanel panel)
-        {
-            panel.AreStickyGroupHeadersEnabled = AreStickyGroupHeadersEnabled;
-        }
+        UpdateStickyGroupHeader();
     }
-#endif
 
     /// <summary>
-    /// Handles the ViewChanged event of the ScrollViewer control, updating the position of each row when the view changes.
+    /// Handles the ViewChanged event of the ScrollViewer control.
     /// </summary>
+    /// <remarks>
+    /// Deliberately empty of per-row work. Row positions used to be recomputed here with a visual-tree transform
+    /// walk per realized row on every scroll frame, purely to feed hit testing; hit testing now reads them from the
+    /// realized rows when it needs them, so scrolling costs nothing outside layout itself.
+    /// </remarks>
     private void OnScrollViewerViewChanged(object? sender, ScrollViewerViewChangedEventArgs e)
     {
-        UpdateRowPositions();
+        if (e.IsIntermediate)
+        {
+            _lastIntermediateViewChange = Environment.TickCount64;
+        }
+
+        SetValue(VerticalOffsetProperty, _scrollViewer?.VerticalOffset ?? 0d);
+
+#if !WINDOWS
+        UpdateRenderCullingAfterViewChange();
+#endif
+
+        // Which group is at the top, and how far the next header pushes its sticky header up, change on any scroll.
+        if (AreStickyGroupHeadersActive || _stickyGroupHeader?.Visibility is Visibility.Visible)
+        {
+            UpdateStickyGroupHeader();
+        }
     }
 
     /// <summary>
-    /// Updates the position of each row in the TableView, ensuring that they are correctly aligned with the current scroll position.
+    /// Gets a value indicating whether the view is in the middle of a scroll: a wheel animation, panning or a
+    /// fling that has not settled yet.
     /// </summary>
-    internal void UpdateRowPositions()
+    /// <remarks>
+    /// An intermediate view change arrives every frame while the view moves, and the final one on the frame it
+    /// settles, so recency of the last intermediate one is what says the view is still moving. A programmatic
+    /// jump with animation disabled raises only the final change and never reads as in flight.
+    /// </remarks>
+    internal bool IsViewChangeInFlight => Environment.TickCount64 - _lastIntermediateViewChange < 100;
+
+    /// <summary>
+    /// Re-measures the group headers and the open row details when the viewport's width changes, since they are
+    /// measured no wider than it.
+    /// </summary>
+    private void OnScrollViewerSizeChanged(object sender, SizeChangedEventArgs e)
     {
-        foreach (var row in _rows)
+        if (e.NewSize.Width != e.PreviousSize.Width)
         {
-            row.UpdatePosition();
+            foreach (var header in _groupHeaderRows)
+            {
+                header.InvalidateMeasure();
+            }
+
+            foreach (var row in _rows)
+            {
+                if (row.RowPresenter is { IsDetailsPanelVisible: true } presenter)
+                {
+                    presenter.InvalidateMeasure();
+                }
+            }
         }
     }
 
@@ -1213,11 +1257,19 @@ public partial class TableView : ListView
     /// </summary>
     private void OnScrollViewerLoaded(object sender, RoutedEventArgs e)
     {
-        var scrollPresenter = _scrollViewer?.FindDescendant<ScrollContentPresenter>();
+        // Found by name, not by type: under Native AOT the wrapper CsWinRT creates for an element from XAML can
+        // be a base class of its runtime class when the exact projection is not in the app's type map, and a
+        // search by concrete type then walks right past it.
+        var scrollPresenter = _scrollViewer?.FindDescendant<FrameworkElement>(x => x.Name is "ScrollContentPresenter");
         var xScrollBar = _scrollViewer?.FindDescendant<ScrollBar>(sb => sb.Name is "HorizontalScrollBar2");
         var yScrollBar = _scrollViewer?.FindDescendant<ScrollBar>(sb => sb.Name is "VerticalScrollBar");
 
         scrollPresenter?.PointerWheelChanged += OnScrollContentPresenterPointerWheelChanged;
+
+        if (_scrollViewer is not null)
+        {
+            AttachStickyGroupHeaderHost(_scrollViewer);
+        }
 
         yScrollBar?.ValueChanged += (_, _) => SetValue(VerticalOffsetProperty, yScrollBar.Value);
 
@@ -1240,13 +1292,12 @@ public partial class TableView : ListView
         }
 
         ResumeItemsSource();
-#if WINDOWS
-        ResumeRowsPanel();
-#endif
+        ResumeRowsHost();
+
+        // Rows laid out before this event could not ask yet; ask for the last of them.
+        ConsiderLoadingMoreItems(RealizedRows.LastVisualIndex);
         EnsureAutoColumns();
-#if WINDOWS
         ApplyStickyGroupHeadersSetting();
-#endif
     }
 
     /// <summary>
@@ -1267,9 +1318,8 @@ public partial class TableView : ListView
         }
 
         SuspendItemsSource();
-#if WINDOWS
-        SuspendRowsPanel();
-#endif
+        SuspendRowsHost();
+        HideStickyGroupHeader(releaseGroup: true);
     }
 
     /// <summary>
@@ -1287,55 +1337,6 @@ public partial class TableView : ListView
         _collectionView.DetachFromSource();
         _isItemsSourceSuspended = true;
     }
-
-#if WINDOWS
-    /// <summary>
-    /// Hides the realized rows while the control is unloaded. Rows that are visible when the control enters
-    /// the tree again are all laid out before its first frame, which stalls e.g. switching between tabs.
-    /// Only done on Windows: Uno's rows panel does not recover its extent after being collapsed.
-    /// </summary>
-    private void SuspendRowsPanel()
-    {
-        if (_isRowsPanelSuspended || ItemsPanelRoot is not { Visibility: Visibility.Visible } rowsPanel)
-        {
-            return;
-        }
-
-        _suspendedVerticalOffset = _scrollViewer?.VerticalOffset ?? 0d;
-        rowsPanel.Visibility = Visibility.Collapsed;
-        _isRowsPanelSuspended = true;
-    }
-
-    /// <summary>
-    /// Shows the rows again once the control has had the chance to render without them, and restores the
-    /// scroll position that hiding them reset.
-    /// </summary>
-    private void ResumeRowsPanel()
-    {
-        if (!_isRowsPanelSuspended)
-        {
-            return;
-        }
-
-        DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
-        {
-            // Unloaded again in the meantime: the next load resumes the rows.
-            if (!_isRowsPanelSuspended || !IsLoaded)
-            {
-                return;
-            }
-
-            _isRowsPanelSuspended = false;
-            ItemsPanelRoot?.Visibility = Visibility.Visible;
-
-            if (_suspendedVerticalOffset > 0 && _scrollViewer is not null)
-            {
-                UpdateLayout(); // the extent is not known until the rows are laid out
-                _scrollViewer.ChangeView(null, _suspendedVerticalOffset, null, true);
-            }
-        });
-    }
-#endif
 
     /// <summary>
     /// Restores subscriptions to the current items source when the control is loaded.
@@ -1356,38 +1357,70 @@ public partial class TableView : ListView
             return;
         }
 
-        // If the source changed while the control was unloaded, the view is brought up to date item by item,
-        // which keeps the selection, or reset, which clears it.
-        var selectedItems = SelectedItems.ToList();
-        var isReset = _collectionView.AttachToSource();
+        // A source that changed while the control was unloaded is applied item by item, which keeps the
+        // selection, or by a reset, after which the items still in the view are selected again.
+        _isReattachingItemsSource = true;
+        _selectionBeforeReattachReset = null; // never a list left by a reattach that failed
+        _selectedItemsRemovedWhileReattaching = null;
 
-#if !WINDOWS
-        // Uno keeps an item selected after it has been removed from the view.
-        if (SelectionMode is ListViewSelectionMode.Single)
+        try
         {
-            if (SelectedItem is { } selectedItem && !Items.Contains(selectedItem))
-            {
-                SelectedItem = null;
-            }
+            _collectionView.AttachToSource();
         }
-        else
+        finally
         {
-            foreach (var removedItem in SelectedItems.Where(item => !Items.Contains(item)).ToList())
-            {
-                SelectedItems.Remove(removedItem);
-            }
+            _isReattachingItemsSource = false;
         }
-#endif
 
-        if (SelectedItems.Count < selectedItems.Count)
+        var selectedItems = _selectionBeforeReattachReset;
+        _selectionBeforeReattachReset = null;
+
+        if (selectedItems is not null)
         {
             RestoreSelection(selectedItems);
         }
 
-        if (!isReset)
+        SettleSelectionAfterReattach();
+    }
+
+    /// <summary>
+    /// Sorts out the selected items an item-by-item reattach took out of the view: one that came back in at
+    /// another index only moved and stays selected, and the rest are reported as deselected.
+    /// </summary>
+    private void SettleSelectionAfterReattach()
+    {
+        var removedItems = _selectedItemsRemovedWhileReattaching;
+        _selectedItemsRemovedWhileReattaching = null;
+
+        if (removedItems is null)
         {
-            // The rows were kept, but their items may have changed while nothing was listening to them.
-            EnsureCellsStyle();
+            if (_rowSelection.Count > 0)
+            {
+                SyncSelectionProperties(); // the selected rows may have shifted
+            }
+
+            return;
+        }
+
+        List<object>? goneItems = null;
+
+        foreach (var item in removedItems)
+        {
+            if (_collectionView.IndexOf(item) is >= 0 and var index)
+            {
+                _rowSelection.Select(index, index);
+            }
+            else
+            {
+                (goneItems ??= []).Add(item);
+            }
+        }
+
+        SyncSelectionProperties();
+
+        if (goneItems is not null)
+        {
+            SelectionChanged?.Invoke(this, new SelectionChangedEventArgs(goneItems, []));
         }
     }
 
@@ -1396,24 +1429,32 @@ public partial class TableView : ListView
     /// </summary>
     private void RestoreSelection(List<object> selectedItems)
     {
+        if (SelectionMode is ListViewSelectionMode.None) return;
+
         if (SelectionMode is ListViewSelectionMode.Single)
         {
-            if (Items.Contains(selectedItems[0]))
+            if (_collectionView.IndexOf(selectedItems[0]) is >= 0 and var index)
             {
-                SelectedItem = selectedItems[0];
+                SelectedIndex = index;
             }
 
             return;
         }
 
-        if (SelectionMode is ListViewSelectionMode.None) return;
-
-        var indexes = selectedItems.Select(item => Items.IndexOf(item)).Where(index => index >= 0);
-
-        foreach (var range in IndexRangeHelper.GetRanges(indexes))
+        ChangeSelection(model =>
         {
-            SelectRange(range);
-        }
+            var changed = false;
+
+            foreach (var item in selectedItems)
+            {
+                if (_collectionView.IndexOf(item) is >= 0 and var index)
+                {
+                    changed |= model.Select(index, index);
+                }
+            }
+
+            return changed;
+        });
     }
 
     /// <summary>
@@ -1556,7 +1597,7 @@ public partial class TableView : ListView
     {
         var slots = Enumerable.Empty<TableViewCellSlot>();
 
-        if (SelectedItems.Any() || SelectedCells.Count != 0)
+        if (_rowSelection.Count > 0 || SelectedCells.Count != 0)
         {
             slots = SelectedRanges.SelectMany(x => Enumerable.Range(x.FirstIndex, (int)x.Length))
                                   .SelectMany(r => Enumerable.Range(0, Columns.VisibleColumns.Count)
@@ -1923,14 +1964,12 @@ public partial class TableView : ListView
 
         foreach (var column in Columns.Where(c => c.SortDirection is not null))
         {
-#if WINDOWS
             // A grouped column's SortDirection mirrors its group's own order, not an independent sort -
             // sorting a different column shouldn't strip its indicator or desync it from the group.
             if (_collectionView.GroupDescriptions.Any(x => x is ColumnGroupDescription columnGroup && columnGroup.Column == column))
             {
                 continue;
             }
-#endif
             column?.SortDirection = null;
         }
     }
@@ -1959,7 +1998,6 @@ public partial class TableView : ListView
         FilterHandler.ClearFilter(null);
     }
 
-#if WINDOWS
     /// <summary>
     /// Removes all grouping applied to the items.
     /// </summary>
@@ -1988,7 +2026,6 @@ public partial class TableView : ListView
         DeselectAll();
         _collectionView.RefreshGrouping();
     }
-#endif
 
     /// <summary>
     /// Refreshes all applied filters.
@@ -2000,9 +2037,10 @@ public partial class TableView : ListView
     }
 
     /// <summary>
-    /// Selects all rows or cells in the TableView.
+    /// Selects all rows or cells in the TableView, as <kbd>Ctrl</kbd>+<kbd>A</kbd> does, according to
+    /// <see cref="SelectionUnit"/>.
     /// </summary>
-    internal new void SelectAll()
+    public void SelectAll()
     {
         if (IsEditing)
         {
@@ -2050,16 +2088,15 @@ public partial class TableView : ListView
             case ListViewSelectionMode.Multiple:
             case ListViewSelectionMode.Extended:
                 SelectedCellRanges.Clear();
-                var selectionRange = new HashSet<TableViewCellSlot>();
 
-                for (var row = 0; row < Items.Count; row++)
+                if (Items.Count > 0 && Columns.VisibleColumns.Count > 0)
                 {
-                    for (var column = 0; column < Columns.VisibleColumns.Count; column++)
-                    {
-                        selectionRange.Add(new TableViewCellSlot(row, column));
-                    }
+                    // One rectangle covers the whole grid. The previous implementation built a set of every
+                    // individual slot and passed it to SelectedCellRanges.Add, which bound to the
+                    // CollectionExtensions.Add(this IEnumerable, object) extension and silently dropped it —
+                    // so selecting all cells actually selected nothing.
+                    SelectedCellRanges.Add(new TableViewCellSlotRange(0, 0, Items.Count, Columns.VisibleColumns.Count));
                 }
-                SelectedCellRanges.Add(selectionRange);
                 break;
         }
 
@@ -2080,18 +2117,7 @@ public partial class TableView : ListView
     /// </summary>
     private void DeselectAllItems()
     {
-        if (SelectedRanges.Count is 0) return;
-
-        switch (SelectionMode)
-        {
-            case ListViewSelectionMode.Single:
-                SelectedItem = null;
-                break;
-            case ListViewSelectionMode.Multiple:
-            case ListViewSelectionMode.Extended:
-                DeselectRange(new ItemIndexRange(0, (uint)Items.Count));
-                break;
-        }
+        ChangeSelection(static model => model.Clear());
     }
 
     /// <summary>
@@ -2161,14 +2187,20 @@ public partial class TableView : ListView
     /// </summary>
     private void SelectRows(TableViewCellSlot slot, bool shiftKey, bool ctrlKey)
     {
-        var selectionRange = SelectedRanges.FirstOrDefault(x => x.IsInRange(slot.Row));
+        var selectionRange = _rowSelection.GetRangeContaining(slot.Row);
+
+        if (SelectionStartRowIndex >= _collectionView.Count)
+        {
+            SelectionStartRowIndex = null; // the anchor's row is gone
+        }
+
         SelectionStartRowIndex ??= slot.Row;
 
         if (selectionRange is not null && ctrlKey && !shiftKey && (CurrentRowIndex != slot.Row || CurrentCellSlot == slot))
         {
             DeselectRange(new ItemIndexRange(slot.Row, 1));
         }
-        else if ((!shiftKey && !ctrlKey && SelectedItems.Count <= 1) || SelectionMode is ListViewSelectionMode.Single)
+        else if ((!shiftKey && !ctrlKey && _rowSelection.Count <= 1) || SelectionMode is ListViewSelectionMode.Single)
         {
             SelectionStartRowIndex = CurrentRowIndex = SelectedIndex = slot.Row;
         }
@@ -2281,16 +2313,19 @@ public partial class TableView : ListView
         SelectionStartCellSlot ??= CurrentCellSlot;
         SelectionStartCellSlot ??= slot;
 
-        if (shiftKey && SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended)
-        {
-            var newRange = TableViewCellSlotRange.FromSlots(SelectionStartCellSlot.Value, slot);
-            SelectedCellRanges.Add(newRange);
-        }
-        else
+        var extendsFromAnchor = shiftKey && SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended;
+        var addedRange = extendsFromAnchor
+            ? TableViewCellSlotRange.FromSlots(SelectionStartCellSlot.Value, slot)
+            : TableViewCellSlotRange.FromSlots(slot);
+
+        if (!extendsFromAnchor)
         {
             SelectionStartCellSlot = slot;
-            SelectedCellRanges.Add(TableViewCellSlotRange.FromSlots(slot));
         }
+
+        // Keep SelectedCellRanges disjoint so the slot count projected from it stays exact.
+        SubtractCellRangeFromSelection(addedRange);
+        SelectedCellRanges.Add(addedRange);
         OnCellSelectionChanged();
         CurrentCellSlot = slot;
     }
@@ -2396,19 +2431,22 @@ public partial class TableView : ListView
     /// </summary>
     private void OnCellSelectionChanged()
     {
-        var newSelection = SelectedCellRanges.SelectMany(x => x.GetSlots()).ToHashSet();
-        var removedCells = SelectedCells.Where(s => !newSelection.Contains(s)).ToList();
-        var addedCells = newSelection.Where(s => !SelectedCells.Contains(s)).ToList();
+        // Diff rectangles, not slots. The previous implementation expanded every selected range into a set of
+        // individual slots on every change, which is rows x columns entries for a whole-grid selection.
+        var currentRanges = SelectedCellRanges.Count is 0 ? [] : new List<TableViewCellSlotRange>(SelectedCellRanges);
+        var removedRanges = SubtractRangeSet(_previousSelectedCellRanges, currentRanges);
+        var addedRanges = SubtractRangeSet(currentRanges, _previousSelectedCellRanges);
 
-        if (removedCells.Count is 0 && addedCells.Count is 0) return;
+        if (removedRanges.Count is 0 && addedRanges.Count is 0) return;
 
-        foreach (var slot in removedCells) SelectedCells.Remove(slot);
-        foreach (var slot in addedCells) SelectedCells.Add(slot);
+        _previousSelectedCellRanges = currentRanges;
 
-        OnCellSelectionChanged(new TableViewCellSelectionChangedEventArgs(removedCells, addedCells));
+        OnCellSelectionChanged(new TableViewCellSelectionChangedEventArgs(
+            new TableViewCellSlotCollection(removedRanges),
+            new TableViewCellSlotCollection(addedRanges)));
 
-        foreach (var slot in removedCells.Concat(addedCells))
-            _pendingCellStateRows.Add(slot.Row);
+        MarkCellStatesDirty(removedRanges);
+        MarkCellStatesDirty(addedRanges);
 
         if (!_cellStateDispatchPending)
         {
@@ -2417,17 +2455,64 @@ public partial class TableView : ListView
         }
     }
 
+    /// <summary>
+    /// Returns the parts of <paramref name="source"/> that <paramref name="subtract"/> does not cover.
+    /// </summary>
+    private static List<TableViewCellSlotRange> SubtractRangeSet(List<TableViewCellSlotRange> source,
+                                                                List<TableViewCellSlotRange> subtract)
+    {
+        if (source.Count is 0) return [];
+
+        List<TableViewCellSlotRange> result = [];
+
+        foreach (var range in source)
+        {
+            result.AddRange(range.SubtractAll(subtract));
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Records which rows need their cells' selection visuals refreshed. Beyond a bounded number of rows the
+    /// individual row indexes stop being worth tracking — only realized rows are ever repainted, so a
+    /// "refresh everything realized" flag is both smaller and cheaper than a set of a million row indexes.
+    /// </summary>
+    private void MarkCellStatesDirty(List<TableViewCellSlotRange> ranges)
+    {
+        const int maxTrackedRows = 256;
+
+        foreach (var range in ranges)
+        {
+            if (_allCellStatesPending) return;
+
+            if (range.Rows > maxTrackedRows || _pendingCellStateRows.Count + range.Rows > maxTrackedRows)
+            {
+                _allCellStatesPending = true;
+                _pendingCellStateRows.Clear();
+                return;
+            }
+
+            for (var row = range.FirstRow; row <= range.LastRow; row++)
+            {
+                _pendingCellStateRows.Add(row);
+            }
+        }
+    }
+
     private void ApplyPendingCellStates()
     {
         _cellStateDispatchPending = false;
-        if (_pendingCellStateRows.Count is 0) return;
+        if (!_allCellStatesPending && _pendingCellStateRows.Count is 0) return;
 
         foreach (var row in _rows)
         {
-            if (_pendingCellStateRows.Contains(row.Index))
+            if (_allCellStatesPending || _pendingCellStateRows.Contains(row.Index))
                 row.ApplyCellsSelectionState();
         }
+
         _pendingCellStateRows.Clear();
+        _allCellStatesPending = false;
     }
 
     /// <summary>
@@ -2711,7 +2796,7 @@ public partial class TableView : ListView
         _scrollViewer?.ViewChanged -= OnScrollViewerViewChangedDuringDrag;
         _dragRectangle?.Visibility = Visibility.Collapsed;
 
-        var slot = GetSlotAtCanvasPoint(_lastDragCanvasPoint.Value);
+        var slot = GetSlotAtCanvasPoint(_lastDragCanvasPoint);
         SetCurrentCell(slot);
 
         IsDragSelecting = false;
@@ -2764,7 +2849,6 @@ public partial class TableView : ListView
         if (_scrollViewer is null || !slot.IsValid(this) || await ScrollRowIntoView(slot.Row) is not { } row)
             return default!;
 
-        var (start, end) = GetColumnsInDisplay();
         var xOffset = 0d;
         var yOffset = _scrollViewer.VerticalOffset;
 
@@ -2808,56 +2892,191 @@ public partial class TableView : ListView
     /// Scrolls the specified row into view.
     /// </summary>
     /// <param name="index">The index of the row to scroll into view.</param>
+    /// <remarks>
+    /// A realized row is scrolled to from where it is. Any other row is realized by the repeater where the layout
+    /// estimates it to be and brought into view from there, which is how a layout that only knows the heights of the
+    /// rows it has realized reaches a row far away.
+    /// </remarks>
     public async Task<TableViewRow?> ScrollRowIntoView(int index)
     {
-        if (_scrollViewer is null || index < 0 || index >= Items.Count) return default!;
-
-        var item = Items[index];
-        index = Items.IndexOf(item); // if the ItemsSource has duplicate items in it. ScrollIntoView will only bring first index of the item.
-        ScrollIntoView(item);
-
-        var tries = 0;
-        while (tries < 10)
+        // The repeater has no items while the table is unloaded, and cannot realize a row then.
+        if (_scrollViewer is null || !IsRowsHostActive || index < 0 || index >= _collectionView.Count)
         {
-            tries++;
-            await Task.Yield();
-
-            if (ContainerFromIndex(index) is TableViewRow row)
-            {
-                var transform = row.TransformToVisual(_scrollViewer);
-                var positionInScrollViewer = transform.TransformPoint(new Point(0, 0));
-                if ((index == 0 && _scrollViewer.VerticalOffset > 0) || (index > 0 && positionInScrollViewer.Y < HeaderRowHeight))
-                {
-                    var yOffset = index == 0 ? 0d : _scrollViewer.VerticalOffset - row.ActualHeight + positionInScrollViewer.Y + 8;
-                    var tcs = new TaskCompletionSource<object?>();
-
-                    try
-                    {
-                        _scrollViewer.ViewChanged += ViewChanged;
-                        _scrollViewer.ChangeView(0, yOffset, null, true);
-                        await tcs.Task;
-                    }
-                    finally
-                    {
-                        _scrollViewer.ViewChanged -= ViewChanged;
-                    }
-
-                    void ViewChanged(object? _, ScrollViewerViewChangedEventArgs e)
-                    {
-                        if (e.IsIntermediate)
-                        {
-                            return;
-                        }
-
-                        tcs.TrySetResult(result: default);
-                    }
-                }
-
-                return row;
-            }
+            return null;
         }
 
-        return default;
+        var visualIndex = GetVisualIndexFromItemIndex(index);
+
+        if (visualIndex < 0)
+        {
+            // The row is inside a collapsed group. Expanding it is the caller's decision, not ours.
+            return null;
+        }
+
+        // A sticky group header covers the top of the viewport, so a row brought in from above has to stop just
+        // below it rather than underneath it.
+        var topInset = AreStickyGroupHeadersActive && FindGroupHeaderAtOrBefore(visualIndex) is >= 0 and var header && header != visualIndex
+            ? GetStickyGroupHeaderHeight(header)
+            : 0d;
+
+        if (RealizedRows.Get(visualIndex) is TableViewRow realizedRow && RealizedRows.TryGetBounds(visualIndex, out var rowTop, out var rowHeight))
+        {
+            // The scroll viewer's content starts with the table's padding, above the rows.
+            rowTop += Padding.Top;
+
+            var viewportTop = _scrollViewer.VerticalOffset;
+            var viewportHeight = _scrollViewer.ViewportHeight;
+            var target = viewportTop;
+
+            if (rowTop - topInset < viewportTop)
+            {
+                target = rowTop - topInset;
+            }
+            else if (rowTop + rowHeight > viewportTop + viewportHeight)
+            {
+                target = rowTop + rowHeight - viewportHeight;
+            }
+
+            if (Math.Abs(target - viewportTop) > 0.5)
+            {
+                _scrollViewer.ChangeView(null, Math.Clamp(target, 0d, _scrollViewer.ScrollableHeight), null, true);
+
+                await Task.Yield();
+            }
+
+            return realizedRow;
+        }
+
+        var firstVisible = RealizedRows.FindAtOffset(RowsViewportTop, out _);
+        var alignToTop = firstVisible < 0 || visualIndex < firstVisible;
+
+#if WINDOWS
+        // The repeater realizes the row where the layout estimates it to be and holds it there, realizing nothing
+        // around it, until it is brought into view; it has to be laid out before it can be.
+        if (_rowsRepeater.GetOrCreateElement(visualIndex) is not TableViewRow row)
+        {
+            return null;
+        }
+
+        row.UpdateLayout();
+
+        var height = Math.Max(1d, row.ActualHeight);
+
+        // Above, the target reaches up over the sticky header. It is a single point across, at the current horizontal
+        // offset, so bringing it into view never scrolls the table sideways.
+        row.StartBringIntoView(new BringIntoViewOptions
+        {
+            AnimationDesired = false,
+            VerticalAlignmentRatio = alignToTop ? 0d : 1d,
+            TargetRect = alignToTop
+                ? new Rect(Math.Max(0d, _scrollViewer.HorizontalOffset - Padding.Left), -topInset, 1d, height + topInset)
+                : new Rect(Math.Max(0d, _scrollViewer.HorizontalOffset - Padding.Left), 0d, 1d, height)
+        });
+
+        await Task.Yield();
+
+        return row;
+#else
+        return await ScrollToUnrealizedRowAsync(visualIndex, alignToTop, topInset);
+#endif
+    }
+
+#if !WINDOWS
+    /// <summary>
+    /// Scrolls to a row that is not realized, where Uno's repeater cannot be asked to realize it out of view.
+    /// </summary>
+    /// <remarks>
+    /// Uno's repeater, like WinUI's, pins an element realized out of view at the origin, but its bring-into-view does
+    /// not then move the scroll viewer to where the row belongs. So the scroll viewer is moved to where the realized
+    /// rows suggest the row is, which realizes the rows there, and again from those until the row is realized and
+    /// its real position can be scrolled to.
+    /// </remarks>
+    private async Task<TableViewRow?> ScrollToUnrealizedRowAsync(int visualIndex, bool alignToTop, double topInset)
+    {
+        if (_scrollViewer is null || _rowsRepeater is null)
+        {
+            return null;
+        }
+
+        for (var attempt = 0; attempt < 10; attempt++)
+        {
+            if (RealizedRows.Get(visualIndex) is TableViewRow row && RealizedRows.TryGetBounds(visualIndex, out var rowTop, out var rowHeight))
+            {
+                rowTop += Padding.Top;
+
+                var target = alignToTop ? rowTop - topInset : rowTop + rowHeight - _scrollViewer.ViewportHeight;
+
+                if (Math.Abs(Math.Clamp(target, 0d, _scrollViewer.ScrollableHeight) - _scrollViewer.VerticalOffset) <= 0.5)
+                {
+                    return row;
+                }
+
+                // Rows measured on the way replace the estimated heights, so the row may not stay where it was seen;
+                // look again after each move until it does.
+                _scrollViewer.ChangeView(null, Math.Clamp(target, 0d, _scrollViewer.ScrollableHeight), null, true);
+
+                await Task.Delay(32);
+
+                continue;
+            }
+
+            var nearest = RealizedRows.FindAtOffset(RowsViewportTop, out _);
+
+            if (nearest < 0 || !RealizedRows.TryGetBounds(nearest, out var nearestTop, out var nearestHeight))
+            {
+                // No row is realized yet, as the table has not been laid out, so there is nothing to go by.
+                UpdateLayout();
+
+                await Task.Delay(16);
+
+                continue;
+            }
+
+            // Rows not realized are estimated to be as tall as the one the viewport starts at.
+            var estimate = nearestTop + Padding.Top + ((visualIndex - nearest) * Math.Max(1d, nearestHeight));
+            var estimatedTarget = alignToTop ? estimate - topInset : estimate + nearestHeight - _scrollViewer.ViewportHeight;
+
+            _scrollViewer.ChangeView(null, Math.Clamp(estimatedTarget, 0d, _scrollViewer.ScrollableHeight), null, true);
+
+            await Task.Delay(32);
+        }
+
+        return RealizedRows.Get(visualIndex) as TableViewRow;
+    }
+#endif
+
+    /// <summary>
+    /// Brings the given item into view.
+    /// </summary>
+    /// <param name="item">The item to scroll to.</param>
+    public void ScrollIntoView(object? item)
+    {
+        var index = _collectionView.IndexOf(item);
+
+        if (index >= 0)
+        {
+            _ = ScrollRowIntoView(index);
+        }
+    }
+
+    /// <summary>
+    /// Returns the first item index in the given visual row span, or -1 when the span holds only group headers.
+    /// </summary>
+    private int FirstItemIndexAtOrAfter(int firstVisualIndex, int lastVisualIndex)
+    {
+        var itemIndex = _visualRows?.FindItemIndexAtOrAfter(firstVisualIndex) ?? -1;
+
+        return itemIndex >= 0 && GetVisualIndexFromItemIndex(itemIndex) <= lastVisualIndex ? itemIndex : -1;
+    }
+
+    /// <summary>
+    /// Returns the last item index in the given visual row span, or -1 when the span holds only group headers.
+    /// </summary>
+    private int LastItemIndexAtOrBefore(int firstVisualIndex, int lastVisualIndex)
+    {
+        var itemIndex = _visualRows?.FindItemIndexAtOrBefore(lastVisualIndex) ?? -1;
+
+        return itemIndex >= 0 && GetVisualIndexFromItemIndex(itemIndex) >= firstVisualIndex ? itemIndex : -1;
     }
 
     /// <summary>
@@ -2874,20 +3093,45 @@ public partial class TableView : ListView
     /// </summary>
     private int? GetRowIndexAtCanvasPoint(Point canvasPoint)
     {
-        if (DragRectangleCanvas is null) return null;
+        var visualIndex = GetVisualRowIndexAtCanvasY(canvasPoint.Y);
 
-        foreach (var row in _rows)
+        if (visualIndex < 0)
         {
-            var rowTop = row.Position.Y;
-            var rowBottom = rowTop + row.ActualHeight;
-
-            if (canvasPoint.Y >= rowTop && canvasPoint.Y < rowBottom)
-            {
-                return row.Index;
-            }
+            return null;
         }
 
-        return null;
+        var itemIndex = GetItemIndexFromVisualIndex(visualIndex);
+
+        return itemIndex < 0 ? null : itemIndex;
+    }
+
+    /// <summary>
+    /// Returns the visual row index at a Y coordinate in drag-canvas space, or -1 when outside the rows.
+    /// </summary>
+    /// <remarks>
+    /// Read from the realized rows, which always include the rows under the pointer and under a drag rectangle,
+    /// since both lie within the viewport. Below the last row there is no row; anywhere else short of an exact hit,
+    /// such as between rows, the nearest one is returned.
+    /// </remarks>
+    internal int GetVisualRowIndexAtCanvasY(double canvasY)
+    {
+        if (_scrollViewer is null || VisualRowCount is 0 || canvasY < 0)
+        {
+            return -1;
+        }
+
+        var offset = canvasY + RowsViewportTop;
+        var visualIndex = RealizedRows.FindAtOffset(offset, out var exact);
+
+        if (!exact
+            && visualIndex == VisualRowCount - 1
+            && RealizedRows.TryGetBounds(visualIndex, out var top, out var height)
+            && offset >= top + height)
+        {
+            return -1;
+        }
+
+        return visualIndex;
     }
 
     /// <summary>
@@ -2924,73 +3168,49 @@ public partial class TableView : ListView
     /// Resolves the cell slot at <paramref name="canvasPoint"/>.
     /// Returns <c>null</c> when no realized row or visible column contains the point.
     /// </summary>
-    private TableViewCellSlot? GetSlotAtCanvasPoint(Point canvasPoint)
+    private TableViewCellSlot? GetSlotAtCanvasPoint(Point? canvasPoint)
     {
-        if (DragRectangleCanvas is null) return null;
+        if (DragRectangleCanvas is null || canvasPoint is null) return null;
 
-        if (GetRowIndexAtCanvasPoint(canvasPoint) is not int rowIndex) return null;
+        if (GetRowIndexAtCanvasPoint(canvasPoint.Value) is not int rowIndex) return null;
 
         // Mirror the row snapping: find the nearest column within the horizontal drag span.
         var horizontalScrollDelta = HorizontalOffset - _dragStartHorizontalOffset;
-        var adjustedPointerX = canvasPoint.X - horizontalScrollDelta;
+        var adjustedPointerX = canvasPoint.Value.X - horizontalScrollDelta;
         var colIndex = GetColumnIndexAtCanvasX(adjustedPointerX);
 
         return colIndex is null ? null : new TableViewCellSlot(rowIndex, colIndex.Value);
     }
 
     /// <summary>
-    /// Gets the columns currently in view.
+    /// Refreshes the header row and the realized rows after <see cref="SelectionMode"/> or
+    /// <see cref="SelectionUnit"/> changed: the multi-select check box column, row header visibility and the
+    /// horizontal scroll bar margin all depend on them.
     /// </summary>
-    private (int start, int end) GetColumnsInDisplay()
+    private void RefreshSelectionModeVisuals()
     {
-        if (_scrollViewer is null) return default!;
-
-        var start = -1;
-        var end = -1;
-        var width = 0d;
-        var headersOffset = CellsHorizontalOffset;
-
-        foreach (var column in Columns.VisibleColumns)
-        {
-            if (width >= HorizontalOffset &&
-                width + column.ActualWidth <= HorizontalOffset + _scrollViewer.ViewportWidth - headersOffset)
-            {
-                if (start == -1)
-                {
-                    start = end = Columns.VisibleColumns.IndexOf(column);
-                }
-                else
-                {
-                    end = Columns.VisibleColumns.IndexOf(column);
-                }
-            }
-
-            width += column.ActualWidth;
-        }
-
-        return (start, end);
-    }
-
-    /// <summary>
-    /// Updates the base SelectionMode property.
-    /// </summary>
-    private void UpdateBaseSelectionMode()
-    {
-        _shouldThrowBaseProeprtyChangedException = false;
-        base.SelectionMode = SelectionUnit is TableViewSelectionUnit.Cell ? ListViewSelectionMode.None : SelectionMode;
-
         _headerRow?.SetHeadersVisibility();
         _headerRow?.SetCellsHorizontalOffset();
         UpdateHorizontalScrollBarMargin();
 
+        // Pooled rows catch up when they are reused; see ApplyRowVisuals.
+        _selectionModeVersion++;
+
         foreach (var row in _rows)
         {
-            row.EnsureLayout();
-            row.RowPresenter?.SetRowHeaderVisibility();
-
+            ApplySelectionModeLayout(row);
+            row.RefreshVisualStates();
         }
+    }
 
-        _shouldThrowBaseProeprtyChangedException = true;
+    /// <summary>
+    /// Lays a row out for the table's selection mode, such as with room for its check box in multiple selection.
+    /// </summary>
+    private void ApplySelectionModeLayout(TableViewRow row)
+    {
+        row.SelectionModeVersion = _selectionModeVersion;
+        row.EnsureLayout();
+        row.RowPresenter?.SetRowHeaderVisibility();
     }
 
     /// <summary>
@@ -3006,12 +3226,12 @@ public partial class TableView : ListView
             row.RowPresenter?.EnsureGridLines();
         }
 
-#if WINDOWS
         foreach (var groupHeaderRow in _groupHeaderRows)
         {
             groupHeaderRow.EnsureGridLines();
         }
-#endif
+
+        _stickyGroupHeader?.EnsureGridLines();
     }
 
     /// <summary>
@@ -3031,6 +3251,32 @@ public partial class TableView : ListView
                 row.EnsureAlternateColors();
             }
         });
+    }
+
+    /// <summary>
+    /// Gets <paramref name="row"/>'s real, stable position among all rows - unlike <see cref="TableViewRow.Index"/>,
+    /// unaffected by other rows being hidden by a collapsed ancestor group. Only worth the lookup cost while
+    /// grouping is actually active; otherwise the display index already is the real index.
+    /// </summary>
+    internal int GetRealRowIndex(TableViewRow row)
+    {
+        if (_collectionView.GroupDescriptions.Count > 0)
+        {
+            return _collectionView.IndexOfSourceItem(row.Content, row.Index);
+        }
+
+        return row.Index;
+    }
+
+    /// <summary>
+    /// Refreshes the displayed row number (and <see cref="TableViewRowHeader.Tag"/>) for every realized row.
+    /// </summary>
+    internal void RefreshRowNumbers()
+    {
+        foreach (var row in _rows)
+        {
+            row.RowPresenter?.SetRowNumber();
+        }
     }
 
     /// <summary>
@@ -3057,7 +3303,7 @@ public partial class TableView : ListView
             {
                 if (cell.Column is { } cellColumn && targetColumns.Contains(cellColumn))
                 {
-                    cell.InvalidateMeasure();
+                    cell.InvalidateAutoWidth();
                 }
             }
         }
@@ -3165,20 +3411,21 @@ public partial class TableView : ListView
     {
         _headerRow?.SetCornerButtonState();
 
-        DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
-        {
-            if (SelectionMode is ListViewSelectionMode.Multiple && SelectionUnit is not TableViewSelectionUnit.Cell)
-            {
-                foreach (var row in _rows)
-                {
-                    row.UpdateSelectCheckMarkOpacity();
-                }
-            }
-        });
+    }
+
+    internal void SetEditingCell(TableViewCell cell)
+    {
+        _editingCell = cell;
+        SetIsEditing(true);
     }
 
     internal void SetIsEditing(bool value)
     {
+        if (!value)
+        {
+            _editingCell = null;
+        }
+
         if (IsEditing == value)
         {
             return;
@@ -3204,6 +3451,7 @@ public partial class TableView : ListView
         foreach (var row in _rows)
         {
             row.RowPresenter?.SetRowHeaderVisibility();
+            row.RowPresenter?.SetRowNumberVisibility();
         }
     }
 

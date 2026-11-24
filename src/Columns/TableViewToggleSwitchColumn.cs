@@ -8,9 +8,6 @@ namespace WinUI.TableView;
 /// Represents a column in a TableView that displays a ToggleSwitch.
 /// </summary>
 [StyleTypedProperty(Property = nameof(ElementStyle), StyleTargetType = typeof(ToggleSwitch))]
-#if WINDOWS
-[WinRT.GeneratedBindableCustomProperty]
-#endif
 public partial class TableViewToggleSwitchColumn : TableViewBoundColumn
 {
     /// <summary>

@@ -10,8 +10,8 @@ You do not need to opt in. Accessibility support is always active. This page exp
 
 | Element | UIA patterns |
 |---|---|
-| [`TableView`](xref:WinUI.TableView.TableView) | `GridPattern`, `TablePattern`, `SelectionPattern` (inherited from `ListView`) |
-| [`TableViewRow`](xref:WinUI.TableView.TableViewRow) | `SelectionItemPattern` (inherited), `ExpandCollapsePattern` when `RowDetailsVisibilityMode` is `VisibleWhenExpanded` |
+| [`TableView`](xref:WinUI.TableView.TableView) | `GridPattern`, `TablePattern`, `SelectionPattern`, `ScrollPattern`, `ItemContainerPattern` |
+| [`TableViewRow`](xref:WinUI.TableView.TableViewRow) | `SelectionItemPattern`, `ExpandCollapsePattern` when `RowDetailsVisibilityMode` is `VisibleWhenExpanded` |
 | [`TableViewCell`](xref:WinUI.TableView.TableViewCell) | `GridItemPattern`, `TableItemPattern`, `SelectionItemPattern` |
 | [`TableViewColumnHeader`](xref:WinUI.TableView.TableViewColumnHeader) | `InvokePattern` when [`CanSort`](xref:WinUI.TableView.TableViewColumn.CanSort) is `true` |
 | `TableViewRowHeader` | Structural header element |
@@ -41,7 +41,16 @@ Each `TableViewCell` exposes `IGridItemProvider` and `ITableItemProvider`:
 - `IsSelected` reflects the current selection state
 - `Select()`, `AddToSelection()`, and `RemoveFromSelection()` manipulate the selection programmatically
 - `SelectionContainer` returns the owning `TableView`
-- Row `SelectionItemPattern` is provided automatically by the base `ListView` infrastructure
+- Row `SelectionItemPattern` is implemented by `TableView` itself and routes through the same selection logic as
+  mouse and keyboard input, so `SelectionUnit` and the selection anchor stay consistent
+
+### Virtualized rows
+
+Rows that are scrolled out of view have no automation peer, which is normal for a virtualizing control. Clients
+reach them two ways, both of which realize the row on demand:
+
+- `IGridProvider.GetItem(row, column)` returns a cell provider for any row, on screen or not
+- `IItemContainerProvider.FindItemByProperty` walks forward from a given row
 
 ### InvokePattern (column headers)
 
@@ -55,7 +64,7 @@ When [`RowDetailsVisibilityMode`](xref:WinUI.TableView.TableView.RowDetailsVisib
 
 ### TableView
 
-Uses [`AutomationProperties.Name`](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.automation.automationproperties.name) if set; otherwise inherits from the base `ListView` peer.
+Uses [`AutomationProperties.Name`](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.automation.automationproperties.name) if set; otherwise the peer's default name applies, so set one for every table a screen reader user will meet.
 
 ```xml
 <tv:TableView AutomationProperties.Name="Products table" />
@@ -162,11 +171,11 @@ To override the automation name of a column header (for example, to provide a lo
 
 ## Notes and limitations
 
-- **Virtualized cells**: `IGridProvider.GetItem(row, column)` returns `null` for rows that are not currently in the visual tree. Scroll the target row into view before calling `GetItem`.
+- **Virtualized cells**: `IGridProvider.GetItem(row, column)` realizes an off-screen row on demand (see [Virtualized rows](#virtualized-rows)) and returns `null` only for an index outside `RowCount` or `ColumnCount`. Items inside a collapsed group are not rows until the group is expanded, so they are not counted in `RowCount`.
 - **IValueProvider on cells**: `IValueProvider` is not implemented on the cell peer. Instead, the editing element (for example, a `TextBox`) exposes `IValueProvider` while the cell is in edit mode.
 - **Custom column types**: cells in `TableViewTemplateColumn` show developer-defined content. Accessible names for those cells default to the column header and row index unless the template explicitly sets `AutomationProperties.Name`.
 - **Non-Windows platforms**: automation peers are compiled and run on all platforms (WinUI and Uno Platform). However, not all Uno Platform targets expose a full UIA tree to assistive technologies. On WebAssembly (WASM), the platform relies on ARIA attributes managed by Uno. On Desktop Skia targets, accessibility support depends on the native platform's accessibility APIs.
-- **Group headers**: [`TableViewGroupHeaderRow`](xref:WinUI.TableView.TableViewGroupHeaderRow) does not have a dedicated automation peer; it relies on the base `ListViewHeaderItem` automation behavior. Its default automation name is derived from the group's key ([`TableViewGroupInfo.Key`](xref:WinUI.TableView.TableViewGroupInfo.Key)), not the item count shown in the UI.
+- **Group headers**: each [`TableViewGroupHeaderRow`](xref:WinUI.TableView.TableViewGroupHeaderRow) is exposed as a `Group` with the `ExpandCollapse` pattern, so assistive technology can open and close a group without reaching for its chevron button. Its default automation name is `"{key} ({count})"`, built from [`TableViewGroupInfo.Key`](xref:WinUI.TableView.TableViewGroupInfo.Key) and [`TableViewGroupInfo.Count`](xref:WinUI.TableView.TableViewGroupInfo.Count). Realized group headers appear among the table's children in display order, and are not counted in `RowCount`.
 
 ## Related articles
 

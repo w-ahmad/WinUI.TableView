@@ -122,7 +122,7 @@
              </tv:TableViewConditionalCellStylesCollection>
         </Grid.Resources>
         <controls:SamplePresenter Header="Cell Conditional Styling"
-                                  Description="Showcasing rich conditional cell styling.">
+                                  Description="Cells restyle themselves from their values. Each rule pairs a predicate with a cell style, and the rules run again as the live data changes.">
             <controls:SamplePresenter.Example>
                 <tv:TableView ItemsSource="{Binding SalesData}"
                               AutoGenerateColumns="False">
@@ -151,9 +151,6 @@
                                                 Binding="{Binding Status}"
                                                 ConditionalCellStyles="{StaticResource StatusCellStyles}" />
                     </tv:TableView.Columns>
-                    <tv:TableView.ItemContainerTransitions>
-                        <TransitionCollection />
-                    </tv:TableView.ItemContainerTransitions>
                 </tv:TableView>
             </controls:SamplePresenter.Example>
             <controls:SamplePresenter.Options>

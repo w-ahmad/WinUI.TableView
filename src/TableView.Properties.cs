@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using WinUI.TableView.Helpers;
+using WinUI.TableView.Selection;
 
 namespace WinUI.TableView;
 
@@ -20,12 +21,12 @@ public partial class TableView
     /// <summary>
     /// Identifies the ItemsSource dependency property.
     /// </summary>
-    public static readonly new DependencyProperty ItemsSourceProperty = DependencyProperty.Register(nameof(ItemsSource), typeof(object), typeof(TableView), new PropertyMetadata(null, OnItemsSourceChanged));
+    public static readonly DependencyProperty ItemsSourceProperty = DependencyProperty.Register(nameof(ItemsSource), typeof(object), typeof(TableView), new PropertyMetadata(null, OnItemsSourceChanged));
 
     /// <summary>
     /// Identifies the SelectionMode dependency property.
     /// </summary>
-    public static readonly new DependencyProperty SelectionModeProperty = DependencyProperty.Register(nameof(SelectionMode), typeof(ListViewSelectionMode), typeof(TableView), new PropertyMetadata(ListViewSelectionMode.Extended, OnSelectionModeChanged));
+    public static readonly DependencyProperty SelectionModeProperty = DependencyProperty.Register(nameof(SelectionMode), typeof(ListViewSelectionMode), typeof(TableView), new PropertyMetadata(ListViewSelectionMode.Extended, OnSelectionModeChanged));
 
     /// <summary>
     /// Identifies the HeaderRowHeight dependency property.
@@ -45,17 +46,17 @@ public partial class TableView
     /// <summary>
     /// Identifies the RowHeight dependency property.
     /// </summary>
-    public static readonly DependencyProperty RowHeightProperty = DependencyProperty.Register(nameof(RowHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.NaN));
+    public static readonly DependencyProperty RowHeightProperty = DependencyProperty.Register(nameof(RowHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.NaN, OnRowHeightChanged));
 
     /// <summary>
     /// Identifies the RowMaxHeight dependency property.
     /// </summary>
-    public static readonly DependencyProperty RowMaxHeightProperty = DependencyProperty.Register(nameof(RowMaxHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.PositiveInfinity));
+    public static readonly DependencyProperty RowMaxHeightProperty = DependencyProperty.Register(nameof(RowMaxHeight), typeof(double), typeof(TableView), new PropertyMetadata(double.PositiveInfinity, OnRowHeightChanged));
 
     /// <summary>
     /// Identifies the RowMinHeight dependency property.
     /// </summary>
-    public static readonly DependencyProperty RowMinHeightProperty = DependencyProperty.Register(nameof(RowMinHeight), typeof(double), typeof(TableView), new PropertyMetadata(40d));
+    public static readonly DependencyProperty RowMinHeightProperty = DependencyProperty.Register(nameof(RowMinHeight), typeof(double), typeof(TableView), new PropertyMetadata(40d, OnRowHeightChanged));
 
     /// <summary>
     /// Identifies the ShowExportOptions dependency property.
@@ -77,7 +78,6 @@ public partial class TableView
     /// </summary>
     public static readonly DependencyProperty CornerButtonModeProperty = DependencyProperty.Register(nameof(CornerButtonMode), typeof(TableViewCornerButtonMode), typeof(TableView), new PropertyMetadata(TableViewCornerButtonMode.Options, OnCornerButtonModeChanged));
 
-#if WINDOWS
     /// <summary>
     /// Identifies the CanGroupColumns dependency property.
     /// </summary>
@@ -91,7 +91,7 @@ public partial class TableView
     /// <summary>
     /// Identifies the DefaultGroupStyle dependency property.
     /// </summary>
-    public static readonly DependencyProperty DefaultGroupStyleProperty = DependencyProperty.Register(nameof(DefaultGroupStyle), typeof(GroupStyle), typeof(TableView), new PropertyMetadata(null));
+    public static readonly DependencyProperty DefaultGroupStyleProperty = DependencyProperty.Register(nameof(DefaultGroupStyle), typeof(GroupStyle), typeof(TableView), new PropertyMetadata(null, OnDefaultGroupStyleChanged));
 
     /// <summary>
     /// Identifies the DefaultGroupState dependency property.
@@ -102,7 +102,6 @@ public partial class TableView
     /// Identifies the ShowGroupExpandCollapseButton dependency property.
     /// </summary>
     public static readonly DependencyProperty ShowGroupExpandCollapseButtonProperty = DependencyProperty.Register(nameof(ShowGroupExpandCollapseButton), typeof(bool), typeof(TableView), new PropertyMetadata(true, OnShowGroupExpandCollapseButtonChanged));
-#endif
 
     /// <summary>
     /// Identifies the CanResizeColumns dependency property.
@@ -242,6 +241,16 @@ public partial class TableView
     /// Identifies the HeadersVisibility dependency property.
     /// </summary>
     public static readonly DependencyProperty HeadersVisibilityProperty = DependencyProperty.Register(nameof(HeadersVisibility), typeof(TableViewHeadersVisibility), typeof(TableView), new PropertyMetadata(TableViewHeadersVisibility.All, OnRowHeadersVisibilityChanged));
+
+    /// <summary>
+    /// Identifies the ShowRowNumbers dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ShowRowNumbersProperty = DependencyProperty.Register(nameof(ShowRowNumbers), typeof(bool), typeof(TableView), new PropertyMetadata(false, OnShowRowNumbersChanged));
+
+    /// <summary>
+    /// Identifies the RowNumberColumnWidth dependency property.
+    /// </summary>
+    public static readonly DependencyProperty RowNumberColumnWidthProperty = DependencyProperty.Register(nameof(RowNumberColumnWidth), typeof(double), typeof(TableView), new PropertyMetadata(0d, OnRowNumberColumnWidthChanged));
 
     /// <summary>
     /// Identifies the RowHeaderContent dependency property.
@@ -446,9 +455,16 @@ public partial class TableView
     internal int? CurrentRowIndex { get; set; }
 
     /// <summary>
-    /// Gets or sets the selected cells.
+    /// Gets the selected cells.
     /// </summary>
-    internal HashSet<TableViewCellSlot> SelectedCells { get; set; } = [];
+    /// <remarks>
+    /// A live projection over <see cref="SelectedCellRanges"/> rather than a materialised set, so selecting a
+    /// whole large grid stays a handful of rectangles instead of one entry per cell.
+    /// </remarks>
+    internal IList<TableViewCellSlot> SelectedCells
+    {
+        get => field ??= new TableViewCellSlotCollection(SelectedCellRanges);
+    }
 
     /// <summary>
     /// Gets the selected cell ranges.
@@ -463,7 +479,12 @@ public partial class TableView
     /// <summary>
     /// Gets the canvas that hosts the drag selection rectangle.
     /// </summary>
-    internal Canvas? DragRectangleCanvas { get; private set; }
+    /// <remarks>
+    /// Typed as the element, not as Canvas: under Native AOT the wrapper CsWinRT creates for a template part can
+    /// be a base class of its runtime class when the exact projection is not in the app's type map, and a cast to
+    /// the concrete class then fails. Everything here needs only the element's size and a transform target.
+    /// </remarks>
+    internal FrameworkElement? DragRectangleCanvas { get; private set; }
 
     /// <summary>
     /// Gets a value indicating whether a drag selection is currently in progress.
@@ -552,7 +573,7 @@ public partial class TableView
     /// <summary>
     ///  Gets or sets an object source used to generate the content of the TableView.
     /// </summary>
-    public new object? ItemsSource
+    public object? ItemsSource
     {
         get => GetValue(ItemsSourceProperty);
         set => SetValue(ItemsSourceProperty, value);
@@ -561,7 +582,7 @@ public partial class TableView
     /// <summary>
     /// Gets or sets the selection mode for the TableView.
     /// </summary>
-    public new ListViewSelectionMode SelectionMode
+    public ListViewSelectionMode SelectionMode
     {
         get => (ListViewSelectionMode)GetValue(SelectionModeProperty);
         set => SetValue(SelectionModeProperty, value);
@@ -603,7 +624,6 @@ public partial class TableView
         set => SetValue(CornerButtonModeProperty, value);
     }
 
-#if WINDOWS
     /// <summary>
     /// Gets the collection of group descriptions applied to the items.
     /// </summary>
@@ -613,6 +633,20 @@ public partial class TableView
     /// Gets a value indicating whether the TableView items are grouped.
     /// </summary>
     public bool IsGrouped => _collectionView.GroupDescriptions.Count > 0;
+
+    /// <summary>
+    /// Gets the collection of <see cref="Microsoft.UI.Xaml.Controls.GroupStyle"/> entries used to style group
+    /// headers, one per nesting level (the last entry is reused for any level beyond what's specified). When it is
+    /// empty, <see cref="DefaultGroupStyle"/> is used.
+    /// </summary>
+    /// <remarks>
+    /// This used to come from <c>ListViewBase</c>; it keeps the same get-only, populate-only shape so existing
+    /// <c>&lt;tv:TableView.GroupStyle&gt;</c> XAML works unchanged. The header's content comes from
+    /// <see cref="GroupStyle.HeaderTemplateSelector"/> or <see cref="GroupStyle.HeaderTemplate"/>; the container
+    /// is always a <see cref="TableViewGroupHeaderRow"/>, restyled through an implicit style rather than
+    /// <see cref="GroupStyle.HeaderContainerStyle"/>.
+    /// </remarks>
+    public IList<GroupStyle> GroupStyle => _groupStyle;
 
     /// <summary>
     /// Gets or sets a value indicating whether columns can be grouped. This will override what is set on individual column.
@@ -634,11 +668,9 @@ public partial class TableView
     }
 
     /// <summary>
-    /// Gets or sets the default <see cref="Microsoft.UI.Xaml.Controls.GroupStyle"/> used when the consumer hasn't
-    /// added one to <c>ListViewBase.GroupStyle</c> themselves. Set from the default style; there's normally
-    /// no need to set this directly. It's a plain property (rather than being applied via <c>GroupStyleSelector</c>)
-    /// because <c>GroupStyleSelector</c>, once set, always takes priority over <c>ListViewBase.GroupStyle</c>
-    /// regardless of whether the consumer added their own entries, which would make overriding it impossible.
+    /// Gets or sets the <see cref="Microsoft.UI.Xaml.Controls.GroupStyle"/> used for group headers while
+    /// <see cref="GroupStyle"/> is empty. Set from the default style; there's normally no need to set this directly -
+    /// add an entry to <see cref="GroupStyle"/> instead to replace it.
     /// </summary>
     public GroupStyle? DefaultGroupStyle
     {
@@ -667,7 +699,6 @@ public partial class TableView
         get => (bool)GetValue(ShowGroupExpandCollapseButtonProperty);
         set => SetValue(ShowGroupExpandCollapseButtonProperty, value);
     }
-#endif
 
     /// <summary>
     /// Gets or sets a value indicating whether columns can be resized. This will override what is set on individual column.
@@ -892,6 +923,21 @@ public partial class TableView
     }
 
     /// <summary>
+    /// Gets or sets a value indicating whether each row shows its number in the row header area.
+    /// </summary>
+    public bool ShowRowNumbers
+    {
+        get => (bool)GetValue(ShowRowNumbersProperty);
+        set => SetValue(ShowRowNumbersProperty, value);
+    }
+
+    /// <summary>
+    /// Gets the synchronized width of the row number column, shared across every row so that numbers of
+    /// differing digit counts don't leave each row's cells starting at a different horizontal position.
+    /// </summary>
+    public double RowNumberColumnWidth => (double)GetValue(RowNumberColumnWidthProperty);
+
+    /// <summary>
     /// Gets or sets the data template for the row header.
     /// </summary>
     public DataTemplate? RowHeaderTemplate
@@ -983,6 +1029,11 @@ public partial class TableView
     }
 
     /// <summary>
+    /// Gets the value <see cref="CellsHorizontalOffset"/> last changed to, for the rows to compare with on every arrange.
+    /// </summary>
+    internal double LastCellsHorizontalOffset { get; private set; } = 16d;
+
+    /// <summary>
     /// Gets or sets a value indicating whether columns can be reordered by dragging headers.
     /// </summary>
     public bool CanReorderColumns
@@ -1011,6 +1062,18 @@ public partial class TableView
     {
         if (d is TableView tableView)
         {
+            // What the mode no longer allows is dropped: every row in None, every row but one in Single, where the
+            // selected index wins over the first selected row. ListViewBase did the same.
+            if (tableView.SelectionMode is ListViewSelectionMode.None)
+            {
+                tableView.ChangeSelection(static model => model.Clear(), snapshotRemovedItems: true);
+            }
+            else if (tableView.SelectionMode is ListViewSelectionMode.Single && tableView._rowSelection.Count > 1)
+            {
+                var keep = tableView.SelectedIndex >= 0 ? tableView.SelectedIndex : tableView._rowSelection.FirstIndex;
+                tableView.ChangeSelection(model => model.SelectOnly(keep), snapshotRemovedItems: true);
+            }
+
             if (tableView.SelectionMode is ListViewSelectionMode.Single or ListViewSelectionMode.None)
             {
                 var currentCell = tableView.CurrentCellSlot.HasValue ? tableView.GetCellFromSlot(tableView.CurrentCellSlot.Value) : default;
@@ -1025,7 +1088,7 @@ public partial class TableView
                 tableView.OnCellSelectionChanged();
             }
 
-            tableView.UpdateBaseSelectionMode();
+            tableView.RefreshSelectionModeVisuals();
             tableView.UpdateCornerButtonState();
         }
     }
@@ -1070,7 +1133,6 @@ public partial class TableView
         }
     }
 
-#if WINDOWS
     /// <summary>
     /// Handles changes to the AreStickyGroupHeadersEnabled property.
     /// </summary>
@@ -1104,9 +1166,33 @@ public partial class TableView
             {
                 groupHeaderRow.UpdateExpandCollapseButtonVisibility();
             }
+
+            tableView._stickyGroupHeader?.UpdateExpandCollapseButtonVisibility();
         }
     }
-#endif
+
+    /// <summary>
+    /// Handles changes to the DefaultGroupStyle property.
+    /// </summary>
+    private static void OnDefaultGroupStyleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            tableView.RefreshGroupHeaderTemplates();
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the RowHeight, RowMinHeight and RowMaxHeight properties.
+    /// </summary>
+    private static void OnRowHeightChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            tableView._rowHeights = null;
+            tableView.RowHeightsChanged?.Invoke();
+        }
+    }
 
     /// <summary>
     /// Handles changes to the IsReadOnly property.
@@ -1240,7 +1326,7 @@ public partial class TableView
                 tableView.OnCellSelectionChanged();
             }
 
-            tableView.UpdateBaseSelectionMode();
+            tableView.RefreshSelectionModeVisuals();
             tableView.UpdateCornerButtonState();
         }
     }
@@ -1347,6 +1433,44 @@ public partial class TableView
     }
 
     /// <summary>
+    /// Handles changes to the ShowRowNumbers property.
+    /// </summary>
+    private static void OnShowRowNumbersChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            // Reset rather than carry over a width computed against a previous, possibly differently-sized
+            // dataset the last time the feature was on.
+            tableView.SetValue(RowNumberColumnWidthProperty, 0d);
+
+            foreach (var row in tableView._rows)
+            {
+                row.RowPresenter?.SetRowNumberVisibility();
+                row.RowPresenter?.SetRowNumber();
+                row.RowPresenter?.SetRowNumberWidth();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Handles changes to the RowNumberColumnWidth property - deferred (see <see cref="OnRowHeaderWidthChanged"/>
+    /// for why) so broadcasting the new shared width back to every row's <c>RowNumberText</c> never mutates
+    /// another row's layout mid-measure.
+    /// </summary>
+    private static async void OnRowNumberColumnWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TableView tableView)
+        {
+            await Task.Yield();
+
+            foreach (var row in tableView._rows)
+            {
+                row.RowPresenter?.SetRowNumberWidth();
+            }
+        }
+    }
+
+    /// <summary>
     /// Handles changes to the RowHeaderTemplate and RowHeaderTemplateSelector properties.
     /// </summary>
     private static void OnRowHeaderTemplateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -1423,24 +1547,48 @@ public partial class TableView
     }
 
     /// <summary>
-    /// Throws an exception if the base ItemsSource property is set directly.
+    /// Identifies the <see cref="IncrementalLoadingTrigger"/> dependency property.
     /// </summary>
-    private void OnBaseItemsSourceChanged(DependencyObject sender, DependencyProperty dp)
+    public static readonly DependencyProperty IncrementalLoadingTriggerProperty = DependencyProperty.Register(
+        nameof(IncrementalLoadingTrigger), typeof(IncrementalLoadingTrigger), typeof(TableView), new PropertyMetadata(IncrementalLoadingTrigger.Edge));
+
+    /// <summary>
+    /// Identifies the <see cref="IncrementalLoadingThreshold"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty IncrementalLoadingThresholdProperty = DependencyProperty.Register(
+        nameof(IncrementalLoadingThreshold), typeof(double), typeof(TableView), new PropertyMetadata(0d));
+
+    /// <summary>
+    /// Identifies the <see cref="DataFetchSize"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty DataFetchSizeProperty = DependencyProperty.Register(
+        nameof(DataFetchSize), typeof(double), typeof(TableView), new PropertyMetadata(3d));
+
+    /// <summary>
+    /// Gets or sets the conditions for the TableView to request more items from an incrementally loading source.
+    /// </summary>
+    public IncrementalLoadingTrigger IncrementalLoadingTrigger
     {
-        if (_shouldThrowBaseProeprtyChangedException)
-        {
-            throw new InvalidOperationException("Setting this property directly is not allowed. Use TableView.ItemsSource instead.");
-        }
+        get => (IncrementalLoadingTrigger)GetValue(IncrementalLoadingTriggerProperty);
+        set => SetValue(IncrementalLoadingTriggerProperty, value);
     }
 
     /// <summary>
-    /// Throws an exception if the base SelectionMode property is set directly.
+    /// Gets or sets how far from the end of the loaded items, measured in viewports, the TableView starts
+    /// requesting more items.
     /// </summary>
-    private void OnBaseSelectionModeChanged(DependencyObject sender, DependencyProperty dp)
+    public double IncrementalLoadingThreshold
     {
-        if (_shouldThrowBaseProeprtyChangedException)
-        {
-            throw new InvalidOperationException("Setting this property directly is not allowed. Use TableView.SelectionMode instead.");
-        }
+        get => (double)GetValue(IncrementalLoadingThresholdProperty);
+        set => SetValue(IncrementalLoadingThresholdProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets how many items the TableView requests at a time, measured in viewports.
+    /// </summary>
+    public double DataFetchSize
+    {
+        get => (double)GetValue(DataFetchSizeProperty);
+        set => SetValue(DataFetchSizeProperty, value);
     }
 }

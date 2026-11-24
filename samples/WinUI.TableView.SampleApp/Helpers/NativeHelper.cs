@@ -15,6 +15,8 @@ internal class NativeHelper
     {
         get
         {
+            if (!OperatingSystem.IsWindows()) return false;
+            
             var bufferSize = 0;
             var lastError = GetCurrentPackageId(ref bufferSize, out var byteBuffer);
             return lastError != APPMODEL_ERROR_NO_PACKAGE;

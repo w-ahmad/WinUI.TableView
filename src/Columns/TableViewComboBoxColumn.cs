@@ -10,9 +10,6 @@ namespace WinUI.TableView;
 /// </summary>
 [StyleTypedProperty(Property = nameof(ElementStyle), StyleTargetType = typeof(TextBlock))]
 [StyleTypedProperty(Property = nameof(EditingElementStyle), StyleTargetType = typeof(ComboBox))]
-#if WINDOWS
-[WinRT.GeneratedBindableCustomProperty]
-#endif
 public partial class TableViewComboBoxColumn : TableViewBoundColumn
 {
     /// <summary>
@@ -49,12 +46,15 @@ public partial class TableViewComboBoxColumn : TableViewBoundColumn
     /// <returns>A ComboBox element.</returns>
     public override FrameworkElement GenerateEditingElement(TableViewCell cell, object? dataItem)
     {
-        var comboBox = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch };
-        comboBox.SetBinding(ItemsControl.ItemsSourceProperty, new Binding { Source = this, Path = new PropertyPath(nameof(ItemsSource)) });
-        comboBox.SetBinding(Selector.SelectedValuePathProperty, new Binding { Source = this, Path = new PropertyPath(nameof(SelectedValuePath)) });
-        comboBox.SetBinding(ItemsControl.DisplayMemberPathProperty, new Binding { Source = this, Path = new PropertyPath(nameof(DisplayMemberPath)) });
+        var comboBox = new ComboBox
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            ItemsSource = ItemsSource,
+            SelectedValuePath = SelectedValuePath,
+            DisplayMemberPath = DisplayMemberPath,
+            IsEditable = IsEditable
+        };
         comboBox.SetBinding(Selector.SelectedItemProperty, Binding);
-        comboBox.SetBinding(ComboBox.IsEditableProperty, new Binding { Source = this, Path = new PropertyPath(nameof(IsEditable)) });
 
         if (TextBinding is not null)
         {

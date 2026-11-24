@@ -12,7 +12,7 @@
 
     <Grid>
         <controls:SamplePresenter Header="Export Data"
-                                  Description="Showcasing built in export option and custom export implementation.">
+                                  Description="The corner button menu exports all rows or the selected ones to CSV. Handle ExportAllContent and ExportSelectedContent to write another format: here, an Excel workbook.">
             <controls:SamplePresenter.Example>
                 <tv:TableView x:Name="tableView"
                               SelectionMode="Extended"

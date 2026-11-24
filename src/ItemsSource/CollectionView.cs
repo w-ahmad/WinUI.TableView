@@ -18,9 +18,8 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
 {
     private const int MaxIncrementalSyncChanges = 100;
     private bool _isSourceDetached;
-#if WINDOWS
+    private List<(object Item, PropertyChangedEventArgs Args)>? _deferredItemChanges;
     private List<object?[]>? _detachedGroupKeys; // The grouping keys of the items when the source was detached.
-#endif
     private object[] _itemsCopy = []; // In case the source is ICollection, keep a copy of the items to keep track of removed items.
     private readonly List<object?> _view = [];
     // The full filtered+sorted set, in source order, regardless of grouping. _view is pruned down to just
@@ -29,10 +28,8 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     private readonly List<object?> _groupingSourceItems = [];
     private readonly ObservableCollection<FilterDescription> _filterDescriptions = [];
     private readonly ObservableCollection<SortDescription> _sortDescriptions = [];
-#if WINDOWS
     private readonly ObservableCollection<GroupDescription> _groupDescriptions = [];
     private readonly Dictionary<GroupDescription, Dictionary<object[], bool>> _groupExpandedStates = [];
-#endif
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CollectionView"/> class.
@@ -43,9 +40,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     {
         _filterDescriptions.CollectionChanged += OnFilterDescriptionsCollectionChanged;
         _sortDescriptions.CollectionChanged += OnSortDescriptionsCollectionChanged;
-#if WINDOWS
         _groupDescriptions.CollectionChanged += OnGroupDescriptionsCollectionChanged;
-#endif
 
         AllowLiveShaping = liveShapingEnabled;
         Source = source ?? new List<object>();
@@ -77,7 +72,6 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
             HandleSortChanged();
     }
 
-#if WINDOWS
     /// <summary>
     /// Handles changes to the group descriptions collection. Also drops any recorded expanded/collapsed
     /// overrides for a description once it's removed - it no longer groups anything, and re-adding the same
@@ -107,7 +101,6 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
             HandleGroupChanged();
         }
     }
-#endif
 
     /// <summary>
     /// Attaches collection changed handlers to the source collection.
@@ -150,9 +143,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
         DetachCollectionChangedHandlers(Source);
         DetachPropertyChangedHandlers(Source);
         _isSourceDetached = true;
-#if WINDOWS
         _detachedGroupKeys = GetGroupKeys();
-#endif
     }
 
     /// <summary>
@@ -172,10 +163,8 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
         AttachPropertyChangedHandlers(Source);
         CreateItemsCopy(Source);
 
-#if WINDOWS
         var detachedGroupKeys = _detachedGroupKeys;
         _detachedGroupKeys = null;
-#endif
 
         if (!alwaysReset)
         {
@@ -183,15 +172,11 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
 
             if (_groupingSourceItems.SequenceEqual(items, ItemIdentityComparer.Instance))
             {
-#if WINDOWS
                 // The same items in the same order can still belong to other groups than before.
                 if (HaveSameGroupKeys(detachedGroupKeys, GetGroupKeys()))
                 {
                     return false;
                 }
-#else
-                return false;
-#endif
             }
             else if (TrySyncViewIncrementally(items))
             {
@@ -210,9 +195,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     /// <returns><see langword="true"/> if the view now holds <paramref name="items"/>.</returns>
     private bool TrySyncViewIncrementally(List<object?> items)
     {
-#if WINDOWS
         if (GroupDescriptions.Count > 0) return false;
-#endif
 
         var comparer = ItemIdentityComparer.Instance;
         var oldIndexes = new Dictionary<object, int>(comparer!);
@@ -265,7 +248,6 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
         return true;
     }
 
-#if WINDOWS
     /// <summary>
     /// Gets the grouping keys of every filtered and sorted item, or null if the view is not grouped.
     /// </summary>
@@ -282,7 +264,6 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
 
         return x.Count == y.Count && x.Zip(y).All(keys => keys.First.SequenceEqual(keys.Second));
     }
-#endif
 
     /// <summary>
     /// Compares items the way the view identifies them: reference types by reference, and value types,
@@ -465,6 +446,49 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
             return;
         }
 
+        if (_deferredItemChanges is not null)
+        {
+            _deferredItemChanges.Add((item, e));
+            return;
+        }
+
+        ApplyItemChange(item, e);
+    }
+
+    /// <summary>
+    /// Holds back the view's re-sorting and re-filtering of items whose properties change, until
+    /// <see cref="ApplyDeferredItemChanges"/>. For changes made where the view must not move, such as in the
+    /// middle of a layout pass.
+    /// </summary>
+    internal void DeferItemChanges()
+    {
+        _deferredItemChanges ??= [];
+    }
+
+    /// <summary>
+    /// Applies the item changes held back since <see cref="DeferItemChanges"/>.
+    /// </summary>
+    internal void ApplyDeferredItemChanges()
+    {
+        var changes = _deferredItemChanges;
+        _deferredItemChanges = null;
+
+        if (changes is null)
+        {
+            return;
+        }
+
+        foreach (var (item, args) in changes)
+        {
+            ApplyItemChange(item, args);
+        }
+    }
+
+    /// <summary>
+    /// Moves an item to where its changed property puts it under the current filters and sorting.
+    /// </summary>
+    private void ApplyItemChange(object item, PropertyChangedEventArgs e)
+    {
         if (FilterDescriptions.Any(fd => string.IsNullOrEmpty(fd.PropertyName) || fd.PropertyName == e.PropertyName))
         {
             var filterResult = FilterDescriptions.All(x => x.Predicate(item));
@@ -477,7 +501,11 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
             else if (sourceIndex == -1 && filterResult)
             {
                 var index = Source.IndexOf(item);
-                HandleItemAdded(index, item);
+
+                if (index >= 0)
+                {
+                    HandleItemAdded(index, item);
+                }
             }
         }
 
@@ -500,13 +528,11 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
 
             _groupingSourceItems.Insert(targetIndex, item);
 
-#if WINDOWS
             if (GroupDescriptions.Count > 0)
             {
                 HandleGroupChanged();
                 return;
             }
-#endif
 
             // Only trigger expensive UI updates if the index really changed:
             if (targetIndex != oldIndex)
@@ -534,7 +560,6 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
         _groupingSourceItems.Clear();
         _groupingSourceItems.AddRange(items);
 
-#if WINDOWS
         if (GroupDescriptions.Count > 0)
         {
             CreateGroupCollections();
@@ -543,9 +568,6 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
         {
             RebuildFlatView();
         }
-#else
-        RebuildFlatView();
-#endif
 
         OnVectorChanged(new VectorChangedEventArgs(CollectionChange.Reset));
         MoveCurrentTo(currentItem);
@@ -586,11 +608,11 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     /// </summary>
     private void RebuildFlatView()
     {
+        OnViewResetting();
         _view.Clear();
         _view.AddRange(_groupingSourceItems);
     }
 
-#if WINDOWS
 
     /// <summary>
     /// Rebuilds <see cref="CollectionGroups"/> - and, alongside it, <see cref="_view"/> pruned down to just
@@ -598,6 +620,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     /// </summary>
     private void CreateGroupCollections()
     {
+        OnViewResetting();
         CollectionGroups?.Clear();
         _view.Clear();
 
@@ -656,20 +679,18 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
             // into CollectionView.OnGroupExpandedChanged (which triggers a full group rebuild), and setting it
             // here is just restoring already-computed state, not a real toggle - assigning CollectionView first
             // would make that callback fire mid-rebuild and recurse into BuildGroupLevel until the stack overflows.
-            var groupInfo = new TableViewGroupInfo
+            var groupInfo = new TableViewGroupInfo(key, groupedItems.Count)
             {
-                Key = key,
                 Level = level,
                 GroupPath = groupPath,
                 Description = description,
-                Count = groupedItems.Count,
                 IsExpanded = isExpanded,
                 CollectionView = this,
             };
 
             CollectionGroups?.Add(new CollectionViewGroup
             {
-                Group = groupInfo,
+                GroupInfo = groupInfo,
                 GroupItems = new ObservableVector<object?>(isLeafLevel && isExpanded ? groupedItems : [])
             });
 
@@ -749,7 +770,6 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
         OnVectorChanged(new VectorChangedEventArgs(CollectionChange.Reset));
         MoveCurrentTo(currentItem);
     }
-#endif
 
     /// <summary>
     /// Handles changes to the filter descriptions.
@@ -800,13 +820,11 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
         {
             _groupingSourceItems.Sort(this);
 
-#if WINDOWS
             if (GroupDescriptions.Count > 0)
             {
                 HandleGroupChanged();
                 return;
             }
-#endif
 
             RebuildFlatView();
         }
@@ -851,13 +869,11 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
 
         _groupingSourceItems.Insert(newIndex, newItem!);
 
-#if WINDOWS
         if (GroupDescriptions.Count > 0)
         {
             HandleGroupChanged();
             return true;
         }
-#endif
 
         _view.Insert(newIndex, newItem!);
         if (newIndex <= CurrentPosition)
@@ -902,13 +918,11 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     {
         _groupingSourceItems.RemoveAt(itemIndex);
 
-#if WINDOWS
         if (GroupDescriptions.Count > 0)
         {
             HandleGroupChanged();
             return;
         }
-#endif
 
         _view.RemoveAt(itemIndex);
 
@@ -991,6 +1005,39 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     public int IndexOf(object? item)
     {
         return _view.IndexOf(item);
+    }
+
+    /// <summary>
+    /// Returns the item's position among <see cref="_groupingSourceItems"/> - the full filtered+sorted set,
+    /// in source order - unlike <see cref="IndexOf"/>, unaffected by items being hidden by a collapsed group.
+    /// <paramref name="viewIndex"/> (the item's current position in the pruned/visible <see cref="_view"/>) is
+    /// used to disambiguate duplicates by occurrence rather than by value: <see cref="List{T}.IndexOf(T)"/> would
+    /// use value equality and always resolve to the *first* matching item, so every duplicate - whether a
+    /// distinct instance a custom <see cref="object.Equals(object?)"/> treats as equal, or literally the same
+    /// instance repeated - would collide on one number. Instead this counts, by reference, which occurrence of
+    /// <paramref name="item"/> sits at <paramref name="viewIndex"/> in <see cref="_view"/>, then finds that
+    /// same occurrence (again by reference) in <see cref="_groupingSourceItems"/>.
+    /// </summary>
+    internal int IndexOfSourceItem(object? item, int viewIndex)
+    {
+        if (item is null || viewIndex < 0 || viewIndex >= _view.Count) return -1;
+
+        var occurrence = 0;
+        for (var i = 0; i <= viewIndex; i++)
+        {
+            if (ReferenceEquals(_view[i], item)) occurrence++;
+        }
+
+        var seen = 0;
+        for (var i = 0; i < _groupingSourceItems.Count; i++)
+        {
+            if (ReferenceEquals(_groupingSourceItems[i], item) && ++seen == occurrence)
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     /// <summary>
@@ -1155,7 +1202,6 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
         HandleSortChanged();
     }
 
-#if WINDOWS
     /// <summary>
     /// Refreshes the grouping applied to the view.
     /// </summary>
@@ -1163,5 +1209,4 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     {
         HandleGroupChanged();
     }
-#endif
 }

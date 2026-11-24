@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Markup;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
+using System.Diagnostics;
 using WinUI.TableView.Extensions;
 
 namespace WinUI.TableView.Tests;
@@ -29,6 +30,33 @@ public class TableViewRowDetailsScrollTests
             Assert.IsTrue(row.RowPresenter.IsDetailsPanelVisible, "Precondition: the details panel is open");
             Assert.IsFalse(IsBelowViewport(row, scrollViewer),
                 "Expanding the details pane must scroll the row so its details are visible");
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
+    [UITestMethod]
+    public async Task ExpandingDetails_WhileTheUIThreadIsBusy_StillBringsTheRowIntoView()
+    {
+        var tableView = await CreateTableViewAsync(TableViewRowDetailsVisibilityMode.VisibleWhenExpanded);
+        try
+        {
+            var row = await GetLastFullyVisibleRowAsync(tableView);
+            var scrollViewer = GetScrollViewer(tableView);
+
+            row.RowPresenter!.ShowDetailPane(visible: true);
+
+            // No layout pass runs before the row is brought into view.
+            var busy = Stopwatch.StartNew();
+            while (busy.ElapsedMilliseconds < 80) { }
+
+            await Task.Delay(500);
+
+            Assert.IsTrue(row.RowPresenter.IsDetailsPanelVisible, "Precondition: the details panel is open");
+            Assert.IsFalse(IsBelowViewport(row, scrollViewer),
+                "Details opened while the UI thread was busy must still be scrolled into view");
         }
         finally
         {

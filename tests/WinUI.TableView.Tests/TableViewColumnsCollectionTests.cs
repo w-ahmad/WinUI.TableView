@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
 using System;
 using System.Collections.Specialized;
+using System.Linq;
 
 namespace WinUI.TableView.Tests;
 
@@ -185,5 +186,96 @@ public class TableViewColumnsCollectionTests
         var invalidObject = new TextBox();
 
         Assert.ThrowsExactly<InvalidCastException>(() => collection.Add(invalidObject));
+    }
+
+    [UITestMethod]
+    public void UpdateFrozenColumns_ShouldFreezeLeadingVisibleColumnsOnly()
+    {
+        var tableView = new TableView { FrozenColumnCount = 2 };
+        var collection = new TableViewColumnsCollection(tableView);
+
+        var first = new TableViewTextColumn();
+        var hidden = new TableViewTextColumn { Visibility = Visibility.Collapsed };
+        var second = new TableViewTextColumn();
+        var third = new TableViewTextColumn();
+
+        collection.Add(first);
+        collection.Add(hidden);
+        collection.Add(second);
+        collection.Add(third);
+
+        Assert.IsTrue(first.IsFrozen);
+        Assert.IsTrue(second.IsFrozen);
+        Assert.IsFalse(third.IsFrozen);
+    }
+
+    [UITestMethod]
+    public void UpdateFrozenColumns_ShouldHonourOrderOverInsertionOrder()
+    {
+        var tableView = new TableView { FrozenColumnCount = 1 };
+        var collection = new TableViewColumnsCollection(tableView);
+
+        var addedFirst = new TableViewTextColumn { Order = 2 };
+        var addedSecond = new TableViewTextColumn { Order = 1 };
+
+        collection.Add(addedFirst);
+        collection.Add(addedSecond);
+
+        Assert.IsFalse(addedFirst.IsFrozen);
+        Assert.IsTrue(addedSecond.IsFrozen);
+    }
+
+    [UITestMethod]
+    public void FrozenColumnCountChange_ShouldRefreezeColumns()
+    {
+        var tableView = new TableView();
+        var columns = Enumerable.Range(0, 4).Select(_ => new TableViewTextColumn()).ToList();
+        columns.ForEach(tableView.Columns.Add);
+
+        Assert.IsFalse(columns.Any(x => x.IsFrozen));
+
+        tableView.FrozenColumnCount = 3;
+        CollectionAssert.AreEqual(new[] { true, true, true, false }, columns.Select(x => x.IsFrozen).ToArray());
+
+        tableView.FrozenColumnCount = 1;
+        CollectionAssert.AreEqual(new[] { true, false, false, false }, columns.Select(x => x.IsFrozen).ToArray());
+    }
+
+    [UITestMethod]
+    public void UpdateFrozenColumns_ShouldFreezeADuplicatedColumnByItsFirstPlace()
+    {
+        var tableView = new TableView { FrozenColumnCount = 1 };
+        var collection = new TableViewColumnsCollection(tableView);
+        var duplicated = new TableViewTextColumn();
+        var other = new TableViewTextColumn();
+
+        collection.Add(duplicated);
+        collection.Add(other);
+        collection.Add(duplicated);
+
+        Assert.IsTrue(duplicated.IsFrozen);
+        Assert.IsFalse(other.IsFrozen);
+    }
+
+    [UITestMethod]
+    public void Move_ThenRemove_KeepsTheMovedColumnOwned()
+    {
+        var tableView = new TableView();
+        var collection = new TableViewColumnsCollection(tableView);
+        var a = new TableViewTextColumn();
+        var b = new TableViewTextColumn();
+        var c = new TableViewTextColumn();
+
+        collection.Add(a);
+        collection.Add(b);
+        collection.Add(c);
+        collection.Move(0, 2);
+        collection.RemoveAt(0);
+
+        Assert.AreEqual(2, collection.VisibleColumns.Count);
+
+        a.Visibility = Visibility.Collapsed;
+
+        Assert.AreEqual(1, collection.VisibleColumns.Count);
     }
 }

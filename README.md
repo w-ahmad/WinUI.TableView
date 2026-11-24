@@ -1,7 +1,7 @@
 
 # WinUI.TableView
 
-**WinUI.TableView** is a lightweight and fast data grid control made for [WinUI](https://learn.microsoft.com/en-us/windows/apps/winui/winui3) apps and now supports the [Uno Platform](https://platform.uno/docs/index.html). It is easy to use, and capable of handling large numbers of items with a focus on performance. It's derived from `ListView` so you will experience fluent look and feel in your project. It comes with all the essential features you need, plus extras like an Excel like column filter, options buttons (for columns and the TableView) and easy data export.
+**WinUI.TableView** is a lightweight and fast data grid control made for [WinUI](https://learn.microsoft.com/en-us/windows/apps/winui/winui3) apps and now supports the [Uno Platform](https://platform.uno/docs/index.html). It is easy to use, and capable of handling large numbers of items with a focus on performance. It hosts its rows in a virtualizing `ItemsRepeater`, so the number of row elements tracks the size of the viewport rather than the size of your data, while keeping the Fluent look and feel. It comes with all the essential features you need, plus extras like an Excel like column filter, options buttons (for columns and the TableView) and easy data export.
 
 [![ci-build](https://github.com/w-ahmad/WinUI.TableView/actions/workflows/ci-build.yml/badge.svg)](https://github.com/w-ahmad/WinUI.TableView/actions/workflows/ci-build.yml)
 [![cd-build](https://github.com/w-ahmad/WinUI.TableView/actions/workflows/cd-build.yml/badge.svg)](https://github.com/w-ahmad/WinUI.TableView/actions/workflows/cd-build.yml)
@@ -34,7 +34,7 @@ Explore the interactive `WinUI.TableView` samples with code snippets in a Sample
 - **Copy row or cell content**: TableView allows you to copy rows or cells content, with the option to include or exclude column headers.
 - **Editing**: Modify cell content directly within the TableView by double tapping on a cell. [Learn more →](https://w-ahmad.dev/WinUI.TableView/docs/editing.html)
 - **Sorting**: Offers built in column sorting. [Learn more →](https://w-ahmad.dev/WinUI.TableView/docs/sorting.html)
-- **Grouping**: Multi-level column grouping with expand/collapse and full sort integration (Windows only). [Learn more →](https://w-ahmad.dev/WinUI.TableView/docs/grouping.html)
+- **Grouping**: Multi-level column grouping with expand/collapse and full sort integration. [Learn more →](https://w-ahmad.dev/WinUI.TableView/docs/grouping.html)
 - **Excel-like Column Filter**: TableView allows you to filter data within columns with an excel like flyout to enhance data exploration and analysis. [Learn more →](https://w-ahmad.dev/WinUI.TableView/docs/filtering.html)
 - **Export functionality**: Built-in export functionality to export data to CSV format. This feature can be enabled by setting the `ShowExportOptions = true`. [Learn more →](https://w-ahmad.dev/WinUI.TableView/docs/export.html)
 - **Grid Lines**: Display grid lines to improve data visibility and organization.
