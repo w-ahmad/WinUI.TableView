@@ -37,6 +37,8 @@
                         IsBackButtonVisible="Collapsed"
                         win:IsPaneToggleButtonVisible="False"
                         not_win:PaneDisplayMode="Auto"
+                        DisplayModeChanged="OnNavigationDisplayModeChanged"
+                        not_win:PaneOpened="OnNavigationPaneOpened"
                         SelectionChanged="OnNavigationSelectionChanged"
                         IsEnabled="{Binding Visibility, ElementName=loadingIndicator, Converter={StaticResource VisibilityToBool}}">
             <NavigationView.AutoSuggestBox>

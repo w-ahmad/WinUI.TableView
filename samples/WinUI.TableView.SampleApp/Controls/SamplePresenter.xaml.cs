@@ -19,10 +19,14 @@ public sealed partial class SamplePresenter : UserControl
     private const string RepositoryUri = "https://github.com/w-ahmad/WinUI.TableView/tree/main/samples/WinUI.TableView.SampleApp/";
     private const string XamlView = "XAML";
     private const string CSharpView = "C#";
+    private const string OptionsView = "Options";
     private const int TrivialCodeBehindLines = 14;
+    private const double NarrowWidth = 720;
     private static readonly Regex _substitutionPattern = SubstitutionPattern();
     private readonly Dictionary<string, FrameworkElement> _codeViews = [];
+    private SelectorBarItem? _optionsItem;
     private bool _isLoaded;
+    private bool _isNarrow;
 
     public SamplePresenter()
     {
@@ -51,6 +55,60 @@ public sealed partial class SamplePresenter : UserControl
         {
             substitution.ValueChanged += (_, _) => RefreshCode();
         }
+
+        ApplyLayout();
+    }
+
+    private void OnSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (_isNarrow != e.NewSize.Width < NarrowWidth)
+        {
+            _isNarrow = !_isNarrow;
+            ApplyLayout();
+        }
+    }
+
+    /// <summary>
+    /// On a narrow window the toolbar moves under the title and the options become a tab next to the code,
+    /// so the example keeps the whole width.
+    /// </summary>
+    private void ApplyLayout()
+    {
+        if (!_isLoaded) return;
+
+        root.Padding = _isNarrow ? new Thickness(12, 8, 12, 12) : new Thickness(24, 16, 24, 20);
+        root.RowSpacing = _isNarrow ? 8 : 14;
+        headerText.Style = (Style)Application.Current.Resources[_isNarrow ? "SubtitleTextBlockStyle" : "TitleTextBlockStyle"];
+        descriptionText.MaxLines = _isNarrow ? 3 : 0;
+
+        Grid.SetRow(toolbar, _isNarrow ? 1 : 0);
+        Grid.SetColumn(toolbar, _isNarrow ? 0 : 1);
+        Grid.SetColumnSpan(toolbar, _isNarrow ? 2 : 1);
+        toolbar.HorizontalAlignment = _isNarrow ? HorizontalAlignment.Left : HorizontalAlignment.Stretch;
+
+        Grid.SetColumn(optionsContainer, _isNarrow ? 0 : 1);
+        Grid.SetColumnSpan(optionsContainer, _isNarrow ? 2 : 1);
+        optionsContainer.Margin = _isNarrow ? default : new Thickness(12, 0, 0, 0);
+
+        var needsOptionsItem = _isNarrow && Options is not null;
+
+        if (needsOptionsItem && _optionsItem is null)
+        {
+            _optionsItem = new SelectorBarItem { Text = OptionsView, Icon = new FontIcon { Glyph = "" } };
+            viewSelector.Items.Insert(1, _optionsItem);
+        }
+        else if (!needsOptionsItem && _optionsItem is not null)
+        {
+            if (viewSelector.SelectedItem == _optionsItem)
+            {
+                viewSelector.SelectedItem = viewSelector.Items[0];
+            }
+
+            viewSelector.Items.Remove(_optionsItem);
+            _optionsItem = null;
+        }
+
+        ShowSelectedView();
     }
 
     private void AddView(string label, string file, string folder, bool hasSnippet)
@@ -98,9 +156,11 @@ public sealed partial class SamplePresenter : UserControl
     {
         var item = viewSelector.SelectedItem;
         var isCode = item?.Tag is string;
+        var isOptions = item is not null && item == _optionsItem;
+        var showsOptions = Options is not null && !isCode && (isOptions || !_isNarrow);
 
-        exampleContainer.Visibility = isCode ? Visibility.Collapsed : Visibility.Visible;
-        optionsContainer.Visibility = isCode || Options is null ? Visibility.Collapsed : Visibility.Visible;
+        exampleContainer.Visibility = isCode || isOptions ? Visibility.Collapsed : Visibility.Visible;
+        optionsContainer.Visibility = showsOptions ? Visibility.Visible : Visibility.Collapsed;
         codeContainer.Visibility = isCode ? Visibility.Visible : Visibility.Collapsed;
 
         if (item?.Tag is not string file) return;
