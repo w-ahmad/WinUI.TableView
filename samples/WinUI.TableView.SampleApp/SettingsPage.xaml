@@ -54,6 +54,25 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup>
+                <VisualState x:Name="Wide">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="641" />
+                    </VisualState.StateTriggers>
+                </VisualState>
+                <VisualState x:Name="Phone">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="PageHeader.Margin" Value="12,8,12,0" />
+                        <Setter Target="contentSV.Padding" Value="12,0,12,0" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
         <TextBlock x:Name="PageHeader"
                    Margin="36,24,36,0"
                    Style="{StaticResource TitleTextBlockStyle}"
@@ -113,7 +132,6 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <FontIcon VerticalAlignment="Center"
                                       FontSize="20"
@@ -123,12 +141,11 @@
                                 <TextBlock Text="WinUI.TableView Gallery" />
                                 <TextBlock Style="{StaticResource SettingsCardDescriptionTextBlockStyle}"
                                            Text="Samples of the features and customization of WinUI.TableView. The version is the library's." />
+                                <TextBlock Margin="0,4,0,0"
+                                           Style="{StaticResource SettingsCardDescriptionTextBlockStyle}"
+                                           IsTextSelectionEnabled="True"
+                                           Text="{x:Bind Version}" />
                             </StackPanel>
-                            <TextBlock Grid.Column="2"
-                                       VerticalAlignment="Center"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                       IsTextSelectionEnabled="True"
-                                       Text="{x:Bind Version}" />
                         </Grid>
                     </Expander.Header>
                     <StackPanel>

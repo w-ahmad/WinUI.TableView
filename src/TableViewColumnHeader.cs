@@ -492,6 +492,8 @@ public partial class TableViewColumnHeader : ContentControl
     {
         base.OnPointerMoved(e);
 
+        var isTouch = e.Pointer.PointerDeviceType == PointerDeviceType.Touch;
+
         if ((_resizeStarted || _resizePreviousStarted) && _resizingColumn is not null
             && _resizeTargetHeader is not null && _tableView is not null)
         {
@@ -507,7 +509,7 @@ public partial class TableViewColumnHeader : ContentControl
 
             // Explicitly re-assert the resize cursor on every move — without this, something else
             // (layout invalidation elsewhere, a hover state change) can reset it mid-drag.
-            ProtectedCursor = InputSystemCursor.Create(InputSystemCursorShape.SizeWestEast);
+            if (!isTouch) ProtectedCursor = InputSystemCursor.Create(InputSystemCursorShape.SizeWestEast);
 
             if (_activeResizeMode == TableViewColumnResizeMode.Preview)
             {
@@ -520,6 +522,9 @@ public partial class TableViewColumnHeader : ContentControl
 
             return;
         }
+
+        // Touch shows no cursor, and no move after the lift would clear it to let a tap sort again.
+        if (isTouch) return;
 
         if (CanResize && IsCursorInRightResizeArea(e) && !_reorderStarted)
         {
@@ -559,7 +564,10 @@ public partial class TableViewColumnHeader : ContentControl
     {
         base.OnPointerPressed(e);
 
-        if (IsSizingCursor && CanResize && IsCursorInRightResizeArea(e) && Column is not null && _tableView is not null)
+        // Touch has no hover to show the sizing cursor first, so a press on the edge starts the resize.
+        var isTouch = e.Pointer.PointerDeviceType == PointerDeviceType.Touch;
+
+        if ((IsSizingCursor || isTouch) && CanResize && IsCursorInRightResizeArea(e) && Column is not null && _tableView is not null)
         {
             _resizeStarted = true;
             _resizingColumn = Column;
@@ -569,7 +577,7 @@ public partial class TableViewColumnHeader : ContentControl
             _activeResizeMode = _tableView.ColumnResizeMode;
             CapturePointer(e.Pointer);
         }
-        else if (IsSizingCursor && IsCursorInLeftResizeArea(e) && _tableView is not null
+        else if ((IsSizingCursor || (isTouch && CanResizePrevious)) && IsCursorInLeftResizeArea(e) && _tableView is not null
             && _headerRow?.GetPreviousHeader(this) is { Column: { } } header)
         {
             _resizePreviousStarted = true;

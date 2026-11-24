@@ -42,14 +42,17 @@
                                 Description="TableView as a mail list. Unread rows are bold, flags toggle in place, and the selected row fills the reading pane."
                                 Sources="MailMessage.cs">
         <controls:SamplePresenter.Example>
-            <Grid ColumnSpacing="12">
+            <Grid x:Name="layoutRoot"
+                  ColumnSpacing="12"
+                  SizeChanged="OnLayoutSizeChanged">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition x:Name="readingColumn"
                                       Width="340" />
                 </Grid.ColumnDefinitions>
 
-                <Border Style="{StaticResource CardStyle}">
+                <Border x:Name="listPane"
+                        Style="{StaticResource CardStyle}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -57,6 +60,7 @@
                         </Grid.RowDefinitions>
 
                         <!--  Toolbar  -->
+                        <ScrollViewer Style="{StaticResource HorizontalStripStyle}">
                         <Grid Padding="16,8"
                               ColumnSpacing="8"
                               BorderThickness="0,0,0,1"
@@ -93,6 +97,7 @@
                                             PlaceholderText="Search mail"
                                             TextChanged="OnSearchTextChanged" />
                         </Grid>
+                        </ScrollViewer>
 
                         <tv:TableView x:Name="tableView"
                                       Grid.Row="1"
@@ -263,6 +268,17 @@
                                       Visibility="Collapsed">
                             <StackPanel Spacing="16"
                                         Padding="20">
+                                <!--  On a narrow window the reading pane takes the place of the list  -->
+                                <Button x:Name="backButton"
+                                        Visibility="Collapsed"
+                                        Click="OnBackClicked">
+                                    <StackPanel Orientation="Horizontal"
+                                                Spacing="8">
+                                        <FontIcon Glyph="&#xE72B;"
+                                                  FontSize="14" />
+                                        <TextBlock Text="Inbox" />
+                                    </StackPanel>
+                                </Button>
                                 <TextBlock Text="{x:Bind Selected.Subject, Mode=OneWay}"
                                            TextWrapping="Wrap"
                                            Style="{StaticResource SubtitleTextBlockStyle}" />

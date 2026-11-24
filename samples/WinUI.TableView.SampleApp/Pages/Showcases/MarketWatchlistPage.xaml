@@ -87,7 +87,9 @@
                 </Grid.RowDefinitions>
 
                 <!--  Index cards  -->
-                <ItemsRepeater ItemsSource="{x:Bind Indices}">
+                <ScrollViewer Style="{StaticResource HorizontalStripStyle}">
+                <ItemsRepeater ItemsSource="{x:Bind Indices}"
+                               MinWidth="996">
                     <ItemsRepeater.Layout>
                         <UniformGridLayout MinItemWidth="240"
                                            MinItemHeight="94"
@@ -137,6 +139,7 @@
                         </DataTemplate>
                     </ItemsRepeater.ItemTemplate>
                 </ItemsRepeater>
+                </ScrollViewer>
 
                 <Border Grid.Row="1"
                         Style="{StaticResource CardStyle}">
@@ -147,6 +150,7 @@
                         </Grid.RowDefinitions>
 
                         <!--  Toolbar  -->
+                        <ScrollViewer Style="{StaticResource HorizontalStripStyle}">
                         <Grid Padding="16,10"
                               ColumnSpacing="12"
                               BorderThickness="0,0,0,1"
@@ -209,6 +213,7 @@
                                           OffContent="Paused"
                                           Toggled="OnLiveToggled" />
                         </Grid>
+                        </ScrollViewer>
 
                         <tv:TableView x:Name="tableView"
                                       Grid.Row="1"

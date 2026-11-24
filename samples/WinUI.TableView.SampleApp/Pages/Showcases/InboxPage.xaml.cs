@@ -7,7 +7,9 @@ namespace WinUI.TableView.SampleApp.Pages;
 
 public sealed partial class InboxPage : Page
 {
+    private const double NarrowWidth = 640;
     private string _searchText = string.Empty;
+    private bool _isNarrow;
 
     public InboxPage()
     {
@@ -77,6 +79,36 @@ public sealed partial class InboxPage : Page
 
         Bindings.Update();
         UpdateUnreadCount();
+        UpdatePanes();
+    }
+
+    private void OnLayoutSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (_isNarrow != e.NewSize.Width < NarrowWidth)
+        {
+            _isNarrow = !_isNarrow;
+            UpdatePanes();
+        }
+    }
+
+    /// <summary>
+    /// Side by side when there is room; otherwise the list alone, and the reading pane over it while a message is open.
+    /// </summary>
+    private void UpdatePanes()
+    {
+        var isReading = _isNarrow && Selected is not null;
+
+        readingColumn.Width = new GridLength(_isNarrow ? 0 : 340);
+        layoutRoot.ColumnSpacing = _isNarrow ? 0 : 12;
+        Grid.SetColumn(readingPane, _isNarrow ? 0 : 1);
+        listPane.Visibility = isReading ? Visibility.Collapsed : Visibility.Visible;
+        readingPane.Visibility = _isNarrow && !isReading ? Visibility.Collapsed : Visibility.Visible;
+        backButton.Visibility = _isNarrow ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void OnBackClicked(object sender, RoutedEventArgs e)
+    {
+        tableView.SelectedItem = null;
     }
 
     private void UpdateUnreadCount()

@@ -91,6 +91,7 @@ public partial class TableView : Control
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
 #if !WINDOWS
+        AddHandler(PointerReleasedEvent, new PointerEventHandler(OnTouchReleased), true);
         foreach (var property in new[] { RowHeightProperty, RowMinHeightProperty, RowMaxHeightProperty })
         {
             RegisterPropertyChangedCallback(property, OnRowHeightsChanged);
@@ -530,6 +531,41 @@ public partial class TableView : Control
         EndDragSelection();
     }
 
+#if !WINDOWS
+    private readonly RepeatedTapDetector _touchTaps = new();
+
+    /// <summary>
+    /// Stops the current touch contact from also counting as a double tap when the platform raised DoubleTapped for it.
+    /// </summary>
+    internal void OnPlatformDoubleTapped(DoubleTappedRoutedEventArgs e)
+    {
+        if (e.PointerDeviceType is Microsoft.UI.Input.PointerDeviceType.Touch)
+        {
+            _touchTaps.Reset();
+        }
+    }
+
+    /// <summary>
+    /// Treats a second touch tap on the same cell or row as a double tap, which Uno does not raise for touch.
+    /// </summary>
+    private void OnTouchReleased(object sender, PointerRoutedEventArgs e)
+    {
+        if (e.Pointer.PointerDeviceType is not Microsoft.UI.Input.PointerDeviceType.Touch) return;
+
+        var target = _touchTaps.Released(e.Pointer.PointerId, e.GetCurrentPoint(this).Position);
+        var row = target as TableViewRow;
+
+        if (target is TableViewCell cell)
+        {
+            if (cell.HandleDoubleTap(e)) return;
+
+            row = cell.Row;
+        }
+
+        row?.RaiseDoubleTapped();
+    }
+#endif
+
     /// <summary>
     /// Handles pointer-pressed for all cases, including when elements sets <c>e.Handled = true</c>.
     /// </summary>
@@ -540,6 +576,13 @@ public partial class TableView : Control
         var canvasPoint = GetCanvasPoint(position);
         var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
         var isShiftKey = KeyboardHelper.IsShiftKeyDown();
+
+#if !WINDOWS
+        if (e.Pointer.PointerDeviceType is Microsoft.UI.Input.PointerDeviceType.Touch)
+        {
+            _touchTaps.Pressed(e.Pointer.PointerId, position, pressedElement);
+        }
+#endif
 
         if (SelectionMode is ListViewSelectionMode.None                                 // Skip selection when SelectionMode is None
             || IsDragSelecting                                                          // Skip selection when a drag is already in progress
@@ -3302,7 +3345,7 @@ public partial class TableView : Control
     }
 
     /// <summary>
-    /// Refreshes the displayed row number (and <see cref="TableViewRowHeader.Tag"/>) for every realized row.
+    /// Refreshes the displayed row number (and the row header's <see cref="FrameworkElement.Tag"/>) for every realized row.
     /// </summary>
     internal void RefreshRowNumbers()
     {

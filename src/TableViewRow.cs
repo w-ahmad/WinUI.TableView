@@ -319,17 +319,32 @@ public partial class TableViewRow : ContentControl
     /// <inheritdoc/>
     protected override void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
     {
-        var eventArgs = new TableViewRowDoubleTappedEventArgs(Index, this, Content);
-        TableView?.OnRowDoubleTapped(eventArgs);
-        e.Handled = eventArgs.Handled;
+#if !WINDOWS
+        TableView?.OnPlatformDoubleTapped(e);
+#endif
+        e.Handled = RaiseDoubleTapped();
 
         base.OnDoubleTapped(e);
+    }
+
+    /// <summary>
+    /// Raises <see cref="TableView.RowDoubleTapped"/> and returns whether a handler took it.
+    /// </summary>
+    internal bool RaiseDoubleTapped()
+    {
+        var eventArgs = new TableViewRowDoubleTappedEventArgs(Index, this, Content);
+        TableView?.OnRowDoubleTapped(eventArgs);
+
+        return eventArgs.Handled;
     }
 
     /// <inheritdoc/>
     protected override void OnPointerEntered(PointerRoutedEventArgs e)
     {
         base.OnPointerEntered(e);
+
+        // Touch has no hover, and its exit is not always reported.
+        if (e.Pointer.PointerDeviceType is Microsoft.UI.Input.PointerDeviceType.Touch) return;
 
         _isPointerOver = true;
         UpdateVisualStates();

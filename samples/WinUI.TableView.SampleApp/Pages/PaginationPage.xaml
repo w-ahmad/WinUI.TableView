@@ -12,7 +12,7 @@
       xmlns:not_win="http://uno.ui/not_win">
 
     <Grid>
-        <controls:SamplePresenter Header="Column Custom Filter"
+        <controls:SamplePresenter Header="Pagination"
                                   Description="Paging is not built into TableView, but it takes little on top of it: bind the table to one page of the collection and add a pager.">
             <controls:SamplePresenter.Example>
                 <Grid>
@@ -52,6 +52,8 @@
                           HorizontalAlignment="Right"
                           CornerRadius="{ThemeResource ControlCornerRadius}">
                         <win:ListBox x:Name="pageList"
+                                     ScrollViewer.HorizontalScrollMode="Enabled"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Hidden"
                                      SelectionChanged="OnPageSelectionChanged">
                             <win:ListBox.ItemsPanel>
                                 <ItemsPanelTemplate>
@@ -60,6 +62,9 @@
                             </win:ListBox.ItemsPanel>
                         </win:ListBox>
                         <not_win:ListView x:Name="pageList"
+                                          ScrollViewer.HorizontalScrollMode="Enabled"
+                                          ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                                          ScrollViewer.VerticalScrollMode="Disabled"
                                           SelectionChanged="OnPageSelectionChanged">
                             <ListView.ItemsPanel>
                                 <ItemsPanelTemplate>
@@ -69,7 +74,9 @@
                             <ListView.ItemContainerStyle>
                                 <Style TargetType="ListViewItem">
                                     <Setter Property="MinWidth"
-                                            Value="0" />
+                                            Value="40" />
+                                    <Setter Property="HorizontalContentAlignment"
+                                            Value="Center" />
                                 </Style>
                             </ListView.ItemContainerStyle>
                         </not_win:ListView>
