@@ -12,12 +12,12 @@ to a row and column.
 ```
 TableView (derives from Control)
 ├── TableViewHeaderRow             ← sticky header above the scrollable content
-│   └── TableViewColumnHeader      ← one per column; handles sort, filter, resize, reorder
+│   └── TableViewColumnHeader      ← one per column *in view*; handles sort, filter, resize, reorder
 ├── ScrollViewer
 │   └── ItemsRepeater              ← hosts only the rows the viewport needs
 │       └── TableViewRow           ← one per *visible* item, recycled as you scroll
 │           ├── TableViewRowHeader ← optional left gutter per row
-│           ├── TableViewCell[]    ← one per column
+│           ├── TableViewCell[]    ← one per column *in view*, reused as you scroll sideways
 │           └── RowDetails panel   ← optional collapsible detail area
 └── selection model                ← selected rows stored as index ranges
 ```
@@ -26,6 +26,8 @@ TableView (derives from Control)
 
 - The number of realized `TableViewRow` elements is proportional to the viewport height, not the item count. A
   thousand items and a million items produce the same number of row elements.
+- The number of cells in a row, and of column headers, is proportional to the viewport width, not the column count.
+  See [Column virtualization](performance.md#column-virtualization).
 - Selecting a large range is a range operation: no row has to exist for it, and
   [`SelectedItems`](xref:WinUI.TableView.TableView.SelectedItems) projects onto the items on demand.
 - Hit testing during drag selection is index arithmetic rather than a scan over rows.

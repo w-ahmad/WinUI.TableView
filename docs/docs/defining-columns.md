@@ -117,7 +117,7 @@ These properties are available on every column type ([`TableViewColumn`](xref:Wi
 
 - [`AutoGenerateColumns`](xref:WinUI.TableView.TableView.AutoGenerateColumns) and explicit [`Columns`](xref:WinUI.TableView.TableView.Columns) are mutually exclusive. Setting `AutoGenerateColumns="False"` and also populating [`Columns`](xref:WinUI.TableView.TableView.Columns) in XAML is the standard pattern for explicit definitions.
 - You can mix auto-generated and manually added columns: set `AutoGenerateColumns="True"`, handle [`AutoGeneratingColumn`](xref:WinUI.TableView.TableView.AutoGeneratingColumn) to cancel certain properties, and then add custom columns in code.
-- Columns are not virtualized; all column header controls are created even if they are off-screen horizontally.
+- Columns are virtualized: a header and cells exist only for the frozen columns and the columns in or near the viewport, so [`HeaderControl`](xref:WinUI.TableView.TableViewColumn.HeaderControl) is `null` for a column that is out of view. See [Column virtualization](performance.md#column-virtualization).
 
 ## Related articles
 

@@ -235,6 +235,12 @@ public partial class TableView : Control
 
         _resizingColumn = column;
         _resizingOriginalWidth = column.ActualWidth;
+
+        // Narrowing the column slides the columns after it into view without layout, so they get cells now.
+        _resizePreviewLead = column.ActualWidth;
+        UpdateRealizedColumns();
+        _isResizePreviewActive = true;
+
         IsColumnResizing = true;
         column.IsResizing = true;
 
@@ -335,6 +341,8 @@ public partial class TableView : Control
         _resizingColumn = null;
         IsColumnResizing = false;
         column.IsResizing = false;
+        _isResizePreviewActive = false;
+        _resizePreviewLead = 0d;
 
         foreach (var cell in _resizingPreviewCells)
         {
@@ -986,7 +994,7 @@ public partial class TableView : Control
             {
                 if (!EndCellEditing(TableViewEditAction.Commit, currentCell)) return;
 
-                if (CurrentCellSlot == newSlot || GetCellFromSlot(newSlot) is not { } nextCell || !nextCell.BeginCellEditing(e))
+                if (CurrentCellSlot == newSlot || GetOrRealizeCellFromSlot(newSlot) is not { } nextCell || !nextCell.BeginCellEditing(e))
                 {
                     SetIsEditing(false);
                 }
@@ -1206,8 +1214,10 @@ public partial class TableView : Control
         }
 
         SetValue(VerticalOffsetProperty, _scrollViewer?.VerticalOffset ?? 0d);
+        SyncStaleRows(); // rows a sideways jump left out may be coming into view
 
 #if !WINDOWS
+        UpdateRealizedColumns(); // the scroll viewer can pan sideways without a layout pass
         UpdateRenderCullingAfterViewChange();
 #endif
 
@@ -1279,6 +1289,16 @@ public partial class TableView : Control
             Mode = BindingMode.TwoWay,
             Source = this
         });
+
+        xScrollBar?.Scroll += (_, e) =>
+        {
+            IsHorizontalThumbTracking = e.ScrollEventType is ScrollEventType.ThumbTrack;
+
+            if (!IsHorizontalThumbTracking)
+            {
+                UpdateRealizedColumns(flush: true); // the cells wait while the thumb is dragged far
+            }
+        };
     }
 
     /// <summary>
@@ -1311,6 +1331,7 @@ public partial class TableView : Control
 
         EndDragSelection();
         StopAutoScroll();
+        StopColumnTimers();
 
         if (IsEditing && CurrentCellSlot.HasValue && GetCellFromSlot(CurrentCellSlot.Value) is { } currentCell)
         {
@@ -2416,6 +2437,9 @@ public partial class TableView : Control
         {
             var cell = GetCellFromSlot(oldSlot.Value);
             cell?.ApplyCurrentCellState();
+
+            // The row no longer has to keep that cell when its column is out of view.
+            (ContainerFromIndex(oldSlot.Value.Row) as TableViewRow)?.SyncCells();
         }
 
         if (newSlot.HasValue)
@@ -2853,7 +2877,7 @@ public partial class TableView : Control
         var yOffset = _scrollViewer.VerticalOffset;
 
         // Calculate the left and right edge of the cell
-        var cellLeft = Columns.VisibleColumns.Take(slot.Column).Sum(x => x.ActualWidth);
+        var cellLeft = GetVisibleColumnOffset(slot.Column);
         var cellWidth = Columns.VisibleColumns[slot.Column].ActualWidth;
         var cellRight = cellLeft + cellWidth;
         var viewportLeft = HorizontalOffset;
@@ -2880,12 +2904,12 @@ public partial class TableView : Control
         if ((cellLeft >= viewportLeft && cellRight <= viewportRight) ||
             xOffset == HorizontalOffset)
         {
-            return row.Cells.ElementAt(slot.Column);
+            return row.GetOrRealizeCell(slot.Column)!;
         }
 
         SetValue(HorizontalOffsetProperty, xOffset);
 
-        return row?.Cells.ElementAt(slot.Column)!;
+        return row.GetOrRealizeCell(slot.Column)!;
     }
 
     /// <summary>
@@ -3084,7 +3108,16 @@ public partial class TableView : Control
     /// </summary>
     internal TableViewCell? GetCellFromSlot(TableViewCellSlot slot)
     {
-        return slot.IsValid(this) && ContainerFromIndex(slot.Row) is TableViewRow row ? row.Cells[slot.Column] : default;
+        return slot.IsValid(this) && ContainerFromIndex(slot.Row) is TableViewRow row ? row.GetCell(slot.Column) : default;
+    }
+
+    /// <summary>
+    /// Gets the cell of a realized row for a slot, creating it when its column is out of view.
+    /// </summary>
+    /// <remarks>The cell stays until its row next syncs its cells, unless it has become the current cell.</remarks>
+    internal TableViewCell? GetOrRealizeCellFromSlot(TableViewCellSlot slot)
+    {
+        return slot.IsValid(this) && ContainerFromIndex(slot.Row) is TableViewRow row ? row.GetOrRealizeCell(slot.Column) : default;
     }
 
     /// <summary>

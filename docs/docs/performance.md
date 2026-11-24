@@ -73,7 +73,7 @@ ctx.DataItem is Product p && p.Tags.Any(t => t.StartsWith("clearance"))
 
 ## Column auto-width
 
-[`ColumnAutoWidthMode`](xref:WinUI.TableView.TableView.ColumnAutoWidthMode) measures cell content to determine the column width. On large virtualized lists, only visible cells are measured. This means the initial auto-width may be narrower than the actual maximum value width. If accuracy matters, consider using a fixed or star width instead.
+[`ColumnAutoWidthMode`](xref:WinUI.TableView.TableView.ColumnAutoWidthMode) measures cell content to determine the column width. On large virtualized lists, only visible cells are measured. This means the initial auto-width may be narrower than the actual maximum value width, and a column that is out of view sideways is not measured until it is scrolled into view (see [Column virtualization](#column-virtualization)). If accuracy matters, consider using a fixed or star width instead.
 
 ## Filtering and sorting
 
@@ -116,14 +116,62 @@ tableView.RefreshFilter();
 
 By default, dragging a column divider ([`ColumnResizeMode="Live"`](xref:WinUI.TableView.TableView.ColumnResizeMode)) relayouts every visible row's cells on every pointer-move frame. On grids with many visible rows this can make the drag itself feel less smooth, even though the final committed width is unaffected. Set `ColumnResizeMode="Preview"` to use a lightweight visual preview during the drag instead — no row layout runs until the pointer is released, so the drag stays smooth regardless of row count. See [Column sizing](column-sizing.md#columnresizemode).
 
-## Horizontal scrolling and column count
+## Column virtualization
 
-Unlike rows, columns are not virtualized — every visible column produces a cell in every realized row. A very
-large number of columns (100+) therefore costs `realized rows × columns` elements and may affect horizontal
-scroll performance. In practice, most data grids have far fewer columns than rows.
+Columns are virtualized like rows, and it needs no configuration. A row has a cell, and the header row a header,
+only for:
+
+- every frozen column, and
+- the scrollable columns in the viewport, plus a margin of up to about 200 px either side.
+
+So the number of cells is `realized rows × columns in view`, whatever the number of columns: a table with 500
+columns creates about as many elements as one whose columns just fill the viewport.
+
+When the table scrolls sideways, a cell whose column has left the view is reused for a column that has come into
+it, and the same goes for headers. A table whose columns all fit the viewport has a cell for every column, exactly
+as before.
+
+A few things follow from a column out of view having no cells and no header:
+
+- **[`TableViewRow.Cells`](xref:WinUI.TableView.TableViewRow.Cells) and
+  [`TableViewHeaderRow.Headers`](xref:WinUI.TableView.TableViewHeaderRow.Headers) list only the ones that
+  exist**, in column order. Use [`ScrollCellIntoView`](xref:WinUI.TableView.TableView.ScrollCellIntoView*) to
+  get the cell of a column that is out of view.
+- **[`TableViewColumn.HeaderControl`](xref:WinUI.TableView.TableViewColumn.HeaderControl) is `null`** for a
+  column that is out of view.
+- **Auto-width columns are measured when they are in view.** A `Width="Auto"` column out of view takes a
+  provisional width, and takes the width its header and cells want the first time it is scrolled into view, which
+  can move the columns after it. Give wide tables fixed widths where that matters.
+- **The current cell keeps its cell** when its column is scrolled out of view, so keyboard focus and an open edit
+  are not lost.
+- **A column that is in `Columns` more than once** has a header and a cell in each of its places, and its
+  `HeaderControl` is the header of the first.
 
 The horizontal scroll extent is computed from the column widths rather than from whichever rows happen to be
 realized, so the horizontal scrollbar does not change size as you scroll vertically.
+
+### Scrolling sideways
+
+Scrolling by a few columns at a time gives a few cells in each row another column. Dragging the scroll bar across
+a very wide table can replace every column in view between two frames; the table then gives new columns to the
+rows and columns on screen first, and to the rows it keeps above and below the view, and the columns in the margin,
+a moment after the scrolling rests.
+
+The cost of a scroll step does not depend on how many columns the table has.
+
+### Adding many columns
+
+Adding a column does a little work for every column the table already has, which only shows with thousands of
+columns. Add the columns before the table is loaded where you can: a table that is on screen also updates its
+headers and rows for each column added.
+
+### Custom templates
+
+Column virtualization lives in [`TableViewCellsPanel`](xref:WinUI.TableView.TableViewCellsPanel), which the
+default templates use for the `ScrollableCellsPanel` part of `TableViewRowPresenter` and the
+`ScrollableHeadersPanel` part of `TableViewHeaderRow`. A template of your own that uses another panel there,
+such as a horizontal `StackPanel`, keeps working and keeps a cell or header for every column; change the part to
+a `TableViewCellsPanel` to virtualize.
 
 ## Garbage collection pauses on Windows
 

@@ -310,7 +310,7 @@ public partial class TableView
     /// <summary>
     /// Identifies the <see cref="ConditionalCellStyles"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty ConditionalCellStylesProperty = DependencyProperty.Register(nameof(ConditionalCellStyles), typeof(IList<TableViewConditionalCellStyle>), typeof(TableView), new PropertyMetadata(default));
+    public static readonly DependencyProperty ConditionalCellStylesProperty = DependencyProperty.Register(nameof(ConditionalCellStyles), typeof(IList<TableViewConditionalCellStyle>), typeof(TableView), new PropertyMetadata(default, OnConditionalCellStylesChanged));
 
     /// <summary>
     /// Identifies the <see cref="ShowFilterItemsCount"/> dependency property.
@@ -1371,7 +1371,49 @@ public partial class TableView
     {
         if (d is TableView tableView)
         {
+            tableView._hasCellStyleSource = false;
             tableView.EnsureCellsStyle();
+        }
+    }
+
+    private static void OnConditionalCellStylesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        (d as TableView)?._hasCellStyleSource = false;
+    }
+
+    private bool _hasCellStyleSource;
+    private Style? _cellStyle;
+    private IList<TableViewConditionalCellStyle>? _conditionalCellStyles;
+
+    /// <summary>
+    /// Reads <see cref="CellStyle"/> and <see cref="ConditionalCellStyles"/> once per change: every cell asks for
+    /// them each time it shows another item or column, and each read is a call into XAML.
+    /// </summary>
+    private void EnsureCellStyleSource()
+    {
+        if (!_hasCellStyleSource)
+        {
+            _cellStyle = CellStyle;
+            _conditionalCellStyles = ConditionalCellStyles;
+            _hasCellStyleSource = true;
+        }
+    }
+
+    internal Style? CachedCellStyle
+    {
+        get
+        {
+            EnsureCellStyleSource();
+            return _cellStyle;
+        }
+    }
+
+    internal IList<TableViewConditionalCellStyle>? CachedConditionalCellStyles
+    {
+        get
+        {
+            EnsureCellStyleSource();
+            return _conditionalCellStyles;
         }
     }
 
@@ -1392,6 +1434,8 @@ public partial class TableView
     /// </summary>
     private static void OnHorizontalOffsetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
+        // The cells and headers follow in the layout pass this starts, once for however many times the offset
+        // changes before it: a mouse reports several moves of the scroll bar's thumb per frame.
         if (d is TableView { _headerRow: { } } tableView)
         {
             tableView._headerRow.InvalidateArrange();

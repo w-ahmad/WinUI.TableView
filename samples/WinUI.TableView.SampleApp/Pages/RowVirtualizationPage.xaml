@@ -1,4 +1,4 @@
-<Page x:Class="WinUI.TableView.SampleApp.Pages.VirtualizationPage"
+<Page x:Class="WinUI.TableView.SampleApp.Pages.RowVirtualizationPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:WinUI.TableView.SampleApp"
@@ -9,7 +9,7 @@
       mc:Ignorable="d">
 
     <Grid>
-        <controls:SamplePresenter Header="Virtualization"
+        <controls:SamplePresenter Header="Row Virtualization"
                                   Description="Rows are hosted in an ItemsRepeater with a TableView-specific virtualizing layout. The number of realized row elements tracks the viewport, not the number of items, and selection is stored as index ranges so selecting everything costs one range.">
             <controls:SamplePresenter.Example>
                 <tv:TableView x:Name="tableView"

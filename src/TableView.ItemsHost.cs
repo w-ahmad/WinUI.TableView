@@ -290,6 +290,14 @@ public partial class TableView
     }
 
     /// <summary>
+    /// Gets the distance from the first visible column's left edge to the visible column at an index.
+    /// </summary>
+    internal double GetVisibleColumnOffset(int index)
+    {
+        return ((TableViewColumnsCollection)Columns).GetVisibleColumnOffset(index);
+    }
+
+    /// <summary>
     /// Keeps the rows at least as wide as the row header and the visible columns.
     /// </summary>
     /// <remarks>
@@ -305,14 +313,7 @@ public partial class TableView
 
         // The offset is NaN while the header row's corner is left to take the width it asks for.
         var width = double.IsNaN(CellsHorizontalOffset) ? 0d : CellsHorizontalOffset;
-
-        foreach (var column in Columns.VisibleColumns)
-        {
-            if (column.ActualWidth is > 0d and var columnWidth)
-            {
-                width += columnWidth;
-            }
-        }
+        width += GetVisibleColumnOffset(Columns.VisibleColumns.Count);
 
         if (_rowsRepeater.MinWidth != width)
         {
@@ -429,6 +430,8 @@ public partial class TableView
     /// </summary>
     private void OnRowsRepeaterLayoutUpdated(object? sender, object e)
     {
+        UpdateRealizedColumns();
+
         if (AreStickyGroupHeadersActive || _stickyGroupHeader?.Visibility is Visibility.Visible)
         {
             UpdateStickyGroupHeader();
@@ -510,6 +513,7 @@ public partial class TableView
         // A new row has no template yet; its presenter applies the visuals once it has one.
         if (row.RowPresenter?.IsTemplateApplied is true)
         {
+            row.SyncCells(); // the range can have moved while the row was unused, and the current cell is per row
             ApplyRowVisuals(row);
         }
     }

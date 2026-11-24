@@ -8,12 +8,12 @@ using Microsoft.UI.Xaml.Media;
 
 namespace WinUI.TableView.SampleApp.Pages;
 
-public sealed partial class VirtualizationPage : Page
+public sealed partial class RowVirtualizationPage : Page
 {
     private static readonly int[] Counts = [1_000, 10_000, 100_000, 1_000_000];
     private static readonly string[] Categories = ["Alpha", "Beta", "Gamma", "Delta", "Epsilon"];
 
-    public VirtualizationPage()
+    public RowVirtualizationPage()
     {
         InitializeComponent();
 

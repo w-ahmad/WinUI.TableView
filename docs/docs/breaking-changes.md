@@ -1,4 +1,4 @@
-# Breaking changes: the row hosting rewrite
+# Breaking changes: the row hosting rewrite and column virtualization
 
 `TableView` used to derive from `ListView`, which is where its row virtualization, container generation, row
 selection storage and the Windows row visual came from. It now derives from `Control` and hosts its rows in an
@@ -73,6 +73,23 @@ pinning a group's own container: it is a separate header drawn over the top of t
 showing the group the first visible row is in once that group's header has scrolled away. It draws an opaque
 background (`TableViewGroupHeaderRowPinnedBackground`), and it is left out of the automation tree and the tab
 order, so the header among the rows stays the one keyboard and screen reader users reach.
+
+## Column virtualization
+
+Columns are virtualized as well as rows: a row has cells, and the header row has headers, only for the frozen
+columns and the scrollable columns in or near the viewport. A table whose columns all fit the viewport is not
+affected by any of the following. See [Column virtualization](performance.md#column-virtualization).
+
+| Member | Was | Now | What to do |
+|---|---|---|---|
+| `TableViewRow.Cells`, `TableViewRowPresenter.Cells` | a cell for every visible column, so `Cells[n]` was the cell of column `n` | the cells that exist, in column order | Do not index it by column. Compare `cell.Column`, or call `ScrollCellIntoView` for the cell of a given column, which also creates it |
+| `TableViewHeaderRow.Headers` | a header for every visible column | the headers that exist, in column order | Same |
+| `TableViewColumn.HeaderControl` | set for every visible column once the table was loaded | `null` while the column is out of view; the header of the first place for a column that is in `Columns` more than once | Check for `null`. Sort and filter state live on the column, not on the header |
+| `TableViewCell` and `TableViewColumnHeader` instances | belonged to one column for their lifetime | are reused for another column when the table scrolls sideways | Do not keep per-column state on the element, or a reference to it across a scroll. A column type of your own has its `GenerateElement` called for a cell that takes over one of its columns |
+| `Width="Auto"` columns | measured as soon as the table loaded | measured when they are in view | A column out of view takes a provisional width until it is first scrolled into view. Use fixed widths where a wide table must not shift |
+| `ScrollableCellsPanel` part of `TableViewRowPresenter`, `ScrollableHeadersPanel` part of `TableViewHeaderRow` | a horizontal `StackPanel` | a `TableViewCellsPanel` | Only matters for a template of your own. One that keeps a `StackPanel` works as before, with a cell or header for every column; change the part to `TableViewCellsPanel` to virtualize |
+| `TableViewRowPresenter.InsertCell`, `TableViewHeaderRow.InsertHeader` | inserted at the column's position among the others | place the element by its column, replace the one the column already has, and the element is removed again when its column is out of view | Nothing for a column in view. Do not use them to keep a cell or header for a column that is out of view |
+| Automation: `IGridProvider.GetItem` | reached a cell of any column of a realized row | also creates the cell of a column that is out of view | Nothing. `GetColumnHeaders` returns the headers that exist |
 
 ## Fixed along the way
 

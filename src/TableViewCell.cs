@@ -483,6 +483,7 @@ public partial class TableViewCell : ContentControl
     /// </summary>
     internal void ApplyPointerOverState(bool isPointerOver)
     {
+        _isPointerOverApplied = isPointerOver;
         if (!VisualStateManager.GoToState(this, isPointerOver ? VisualStates.StatePointerOver : VisualStates.StateNormal, false))
         {
             SetPointerOverVisual(isPointerOver);
@@ -663,17 +664,97 @@ public partial class TableViewCell : ContentControl
     /// </summary>
     internal void SetElement()
     {
+        // A text block made by a text column is bound to the new column's value where it is, which a cell that
+        // takes over another column does for every row.
+        if (_isPlainTextElement
+            && Column is TableViewTextColumn textColumn
+            && textColumn.GetType() == typeof(TableViewTextColumn)
+            && Content is TextBlock textBlock)
+        {
+            textBlock.SetBinding(TextBlock.TextProperty, textColumn.Binding);
+            SetElementStyle(textBlock, textColumn.ElementStyle ?? textColumn.DefaultElementStyle);
+            _autoWidthDirty = true;
+            return;
+        }
+
         var element = Column?.GenerateElement(this, Row?.Content);
+
+        _elementStyle = null;
+        _isPlainTextElement = element is TextBlock && Column?.GetType() == typeof(TableViewTextColumn);
 
         if (element is not null && Column is TableViewBoundColumn boundColumn
             && (boundColumn.ElementStyle ?? boundColumn.DefaultElementStyle) is { } style)
         {
-            element.Style = style;
+            SetElementStyle(element, style);
         }
 
         Content = element;
         _autoWidthDirty = true;
     }
+
+    private bool _isPlainTextElement;
+    private Style? _elementStyle;
+
+    internal void SetElementStyle(FrameworkElement element, Style? style)
+    {
+        if (!ReferenceEquals(_elementStyle, style))
+        {
+            _elementStyle = style;
+            element.Style = style;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the cell is among the row's frozen cells.
+    /// </summary>
+    internal bool IsInFrozenPanel { get; set; }
+
+    /// <summary>
+    /// Gets or sets which place of its column the cell shows; 0 unless the column was added more than once.
+    /// </summary>
+    internal int ColumnOccurrence { get; set; }
+
+    /// <summary>
+    /// Takes over a column from a cell the row no longer needs for the column it had.
+    /// </summary>
+    /// <param name="column">The column the cell now shows.</param>
+    /// <param name="index">The column's index among the visible columns.</param>
+    /// <param name="wasDetached">Whether the cell was out of the row meanwhile, and so missed what changed.</param>
+    internal void Reuse(TableViewColumn column, int index, bool wasDetached)
+    {
+        Index = index;
+        _cellStyles = null;
+
+        if (Width != column.ActualWidth)
+        {
+            Width = column.ActualWidth;
+        }
+
+        if (ReferenceEquals(Column, column))
+        {
+            SetElement(); // the row can show another item by now
+        }
+        else
+        {
+            Column = column;
+        }
+
+#if !WINDOWS
+        ReleaseDeferredHeight();
+#endif
+        if (wasDetached)
+        {
+            EnsureGridLines();
+            TableView?.ApplyRowHeights(this);
+        }
+
+        if (_isPointerOverApplied)
+        {
+            ApplyPointerOverState(false);
+        }
+    }
+
+    private bool _isPointerOverApplied;
 
     /// <summary>
     /// Refreshes the element for the cell.
@@ -745,14 +826,8 @@ public partial class TableViewCell : ContentControl
     /// </summary>
     private void OnColumnChanged()
     {
-        if (TableView?.IsEditing == true)
-        {
-            SetEditingElement();
-        }
-        else
-        {
-            SetElement();
-        }
+        // Never the cell being edited: that one keeps its column.
+        SetElement();
     }
 
     /// <summary>
@@ -777,9 +852,16 @@ public partial class TableViewCell : ContentControl
     /// <param name="item">The data item associated with the cell.</param>
     internal void EnsureStyle(object? item)
     {
-        _cellStyles ??= [
-            .. Column?.ConditionalCellStyles ?? [], // Column styles have first priority
-            .. TableView?.ConditionalCellStyles ?? []]; // TableView styles have second priority
+        if (_cellStyles is null)
+        {
+            var columnStyles = Column?.CachedConditionalCellStyles;
+            var tableStyles = TableView?.CachedConditionalCellStyles;
+
+            _cellStyles = columnStyles is { Count: > 0 } || tableStyles is { Count: > 0 }
+                ? [.. columnStyles ?? [], // Column styles have first priority
+                   .. tableStyles ?? []]  // TableView styles have second priority
+                : [];
+        }
 
         Style? style = null;
 
@@ -797,7 +879,7 @@ public partial class TableViewCell : ContentControl
             }
         }
 
-        style ??= Column?.CellStyle ?? TableView?.CellStyle;
+        style ??= Column?.CachedCellStyle ?? TableView?.CachedCellStyle;
 
         // Rows are restyled for every item they show; setting the same style again still costs a call into XAML.
         if (!_hasAppliedStyle || !ReferenceEquals(_appliedStyle, style))

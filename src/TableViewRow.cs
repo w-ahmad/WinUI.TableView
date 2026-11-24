@@ -7,7 +7,6 @@ using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Linq;
 using WinUI.TableView.Helpers;
 
 namespace WinUI.TableView;
@@ -100,6 +99,61 @@ public partial class TableViewRow : ContentControl
     /// Gets the list of cells in the row.
     /// </summary>
     public IReadOnlyList<TableViewCell> Cells => RowPresenter?.Cells ?? [];
+
+    /// <summary>
+    /// Gets the cell the row shows for a column, or null when it has none.
+    /// </summary>
+    internal TableViewCell? GetCell(TableViewColumn column)
+    {
+        return RowPresenter?.GetCell(column);
+    }
+
+    /// <summary>
+    /// Gets the cell the row shows for the visible column at an index, or null when it has none.
+    /// </summary>
+    internal TableViewCell? GetCell(int columnIndex)
+    {
+        return TableView?.Columns is TableViewColumnsCollection { VisibleColumns: { } columns } collection && columnIndex >= 0 && columnIndex < columns.Count
+            ? RowPresenter?.GetCell(columns[columnIndex], collection.GetColumnOccurrence(columnIndex))
+            : null;
+    }
+
+    /// <summary>
+    /// Gets the cell for the visible column at an index, creating it when its column is out of view.
+    /// </summary>
+    /// <remarks>The cell stays until the row next syncs its cells, unless it is the current cell.</remarks>
+    internal TableViewCell? GetOrRealizeCell(int columnIndex)
+    {
+        return GetCell(columnIndex) ?? RowPresenter?.RealizeCell(columnIndex);
+    }
+
+    /// <summary>
+    /// Brings the row's cells in line with the columns that are in view.
+    /// </summary>
+    internal void SyncCells()
+    {
+        HasStaleCells = false;
+
+        if (!_ensureCells)
+        {
+            RowPresenter?.SyncCells();
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the row was out of view when the columns in view changed, and
+    /// still has the cells of the columns that were in view before.
+    /// </summary>
+    internal bool HasStaleCells { get; set; }
+
+    /// <summary>
+    /// Gets the visible-column index of the cell the row keeps wherever it is scrolled to, or -1.
+    /// </summary>
+    /// <remarks>The current cell holds the keyboard focus, and the editing element when it is being edited.</remarks>
+    internal int GetPinnedColumnIndex()
+    {
+        return TableView?.CurrentCellSlot is { } slot && slot.Row == Index && Index >= 0 ? slot.Column : -1;
+    }
 
     /// <summary>
     /// Gets the presenter hosting the row's cells, row header and details pane.
@@ -443,16 +497,7 @@ public partial class TableViewRow : ContentControl
         if (RowPresenter is not null && _ensureCells)
         {
             RowPresenter.ClearCells();
-
-            var columns = TableView.Columns.VisibleColumns;
-            var cells = new TableViewCell[columns.Count];
-
-            for (var i = 0; i < columns.Count; i++)
-            {
-                cells[i] = CreateCell(columns[i], i);
-            }
-
-            RowPresenter.AppendCells(cells);
+            RowPresenter.SyncCells();
             _ensureCells = false;
         }
     }
@@ -462,22 +507,7 @@ public partial class TableViewRow : ContentControl
     /// </summary>
     private void OnColumnsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems?.OfType<TableViewColumn>() is IEnumerable<TableViewColumn> newItems)
-        {
-            AddCells(newItems.Where(x => x.Visibility == Visibility.Visible));
-        }
-        else if (e.Action == NotifyCollectionChangedAction.Remove && e.OldItems?.OfType<TableViewColumn>() is IEnumerable<TableViewColumn> oldItems)
-        {
-            RemoveCells(oldItems);
-        }
-        else if (e.Action == NotifyCollectionChangedAction.Move && e.NewItems?.Count > 0)
-        {
-            RowPresenter?.MoveCells(e.NewItems.OfType<TableViewColumn>().First(), e.NewStartingIndex);
-        }
-        else if (e.Action == NotifyCollectionChangedAction.Reset && RowPresenter is not null)
-        {
-            RowPresenter.ClearCells();
-        }
+        SyncCells();
     }
 
     /// <summary>
@@ -485,29 +515,26 @@ public partial class TableViewRow : ContentControl
     /// </summary>
     private void OnColumnPropertyChanged(object? sender, TableViewColumnPropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(TableViewColumn.Visibility))
+        if (e.PropertyName is nameof(TableViewColumn.Visibility) or nameof(TableViewColumn.Order) or nameof(TableViewColumn.IsFrozen))
         {
-            if (e.Column.Visibility == Visibility.Visible)
-            {
-                AddCells([e.Column]);
-            }
-            else
-            {
-                RemoveCells([e.Column]);
-            }
-        }
-        else if ((e.PropertyName is nameof(TableViewColumn.Order) ||
-            e.PropertyName is nameof(TableViewColumn.IsFrozen)) &&
-            e.Column.Visibility is Visibility.Visible)
-        {
-            RemoveCells([e.Column]);
-            AddCells([e.Column]);
+            SyncCells();
         }
         else if (e.PropertyName is nameof(TableViewColumn.ActualWidth))
         {
-            if (Cells.FirstOrDefault(x => x.Column == e.Column) is { } cell)
+            if (GetCell(e.Column) is { } cell)
             {
                 cell.Width = e.Column.ActualWidth;
+            }
+
+            if (TableView?.Columns is TableViewColumnsCollection { HasDuplicateColumns: true })
+            {
+                foreach (var other in Cells)
+                {
+                    if (other.Column == e.Column && other.ColumnOccurrence > 0)
+                    {
+                        other.Width = e.Column.ActualWidth;
+                    }
+                }
             }
         }
         else if (e.PropertyName is nameof(TableViewColumn.IsReadOnly))
@@ -539,41 +566,9 @@ public partial class TableViewRow : ContentControl
     }
 
     /// <summary>
-    /// Removes cells for the specified columns.
-    /// </summary>
-    private void RemoveCells(IEnumerable<TableViewColumn> columns)
-    {
-        if (RowPresenter is not null)
-        {
-            foreach (var column in columns)
-            {
-                var cell = RowPresenter.Cells.FirstOrDefault(x => x.Column == column);
-                if (cell is not null)
-                {
-                    RowPresenter.RemoveCell(cell);
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Adds cells for the specified columns.
-    /// </summary>
-    private void AddCells(IEnumerable<TableViewColumn> columns)
-    {
-        if (RowPresenter is not null && TableView is not null)
-        {
-            foreach (var column in columns)
-            {
-                RowPresenter.InsertCell(CreateCell(column, TableView.Columns.VisibleColumns.IndexOf(column)));
-            }
-        }
-    }
-
-    /// <summary>
     /// Creates the cell this row shows for a column.
     /// </summary>
-    private TableViewCell CreateCell(TableViewColumn column, int index)
+    internal TableViewCell CreateCell(TableViewColumn column, int index)
     {
         var cell = new TableViewCell
         {
@@ -664,16 +659,9 @@ public partial class TableViewRow : ContentControl
             return;
         }
 
-        var cells = RowPresenter.Cells;
+        RowPresenter.SyncCells();
 
-        if (!cells.Select(x => x.Column).SequenceEqual(TableView.Columns.VisibleColumns))
-        {
-            _ensureCells = true;
-            EnsureCells();
-            return;
-        }
-
-        foreach (var cell in cells)
+        foreach (var cell in RowPresenter.Cells)
         {
             if (cell.Column is { } column && cell.Width != column.ActualWidth)
             {
@@ -710,7 +698,7 @@ public partial class TableViewRow : ContentControl
                 && cell.Column is TableViewBoundColumn boundColumn
                 && (TableView?.IsEditing is false || TableView?.CurrentCellSlot != cell.Slot))
             {
-                element.Style = boundColumn.ElementStyle ?? boundColumn.DefaultElementStyle;
+                cell.SetElementStyle(element, boundColumn.ElementStyle ?? boundColumn.DefaultElementStyle);
             }
         }
     }
@@ -749,12 +737,7 @@ public partial class TableViewRow : ContentControl
     /// </summary>
     internal void ApplyCurrentCellState(TableViewCellSlot slot)
     {
-        var cells = Cells;
-
-        if (slot.Column >= 0 && slot.Column < cells.Count)
-        {
-            cells[slot.Column].ApplyCurrentCellState();
-        }
+        GetCell(slot.Column)?.ApplyCurrentCellState();
     }
 
     /// <summary>
