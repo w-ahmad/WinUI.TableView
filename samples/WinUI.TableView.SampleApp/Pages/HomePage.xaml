@@ -244,7 +244,8 @@
             <ItemsRepeater ItemsSource="{x:Bind Highlights}">
                 <ItemsRepeater.Layout>
                     <UniformGridLayout MinItemWidth="230"
-                                       MinItemHeight="84"
+                                       MinItemHeight="100"
+                                       MaximumRowsOrColumns="4"
                                        MinRowSpacing="12"
                                        MinColumnSpacing="12"
                                        ItemsStretch="Fill" />
