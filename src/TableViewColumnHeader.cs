@@ -559,7 +559,10 @@ public partial class TableViewColumnHeader : ContentControl
     {
         base.OnPointerPressed(e);
 
-        if (IsSizingCursor && CanResize && IsCursorInRightResizeArea(e) && Column is not null && _tableView is not null)
+        // Touch has no hover to show the sizing cursor first, so a press on the edge starts the resize.
+        var isTouch = e.Pointer.PointerDeviceType == PointerDeviceType.Touch;
+
+        if ((IsSizingCursor || isTouch) && CanResize && IsCursorInRightResizeArea(e) && Column is not null && _tableView is not null)
         {
             _resizeStarted = true;
             _resizingColumn = Column;
@@ -569,7 +572,7 @@ public partial class TableViewColumnHeader : ContentControl
             _activeResizeMode = _tableView.ColumnResizeMode;
             CapturePointer(e.Pointer);
         }
-        else if (IsSizingCursor && IsCursorInLeftResizeArea(e) && _tableView is not null
+        else if ((IsSizingCursor || (isTouch && CanResizePrevious)) && IsCursorInLeftResizeArea(e) && _tableView is not null
             && _headerRow?.GetPreviousHeader(this) is { Column: { } } header)
         {
             _resizePreviousStarted = true;
