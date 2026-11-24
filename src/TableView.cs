@@ -3334,7 +3334,7 @@ public partial class TableView : Control
     }
 
     /// <summary>
-    /// Refreshes the displayed row number (and <see cref="TableViewRowHeader.Tag"/>) for every realized row.
+    /// Refreshes the displayed row number (and the row header's <see cref="FrameworkElement.Tag"/>) for every realized row.
     /// </summary>
     internal void RefreshRowNumbers()
     {

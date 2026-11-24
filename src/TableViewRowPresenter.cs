@@ -578,7 +578,7 @@ public partial class TableViewRowPresenter : Control
     }
 
     /// <summary>
-    /// Sets the displayed row number and <see cref="TableViewRowHeader.Tag"/>, which a custom
+    /// Sets the displayed row number and the row header's <see cref="FrameworkElement.Tag"/>, which a custom
     /// <see cref="TableView.RowHeaderTemplate"/> can bind to whether or not the number is shown.
     /// </summary>
     internal void SetRowNumber()
