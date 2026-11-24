@@ -53,6 +53,7 @@
                     </Grid.RowDefinitions>
 
                     <!--  Toolbar  -->
+                    <ScrollViewer Style="{StaticResource HorizontalStripStyle}">
                     <Grid Padding="16,10"
                           ColumnSpacing="8"
                           BorderThickness="0,0,0,1"
@@ -119,6 +120,7 @@
                                         PlaceholderText="Filter issues"
                                         TextChanged="OnSearchTextChanged" />
                     </Grid>
+                    </ScrollViewer>
 
                     <tv:TableView x:Name="tableView"
                                   Grid.Row="1"
