@@ -545,7 +545,8 @@ public partial class TableViewHeaderRow : Control
                     {
                         availableWidth -= width;
                         starUnitWeight -= column.Width.Value;
-                        starUnitWidth = starUnitWeight > 0 ? availableWidth / starUnitWeight : 0;
+                        // With no star column left to share, the unit stays so the limited ones resolve to their limit again below.
+                        starUnitWidth = starUnitWeight > 0 ? availableWidth / starUnitWeight : starUnitWidth;
                         startColumnsToAdjust.Remove(column);
                         starWidthAdjusted = true;
                         break;
