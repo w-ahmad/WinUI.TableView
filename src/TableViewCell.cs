@@ -552,15 +552,23 @@ public partial class TableViewCell : ContentControl
     /// <inheritdoc/>
     protected override void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
     {
+        e.Handled = HandleDoubleTap(e);
+
+        if (!e.Handled)
+        {
+            base.OnDoubleTapped(e);
+        }
+    }
+
+    /// <summary>
+    /// Raises <see cref="TableView.CellDoubleTapped"/> and, unless a handler takes it, starts editing the cell.
+    /// </summary>
+    internal bool HandleDoubleTap(RoutedEventArgs e)
+    {
         var eventArgs = new TableViewCellDoubleTappedEventArgs(Slot, this, Row?.Content);
         TableView?.OnCellDoubleTapped(eventArgs);
-        e.Handled = eventArgs.Handled;
 
-        if (e.Handled) return;
-
-        base.OnDoubleTapped(e);
-
-        e.Handled = IsReadOnly || TableView is null || TableView.IsEditing || !Column?.UseSingleElement is not true || BeginCellEditing(e);
+        return eventArgs.Handled || IsReadOnly || TableView is null || TableView.IsEditing || !Column?.UseSingleElement is not true || BeginCellEditing(e);
     }
 
     /// <summary>

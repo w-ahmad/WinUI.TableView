@@ -319,11 +319,20 @@ public partial class TableViewRow : ContentControl
     /// <inheritdoc/>
     protected override void OnDoubleTapped(DoubleTappedRoutedEventArgs e)
     {
-        var eventArgs = new TableViewRowDoubleTappedEventArgs(Index, this, Content);
-        TableView?.OnRowDoubleTapped(eventArgs);
-        e.Handled = eventArgs.Handled;
+        e.Handled = RaiseDoubleTapped();
 
         base.OnDoubleTapped(e);
+    }
+
+    /// <summary>
+    /// Raises <see cref="TableView.RowDoubleTapped"/> and returns whether a handler took it.
+    /// </summary>
+    internal bool RaiseDoubleTapped()
+    {
+        var eventArgs = new TableViewRowDoubleTappedEventArgs(Index, this, Content);
+        TableView?.OnRowDoubleTapped(eventArgs);
+
+        return eventArgs.Handled;
     }
 
     /// <inheritdoc/>
