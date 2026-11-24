@@ -22,6 +22,7 @@ public partial class TableView
     private const double RealizedColumnsMinLead = 40d;
 
     private (int First, int Last) _realizedColumns;
+    private (int First, int Last)? _pannedHeaderColumns;
     private (int First, int Last)? _syncedColumns;
     private (int Version, int Frozen, double Offset, double ViewerOffset, double Width)? _realizedColumnsKey;
     private (int Version, int Frozen)? _realizedColumnsLayout;
@@ -137,9 +138,17 @@ public partial class TableView
             {
                 _realizedColumnsKey = key;
 
+                // Its pan moves the rows, frozen cells included, and leaves the headers where they are.
+                var cellsLeft = Padding.Left + (double.IsNaN(CellsHorizontalOffset) ? 0d : CellsHorizontalOffset) + columns.GetVisibleColumnOffset(frozen);
+                var start = HorizontalOffset + Math.Max(0d, viewerOffset - cellsLeft);
                 var end = HorizontalOffset + viewerOffset + width;
-                var full = columns.FindVisibleColumns(frozen, HorizontalOffset - RealizedColumnsLead, end + RealizedColumnsLead);
-                var needed = columns.FindVisibleColumns(frozen, HorizontalOffset - RealizedColumnsMinLead, end + RealizedColumnsMinLead);
+                var full = columns.FindVisibleColumns(frozen, start - RealizedColumnsLead, end + RealizedColumnsLead);
+                var needed = columns.FindVisibleColumns(frozen, start - RealizedColumnsMinLead, end + RealizedColumnsMinLead);
+
+                _pannedHeaderColumns = start > HorizontalOffset
+                    ? columns.FindVisibleColumns(frozen, HorizontalOffset - RealizedColumnsLead, HorizontalOffset + width + RealizedColumnsLead)
+                    : null;
+
                 var layout = (columns.LayoutVersion, frozen);
                 var current = _realizedColumns;
 
@@ -172,6 +181,20 @@ public partial class TableView
     private const double UnknownViewportWidth = 2000d;
 
     /// <summary>
+    /// Gets the first and last visible-column index of the scrollable columns that have headers: those that have
+    /// cells, unless the scroll viewer has panned the rows sideways by itself.
+    /// </summary>
+    internal (int First, int Last) RealizedHeaderColumns
+    {
+        get
+        {
+            var cells = RealizedColumns;
+
+            return _pannedHeaderColumns ?? cells;
+        }
+    }
+
+    /// <summary>
     /// Brings the headers and the cells of the realized rows in line with <see cref="RealizedColumns"/> when the
     /// range has changed.
     /// </summary>
@@ -192,10 +215,11 @@ public partial class TableView
         }
 
         var range = RealizedColumns;
+        var headerRange = RealizedHeaderColumns;
 
-        if (_syncedHeaderColumns != range)
+        if (_syncedHeaderColumns != headerRange)
         {
-            _syncedHeaderColumns = range;
+            _syncedHeaderColumns = headerRange;
             _headerRow?.SyncHeaders();
         }
 

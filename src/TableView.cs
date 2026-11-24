@@ -1197,6 +1197,7 @@ public partial class TableView : Control
         SyncStaleRows(); // rows a sideways jump left out may be coming into view
 
 #if !WINDOWS
+        UpdateRealizedColumns(); // the scroll viewer can pan sideways without a layout pass
         UpdateRenderCullingAfterViewChange();
 #endif
 

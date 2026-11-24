@@ -197,7 +197,9 @@ public partial class TableViewCellAutomationPeer : FrameworkElementAutomationPee
     /// </summary>
     public IRawElementProviderSimple[] GetColumnHeaderItems()
     {
-        if (_owner.Column?.HeaderControl is not { } headerControl)
+        // The header of the cell's own place, for a column that was added twice.
+        if (_owner.Column is not { } column
+            || (_owner.TableView?.HeaderRow?.GetHeader(column, _owner.ColumnOccurrence) ?? (_owner.ColumnOccurrence == 0 ? column.HeaderControl : null)) is not { } headerControl)
         {
             return [];
         }

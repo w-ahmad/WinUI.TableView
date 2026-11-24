@@ -20,6 +20,22 @@ public class TableViewColumnsCollectionTests
     }
 
     [UITestMethod]
+    public void FindVisibleColumns_CountsAZeroWidthColumnAsTakingNoRoom()
+    {
+        var tableView = new TableView { MinColumnWidth = 0d };
+        var collection = (TableViewColumnsCollection)tableView.Columns;
+
+        for (var i = 0; i < 20; i++)
+        {
+            collection.Add(new TableViewTextColumn { Width = new GridLength(0d) });
+        }
+
+        collection.Add(new TableViewTextColumn { Width = new GridLength(100d) });
+
+        Assert.AreEqual(20, collection.FindVisibleColumns(0, 0d, 900d).Last);
+    }
+
+    [UITestMethod]
     public void Add_ShouldRaiseCollectionChangedEvent()
     {
         var tableView = new TableView();

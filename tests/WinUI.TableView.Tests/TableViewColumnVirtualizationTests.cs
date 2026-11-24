@@ -651,6 +651,91 @@ public class TableViewColumnVirtualizationTests
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }
 
+    [UITestMethod]
+    public async Task ResizingAColumnOutOfView_MovesTheCellsAndHeadersInView()
+    {
+        var tableView = await CreateTableViewAsync();
+
+        tableView.SetValue(TableView.HorizontalOffsetProperty, 20 * ColumnWidth);
+        tableView.UpdateLayout();
+        tableView.CompleteColumnJump();
+        tableView.UpdateLayout();
+
+        tableView.Columns.VisibleColumns[1].Width = new GridLength(ColumnWidth + 50d);
+        tableView.Columns.VisibleColumns[150].Width = new GridLength(ColumnWidth - 50d); // the columns are as wide together as before
+        tableView.UpdateLayout();
+
+        var column = tableView.Columns.VisibleColumns[22];
+        var expected = (22 * ColumnWidth) + 50d;
+
+        Assert.AreEqual(expected, column.HeaderControl!.ActualOffset.X, 0.01);
+
+        foreach (var row in Rows(tableView))
+        {
+            Assert.AreEqual(expected, row.GetCell(column)!.ActualOffset.X, 0.01);
+        }
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task ColumnAddedTwice_WithItsFirstPlaceOutOfView_StillReportsItsHeader()
+    {
+        var tableView = await CreateTableViewAsync();
+        var first = tableView.Columns[0];
+
+        tableView.Columns.Add(first);
+        tableView.UpdateLayout();
+
+        await tableView.ScrollCellIntoView(new TableViewCellSlot(0, ColumnCount));
+        tableView.UpdateLayout();
+        tableView.CompleteColumnJump();
+        tableView.UpdateLayout();
+
+        var headerRow = tableView.FindDescendants().OfType<TableViewHeaderRow>().Single();
+        var header = headerRow.Headers.Single(x => x.Column == first);
+        var cell = Rows(tableView).OrderBy(x => x.Index).First().GetCell(ColumnCount)!;
+
+        Assert.AreEqual(headerRow.Headers.Count, new TableViewAutomationPeer(tableView).GetColumnHeaders().Length);
+        Assert.AreEqual(1, new TableViewCellAutomationPeer(cell).GetColumnHeaderItems().Length);
+        Assert.AreEqual(1, header.ColumnOccurrence);
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+#if !WINDOWS
+    [UITestMethod]
+    public async Task PanningTheScrollViewerSideways_GivesCellsToTheColumnsPannedTo()
+    {
+        var tableView = await CreateTableViewAsync();
+        var scrollViewer = tableView.FindDescendants().OfType<ScrollViewer>().First(x => x.Name is "ScrollViewer");
+        var headerRow = tableView.FindDescendants().OfType<TableViewHeaderRow>().Single();
+
+        scrollViewer.ChangeView(60 * ColumnWidth, null, null, true);
+        await Task.Delay(100);
+        tableView.UpdateLayout();
+        tableView.CompleteColumnJump();
+        tableView.UpdateLayout();
+
+        if (scrollViewer.HorizontalOffset < 60 * ColumnWidth)
+        {
+            Assert.Inconclusive("The scroll viewer did not pan sideways.");
+        }
+
+        foreach (var row in Rows(tableView))
+        {
+            Assert.IsNotNull(row.GetCell(64), "a column panned to has no cell");
+            Assert.IsNull(row.GetCell(20), "a column panned past kept its cell");
+            Assert.IsTrue(row.Cells.Count <= MaxRealizedColumns, $"{row.Cells.Count} cells");
+        }
+
+        // The headers do not pan with the scroll viewer.
+        Assert.IsTrue(headerRow.Headers.Any(x => x.Column == tableView.Columns.VisibleColumns[0]));
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+#endif
+
     private static List<TableViewRow> Rows(TableView tableView)
     {
         return [.. tableView.FindDescendants().OfType<TableViewRow>().Where(x => x.IsLoaded)];

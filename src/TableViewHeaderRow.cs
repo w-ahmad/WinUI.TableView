@@ -78,7 +78,7 @@ public partial class TableViewHeaderRow : Control
         _h_gridLine = GetTemplateChild("HorizontalGridLine") as FrameworkElement;
         _frozenHeadersPanel = GetTemplateChild("FrozenHeadersPanel") as Panel;
         _scrollableHeadersPanel = GetTemplateChild("ScrollableHeadersPanel") as Panel;
-        _headersByColumn.Clear();
+        ForgetHeaders(); // those of the previous template
         _columnDropIndicator = GetTemplateChild("ColumnDropIndicator") as Border;
         _columnDropIndicatorTransform = GetTemplateChild("ColumnDropIndicatorTransform") as TranslateTransform;
         _dragHeaderImage = GetTemplateChild("DragHeaderImage") as Image;
@@ -310,7 +310,7 @@ public partial class TableViewHeaderRow : Control
         var visibleColumns = columns.VisibleColumns;
         var count = visibleColumns.Count;
         var frozenCount = Math.Clamp(TableView.FrozenColumnCount, 0, count);
-        var (first, last) = _scrollableHeadersPanel is TableViewCellsPanel ? TableView.RealizedColumns : (frozenCount, count - 1);
+        var (first, last) = _scrollableHeadersPanel is TableViewCellsPanel ? TableView.RealizedHeaderColumns : (frozenCount, count - 1);
         var canRemove = !TableView.IsColumnResizing;
         var changed = reordered;
         var frozenChanged = reordered;
@@ -1060,6 +1060,13 @@ public partial class TableViewHeaderRow : Control
     /// </summary>
     public void ClearHeaders()
     {
+        ForgetHeaders();
+        _frozenHeadersPanel?.Children.Clear();
+        _scrollableHeadersPanel?.Children.Clear();
+    }
+
+    private void ForgetHeaders()
+    {
         foreach (var header in _headersByColumn.Values)
         {
             if (header.Column?.HeaderControl == header)
@@ -1069,8 +1076,14 @@ public partial class TableViewHeaderRow : Control
         }
 
         _headersByColumn.Clear();
-        _frozenHeadersPanel?.Children.Clear();
-        _scrollableHeadersPanel?.Children.Clear();
+    }
+
+    /// <summary>
+    /// Gets the header of a column, or of one of its places when it is in the columns more than once.
+    /// </summary>
+    internal TableViewColumnHeader? GetHeader(TableViewColumn column, int occurrence = 0)
+    {
+        return _headersByColumn.TryGetValue((column, occurrence), out var header) ? header : null;
     }
 
     /// <summary>

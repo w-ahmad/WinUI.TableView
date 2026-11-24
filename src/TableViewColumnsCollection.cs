@@ -163,14 +163,23 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
         {
             var columns = VisibleColumns;
             var offsets = new double[count + 1];
+            var tableMinWidth = TableView?.MinColumnWidth ?? 0d;
+            var tableMaxWidth = TableView?.MaxColumnWidth ?? double.PositiveInfinity;
 
             for (var i = 0; i < count; i++)
             {
-                var width = columns[i].ActualWidth;
+                var column = columns[i];
+                var width = column.ActualWidth;
 
                 if (!(width > 0d))
                 {
-                    width = columns[i].Width is { IsAbsolute: true, Value: > 0d and var asked } ? asked : UnsizedColumnWidth;
+                    width = UnsizedColumnWidth;
+
+                    // A width that is asked for is known before the column is sized, and may be zero.
+                    if (column.Width is { IsAbsolute: true, Value: var asked })
+                    {
+                        width = Math.Max(Math.Min(asked, column.MaxWidth ?? tableMaxWidth), column.MinWidth ?? tableMinWidth);
+                    }
                 }
 
                 offsets[i + 1] = offsets[i] + width;

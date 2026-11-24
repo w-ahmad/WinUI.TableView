@@ -155,16 +155,15 @@ public partial class TableViewAutomationPeer : FrameworkElementAutomationPeer,
     {
         List<IRawElementProviderSimple> providers = [];
 
-        foreach (var column in _owner.Columns.VisibleColumns)
+        // The headers that exist, in column order; a column added twice has one for each place in view.
+        if (_owner.HeaderRow is { } headerRow)
         {
-            if (column.HeaderControl is not { } headerControl)
+            foreach (var header in headerRow.Headers)
             {
-                continue;
-            }
-
-            if (ToProvider(CreatePeerForElement(headerControl)) is { } provider)
-            {
-                providers.Add(provider);
+                if (ToProvider(CreatePeerForElement(header)) is { } provider)
+                {
+                    providers.Add(provider);
+                }
             }
         }
 
