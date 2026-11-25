@@ -134,6 +134,55 @@ public class TableViewRowDetailsLayoutTests
         }
     }
 
+    [UITestMethod]
+    public Task DetailsStayInPlace_WhenTheRowsRootPanelArrangesAgain()
+    {
+        return AssertDetailsStayInPlaceAsync(horizontalOffset: 0d);
+    }
+
+    [UITestMethod]
+    public Task ScrolledDetailsStayInPlace_WhenTheRowsRootPanelArrangesAgain()
+    {
+        return AssertDetailsStayInPlaceAsync(horizontalOffset: 100d);
+    }
+
+    private static async Task AssertDetailsStayInPlaceAsync(double horizontalOffset)
+    {
+        var (host, tableView) = await CreateUnboundedHostAsync(tableView =>
+        {
+            tableView.Width = 400;
+            tableView.Columns[0].Width = new GridLength(300);
+        });
+        try
+        {
+            var row = GetRow(tableView, 0);
+            row.RowPresenter!.ShowDetailPane(visible: true);
+            tableView.SetValue(TableView.HorizontalOffsetProperty, horizontalOffset);
+            host.UpdateLayout();
+            await Task.Delay(300);
+            host.UpdateLayout();
+
+            var details = GetDetailsPanel(row);
+            var cell = row.Cells[0];
+            var detailsLeft = details.TransformToVisual(row).TransformPoint(default).X;
+            var cellLeft = cell.TransformToVisual(row).TransformPoint(default).X;
+
+            Assert.AreEqual(cellLeft, detailsLeft, 1, "Precondition: the details start where the cells start");
+
+            // The root panel alone, without the presenter that places the details.
+            row.FindDescendants().OfType<Grid>().First(x => x.Name == "RootPanel").InvalidateArrange();
+            host.UpdateLayout();
+            await Task.Delay(100);
+            host.UpdateLayout();
+
+            Assert.AreEqual(detailsLeft, details.TransformToVisual(row).TransformPoint(default).X, 1, "The details did not move");
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(host);
+        }
+    }
+
 #if WINDOWS // The selection background and indicator belong to the Windows ListViewItemPresenter template.
     [UITestMethod]
     public async Task SelectingARowWithWideDetails_KeepsTheSelectionVisualsOnTheCells()

@@ -134,6 +134,7 @@
                                   Grid.Row="1"
                                   Grid.Column="2"
                                   Grid.ColumnSpan="2"
+                                  HorizontalAlignment="Left"
                                   Visibility="Collapsed"
                                   Background="{ThemeResource TableViewRowDetailsBackgroundBrush}">
                                 <Grid.RowDefinitions>

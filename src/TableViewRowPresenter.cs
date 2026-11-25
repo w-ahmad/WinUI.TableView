@@ -39,6 +39,7 @@ public partial class TableViewRowPresenter : Control
     private Border? _indentPlaceholder;
     private long? _detailsPanelVisibilityCallbackToken;
     private RectangleGeometry? _detailsPanelClip;
+    private TranslateTransform? _detailsPanelShift;
     private RectangleGeometry? _scrollableCellsClip;
     private TableViewCell[]? _cells;
     private readonly Dictionary<(TableViewColumn Column, int Occurrence), TableViewCell> _cellsByColumn = [];
@@ -80,6 +81,7 @@ public partial class TableViewRowPresenter : Control
         _detailsGridLine = GetTemplateChild("DetailsGridLine") as FrameworkElement;
         _h_gridLineSpace = GetTemplateChild("HorizontalGridLineSpace") as FrameworkElement;
         _detailsPanel = GetTemplateChild("DetailsPanel") as Panel;
+        _detailsPanelShift = null;
         _detailsPresenter = GetTemplateChild("DetailsPresenter") as FrameworkElement;
         _detailsToggleButton = GetTemplateChild("DetailsToggleButton") as ToggleButton;
         _indentPlaceholder = GetTemplateChild("IndentPlaceholder") as Border;
@@ -298,17 +300,24 @@ public partial class TableViewRowPresenter : Control
 
             _rootPanel?.Arrange(new(left, 0, Math.Max(0, _rootPanel.ActualWidth), _rootPanel.ActualHeight));
 
-            if (_detailsPanel?.Visibility is Visibility.Visible && _v_gridLine is not null)
+            if (_detailsPanel?.Visibility is Visibility.Visible)
             {
-                var x = _v_gridLine.ActualOffset.X + _v_gridLine.ActualWidth;
-                x += TableView.AreRowDetailsFrozen ? 0 : xScroll;
-                var y = _scrollableCellsPanel?.ActualHeight ?? _v_gridLine.ActualOffset.Y;
-                var width = _detailsPanel.ActualWidth;
-                var height = _detailsPanel.ActualHeight;
-                _detailsPanel.Arrange(new(x, y, width, height));
+                // Shifted, not arranged: the root panel puts the details back in their slot whenever it arranges alone.
+                var shift = TableView.AreRowDetailsFrozen ? 0d : xScroll;
+
+                if (_detailsPanelShift is null)
+                {
+                    _detailsPanel.RenderTransform = _detailsPanelShift = new TranslateTransform();
+                }
+
+                if (_detailsPanelShift.X != shift)
+                {
+                    _detailsPanelShift.X = shift;
+                }
+
                 _detailsPanel.Clip = SetClip(
                     ref _detailsPanelClip,
-                    needsClip: x < _v_gridLine.ActualOffset.X + _v_gridLine.ActualWidth,
+                    needsClip: shift < 0d,
                     new(xClip, 0, Math.Max(0, _detailsPanel.ActualWidth - xClip), _detailsPanel.ActualHeight));
             }
 
