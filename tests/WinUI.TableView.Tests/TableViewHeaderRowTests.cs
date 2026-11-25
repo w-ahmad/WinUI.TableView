@@ -391,6 +391,44 @@ public class TableViewHeaderRowTests
         }
     }
 
+    [UITestMethod]
+    public async Task StarColumn_OverItsMaxWidth_TakesItsMaxWidth()
+    {
+        var tableView = new TableView
+        {
+            Width = 600,
+            Height = 300,
+            AutoGenerateColumns = false,
+            ItemsSource = new[] { new HeaderRowTestItem { Name = "Alpha" } }
+        };
+
+        tableView.Columns.Add(new TableViewTextColumn
+        {
+            Width = new GridLength(90),
+            Binding = new Binding { Path = new PropertyPath(nameof(HeaderRowTestItem.Name)) }
+        });
+        tableView.Columns.Add(new TableViewTextColumn
+        {
+            Width = new GridLength(1, GridUnitType.Star),
+            MaxWidth = 260,
+            Binding = new Binding { Path = new PropertyPath(nameof(HeaderRowTestItem.Name)) }
+        });
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+
+        try
+        {
+            await DrainDispatcherQueueAsync();
+            tableView.UpdateLayout();
+
+            Assert.AreEqual(260d, tableView.Columns[1].ActualWidth, 0.01);
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
     private static void AssertScrollBarSpace(TableView tableView)
     {
         var scrollViewer = tableView.FindDescendant<ScrollViewer>();
