@@ -68,8 +68,8 @@
     href: accessibility.md
 - name: Migration
   items:
-  - name: Breaking Changes
-    href: breaking-changes.md
+  - name: Breaking Changes in v2.0
+    href: breaking-changes-v2.md
   - name: Migrating from WPF DataGrid
     href: migration-wpf.md
   - name: Migrating from WCT DataGrid

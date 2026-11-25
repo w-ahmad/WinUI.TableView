@@ -39,7 +39,7 @@ dotnet run --project tests/WinUI.TableView.Tests.Uno/WinUI.TableView.Tests.Uno.c
 - Don't add dependencies without a clear justification.
 - Don't refactor code unrelated to the task.
 - Fix root causes; don't mask symptoms.
-- Preserve public API and behavior. Discuss breaking changes in an issue first and document them in `docs/docs/breaking-changes.md`.
+- Preserve public API and behavior. Discuss breaking changes in an issue first and document them in the breaking changes page of the upcoming major version (currently `docs/docs/breaking-changes-v2.md`).
 - Never remove, skip, or weaken tests to make a change pass.
 - Never claim a build, test, or benchmark passed unless you ran it. Say what you didn't run.
 - Don't assume WinUI and Uno behave the same. Verify platform-specific behavior on each, and use `#if WINDOWS` / `#if !WINDOWS` for platform code.

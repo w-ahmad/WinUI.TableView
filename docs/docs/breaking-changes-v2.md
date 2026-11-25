@@ -1,7 +1,10 @@
-# Breaking changes: the row hosting rewrite and column virtualization
+# Breaking changes in v2.0
+
+This page lists what changes for existing code when you upgrade from WinUI.TableView v1.x to v2.0. Most of it comes
+from two changes: the row hosting rewrite and column virtualization.
 
 `TableView` used to derive from `ListView`, which is where its row virtualization, container generation, row
-selection storage and the Windows row visual came from. It now derives from `Control` and hosts its rows in an
+selection storage and the Windows row visual came from. In v2.0 it derives from `Control` and hosts its rows in an
 `ItemsRepeater` with the platform's virtualizing `StackLayout`, creating, recycling and positioning the rows itself.
 
 This is a deliberate, semver-major change. It exists because the base class had become the limit: hit testing during
@@ -51,6 +54,7 @@ do not depend on the base class.
 | `TableViewTemplateColumn` cells | the `CellTemplate` was built again for every item a row showed | a reused row keeps the built template and gives it the new item as its `DataContext` | Bind everything the template shows. State kept outside a binding, such as a control the user changed that is bound one-way, text typed into a box, or something set in `Loaded`, stays with the row as it scrolls to other items. This is how item containers behave in every virtualizing list |
 | `TableViewCheckBoxColumn` cells | used the implicit `CheckBox` style | use a style of the library's that draws the check mark without animating it, since the same check box shows row after row while scrolling | An implicit `CheckBox` style in your app no longer reaches these cells. Set the column's `ElementStyle` to style them |
 | `SelectionChanged` arguments | `AddedItems` and `RemovedItems` were always copies | copies when the change covers up to 1,024 items; larger changes report read-only projections over the changed index ranges | Nothing for clicks and keyboard selection. A handler that changes the source, or keeps the lists for later, after a large change such as select all should copy them first |
+| `SelectionChanged` and `CellSelectionChanged` per gesture | a click on another row or cell, or a Shift+Click or drag that shrank the range, raised two events | one event per gesture, reporting the whole change | A handler that counted events, or expected a clearing event before the new selection, now gets one event with everything removed in `RemovedItems` and everything added in `AddedItems`. Clicking the row that is already the only selected row raises no event |
 | `SelectedIndex` and `SelectedItem` | — | follow `SelectionMode` and `SelectionUnit` | Setting either selects nothing while `SelectionMode="None"` or `SelectionUnit="Cell"`, and the property goes back to `-1`/`null`. `SelectedItem` set to an item that is not in the view also goes back to `null` |
 | Selection across a view rebuild | cleared by some rebuilds (header sorting, grouping), left on shifted indexes by others | always cleared | Anything that rebuilds the view (sorting, grouping, expanding or collapsing a group, a source reset) clears row and cell selection first, with `SelectionChanged` reporting the removed items. Unloading and reloading the control is not a rebuild: the row selection is kept, and if the source changed in the meantime the items still in it stay selected |
 
