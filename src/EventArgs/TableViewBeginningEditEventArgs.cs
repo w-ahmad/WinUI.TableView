@@ -37,5 +37,9 @@ public class TableViewBeginningEditEventArgs(TableViewCell cell,
     /// <summary>
     /// Gets the input event args that triggered the edit (e.g. double-tap).
     /// </summary>
+    /// <remarks>
+    /// On Uno, a touch double tap that the platform does not report as a double tap (as in browsers) passes the <see cref="Microsoft.UI.Xaml.Input.PointerRoutedEventArgs"/>
+    /// of the second tap's release instead of <see cref="Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs"/>.
+    /// </remarks>
     public RoutedEventArgs EditingArgs { get; } = editingArgs;
 }

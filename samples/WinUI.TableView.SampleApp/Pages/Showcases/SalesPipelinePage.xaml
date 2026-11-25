@@ -88,7 +88,9 @@
                 </Grid.RowDefinitions>
 
                 <!--  KPI cards, recalculated when the region changes  -->
-                <Grid ColumnSpacing="12">
+                <ScrollViewer Style="{StaticResource HorizontalStripStyle}">
+                <Grid ColumnSpacing="12"
+                      MinWidth="960">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
@@ -204,6 +206,7 @@
                         </Grid>
                     </Border>
                 </Grid>
+                </ScrollViewer>
 
                 <Border Grid.Row="1"
                         Style="{StaticResource CardStyle}">
@@ -214,6 +217,7 @@
                         </Grid.RowDefinitions>
 
                         <!--  Toolbar  -->
+                        <ScrollViewer Style="{StaticResource HorizontalStripStyle}">
                         <Grid Padding="16,12"
                               ColumnSpacing="12"
                               BorderThickness="0,0,0,1"
@@ -267,6 +271,7 @@
                                                  Tag="56" />
                             </SelectorBar>
                         </Grid>
+                        </ScrollViewer>
 
                         <tv:TableView x:Name="tableView"
                                       Grid.Row="1"

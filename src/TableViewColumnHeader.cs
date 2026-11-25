@@ -378,6 +378,7 @@ public partial class TableViewColumnHeader : ContentControl
         SetFilterButtonVisibility();
         EnsureGridLines();
         OnSortDirectionChanged();
+        OnIsFilteredChanged();
     }
 
     /// <summary>
@@ -491,6 +492,8 @@ public partial class TableViewColumnHeader : ContentControl
     {
         base.OnPointerMoved(e);
 
+        var isTouch = e.Pointer.PointerDeviceType == PointerDeviceType.Touch;
+
         if ((_resizeStarted || _resizePreviousStarted) && _resizingColumn is not null
             && _resizeTargetHeader is not null && _tableView is not null)
         {
@@ -506,7 +509,7 @@ public partial class TableViewColumnHeader : ContentControl
 
             // Explicitly re-assert the resize cursor on every move — without this, something else
             // (layout invalidation elsewhere, a hover state change) can reset it mid-drag.
-            ProtectedCursor = InputSystemCursor.Create(InputSystemCursorShape.SizeWestEast);
+            if (!isTouch) ProtectedCursor = InputSystemCursor.Create(InputSystemCursorShape.SizeWestEast);
 
             if (_activeResizeMode == TableViewColumnResizeMode.Preview)
             {
@@ -519,6 +522,9 @@ public partial class TableViewColumnHeader : ContentControl
 
             return;
         }
+
+        // Touch shows no cursor, and no move after the lift would clear it to let a tap sort again.
+        if (isTouch) return;
 
         if (CanResize && IsCursorInRightResizeArea(e) && !_reorderStarted)
         {
@@ -558,7 +564,10 @@ public partial class TableViewColumnHeader : ContentControl
     {
         base.OnPointerPressed(e);
 
-        if (IsSizingCursor && CanResize && IsCursorInRightResizeArea(e) && Column is not null && _tableView is not null)
+        // Touch has no hover to show the sizing cursor first, so a press on the edge starts the resize.
+        var isTouch = e.Pointer.PointerDeviceType == PointerDeviceType.Touch;
+
+        if ((IsSizingCursor || isTouch) && CanResize && IsCursorInRightResizeArea(e) && Column is not null && _tableView is not null)
         {
             _resizeStarted = true;
             _resizingColumn = Column;
@@ -568,7 +577,7 @@ public partial class TableViewColumnHeader : ContentControl
             _activeResizeMode = _tableView.ColumnResizeMode;
             CapturePointer(e.Pointer);
         }
-        else if (IsSizingCursor && IsCursorInLeftResizeArea(e) && _tableView is not null
+        else if ((IsSizingCursor || (isTouch && CanResizePrevious)) && IsCursorInLeftResizeArea(e) && _tableView is not null
             && _headerRow?.GetPreviousHeader(this) is { Column: { } } header)
         {
             _resizePreviousStarted = true;
@@ -739,6 +748,49 @@ public partial class TableViewColumnHeader : ContentControl
     /// Gets or sets the column associated with the header.
     /// </summary>
     public TableViewColumn? Column { get; internal set; }
+
+    /// <summary>
+    /// Takes over a column from a header whose own column has gone out of view.
+    /// </summary>
+    internal void Reuse(TableViewColumn column)
+    {
+        HideFlyout();
+        FilterItemsControl?.FilterItems = null;
+        CachedDesiredWidth = null;
+        Column = column;
+        DataContext = column;
+        Content = column.Header;
+
+        if (!(column.ActualWidth > 0d))
+        {
+            Width = double.NaN; // sized with the other columns
+        }
+        else if (Width != column.ActualWidth)
+        {
+            Width = column.ActualWidth;
+        }
+
+        VisualStates.GoToState(this, false, VisualStates.StateNormal);
+        SetFilterButtonVisibility();
+        OnSortDirectionChanged();
+        OnIsFilteredChanged();
+        InvalidateMeasure();
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the header is among the frozen headers.
+    /// </summary>
+    internal bool IsInFrozenPanel { get; set; }
+
+    /// <summary>
+    /// Gets or sets which place of its column the header shows; 0 unless the column was added more than once.
+    /// </summary>
+    internal int ColumnOccurrence { get; set; }
+
+    /// <summary>
+    /// Gets a value indicating whether the header is being dragged to another place.
+    /// </summary>
+    internal bool IsReordering => _reorderStarted;
 
     /// <summary>
     /// Gets a value indicating whether the column can be grouped.

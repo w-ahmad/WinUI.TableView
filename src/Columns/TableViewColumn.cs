@@ -211,7 +211,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     public GridLength Width
     {
-        get => (GridLength)GetValue(WidthProperty);
+        get => _width;
         set => SetValue(WidthProperty, value);
     }
 
@@ -220,7 +220,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     public double? MinWidth
     {
-        get => (double?)GetValue(MinWidthProperty);
+        get => _minWidth;
         set => SetValue(MinWidthProperty, value);
     }
 
@@ -229,7 +229,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     public double? MaxWidth
     {
-        get => (double?)GetValue(MaxWidthProperty);
+        get => _maxWidth;
         set => SetValue(MaxWidthProperty, value);
     }
 
@@ -238,7 +238,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     public double ActualWidth
     {
-        get => (double)GetValue(ActualWidthProperty);
+        get => _actualWidth;
         set => SetValue(ActualWidthProperty, value);
     }
 
@@ -323,7 +323,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     public Visibility Visibility
     {
-        get => (Visibility)GetValue(VisibilityProperty);
+        get => _visibility;
         set => SetValue(VisibilityProperty, value);
     }
 
@@ -359,7 +359,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     public int? Order
     {
-        get => (int?)GetValue(OrderProperty);
+        get => _order;
         set => SetValue(OrderProperty, value);
     }
 
@@ -492,7 +492,29 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     private void OnSortDirectionChanged()
     {
-        HeaderControl?.OnSortDirectionChanged();
+        ForEachHeader(static header => header.OnSortDirectionChanged());
+    }
+
+    /// <summary>
+    /// Runs an action on the column's header, and on its other headers when the column was added more than once.
+    /// </summary>
+    private void ForEachHeader(Action<TableViewColumnHeader> action)
+    {
+        if (HeaderControl is { } first)
+        {
+            action(first);
+        }
+
+        if (OwningCollection is { HasDuplicateColumns: true } && TableView?.HeaderRow is { } headerRow)
+        {
+            foreach (var header in headerRow.Headers)
+            {
+                if (header.Column == this && !ReferenceEquals(header, HeaderControl))
+                {
+                    action(header);
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -500,7 +522,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     private void OnIsFilteredChanged()
     {
-        HeaderControl?.OnIsFilteredChanged();
+        ForEachHeader(static header => header.OnIsFilteredChanged());
     }
 
     /// <summary>
@@ -508,14 +530,92 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     internal void EnsureHeaderStyle()
     {
-        HeaderControl?.Style = HeaderStyle ?? TableView?.ColumnHeaderStyle;
+        var style = HeaderStyle ?? TableView?.ColumnHeaderStyle;
+
+        ForEachHeader(header =>
+        {
+            if (!ReferenceEquals(header.Style, style))
+            {
+                header.Style = style;
+            }
+        });
     }
 
     /// <summary>
-    /// Handles changes to the Width property.
+    /// Handles changes to the properties a cell's style comes from.
+    /// </summary>
+    private static void OnCellStyleSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        (d as TableViewColumn)?._hasCellStyleSource = false;
+    }
+
+    private bool _hasCellStyleSource;
+    private Style? _cellStyle;
+    private IList<TableViewConditionalCellStyle>? _conditionalCellStyles;
+
+    /// <summary>
+    /// Reads <see cref="CellStyle"/> and <see cref="ConditionalCellStyles"/> once per change: every cell asks for
+    /// them each time it shows another item or column, and each read is a call into XAML.
+    /// </summary>
+    private void EnsureCellStyleSource()
+    {
+        if (!_hasCellStyleSource)
+        {
+            _cellStyle = CellStyle;
+            _conditionalCellStyles = ConditionalCellStyles;
+            _hasCellStyleSource = true;
+        }
+    }
+
+    internal Style? CachedCellStyle
+    {
+        get
+        {
+            EnsureCellStyleSource();
+            return _cellStyle;
+        }
+    }
+
+    internal IList<TableViewConditionalCellStyle>? CachedConditionalCellStyles
+    {
+        get
+        {
+            EnsureCellStyleSource();
+            return _conditionalCellStyles;
+        }
+    }
+
+    // Copies of the properties the layout reads for every column, kept by OnPropertyChanged.
+    private GridLength _width = GridLength.Auto;
+    private double? _minWidth;
+    private double? _maxWidth;
+    private double _actualWidth;
+    private Visibility _visibility = Visibility.Visible;
+    private int? _order;
+
+    /// <summary>
+    /// Handles changes to the column's dependency properties.
     /// </summary>
     private static void OnPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
+        if (d is TableViewColumn changed)
+        {
+            if (e.Property == CellStyleProperty)
+                changed._hasCellStyleSource = false;
+            else if (e.Property == WidthProperty)
+                changed._width = (GridLength)e.NewValue;
+            else if (e.Property == MinWidthProperty)
+                changed._minWidth = (double?)e.NewValue;
+            else if (e.Property == MaxWidthProperty)
+                changed._maxWidth = (double?)e.NewValue;
+            else if (e.Property == ActualWidthProperty)
+                changed._actualWidth = (double)e.NewValue;
+            else if (e.Property == VisibilityProperty)
+                changed._visibility = (Visibility)e.NewValue;
+            else if (e.Property == OrderProperty)
+                changed._order = (int?)e.NewValue;
+        }
+
         if (d is TableViewColumn { OwningCollection: { } } column)
         {
             if (e.Property == CellStyleProperty)
@@ -583,10 +683,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     private static void OnCanFilterChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableViewColumn column && column.HeaderControl is not null)
-        {
-            column.HeaderControl.SetFilterButtonVisibility();
-        }
+        (d as TableViewColumn)?.ForEachHeader(static header => header.SetFilterButtonVisibility());
     }
 
     /// <summary>
@@ -594,10 +691,7 @@ public abstract partial class TableViewColumn : DependencyObject
     /// </summary>
     private static void OnCanSortChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TableViewColumn column && column.HeaderControl is not null)
-        {
-            column.HeaderControl.OnSortDirectionChanged();
-        }
+        (d as TableViewColumn)?.ForEachHeader(static header => header.OnSortDirectionChanged());
     }
 
     /// <summary>
@@ -713,5 +807,5 @@ public abstract partial class TableViewColumn : DependencyObject
     /// <summary>
     /// Identifies the <see cref="ConditionalCellStyles"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty ConditionalCellStylesProperty = DependencyProperty.Register(nameof(ConditionalCellStyles), typeof(IList<TableViewConditionalCellStyle>), typeof(TableViewColumn), new PropertyMetadata(default));
+    public static readonly DependencyProperty ConditionalCellStylesProperty = DependencyProperty.Register(nameof(ConditionalCellStyles), typeof(IList<TableViewConditionalCellStyle>), typeof(TableViewColumn), new PropertyMetadata(default, OnCellStyleSourceChanged));
 }

@@ -48,12 +48,28 @@
                 </VisualState>
                 <VisualState x:Name="Narrow">
                     <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="641" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="preview.Visibility" Value="Collapsed" />
+                        <Setter Target="previewColumn.Width" Value="0" />
+                        <Setter Target="hero.ColumnSpacing" Value="0" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="Phone">
+                    <VisualState.StateTriggers>
                         <AdaptiveTrigger MinWindowWidth="0" />
                     </VisualState.StateTriggers>
                     <VisualState.Setters>
                         <Setter Target="preview.Visibility" Value="Collapsed" />
                         <Setter Target="previewColumn.Width" Value="0" />
                         <Setter Target="hero.ColumnSpacing" Value="0" />
+                        <Setter Target="heroTextColumn.MinWidth" Value="0" />
+                        <Setter Target="hero.Padding" Value="20,24" />
+                        <Setter Target="content.Padding" Value="12,8,12,32" />
+                        <Setter Target="heroTitle.FontSize" Value="30" />
+                        <Setter Target="heroTitle.LineHeight" Value="38" />
+                        <Setter Target="heroButtons.Orientation" Value="Vertical" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
@@ -71,7 +87,8 @@
                   Padding="40,36"
                   Background="{ThemeResource HeroBackgroundBrush}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"
+                    <ColumnDefinition x:Name="heroTextColumn"
+                                      Width="*"
                                       MinWidth="320" />
                     <ColumnDefinition x:Name="previewColumn"
                                       Width="1.15*" />
@@ -94,7 +111,8 @@
                         <TextBlock Text="WinUI  ·  Uno Platform  ·  Native AOT"
                                    Style="{StaticResource CaptionTextBlockStyle}" />
                     </Border>
-                    <TextBlock Text="WinUI.TableView"
+                    <TextBlock x:Name="heroTitle"
+                               Text="WinUI.TableView"
                                FontSize="44"
                                FontWeight="SemiBold"
                                LineHeight="52" />
@@ -103,7 +121,8 @@
                                TextWrapping="Wrap"
                                Style="{StaticResource BodyLargeTextBlockStyle}"
                                Text="A fast, flexible data grid for WinUI and Uno Platform. Sort, filter, group and edit millions of rows, then restyle every header, row and cell to make it yours." />
-                    <StackPanel Orientation="Horizontal"
+                    <StackPanel x:Name="heroButtons"
+                                Orientation="Horizontal"
                                 Spacing="8"
                                 Margin="0,10,0,0">
                         <Button Content="Explore the showcases"

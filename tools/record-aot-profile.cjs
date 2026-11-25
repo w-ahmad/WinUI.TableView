@@ -185,12 +185,22 @@ function createNavigator(page) {
         for (let attempt = 0; attempt < 3; attempt++) {
             await fitMenu(page); // opening a page can expand its group, which lengthens the menu
             const item = await findMenuItem(page, name);
-            if (!item) {
-                console.log(`  (no '${name}' page in this sample - skipped)`);
-                return false;
-            }
             const before = await page.screenshot({ clip: titleClip });
-            await page.mouse.click(item.x, item.y);
+            if (item) {
+                await page.mouse.click(item.x, item.y);
+            } else {
+                // The accessibility layer does not report the pages inside a menu group; the search box opens them.
+                const search = await findMenuItem(page, "Search samples");
+                if (!search) {
+                    console.log(`  (no '${name}' page in this sample - skipped)`);
+                    return false;
+                }
+                await page.mouse.click(search.x, search.y);
+                await page.keyboard.press("Control+A");
+                await page.keyboard.type(name);
+                await page.waitForTimeout(500);
+                await page.keyboard.press("Enter");
+            }
             await page.waitForTimeout(2000);
             if (!before.equals(await page.screenshot({ clip: titleClip }))) {
                 current = name;
@@ -217,16 +227,27 @@ async function wheel(page, steps, delta = 80) {
     }
 }
 
-// Scrolls every common page's templates, jumps deep into the 10,000-row table, groups and expands a group,
-// and toggles the theme, so row create/recycle paths dominate the recording.
+// Shift turns the wheel sideways, in the browser or in the table.
+async function wheelSideways(page, steps, delta) {
+    await page.mouse.move(600, 450);
+    await page.keyboard.down("Shift");
+    for (let step = 0; step < steps; step++) {
+        await page.mouse.wheel(0, delta);
+        await new Promise(resolve => setTimeout(resolve, 16));
+    }
+    await page.keyboard.up("Shift");
+}
+
+// Scrolls every common page's templates, jumps deep into the 10,000-row table, scrolls a wide table sideways,
+// groups and expands a group, and toggles the theme, so row and cell create/recycle paths dominate the recording.
 async function recordScrolling(page, navigate) {
     await wheel(page, 20); // Home, the landing page
-    for (const name of ["Overview", "Sales Pipeline", "Market Watchlist", "Issue Tracker", "Inbox", "Grid Lines", "Grouping", "Virtualization", "Selection", "Corner Button", "Alternate Row Color",
+    for (const name of ["Overview", "Sales Pipeline", "Market Watchlist", "Issue Tracker", "Inbox", "Grid Lines", "Grouping", "Row Virtualization", "Selection", "Corner Button", "Alternate Row Color",
         "Context Flyouts", "Row Reorder", "Column Reorder", "Pagination", "Incremental Loading", "Editing", "Clipboard Actions", "Data Export",
         "Conditional Cell Styling", "Column Sizing", "Star Columns", "Headers Visibility"]) {
         if (await navigate(name)) await wheel(page, 20);
     }
-    if (await navigate("Virtualization")) { // jump to row 5000 through the page's own controls
+    if (await navigate("Row Virtualization")) { // jump to row 5000 through the page's own controls
         await page.mouse.click(920, 283);
         await page.mouse.click(1020, 283);
         await page.mouse.click(940, 359);
@@ -235,6 +256,13 @@ async function recordScrolling(page, navigate) {
         await page.keyboard.press("Enter");
         await page.mouse.click(1068, 359);
         await page.waitForTimeout(1000);
+    }
+    if (await navigate("Column Virtualization")) { // cells and headers are handed from column to column
+        await page.waitForTimeout(1500);
+        await wheelSideways(page, 60, 400); // a column or so at a time
+        await wheelSideways(page, 20, 4000); // most of the columns in view at once
+        await wheelSideways(page, 20, -4000);
+        await wheel(page, 10);
     }
     if (await navigate("Grouping")) {
         await page.mouse.click(1000, 500); // "Group by last name"

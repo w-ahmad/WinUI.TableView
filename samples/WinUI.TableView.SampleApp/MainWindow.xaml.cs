@@ -96,6 +96,25 @@ public sealed partial class MainWindow : Window
         loadingIndicator.Visibility = isLoading ? Visibility.Visible : Visibility.Collapsed;
     }
 
+    private void OnNavigationDisplayModeChanged(NavigationView sender, NavigationViewDisplayModeChangedEventArgs args)
+    {
+#if !WINDOWS
+        // With no title bar, the menu button of the minimal mode sits over the top of the page.
+        rootFrame.Margin = new Thickness(0, args.DisplayMode is NavigationViewDisplayMode.Minimal ? 44 : 0, 0, 0);
+#endif
+    }
+
+#if !WINDOWS
+    private void OnNavigationPaneOpened(NavigationView sender, object args)
+    {
+        // Opening the menu focuses the search box, which brings up the on-screen keyboard on a phone.
+        if (sender.DisplayMode is NavigationViewDisplayMode.Minimal)
+        {
+            (sender.SelectedItem as Control ?? _homeNavItem)?.Focus(FocusState.Programmatic);
+        }
+    }
+#endif
+
     private void TitleBar_PaneToggleRequested(TitleBar sender, object args)
     {
         navigationView.IsPaneOpen = !navigationView.IsPaneOpen;

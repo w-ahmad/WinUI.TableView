@@ -50,8 +50,9 @@ public class TableViewHeaderCullingTests
                 Assert.Inconclusive("This renderer does not compose element visuals.");
             }
 
-            var headers = tableView.FindDescendants().OfType<TableViewColumnHeader>().ToDictionary(x => x.Column!);
-            bool IsShown(int column) => ElementVisuals.Get(headers[(TableViewColumn)tableView.Columns[column]])!.Opacity > 0f;
+            // A column far out of view has no header at all; one just outside the viewport has a hidden one.
+            bool IsShown(int column) => ((TableViewColumn)tableView.Columns[column]).HeaderControl is { } header
+                                        && ElementVisuals.Get(header)!.Opacity > 0f;
 
             Assert.IsTrue(IsShown(0), "the frozen header is shown");
             Assert.IsTrue(IsShown(1), "the first scrollable header is in view");

@@ -7,7 +7,6 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Windows.Foundation;
 using WinUI.TableView.Extensions;
 using WinUI.TableView.Helpers;
@@ -28,8 +27,8 @@ public partial class TableViewRowPresenter : Control
     private double _rowNumberMinWidth;
     private int _rowNumber = int.MinValue;
     private Panel? _rootPanel;
-    private StackPanel? _scrollableCellsPanel;
-    private StackPanel? _frozenCellsPanel;
+    private Panel? _scrollableCellsPanel; // a custom template may still use a StackPanel
+    private Panel? _frozenCellsPanel;
     private FrameworkElement? _v_gridLine;
     private Border? _h_gridLine;
     private FrameworkElement? _h_gridLineSpace;
@@ -42,6 +41,7 @@ public partial class TableViewRowPresenter : Control
     private RectangleGeometry? _detailsPanelClip;
     private RectangleGeometry? _scrollableCellsClip;
     private TableViewCell[]? _cells;
+    private readonly Dictionary<(TableViewColumn Column, int Occurrence), TableViewCell> _cellsByColumn = [];
 
     private const double MultiSelectInset = 44d;
 
@@ -73,8 +73,8 @@ public partial class TableViewRowPresenter : Control
         _rowNumberMinWidth = _rowNumberText?.MinWidth ?? 0d;
         _rowNumber = int.MinValue;
         _rootPanel = GetTemplateChild("RootPanel") as Panel;
-        _scrollableCellsPanel = GetTemplateChild("ScrollableCellsPanel") as StackPanel;
-        _frozenCellsPanel = GetTemplateChild("FrozenCellsPanel") as StackPanel;
+        _scrollableCellsPanel = GetTemplateChild("ScrollableCellsPanel") as Panel;
+        _frozenCellsPanel = GetTemplateChild("FrozenCellsPanel") as Panel;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as FrameworkElement;
         _h_gridLine = GetTemplateChild("HorizontalGridLine") as Border;
         _detailsGridLine = GetTemplateChild("DetailsGridLine") as FrameworkElement;
@@ -83,10 +83,15 @@ public partial class TableViewRowPresenter : Control
         _detailsPresenter = GetTemplateChild("DetailsPresenter") as FrameworkElement;
         _detailsToggleButton = GetTemplateChild("DetailsToggleButton") as ToggleButton;
         _indentPlaceholder = GetTemplateChild("IndentPlaceholder") as Border;
+        // Cells of a template that has been replaced are in panels that are gone.
+        var hadCells = _cellsByColumn.Count > 0;
+        _cellsByColumn.Clear();
+        _spareCells.Clear();
         _cells = null;
 
         TableViewRow = this.FindAscendant<TableViewRow>();
         TableView = TableViewRow?.TableView;
+        (_scrollableCellsPanel as TableViewCellsPanel)?.TableView = TableView;
         _rowHeader?.TableView = TableView;
         _rowHeader?.TableViewRow = TableViewRow;
 
@@ -100,6 +105,13 @@ public partial class TableViewRowPresenter : Control
         }
 
         TableViewRow?.EnsureCells();
+
+        if (hadCells)
+        {
+            ClearCells();
+            SyncCells();
+        }
+
         EnsureGridLines();
         SetRowHeaderHeights();
         SetRowHeaderVisibility();
@@ -167,10 +179,23 @@ public partial class TableViewRowPresenter : Control
         // Content lays out just before its column scrolls into view, not on the frame it appears.
         const double LayoutLead = 200d;
 
+        var columns = TableView.Columns as TableViewColumnsCollection;
+        var firstOffset = columns?.GetVisibleColumnOffset(Math.Clamp(TableView.FrozenColumnCount, 0, columns.VisibleColumns.Count)) ?? 0d;
+
         foreach (var cell in _scrollableCellsPanel.Children)
         {
-            var x = cell.ActualOffset.X;
+            var x = (double)cell.ActualOffset.X;
             var right = x + cell.ActualSize.X;
+
+            // A cell that has just been given its column is not arranged there yet; the column says where it will be.
+            if (columns is not null
+                && cell is TableViewCell { Column: { } column } columnCell
+                && columns.GetVisibleColumnIndex(column, columnCell.ColumnOccurrence) is >= 0 and var index)
+            {
+                x = columns.GetVisibleColumnOffset(index) - firstOffset;
+                right = columns.GetVisibleColumnOffset(index + 1) - firstOffset;
+            }
+
             SetCellInView(
                 cell,
                 isInView: !cullCells || (right >= start && x <= end),
@@ -553,7 +578,7 @@ public partial class TableViewRowPresenter : Control
     }
 
     /// <summary>
-    /// Sets the displayed row number and <see cref="TableViewRowHeader.Tag"/>, which a custom
+    /// Sets the displayed row number and the row header's <see cref="FrameworkElement.Tag"/>, which a custom
     /// <see cref="TableView.RowHeaderTemplate"/> can bind to whether or not the number is shown.
     /// </summary>
     internal void SetRowNumber()
@@ -677,54 +702,292 @@ public partial class TableViewRowPresenter : Control
     }
 
     /// <summary>
-    /// Inserts a cell at the specified index.
+    /// Brings the cells in line with the columns: one for every frozen column, and one for every scrollable column
+    /// in or near the viewport (see <see cref="TableView.RealizedColumns"/>).
+    /// </summary>
+    /// <remarks>
+    /// A cell whose column has gone out of view is reused for a column that has come into view. A scrollable panel
+    /// that is not a <see cref="TableViewCellsPanel"/>, as in a custom template, keeps a cell for every column.
+    /// </remarks>
+    internal void SyncCells()
+    {
+        if (TableView is null || TableViewRow is null || _scrollableCellsPanel is null || _frozenCellsPanel is null)
+        {
+            return;
+        }
+
+        var columns = (TableViewColumnsCollection)TableView.Columns;
+        var visibleColumns = columns.VisibleColumns;
+        var count = visibleColumns.Count;
+        var frozenCount = Math.Clamp(TableView.FrozenColumnCount, 0, count);
+        var (first, last) = _scrollableCellsPanel is TableViewCellsPanel ? TableView.RealizedColumns : (frozenCount, count - 1);
+        var pinned = TableViewRow.GetPinnedColumnIndex();
+        var changed = false;
+        var frozenChanged = false;
+
+        // Cells whose column is gone, out of view, or now on the other side of the frozen boundary.
+        _leavingCells.Clear();
+
+        foreach (var cell in Cells)
+        {
+            var index = cell.Column is { } column ? columns.GetVisibleColumnIndex(column, cell.ColumnOccurrence) : -1;
+            var isWanted = index >= 0 && (index < frozenCount || (index >= first && index <= last) || index == pinned);
+
+            if (!isWanted || cell.IsInFrozenPanel != (index < frozenCount))
+            {
+                _leavingCells.Add(cell);
+            }
+            else if (cell.Index != index)
+            {
+                cell.Index = index;
+                ApplyCellState(cell); // selection and the current cell go by index
+                frozenChanged |= cell.IsInFrozenPanel;
+                changed = true;
+            }
+        }
+
+        foreach (var cell in _leavingCells)
+        {
+            Forget(cell);
+        }
+
+        for (var i = 0; i < frozenCount; i++)
+        {
+            changed |= EnsureCell(visibleColumns[i], i, isFrozen: true, ref frozenChanged);
+        }
+
+        for (var i = Math.Max(first, frozenCount); i <= last && i < count; i++)
+        {
+            changed |= EnsureCell(visibleColumns[i], i, isFrozen: false, ref frozenChanged);
+        }
+
+        if (pinned >= frozenCount && pinned < count)
+        {
+            changed |= EnsureCell(visibleColumns[pinned], pinned, isFrozen: false, ref frozenChanged);
+        }
+
+        // Cells no column took over.
+        foreach (var cell in _leavingCells)
+        {
+            frozenChanged |= cell.IsInFrozenPanel;
+            (cell.IsInFrozenPanel ? _frozenCellsPanel : _scrollableCellsPanel).Children.Remove(cell);
+            _spareCells.Add(cell);
+            changed = true;
+        }
+
+        _leavingCells.Clear();
+        _syncedCellCount = _cellsByColumn.Count;
+
+        if (_spareCells.Count > MaxSpareCells)
+        {
+            _spareCells.RemoveRange(MaxSpareCells, _spareCells.Count - MaxSpareCells);
+        }
+
+        if (changed)
+        {
+            _cells = null;
+
+            if (frozenChanged)
+            {
+                EnsureStackOrder(_frozenCellsPanel, isFrozen: true);
+            }
+
+            EnsureStackOrder(_scrollableCellsPanel, isFrozen: false);
+            _scrollableCellsPanel.InvalidateArrange();
+            InvalidateMeasure();
+        }
+    }
+
+    // Cells whose column no longer needs one, while the cells are being synced.
+    private readonly List<TableViewCell> _leavingCells = [];
+
+    // Cells kept for reuse between syncs; a sideways scroll trades a few columns at a time.
+    private const int MaxSpareCells = 8;
+    private const int MaxCellsOnDemand = 32;
+    private int _syncedCellCount;
+    private readonly List<TableViewCell> _spareCells = [];
+
+    /// <summary>
+    /// Gives a column a cell if it has none: one that is leaving the same panel, where it stays, else a spare
+    /// one, else a new one.
+    /// </summary>
+    private bool EnsureCell(TableViewColumn column, int index, bool isFrozen, ref bool frozenChanged)
+    {
+        var occurrence = TableView?.Columns is TableViewColumnsCollection columns ? columns.GetColumnOccurrence(index) : 0;
+
+        if (TableViewRow is null || _cellsByColumn.ContainsKey((column, occurrence)))
+        {
+            return false;
+        }
+
+        for (var i = _leavingCells.Count - 1; i >= 0; i--)
+        {
+            var leaving = _leavingCells[i];
+
+            if (leaving.IsInFrozenPanel == isFrozen)
+            {
+                _leavingCells.RemoveAt(i);
+                leaving.ColumnOccurrence = occurrence;
+                leaving.Reuse(column, index, wasDetached: false);
+                _cellsByColumn[(column, occurrence)] = leaving;
+                ApplyCellState(leaving);
+                frozenChanged |= isFrozen;
+
+                return true;
+            }
+        }
+
+        TableViewCell cell;
+
+        if (_spareCells.Count > 0)
+        {
+            cell = _spareCells[^1];
+            _spareCells.RemoveAt(_spareCells.Count - 1);
+            cell.ColumnOccurrence = occurrence;
+            cell.Reuse(column, index, wasDetached: true);
+        }
+        else
+        {
+            cell = TableViewRow.CreateCell(column, index);
+            cell.ColumnOccurrence = occurrence;
+        }
+
+        frozenChanged |= isFrozen;
+        AttachCell(cell, isFrozen);
+
+        return true;
+    }
+
+    private void ApplyCellState(TableViewCell cell)
+    {
+        cell.EnsureStyle(TableViewRow?.Content);
+        cell.ApplySelectionState();
+        cell.ApplyCurrentVisualState();
+    }
+
+    /// <summary>
+    /// Creates the cell of a column that is out of view. It stays until the cells are next synced.
+    /// </summary>
+    internal TableViewCell? RealizeCell(int columnIndex)
+    {
+        if (TableView is null || columnIndex < 0 || columnIndex >= TableView.Columns.VisibleColumns.Count)
+        {
+            return null;
+        }
+
+        var column = TableView.Columns.VisibleColumns[columnIndex];
+
+        // Cells created on demand stay until the next sync; a caller asking for column after column gets one.
+        if (_cellsByColumn.Count >= _syncedCellCount + MaxCellsOnDemand)
+        {
+            SyncCells();
+        }
+
+        var frozenChanged = false;
+
+        if (EnsureCell(column, columnIndex, isFrozen: columnIndex < TableView.FrozenColumnCount, ref frozenChanged))
+        {
+            _cells = null;
+            _scrollableCellsPanel?.InvalidateArrange();
+        }
+
+        return GetCell(column, ((TableViewColumnsCollection)TableView.Columns).GetColumnOccurrence(columnIndex));
+    }
+
+    // Takes a cell out of the lookup, unless another cell has taken its place there.
+    private void Forget(TableViewCell cell)
+    {
+        if (cell.Column is { } column
+            && _cellsByColumn.TryGetValue((column, cell.ColumnOccurrence), out var current)
+            && ReferenceEquals(current, cell))
+        {
+            _cellsByColumn.Remove((column, cell.ColumnOccurrence));
+        }
+    }
+
+    private void AttachCell(TableViewCell cell, bool isFrozen)
+    {
+        if (cell.Column is not { } column)
+        {
+            return;
+        }
+
+        cell.IsInFrozenPanel = isFrozen;
+        (isFrozen ? _frozenCellsPanel : _scrollableCellsPanel)?.Children.Add(cell);
+        _cellsByColumn[(column, cell.ColumnOccurrence)] = cell;
+        _cells = null;
+
+        ApplyCellState(cell);
+    }
+
+    private void DetachCell(TableViewCell cell)
+    {
+        (cell.IsInFrozenPanel ? _frozenCellsPanel : _scrollableCellsPanel)?.Children.Remove(cell);
+        Forget(cell);
+
+        _cells = null;
+    }
+
+    /// <summary>
+    /// Puts the cells of a panel that stacks its children in column order. A <see cref="TableViewCellsPanel"/>
+    /// places cells by their column and needs no order.
+    /// </summary>
+    private void EnsureStackOrder(Panel panel, bool isFrozen)
+    {
+        if (panel is TableViewCellsPanel)
+        {
+            return;
+        }
+
+        var position = 0;
+        var inOrder = true;
+
+        foreach (var cell in Cells)
+        {
+            if (cell.IsInFrozenPanel == isFrozen)
+            {
+                if (position >= panel.Children.Count || !ReferenceEquals(panel.Children[position], cell))
+                {
+                    inOrder = false;
+                    break;
+                }
+
+                position++;
+            }
+        }
+
+        if (inOrder && position == panel.Children.Count)
+        {
+            return;
+        }
+
+        panel.Children.Clear();
+
+        foreach (var cell in Cells)
+        {
+            if (cell.IsInFrozenPanel == isFrozen)
+            {
+                panel.Children.Add(cell);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Inserts a cell at the place of its column.
     /// </summary>
     /// <param name="cell">The cell to insert.</param>
     public void InsertCell(TableViewCell cell)
     {
-        if (TableView is null || cell is not { Column: { } column }) return;
+        if (TableView is null || cell is not { Column: { } column } || _frozenCellsPanel is null || _scrollableCellsPanel is null) return;
 
-        var _frozenColumns = TableView.Columns.VisibleColumns.Where(x => x.IsFrozen).ToList();
-        var _scrollableColumns = TableView.Columns.VisibleColumns.Where(x => !x.IsFrozen).ToList();
-
-        if (cell is { Column.IsFrozen: true } && _frozenCellsPanel is not null)
+        if (_cellsByColumn.TryGetValue((column, cell.ColumnOccurrence), out var existing))
         {
-            var index = _frozenColumns.IndexOf(column);
-            index = Math.Min(index, _frozenColumns.Count);
-            index = Math.Max(index, 0); // handles -ve index;
-
-            _frozenCellsPanel.Children.Insert(index, cell);
-        }
-        else if (_scrollableCellsPanel is not null)
-        {
-            var index = _scrollableColumns.IndexOf(column);
-            index = Math.Min(index, _scrollableColumns.Count);
-            index = Math.Max(index, 0); // handles -ve index;
-
-            _scrollableCellsPanel.Children.Insert(index, cell);
+            DetachCell(existing);
         }
 
-        _cells = null;
-        cell.EnsureStyle(TableViewRow?.Content);
-    }
-
-    /// <summary>
-    /// Adds cells to the presenter in the order given, which must be the visible column order.
-    /// </summary>
-    /// <remarks>
-    /// Building a row this way is linear in the number of columns, where inserting cell by cell looks each
-    /// column's position up among the visible columns.
-    /// </remarks>
-    internal void AppendCells(IEnumerable<TableViewCell> cells)
-    {
-        foreach (var cell in cells)
-        {
-            var panel = cell.Column?.IsFrozen is true ? _frozenCellsPanel : _scrollableCellsPanel;
-            panel?.Children.Add(cell);
-            cell.EnsureStyle(TableViewRow?.Content);
-        }
-
-        _cells = null;
+        AttachCell(cell, column.IsFrozen);
+        EnsureStackOrder(_frozenCellsPanel, isFrozen: true);
+        EnsureStackOrder(_scrollableCellsPanel, isFrozen: false);
     }
 
     /// <summary>
@@ -733,57 +996,7 @@ public partial class TableViewRowPresenter : Control
     /// <param name="cell">The cell to remove.</param>
     public void RemoveCell(TableViewCell cell)
     {
-        if (_frozenCellsPanel?.Children.Contains(cell) ?? false)
-        {
-            _frozenCellsPanel.Children.Remove(cell);
-        }
-        else if (_scrollableCellsPanel?.Children.Contains(cell) ?? false)
-        {
-            _scrollableCellsPanel.Children.Remove(cell);
-        }
-
-        _cells = null;
-    }
-
-    /// <summary>
-    /// Moves the cell associated with the specified column to a new index.
-    /// </summary>
-    /// <param name="column">The column associated with the cell to move.</param>
-    /// <param name="newIndex">The new index to move the cell to.</param>
-    internal void MoveCells(TableViewColumn column, int newIndex)
-    {
-        if (Cells.FirstOrDefault(h => h.Column == column) is { } cell)
-        {
-            RemoveCell(cell);
-            InsertCell(cell);
-        }
-
-        if (newIndex >= 0 && newIndex < TableView?.FrozenColumnCount &&
-           _frozenCellsPanel?.Children.OfType<TableViewCell>().LastOrDefault() is { } frozenCell)
-        {
-            RemoveCell(frozenCell);
-            InsertCell(frozenCell);
-        }
-
-        UpdateCellIndexes();
-    }
-
-    /// <summary>
-    /// Updates the indexes of all cells in the presenter.
-    /// </summary>
-    private void UpdateCellIndexes()
-    {
-        if (TableView is null) return;
-
-        foreach (var cell in Cells)
-        {
-            if (cell.Column is not null)
-            {
-                var index = TableView.Columns.VisibleColumns.IndexOf(cell.Column);
-                if (cell.Index != index)
-                    cell.Index = index;
-            }
-        }
+        DetachCell(cell);
     }
 
     /// <summary>
@@ -793,41 +1006,48 @@ public partial class TableViewRowPresenter : Control
     {
         _frozenCellsPanel?.Children.Clear();
         _scrollableCellsPanel?.Children.Clear();
+        _cellsByColumn.Clear();
+        _spareCells.Clear();
         _cells = null;
     }
 
     /// <summary>
-    /// Gets the list of cells in the presenter.
+    /// Gets the list of cells in the presenter, in column order.
     /// </summary>
     /// <remarks>
-    /// Kept until the cells change, since it is read several times for every row the table shows. A change builds
-    /// a new list rather than altering this one, so a caller enumerating it is not disturbed.
+    /// Only the columns in or near the viewport have cells. The list is kept until the cells change, since it is
+    /// read several times for every row the table shows. A change builds a new list rather than altering this
+    /// one, so a caller enumerating it is not disturbed.
     /// </remarks>
     public IReadOnlyList<TableViewCell> Cells => _cells ??= CollectCells();
 
     /// <summary>
-    /// Collects the cells of the frozen and then the scrollable panel, in display order.
+    /// Gets the cell the row shows for a column, or null when it has none.
+    /// </summary>
+    internal TableViewCell? GetCell(TableViewColumn column, int occurrence = 0)
+    {
+        return _cellsByColumn.TryGetValue((column, occurrence), out var cell) ? cell : null;
+    }
+
+    /// <summary>
+    /// Collects the cells in column order, which puts the frozen ones first.
     /// </summary>
     private TableViewCell[] CollectCells()
     {
-        var cells = new List<TableViewCell>((_frozenCellsPanel?.Children.Count ?? 0) + (_scrollableCellsPanel?.Children.Count ?? 0));
-        AddCellsOf(_frozenCellsPanel, cells);
-        AddCellsOf(_scrollableCellsPanel, cells);
+        var cells = new TableViewCell[_cellsByColumn.Count];
+        _cellsByColumn.Values.CopyTo(cells, 0);
 
-        return [.. cells];
-
-        static void AddCellsOf(Panel? panel, List<TableViewCell> cells)
+        if (TableView?.Columns is TableViewColumnsCollection columns)
         {
-            if (panel is null) return;
+            Array.Sort(cells, (x, y) => GetOrder(x).CompareTo(GetOrder(y)));
 
-            foreach (var child in panel.Children)
+            int GetOrder(TableViewCell cell)
             {
-                if (child is TableViewCell cell)
-                {
-                    cells.Add(cell);
-                }
+                return cell.Column is { } column && columns.GetVisibleColumnIndex(column, cell.ColumnOccurrence) is >= 0 and var index ? index : int.MaxValue;
             }
         }
+
+        return cells;
     }
 
     /// <summary>

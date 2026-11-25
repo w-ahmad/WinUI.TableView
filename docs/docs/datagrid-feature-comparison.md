@@ -70,6 +70,7 @@ WinUI.TableView is actively maintained and continues to add new features based o
 | Accessibility / Narrator | Not verified | ✅ | ✅ |  |
 | Validation | ✅ | ❌ | ❌ | WPF has strong cell and row validation support. TableView editing events may help. |
 | Row virtualization | ✅ | ✅ | ✅ |  |
+| Column virtualization | ✅ | ✅ | ✅ | TableView creates cells and headers only for the columns in or near the viewport. |
 
 | Value | Meaning | 
 |---|---|

@@ -37,8 +37,10 @@ public partial class TableViewHeaderRow : Control
     private bool _isSyncingSelectAllCheckBox;
     private FrameworkElement? _v_gridLine;
     private FrameworkElement? _h_gridLine;
-    private StackPanel? _frozenHeadersPanel;
-    private StackPanel? _scrollableHeadersPanel;
+    private Panel? _frozenHeadersPanel; // a custom template may use a StackPanel for either
+    private Panel? _scrollableHeadersPanel;
+    private readonly Dictionary<(TableViewColumn Column, int Occurrence), TableViewColumnHeader> _headersByColumn = [];
+    private readonly List<TableViewColumnHeader> _leavingHeaders = [];
     private Border? _columnDropIndicator;
     private TranslateTransform? _columnDropIndicatorTransform;
     private Image? _dragHeaderImage;
@@ -74,8 +76,9 @@ public partial class TableViewHeaderRow : Control
         _selectAllCheckBox = GetTemplateChild("selectAllCheckBox") as CheckBox;
         _v_gridLine = GetTemplateChild("VerticalGridLine") as FrameworkElement;
         _h_gridLine = GetTemplateChild("HorizontalGridLine") as FrameworkElement;
-        _frozenHeadersPanel = GetTemplateChild("FrozenHeadersPanel") as StackPanel;
-        _scrollableHeadersPanel = GetTemplateChild("ScrollableHeadersPanel") as StackPanel;
+        _frozenHeadersPanel = GetTemplateChild("FrozenHeadersPanel") as Panel;
+        _scrollableHeadersPanel = GetTemplateChild("ScrollableHeadersPanel") as Panel;
+        ForgetHeaders(); // those of the previous template
 #if !WINDOWS
         // Uno re-arranges a resized panel at its layout slot without calling this ArrangeOverride, dropping the scroll offset.
         _scrollableHeadersPanel?.SizeChanged += (_, _) => InvalidateArrange();
@@ -93,9 +96,12 @@ public partial class TableViewHeaderRow : Control
         _selectAllCheckBox?.Checked += OnSelectAllCheckBoxChecked;
         _selectAllCheckBox?.Unchecked += OnSelectAllCheckBoxUnchecked;
 
+        (_scrollableHeadersPanel as TableViewCellsPanel)?.TableView = TableView;
+
         if (TableView.Columns is not null)
         {
-            AddHeaders(TableView.Columns.VisibleColumns);
+            SyncHeaders();
+            CalculateHeaderWidths();
         }
 
         _cornerButtonPanel?.SetBinding(WidthProperty, new Binding
@@ -176,10 +182,24 @@ public partial class TableViewHeaderRow : Control
         var end = start + ActualWidth - (_frozenHeadersPanel.ActualOffset.X + _frozenHeadersPanel.ActualWidth);
         cullHeaders &= ActualWidth > 0d;
 
+        var columns = TableView.Columns as TableViewColumnsCollection;
+        var firstOffset = columns?.GetVisibleColumnOffset(Math.Clamp(TableView.FrozenColumnCount, 0, columns.VisibleColumns.Count)) ?? 0d;
+
         foreach (var header in _scrollableHeadersPanel.Children)
         {
-            var x = header.ActualOffset.X;
-            ElementVisuals.SetInView(header, isInView: !cullHeaders || (x + header.ActualSize.X >= start && x <= end));
+            var x = (double)header.ActualOffset.X;
+            var right = x + header.ActualSize.X;
+
+            // A header that has just been given its column is not arranged there yet; the column says where it will be.
+            if (columns is not null
+                && header is TableViewColumnHeader { Column: { } column } columnHeader
+                && columns.GetVisibleColumnIndex(column, columnHeader.ColumnOccurrence) is >= 0 and var index)
+            {
+                x = columns.GetVisibleColumnOffset(index) - firstOffset;
+                right = columns.GetVisibleColumnOffset(index + 1) - firstOffset;
+            }
+
+            ElementVisuals.SetInView(header, isInView: !cullHeaders || (right >= start && x <= end));
         }
     }
 #endif
@@ -189,43 +209,11 @@ public partial class TableViewHeaderRow : Control
     /// </summary>
     private void OnTableViewColumnsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems?.OfType<TableViewColumn>() is IEnumerable<TableViewColumn> newItems)
-        {
-            AddHeaders(newItems.Where(x => x.Visibility == Visibility.Visible));
-        }
-        else if (e.Action == NotifyCollectionChangedAction.Remove && e.OldItems?.OfType<TableViewColumn>() is IEnumerable<TableViewColumn> oldItems)
-        {
-            RemoveHeaders(oldItems);
-        }
-        else if (e.Action == NotifyCollectionChangedAction.Move && e.NewItems?.Count > 0)
-        {
-            MoveHeaders(e.NewItems.OfType<TableViewColumn>().First(), e.NewStartingIndex);
-        }
-        else if (e.Action == NotifyCollectionChangedAction.Reset && _scrollableHeadersPanel is not null)
-        {
-            ClearHeaders();
-        }
-    }
+        SyncHeaders(reordered: e.Action is NotifyCollectionChangedAction.Move);
 
-    /// <summary>
-    /// Moves the header associated with the specified column to a new index.
-    /// </summary>
-    /// <param name="column">The column associated with the header to move.</param>
-    /// <param name="newIndex">The new index to move the header to.</param>
-
-    private void MoveHeaders(TableViewColumn column, int newIndex)
-    {
-        if (Headers.FirstOrDefault(h => h.Column == column) is { } header)
+        if (e.Action is not NotifyCollectionChangedAction.Move)
         {
-            RemoveFromPanel(header);
-            InsertHeader(header);
-        }
-
-        if (newIndex >= 0 && newIndex < TableView?.FrozenColumnCount &&
-            _frozenHeadersPanel?.Children.OfType<TableViewColumnHeader>().LastOrDefault() is { } frozenHeader)
-        {
-            RemoveFromPanel(frozenHeader);
-            InsertHeader(frozenHeader);
+            CalculateHeaderWidths();
         }
     }
 
@@ -236,24 +224,16 @@ public partial class TableViewHeaderRow : Control
     {
         if (e.PropertyName is nameof(TableViewColumn.Visibility))
         {
-            if (e.Column.Visibility == Visibility.Visible)
-            {
-                AddHeaders([e.Column]);
-            }
-            else
-            {
-                RemoveHeaders([e.Column]);
-
-                // Star columns share the width the hidden column leaves; AddHeaders does this for the other direction.
-                CalculateHeaderWidths();
-            }
+            // Star columns share the width a hidden column leaves, and give it back to one that is shown.
+            SyncHeaders();
+            CalculateHeaderWidths();
         }
         else if ((e.PropertyName is nameof(TableViewColumn.Order) ||
             e.PropertyName is nameof(TableViewColumn.IsFrozen)) &&
             e.Column.Visibility is Visibility.Visible)
         {
-            RemoveHeaders([e.Column]);
-            AddHeaders([e.Column]);
+            SyncHeaders(reordered: true);
+            CalculateHeaderWidths();
         }
         else if (e.PropertyName is nameof(TableViewColumn.Width) or
                                    nameof(TableViewColumn.MinWidth) or
@@ -262,6 +242,20 @@ public partial class TableViewHeaderRow : Control
             if (!_calculatingHeaderWidths)
             {
                 CalculateHeaderWidths();
+            }
+        }
+        else if (e.PropertyName is nameof(TableViewColumn.ActualWidth))
+        {
+            // A column added twice is sized through its first header; the others follow.
+            if (TableView?.Columns is TableViewColumnsCollection { HasDuplicateColumns: true })
+            {
+                foreach (var header in _headersByColumn.Values)
+                {
+                    if (header.Column == e.Column && header.ColumnOccurrence > 0 && header.Width != e.Column.ActualWidth)
+                    {
+                        header.Width = e.Column.ActualWidth;
+                    }
+                }
             }
         }
         else if (e.PropertyName is nameof(TableViewColumn.DesiredWidth))
@@ -301,22 +295,140 @@ public partial class TableViewHeaderRow : Control
     }
 
     /// <summary>
-    /// Removes headers for the specified columns.
+    /// Brings the headers in line with the columns: one for every frozen column, and one for every scrollable
+    /// column in or near the viewport (see <see cref="TableView.RealizedColumns"/>).
     /// </summary>
-    private void RemoveHeaders(IEnumerable<TableViewColumn> columns)
+    /// <remarks>
+    /// A scrollable panel that is not a <see cref="TableViewCellsPanel"/>, as in a custom template, keeps a header
+    /// for every column. Headers out of view are kept while a column is being resized or dragged.
+    /// </remarks>
+    /// <param name="reordered">Whether the columns may have changed places, which moves headers that stay.</param>
+    internal void SyncHeaders(bool reordered = false)
     {
-        foreach (var column in columns)
+        if (TableView is null || _scrollableHeadersPanel is null || _frozenHeadersPanel is null)
         {
-            var header = Headers.FirstOrDefault(x => x.Column == column);
-            if (header is not null)
+            return;
+        }
+
+        var columns = (TableViewColumnsCollection)TableView.Columns;
+        var visibleColumns = columns.VisibleColumns;
+        var count = visibleColumns.Count;
+        var frozenCount = Math.Clamp(TableView.FrozenColumnCount, 0, count);
+        var (first, last) = _scrollableHeadersPanel is TableViewCellsPanel ? TableView.RealizedHeaderColumns : (frozenCount, count - 1);
+        var canRemove = !TableView.IsColumnResizing;
+        var changed = reordered;
+        var frozenChanged = reordered;
+
+        foreach (var header in _headersByColumn.Values)
+        {
+            canRemove &= !header.IsReordering;
+        }
+
+        // Headers whose column is gone, out of view, or now on the other side of the frozen boundary.
+        _leavingHeaders.Clear();
+
+        foreach (var header in Headers)
+        {
+            var index = header.Column is { } column ? columns.GetVisibleColumnIndex(column, header.ColumnOccurrence) : -1;
+            var isWanted = index >= 0 && (index < frozenCount || (index >= first && index <= last) || !canRemove);
+
+            if (!isWanted || header.IsInFrozenPanel != (index < frozenCount))
             {
-                RemoveHeader(header);
+                _leavingHeaders.Add(header);
+            }
+        }
+
+        foreach (var header in _leavingHeaders)
+        {
+            frozenChanged |= header.IsInFrozenPanel;
+            Forget(header);
+        }
+
+        for (var i = 0; i < count; i++)
+        {
+            if (i == frozenCount)
+            {
+                i = Math.Max(first, frozenCount);
             }
 
-            if (column.HeaderControl == header)
+            if (i >= count || (i >= frozenCount && i > last))
             {
-                column.HeaderControl = null;
+                break;
             }
+
+            var column = visibleColumns[i];
+
+            var occurrence = columns.GetColumnOccurrence(i);
+
+            if (_headersByColumn.ContainsKey((column, occurrence)))
+            {
+                continue;
+            }
+
+            var isFrozen = i < frozenCount;
+            TableViewColumnHeader? header = null;
+
+            // A header that is leaving the same panel stays there and takes over the column.
+            for (var j = _leavingHeaders.Count - 1; j >= 0; j--)
+            {
+                if (_leavingHeaders[j].IsInFrozenPanel == isFrozen)
+                {
+                    header = _leavingHeaders[j];
+                    _leavingHeaders.RemoveAt(j);
+                    header.ColumnOccurrence = occurrence;
+                    header.Reuse(column);
+                    break;
+                }
+            }
+
+            if (header is null)
+            {
+                header = new TableViewColumnHeader { DataContext = column, Column = column, Content = column.Header, ColumnOccurrence = occurrence };
+
+                // A column that has been sized keeps its width; a new one is sized with the others.
+                if (column.ActualWidth > 0d)
+                {
+                    header.Width = column.ActualWidth;
+                }
+
+                AddToPanel(header, isFrozen);
+            }
+
+            // A column added twice goes by its first header.
+            if (occurrence == 0)
+            {
+                column.HeaderControl = header;
+            }
+
+            _headersByColumn[(column, occurrence)] = header;
+
+            if (occurrence > 0)
+            {
+                column.EnsureHeaderStyle();
+            }
+
+            frozenChanged |= isFrozen;
+            changed = true;
+        }
+
+        // Headers no column took over.
+        foreach (var header in _leavingHeaders)
+        {
+            RemoveFromPanel(header);
+            changed = true;
+        }
+
+        _leavingHeaders.Clear();
+
+        if (changed)
+        {
+            if (frozenChanged)
+            {
+                EnsureStackOrder(_frozenHeadersPanel, isFrozen: true);
+            }
+
+            EnsureStackOrder(_scrollableHeadersPanel, isFrozen: false);
+            _scrollableHeadersPanel.InvalidateArrange();
         }
     }
 
@@ -334,22 +446,54 @@ public partial class TableViewHeaderRow : Control
         }
     }
 
-    /// <summary>
-    /// Adds headers for the specified columns.
-    /// </summary>
-    private void AddHeaders(IEnumerable<TableViewColumn> columns)
+    private void AddToPanel(TableViewColumnHeader header, bool isFrozen)
     {
-        if (TableView is not null && _scrollableHeadersPanel is not null)
+        header.IsInFrozenPanel = isFrozen;
+        (isFrozen ? _frozenHeadersPanel : _scrollableHeadersPanel)?.Children.Add(header);
+    }
+
+    /// <summary>
+    /// Puts the headers of a panel that stacks its children in column order. A <see cref="TableViewCellsPanel"/>
+    /// places headers by their column and needs no order.
+    /// </summary>
+    private void EnsureStackOrder(Panel panel, bool isFrozen)
+    {
+        if (panel is TableViewCellsPanel)
         {
-            foreach (var column in columns)
+            return;
+        }
+
+        var position = 0;
+        var inOrder = true;
+        var headers = Headers;
+
+        foreach (var header in headers)
+        {
+            if (header.IsInFrozenPanel == isFrozen)
             {
-                var header = new TableViewColumnHeader { DataContext = column, Column = column, Content = column.Header };
-                column.HeaderControl = header;
+                if (position >= panel.Children.Count || !ReferenceEquals(panel.Children[position], header))
+                {
+                    inOrder = false;
+                    break;
+                }
 
-                InsertHeader(header);
+                position++;
             }
+        }
 
-            CalculateHeaderWidths();
+        if (inOrder && position == panel.Children.Count)
+        {
+            return;
+        }
+
+        panel.Children.Clear();
+
+        foreach (var header in headers)
+        {
+            if (header.IsInFrozenPanel == isFrozen)
+            {
+                panel.Children.Add(header);
+            }
         }
     }
 
@@ -362,46 +506,53 @@ public partial class TableViewHeaderRow : Control
         {
             _calculatingHeaderWidths = true;
 
-            var allColumns = TableView.Columns.VisibleColumns.ToList();
-            var starColumns = allColumns.Where(x => x.Width.IsStar).ToList();
-            var autoColumns = allColumns.Where(x => x.Width.IsAuto).ToList();
-            var absoluteColumns = allColumns.Where(x => x.Width.IsAbsolute).ToList();
+            var allColumns = TableView.Columns.VisibleColumns;
+            var tableMinWidth = TableView.MinColumnWidth;
+            var tableMaxWidth = TableView.MaxColumnWidth;
+            var starUnitWeight = 0d;
+            var fixedWidth = 0d;
+            var startColumnsToAdjust = new List<TableViewColumn>();
 
-            var availableWidth = GetCellsAvailableWidth();
-            var starUnitWeight = starColumns.Sum(x => x.Width.Value);
+            foreach (var column in allColumns)
+            {
+                var columnWidth = column.Width;
 
-            var fixedWidth = autoColumns.Sum(x => ClampColumnWidth(x, GetColumnDesiredWidth(x)));
-            fixedWidth += absoluteColumns.Sum(x => ClampColumnWidth(x, x.Width.Value));
+                if (columnWidth.IsStar)
+                {
+                    starUnitWeight += columnWidth.Value;
+                    startColumnsToAdjust.Add(column);
+                }
+                else
+                {
+                    fixedWidth += ClampColumnWidth(column, columnWidth.IsAbsolute ? columnWidth.Value : GetColumnDesiredWidth(column), tableMinWidth, tableMaxWidth);
+                }
+            }
 
-            availableWidth -= fixedWidth;
+            var availableWidth = GetCellsAvailableWidth() - fixedWidth;
             var starUnitWidth = starUnitWeight > 0 ? availableWidth / starUnitWeight : 0;
 
             var starWidthAdjusted = false;
-            var startColumnsToAdjust = starColumns.ToList();
             do
             {
                 starWidthAdjusted = false;
 
                 foreach (var column in startColumnsToAdjust)
                 {
-                    if (column.HeaderControl is { } header)
+                    var width = starUnitWidth * column.Width.Value;
+                    var minWidth = column.MinWidth ?? tableMinWidth;
+                    var maxWidth = column.MaxWidth ?? tableMaxWidth;
+
+                    width = width < minWidth ? minWidth : width;
+                    width = width > maxWidth ? maxWidth : width;
+
+                    if (width != starUnitWidth * column.Width.Value)
                     {
-                        var width = starUnitWidth * column.Width.Value;
-                        var minWidth = column.MinWidth ?? TableView.MinColumnWidth;
-                        var maxWidth = column.MaxWidth ?? TableView.MaxColumnWidth;
-
-                        width = width < minWidth ? minWidth : width;
-                        width = width > maxWidth ? maxWidth : width;
-
-                        if (width != starUnitWidth * column.Width.Value)
-                        {
-                            availableWidth -= width;
-                            starUnitWeight -= column.Width.Value;
-                            starUnitWidth = starUnitWeight > 0 ? availableWidth / starUnitWeight : 0;
-                            startColumnsToAdjust.Remove(column);
-                            starWidthAdjusted = true;
-                            break;
-                        }
+                        availableWidth -= width;
+                        starUnitWeight -= column.Width.Value;
+                        starUnitWidth = starUnitWeight > 0 ? availableWidth / starUnitWeight : 0;
+                        startColumnsToAdjust.Remove(column);
+                        starWidthAdjusted = true;
+                        break;
                     }
                 }
 
@@ -414,29 +565,34 @@ public partial class TableViewHeaderRow : Control
 
             foreach (var column in allColumns)
             {
+                var width = column.Width.IsStar
+                            ? starUnitWidth * column.Width.Value
+                            : column.Width.IsAbsolute ? column.Width.Value
+                            : GetColumnDesiredWidth(column);
+
+                var minWidth = column.MinWidth ?? tableMinWidth;
+                var maxWidth = column.MaxWidth ?? tableMaxWidth;
+                var isShared = column.Width.IsStar && width >= minWidth && width <= maxWidth;
+
+                width = width < minWidth ? minWidth : width;
+                width = width > maxWidth ? maxWidth : width;
+
+                // Snap to whole pixels so layout rounding can't push the columns past the viewport.
+                if (isShared)
+                {
+                    starEdge += width * scale;
+                    width = ClampColumnWidth(column, (Math.Floor(starEdge + 0.001) - starPixels) / scale, tableMinWidth, tableMaxWidth);
+                    starPixels += width * scale;
+                }
+
+                // A column out of view has no header to take its width from.
                 if (column.HeaderControl is { } header)
                 {
-                    var width = column.Width.IsStar
-                                ? starUnitWidth * column.Width.Value
-                                : column.Width.IsAbsolute ? column.Width.Value
-                                : GetColumnDesiredWidth(column);
-
-                    var minWidth = column.MinWidth ?? TableView.MinColumnWidth;
-                    var maxWidth = column.MaxWidth ?? TableView.MaxColumnWidth;
-                    var isShared = column.Width.IsStar && width >= minWidth && width <= maxWidth;
-
-                    width = width < minWidth ? minWidth : width;
-                    width = width > maxWidth ? maxWidth : width;
-
-                    // Snap to whole pixels so layout rounding can't push the columns past the viewport.
-                    if (isShared)
-                    {
-                        starEdge += width * scale;
-                        width = ClampColumnWidth(column, (Math.Floor(starEdge + 0.001) - starPixels) / scale);
-                        starPixels += width * scale;
-                    }
-
                     header.Width = width;
+                }
+                else if (!column.IsResizing && column.ActualWidth != width)
+                {
+                    column.ActualWidth = width;
                 }
             }
 
@@ -449,10 +605,10 @@ public partial class TableViewHeaderRow : Control
     /// <summary>
     /// Limits a width to the column's minimum and maximum widths.
     /// </summary>
-    private double ClampColumnWidth(TableViewColumn column, double width)
+    private static double ClampColumnWidth(TableViewColumn column, double width, double tableMinWidth, double tableMaxWidth)
     {
-        var minWidth = column.MinWidth ?? TableView?.MinColumnWidth ?? 0d;
-        var maxWidth = column.MaxWidth ?? TableView?.MaxColumnWidth ?? double.PositiveInfinity;
+        var minWidth = column.MinWidth ?? tableMinWidth;
+        var maxWidth = column.MaxWidth ?? tableMaxWidth;
 
         width = width < minWidth ? minWidth : width;
         return width > maxWidth ? maxWidth : width;
@@ -508,6 +664,9 @@ public partial class TableViewHeaderRow : Control
         });
     }
 
+    // The width of an auto column nothing of which has been measured; the collection estimates with the same.
+    private const double UnmeasuredColumnWidth = 100d;
+
     /// <summary>
     /// Gets the desired width of a column based on its header and cells.
     /// </summary>
@@ -525,6 +684,11 @@ public partial class TableViewHeaderRow : Control
             }
 
             width = Math.Max(width, header.CachedDesiredWidth ?? 0d);
+        }
+        else if (column.HeaderControl is null && width <= 0d)
+        {
+            // Nothing of the column has been measured yet; it is sized for real when it scrolls into view.
+            width = column.ActualWidth > 0d ? column.ActualWidth : UnmeasuredColumnWidth;
         }
 
         return width;
@@ -845,32 +1009,22 @@ public partial class TableViewHeaderRow : Control
     }
 
     /// <summary>
-    /// Inserts a header at the specified index.
+    /// Inserts a header at the place of its column.
     /// </summary>
     /// <param name="header">The header to insert.</param>
     public void InsertHeader(TableViewColumnHeader header)
     {
-        if (TableView is null || header is not { Column: { } column }) return;
+        if (TableView is null || header is not { Column: { } column } || _frozenHeadersPanel is null || _scrollableHeadersPanel is null) return;
 
-        var _frozenColumns = TableView.Columns.VisibleColumns.Where(x => x.IsFrozen).ToList();
-        var _scrollableColumns = TableView.Columns.VisibleColumns.Where(x => !x.IsFrozen).ToList();
-
-        if (header is { Column.IsFrozen: true } && _frozenHeadersPanel is not null)
+        if (_headersByColumn.TryGetValue((column, header.ColumnOccurrence), out var existing) && !ReferenceEquals(existing, header))
         {
-            var index = _frozenColumns.IndexOf(column);
-            index = Math.Min(index, _frozenColumns.Count);
-            index = Math.Max(index, 0); // handles -ve index;
-
-            _frozenHeadersPanel.Children.Insert(index, header);
+            RemoveHeader(existing);
         }
-        else if (_scrollableHeadersPanel is not null)
-        {
-            var index = _scrollableColumns.IndexOf(column);
-            index = Math.Min(index, _scrollableColumns.Count);
-            index = Math.Max(index, 0); // handles -ve index;
 
-            _scrollableHeadersPanel.Children.Insert(index, header);
-        }
+        _headersByColumn[(column, header.ColumnOccurrence)] = header;
+        AddToPanel(header, column.IsFrozen);
+        EnsureStackOrder(_frozenHeadersPanel, isFrozen: true);
+        EnsureStackOrder(_scrollableHeadersPanel, isFrozen: false);
     }
 
     /// <summary>
@@ -879,24 +1033,30 @@ public partial class TableViewHeaderRow : Control
     /// <param name="header">The header to remove.</param>
     public void RemoveHeader(TableViewColumnHeader header)
     {
-        if (header.Column?.HeaderControl == header)
-        {
-            header.Column.HeaderControl = null;
-        }
-
+        Forget(header);
         RemoveFromPanel(header);
+    }
+
+    // Takes a header out of the lookup, unless another header has taken its place there.
+    private void Forget(TableViewColumnHeader header)
+    {
+        if (header.Column is { } column)
+        {
+            if (column.HeaderControl == header)
+            {
+                column.HeaderControl = null;
+            }
+
+            if (_headersByColumn.TryGetValue((column, header.ColumnOccurrence), out var current) && ReferenceEquals(current, header))
+            {
+                _headersByColumn.Remove((column, header.ColumnOccurrence));
+            }
+        }
     }
 
     private void RemoveFromPanel(TableViewColumnHeader header)
     {
-        if (_frozenHeadersPanel?.Children.Contains(header) ?? false)
-        {
-            _frozenHeadersPanel.Children.Remove(header);
-        }
-        else if (_scrollableHeadersPanel?.Children.Contains(header) ?? false)
-        {
-            _scrollableHeadersPanel.Children.Remove(header);
-        }
+        (header.IsInFrozenPanel ? _frozenHeadersPanel : _scrollableHeadersPanel)?.Children.Remove(header);
     }
 
     /// <summary>
@@ -904,7 +1064,14 @@ public partial class TableViewHeaderRow : Control
     /// </summary>
     public void ClearHeaders()
     {
-        foreach (var header in Headers)
+        ForgetHeaders();
+        _frozenHeadersPanel?.Children.Clear();
+        _scrollableHeadersPanel?.Children.Clear();
+    }
+
+    private void ForgetHeaders()
+    {
+        foreach (var header in _headersByColumn.Values)
         {
             if (header.Column?.HeaderControl == header)
             {
@@ -912,8 +1079,15 @@ public partial class TableViewHeaderRow : Control
             }
         }
 
-        _frozenHeadersPanel?.Children.Clear();
-        _scrollableHeadersPanel?.Children.Clear();
+        _headersByColumn.Clear();
+    }
+
+    /// <summary>
+    /// Gets the header of a column, or of one of its places when it is in the columns more than once.
+    /// </summary>
+    internal TableViewColumnHeader? GetHeader(TableViewColumn column, int occurrence = 0)
+    {
+        return _headersByColumn.TryGetValue((column, occurrence), out var header) ? header : null;
     }
 
     /// <summary>
@@ -996,9 +1170,27 @@ public partial class TableViewHeaderRow : Control
     /// <summary>
     /// Gets the list of headers in the header row.
     /// </summary>
-    public IReadOnlyList<TableViewColumnHeader> Headers =>
-        [.. _frozenHeadersPanel?.Children.OfType<TableViewColumnHeader>() ?? [],
-         .. _scrollableHeadersPanel?.Children.OfType<TableViewColumnHeader>() ?? []];
+    /// <remarks>Only the columns in or near the viewport have headers. The list is in column order.</remarks>
+    public IReadOnlyList<TableViewColumnHeader> Headers
+    {
+        get
+        {
+            var headers = new TableViewColumnHeader[_headersByColumn.Count];
+            _headersByColumn.Values.CopyTo(headers, 0);
+
+            if (TableView?.Columns is TableViewColumnsCollection columns)
+            {
+                Array.Sort(headers, (x, y) => GetOrder(x).CompareTo(GetOrder(y)));
+
+                int GetOrder(TableViewColumnHeader header)
+                {
+                    return header.Column is { } column && columns.GetVisibleColumnIndex(column, header.ColumnOccurrence) is >= 0 and var index ? index : int.MaxValue;
+                }
+            }
+
+            return headers;
+        }
+    }
 
     /// <summary>
     /// Gets or sets the TableView associated with the header row.

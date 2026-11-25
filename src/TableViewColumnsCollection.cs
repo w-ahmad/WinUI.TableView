@@ -16,9 +16,15 @@ namespace WinUI.TableView;
 /// property changes, enabling dynamic updates to the <see cref="WinUI.TableView.TableView"/>.</remarks>
 public partial class TableViewColumnsCollection : DependencyObjectCollection, ITableViewColumnsCollection
 {
-    private TableViewColumn[] _itemsCopy = []; // To keep a copy of the items to keep track of removed items
+    // The items, kept in step with the collection: reading them back from it costs a call per item.
+    private readonly List<TableViewColumn> _items = [];
     private bool _movingColumn;
     private ReadOnlyCollection<TableViewColumn>? _visibleColumns;
+    private double[]? _visibleColumnOffsets;
+    private double[]? _estimatedColumnOffsets;
+    private Dictionary<TableViewColumn, int>? _visibleColumnIndexes;
+    private Dictionary<(TableViewColumn Column, int Occurrence), int>? _duplicateColumnIndexes;
+    private Dictionary<int, int>? _duplicateColumnOccurrences;
 
     /// <inheritdoc/>
     public event EventHandler<TableViewColumnPropertyChangedEventArgs>? ColumnPropertyChanged;
@@ -44,28 +50,43 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
     {
         if (_movingColumn) return; // Skip processing if it's a move action
 
+        var index = (int)args.Index;
+        var isInsert = args.CollectionChange is CollectionChange.ItemInserted;
+        TableViewColumn[] removed = isInsert ? [] : [.. _items];
+
+        if (isInsert && index <= _items.Count && index < Count)
+        {
+            _items.Insert(index, (TableViewColumn)sender[index]);
+        }
+        else if (args.CollectionChange is CollectionChange.ItemRemoved && index < _items.Count)
+        {
+            _items.RemoveAt(index);
+        }
+        else
+        {
+            CopyItems();
+        }
+
         InvalidateVisibleColumns();
         UpdateFrozenColumns();
-
-        var index = (int)args.Index;
 
         switch (args.CollectionChange)
         {
             case CollectionChange.ItemInserted:
-                if (args.Index < Count)
+                if (index < _items.Count)
                 {
-                    var column = (TableViewColumn)sender[index];
+                    var column = _items[index];
                     column.SetOwningCollection(this);
                     column.SetOwningTableView(((ITableViewColumnsCollection)this).TableView!);
                     CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, column, (int)args.Index));
                 }
                 break;
             case CollectionChange.ItemRemoved:
-                if (args.Index < _itemsCopy.Length)
+                if (index < removed.Length)
                 {
-                    var column = _itemsCopy[index];
+                    var column = removed[index];
                     // A column added twice is still owned while one of them remains.
-                    if (!Contains(column))
+                    if (!_items.Contains(column))
                     {
                         column.SetOwningCollection(null!);
                         column.SetOwningTableView(null!);
@@ -74,7 +95,7 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
                 }
                 break;
             case CollectionChange.Reset:
-                foreach (var item in _itemsCopy)
+                foreach (var item in removed)
                 {
                     item.SetOwningCollection(null!);
                     item.SetOwningTableView(null!);
@@ -82,19 +103,21 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
                 }
                 break;
         }
+    }
 
-        _itemsCopy = new TableViewColumn[Count];
-        CopyTo(_itemsCopy, 0);
+    private void CopyItems()
+    {
+        _items.Clear();
+        _items.AddRange(this.OfType<TableViewColumn>());
     }
 
     internal void UpdateFrozenColumns()
     {
-        var visibleColumns = VisibleColumns;
         var frozenColumnCount = TableView?.FrozenColumnCount ?? 0;
         // A hidden column (index -1) counts as frozen, and a column added twice goes by its first place.
-        foreach (var column in this.OfType<TableViewColumn>())
+        foreach (var column in _items)
         {
-            column.IsFrozen = visibleColumns.IndexOf(column) < frozenColumnCount;
+            column.IsFrozen = GetVisibleColumnIndex(column) < frozenColumnCount;
         }
     }
 
@@ -104,6 +127,206 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
     internal void InvalidateVisibleColumns()
     {
         _visibleColumns = null;
+        _visibleColumnIndexes = null;
+        InvalidateColumnOffsets();
+    }
+
+    private void InvalidateColumnOffsets()
+    {
+        _visibleColumnOffsets = null;
+        _estimatedColumnOffsets = null;
+        LayoutVersion++;
+    }
+
+    /// <summary>
+    /// Gets a number that changes whenever the visible columns, their order or their widths change.
+    /// </summary>
+    internal int LayoutVersion { get; private set; }
+
+    /// <summary>
+    /// Finds the visible columns, from a given index on, that overlap a span measured from that column's left edge.
+    /// </summary>
+    /// <remarks>
+    /// A column that has not been sized yet counts with the width it asks for, so that a table whose columns are
+    /// all unsized does not report every one of them as inside the span.
+    /// </remarks>
+    internal (int First, int Last) FindVisibleColumns(int from, double start, double end)
+    {
+        var count = VisibleColumns.Count;
+
+        if (from >= count)
+        {
+            return (count, count - 1);
+        }
+
+        if (_estimatedColumnOffsets is null)
+        {
+            var columns = VisibleColumns;
+            var offsets = new double[count + 1];
+            var tableMinWidth = TableView?.MinColumnWidth ?? 0d;
+            var tableMaxWidth = TableView?.MaxColumnWidth ?? double.PositiveInfinity;
+
+            for (var i = 0; i < count; i++)
+            {
+                var column = columns[i];
+                var width = column.ActualWidth;
+
+                if (!(width > 0d))
+                {
+                    width = UnsizedColumnWidth;
+
+                    // A width that is asked for is known before the column is sized, and may be zero.
+                    if (column.Width is { IsAbsolute: true, Value: var asked })
+                    {
+                        width = Math.Max(Math.Min(asked, column.MaxWidth ?? tableMaxWidth), column.MinWidth ?? tableMinWidth);
+                    }
+                }
+
+                offsets[i + 1] = offsets[i] + width;
+            }
+
+            _estimatedColumnOffsets = offsets;
+        }
+
+        var estimated = _estimatedColumnOffsets;
+        var origin = estimated[from];
+
+        // The first column whose right edge is past the start.
+        var low = from;
+        var high = count;
+
+        while (low < high)
+        {
+            var middle = (low + high) / 2;
+
+            if (estimated[middle + 1] - origin > start)
+            {
+                high = middle;
+            }
+            else
+            {
+                low = middle + 1;
+            }
+        }
+
+        var first = Math.Min(low, count - 1);
+
+        // The last column whose left edge is before the end.
+        low = first;
+        high = count;
+
+        while (low < high)
+        {
+            var middle = (low + high) / 2;
+
+            if (estimated[middle] - origin >= end)
+            {
+                high = middle;
+            }
+            else
+            {
+                low = middle + 1;
+            }
+        }
+
+        var last = Math.Max(low - 1, first);
+
+        return (first, last);
+    }
+
+    private const double UnsizedColumnWidth = 100d;
+
+    /// <summary>
+    /// Gets the index of a column among the visible columns, or -1 when it is not one of them.
+    /// </summary>
+    /// <param name="column">The column.</param>
+    /// <param name="occurrence">Which of its places, for a column that is in the collection more than once.</param>
+    internal int GetVisibleColumnIndex(TableViewColumn column, int occurrence = 0)
+    {
+        var indexes = EnsureVisibleColumnIndexes();
+
+        if (occurrence > 0)
+        {
+            return _duplicateColumnIndexes is { } duplicates && duplicates.TryGetValue((column, occurrence), out var place) ? place : -1;
+        }
+
+        return indexes.TryGetValue(column, out var index) ? index : -1;
+    }
+
+    /// <summary>
+    /// Gets which place of its column a visible index is: 0, unless the column is in the collection more than once.
+    /// </summary>
+    internal int GetColumnOccurrence(int visibleIndex)
+    {
+        EnsureVisibleColumnIndexes();
+
+        return _duplicateColumnOccurrences is { } occurrences && occurrences.TryGetValue(visibleIndex, out var occurrence) ? occurrence : 0;
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether a column is among the visible columns more than once.
+    /// </summary>
+    internal bool HasDuplicateColumns
+    {
+        get
+        {
+            EnsureVisibleColumnIndexes();
+
+            return _duplicateColumnOccurrences is not null;
+        }
+    }
+
+    private Dictionary<TableViewColumn, int> EnsureVisibleColumnIndexes()
+    {
+        if (_visibleColumnIndexes is null)
+        {
+            var columns = VisibleColumns;
+            var indexes = new Dictionary<TableViewColumn, int>(columns.Count);
+            Dictionary<TableViewColumn, int>? counts = null;
+
+            _duplicateColumnIndexes = null;
+            _duplicateColumnOccurrences = null;
+
+            for (var i = 0; i < columns.Count; i++)
+            {
+                var column = columns[i];
+
+                if (!indexes.TryAdd(column, i))
+                {
+                    counts ??= [];
+                    var occurrence = counts[column] = counts.TryGetValue(column, out var seen) ? seen + 1 : 1;
+                    (_duplicateColumnIndexes ??= [])[(column, occurrence)] = i;
+                    (_duplicateColumnOccurrences ??= [])[i] = occurrence;
+                }
+            }
+
+            _visibleColumnIndexes = indexes;
+        }
+
+        return _visibleColumnIndexes;
+    }
+
+    /// <summary>
+    /// Gets the distance from the first visible column's left edge to the left edge of the visible column at an
+    /// index, or to the right edge of the last one when the index is the number of visible columns.
+    /// </summary>
+    internal double GetVisibleColumnOffset(int index)
+    {
+        if (_visibleColumnOffsets is null)
+        {
+            var columns = VisibleColumns;
+            var offsets = new double[columns.Count + 1];
+
+            for (var i = 0; i < columns.Count; i++)
+            {
+                // A column that has not been sized yet takes no room.
+                offsets[i + 1] = offsets[i] + (columns[i].ActualWidth is > 0d and var width ? width : 0d);
+            }
+
+            _visibleColumnOffsets = offsets;
+        }
+
+        return _visibleColumnOffsets[Math.Clamp(index, 0, _visibleColumnOffsets.Length - 1)];
     }
 
     /// <summary>
@@ -115,11 +338,14 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
         {
             InvalidateVisibleColumns();
         }
-
-        if (Contains(column) && !_movingColumn)
+        else if (propertyName is nameof(TableViewColumn.ActualWidth) or nameof(TableViewColumn.Width))
         {
-            var index = IndexOf(column);
-            ColumnPropertyChanged?.Invoke(this, new TableViewColumnPropertyChangedEventArgs(column, propertyName, index));
+            InvalidateColumnOffsets();
+        }
+
+        if (!_movingColumn && ColumnPropertyChanged is { } handler && _items.IndexOf(column) is >= 0 and var index)
+        {
+            handler.Invoke(this, new TableViewColumnPropertyChangedEventArgs(column, propertyName, index));
         }
     }
 
@@ -134,7 +360,7 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
     /// sometimes once per loop iteration.
     /// </remarks>
     public IList<TableViewColumn> VisibleColumns => _visibleColumns ??= new ReadOnlyCollection<TableViewColumn>(
-        [.. this.OfType<TableViewColumn>()
+        [.. _items
                .Where(x => x.Visibility == Visibility.Visible)
                .OrderBy(x => x.Order ?? 0)]);
 
@@ -234,9 +460,8 @@ public partial class TableViewColumnsCollection : DependencyObjectCollection, IT
             Insert(newIndex, column);
 
             // OnVectorChanged is suppressed while _movingColumn is set, so its bookkeeping is done here.
+            CopyItems();
             InvalidateVisibleColumns();
-            _itemsCopy = new TableViewColumn[Count];
-            CopyTo(_itemsCopy, 0);
             UpdateFrozenColumns();
             CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, column, newIndex, oldIndex));
         }
