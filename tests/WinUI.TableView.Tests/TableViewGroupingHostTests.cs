@@ -577,6 +577,31 @@ public class TableViewGroupingHostTests
     }
 
     [UITestMethod]
+    public async Task GroupHeaders_KeepTheirGroup_AcrossExpandAndCollapse()
+    {
+        foreach (var toggledKey in new[] { "A", "B", "C" })
+        {
+            var tableView = await CreateTableViewAsync(CreateItems(6));
+            await GroupAsync(tableView, TableViewGroupState.Collapsed);
+
+            var before = tableView.GroupHeaderRows.ToDictionary(x => (string)x.GroupInfo!.Key!);
+
+            for (var i = 0; i < 2; i++)
+            {
+                before[toggledKey].ToggleExpanded();
+                await WaitForLayoutAsync(tableView);
+
+                foreach (var header in tableView.GroupHeaderRows)
+                {
+                    Assert.AreSame(before[(string)header.GroupInfo!.Key!], header, $"group {header.GroupInfo.Key}, toggled {toggledKey}, toggle {i + 1}");
+                }
+            }
+
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
+    [UITestMethod]
     public async Task CollapsingAGroup_ClearsTheSelection()
     {
         var tableView = await CreateTableViewAsync(CreateItems(6));
