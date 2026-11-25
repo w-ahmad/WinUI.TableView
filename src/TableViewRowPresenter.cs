@@ -146,7 +146,44 @@ public partial class TableViewRowPresenter : Control
     /// </summary>
     internal void SetGroupIndent()
     {
-        _indentPlaceholder?.Width = GetGroupIndent();
+        UpdateGroupIndent();
+    }
+
+    /// <summary>
+    /// Sets the indent to what the row number, row header and details button leave of it: they fill the indent
+    /// before they push the cells further right.
+    /// </summary>
+    /// <returns>Whether the indent changed.</returns>
+    private bool UpdateGroupIndent()
+    {
+        if (_indentPlaceholder is null)
+        {
+            return false;
+        }
+
+        var indent = GetGroupIndent();
+
+        if (indent > 0d)
+        {
+            var used = (_rowNumberText?.DesiredSize.Width ?? 0d) + (_detailsToggleButton?.DesiredSize.Width ?? 0d);
+
+            // An empty row header is as wide as its minimum, which stays in front of the indent.
+            if (_rowHeader is { Visibility: Visibility.Visible })
+            {
+                used += Math.Max(0d, _rowHeader.DesiredSize.Width - _rowHeader.MinWidth);
+            }
+
+            indent = Math.Max(0d, indent - used);
+        }
+
+        if (_indentPlaceholder.Width.Equals(indent))
+        {
+            return false;
+        }
+
+        _indentPlaceholder.Width = indent;
+
+        return true;
     }
 
 #if !WINDOWS
@@ -246,6 +283,12 @@ public partial class TableViewRowPresenter : Control
         LimitDetailsToViewport();
 
         var result = base.MeasureOverride(availableSize);
+
+        // The indent depends on the header widths just measured.
+        if (UpdateGroupIndent())
+        {
+            result = base.MeasureOverride(availableSize);
+        }
 
         // Rows measure their number independently; the widest one sets the width they all share.
         if (TableView is { ShowRowNumbers: true } tableView && _rowNumberText is { Visibility: Visibility.Visible })

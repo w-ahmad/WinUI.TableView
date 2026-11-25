@@ -560,6 +560,33 @@ public class TableViewGroupingHostTests
     }
 
     [UITestMethod]
+    public async Task NestedGrouping_RowNumbers_FillTheIndentBeforeWideningTheRowHeader()
+    {
+        var tableView = await CreateTableViewAsync(CreateItems(6));
+        await GroupAsync(tableView, TableViewGroupState.Expanded, nameof(GroupItem.Category), nameof(GroupItem.Kind));
+
+        double CellsLeft() => tableView.Rows[0].Cells[0].TransformToVisual(tableView).TransformPoint(default).X;
+
+        var before = CellsLeft();
+
+        tableView.ShowRowNumbers = true;
+        await WaitForLayoutAsync(tableView);
+
+        var numberWidth = GetTemplatePart<TextBlock>(tableView.Rows[0], "RowNumberText").DesiredSize.Width;
+
+        Assert.IsTrue(numberWidth > 24d, "the number should be wider than the indent");
+        // The grid line was inside the indent and now follows the number.
+        Assert.AreEqual(before + numberWidth - 24d, CellsLeft(), 1.5);
+
+        tableView.ShowRowNumbers = false;
+        await WaitForLayoutAsync(tableView);
+
+        Assert.AreEqual(before, CellsLeft(), 0.5);
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
     public async Task GroupHeaders_AreRecycled_AcrossExpandAndCollapse()
     {
         var tableView = await CreateTableViewAsync(CreateItems(6));
