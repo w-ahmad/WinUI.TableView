@@ -577,15 +577,15 @@ public partial class TableView : Control
         var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
         var isShiftKey = KeyboardHelper.IsShiftKeyDown();
 
-#if !WINDOWS
         if (e.Pointer.PointerDeviceType is Microsoft.UI.Input.PointerDeviceType.Touch)
         {
+#if !WINDOWS
             _touchTaps.Pressed(e.Pointer.PointerId, position, pressedElement);
+#endif
 
             // Touch scrolls instead of drag-selecting; the press is only remembered and selected on Tapped.
             return RememberTouchPressedElement(pressedElement, canvasPoint);
         }
-#endif
 
         if (SelectionMode is ListViewSelectionMode.None                                 // Skip selection when SelectionMode is None
             || IsDragSelecting                                                          // Skip selection when a drag is already in progress

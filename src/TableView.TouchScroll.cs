@@ -1,4 +1,3 @@
-#if !WINDOWS
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -9,13 +8,29 @@ using System;
 namespace WinUI.TableView;
 
 /// <summary>
-/// Horizontal touch scrolling and the horizontal scrollbar indicator on Uno.
+/// Horizontal touch scrolling, selection by tap, and the horizontal scrollbar indicator on Uno.
 /// </summary>
 public partial class TableView
 {
+    private UIElement? _touchPressedElement;
+#if WINDOWS
+
+    // System leaves the vertical pan to the scroll viewer; the sideways part arrives here as a manipulation.
+    private void InitializeTouchPan(UIElement rowsHost)
+    {
+        rowsHost.ManipulationMode = ManipulationModes.System | ManipulationModes.TranslateX | ManipulationModes.TranslateInertia;
+        rowsHost.ManipulationStarted += OnTouchPanStarted;
+        rowsHost.ManipulationDelta += OnTouchPanDelta;
+    }
+
+    private void DetachTouchPan(UIElement rowsHost)
+    {
+        rowsHost.ManipulationStarted -= OnTouchPanStarted;
+        rowsHost.ManipulationDelta -= OnTouchPanDelta;
+    }
+#else
     private bool _isPointerOverHorizontalScrollBar;
     private bool _isTouchIndicator;
-    private UIElement? _touchPressedElement;
     private DispatcherTimer? _hideIndicatorTimer;
 
     // Uno only drives ScrollingIndicatorStates for scrollbars it materializes by name; HorizontalScrollBar2 isn't one (issue #421).
@@ -36,8 +51,8 @@ public partial class TableView
         if (_scrollViewer is not null)
         {
             _scrollViewer.ManipulationMode = ManipulationModes.TranslateX | ManipulationModes.TranslateInertia;
-            _scrollViewer.ManipulationStarted += OnScrollViewerManipulationStarted;
-            _scrollViewer.ManipulationDelta += OnScrollViewerManipulationDelta;
+            _scrollViewer.ManipulationStarted += OnTouchPanStarted;
+            _scrollViewer.ManipulationDelta += OnTouchPanDelta;
         }
 
         _scrollViewer?.AddHandler(PointerMovedEvent,
@@ -57,20 +72,23 @@ public partial class TableView
         _hideIndicatorTimer?.Stop();
         _hideIndicatorTimer?.Start();
     }
+#endif
 
     // Touch pan scrolls horizontally by driving HorizontalOffset, the same path the wheel uses, so bar, header and frozen columns move together.
-    private void OnScrollViewerManipulationStarted(object sender, ManipulationStartedRoutedEventArgs e)
+    private void OnTouchPanStarted(object sender, ManipulationStartedRoutedEventArgs e)
     {
         if (e.PointerDeviceType is not PointerDeviceType.Touch)
         {
             e.Complete();
             return;
         }
+#if !WINDOWS
 
         _isTouchIndicator = true;
+#endif
     }
 
-    private void OnScrollViewerManipulationDelta(object sender, ManipulationDeltaRoutedEventArgs e)
+    private void OnTouchPanDelta(object sender, ManipulationDeltaRoutedEventArgs e)
     {
         if (_scrollViewer is null) return;
 
@@ -106,4 +124,3 @@ public partial class TableView
         SelectPressed(SelectionMode is ListViewSelectionMode.Multiple);
     }
 }
-#endif

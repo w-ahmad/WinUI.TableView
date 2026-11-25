@@ -279,6 +279,7 @@ public partial class TableView
         repeater.ElementPrepared += OnRowElementPrepared;
 #if WINDOWS
         repeater.KeyDown += OnRowsHostKeyDown;
+        InitializeTouchPan(repeater);
 #endif
 
         ConsiderLoadingMoreItems(-1);
@@ -382,6 +383,7 @@ public partial class TableView
         _rowsRepeater.ElementPrepared -= OnRowElementPrepared;
 #if WINDOWS
         _rowsRepeater.KeyDown -= OnRowsHostKeyDown;
+        DetachTouchPan(_rowsRepeater);
 #endif
         _rowsRepeater.LayoutUpdated -= OnRowsRepeaterLayoutUpdated;
         _rowsRepeater.ElementClearing -= OnRowElementClearing;
