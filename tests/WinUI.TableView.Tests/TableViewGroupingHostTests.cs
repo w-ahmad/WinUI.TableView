@@ -687,6 +687,29 @@ public class TableViewGroupingHostTests
     }
 
     [UITestMethod]
+    public async Task GroupHeader_StaysAsWideAsTheViewport_WhenTheColumnsAreWider()
+    {
+        var tableView = await CreateTableViewAsync(CreateItems(6));
+        tableView.Columns[0].Width = new GridLength(900);
+        await WaitForLayoutAsync(tableView);
+        await GroupAsync(tableView, TableViewGroupState.Expanded);
+
+        var scrollViewer = GetScrollViewer(tableView);
+        Assert.IsTrue(scrollViewer.ScrollableWidth > 0d, "the columns should be wider than the table");
+
+        foreach (var header in tableView.GroupHeaderRows)
+        {
+            // The expander button has a presenter of the same name; the header has the last one.
+            var content = header.FindDescendants().OfType<ContentPresenter>().Last(x => x.Name == "ContentPresenter");
+            var right = content.TransformToVisual(scrollViewer).TransformPoint(new Windows.Foundation.Point(content.ActualWidth, 0d)).X;
+
+            Assert.IsTrue(right <= scrollViewer.ViewportWidth + 0.5, $"the header content ends at {right}, past the viewport's {scrollViewer.ViewportWidth}");
+        }
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
     public async Task CollapsingAGroup_ClearsTheSelection()
     {
         var tableView = await CreateTableViewAsync(CreateItems(6));

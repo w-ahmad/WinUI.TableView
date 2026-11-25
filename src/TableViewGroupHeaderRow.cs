@@ -102,6 +102,23 @@ public partial class TableViewGroupHeaderRow : ContentControl
     }
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// The rows' host is as wide as the columns, and a header does not scroll sideways, so its content is laid out
+    /// in the viewport's width.
+    /// </remarks>
+    protected override Size ArrangeOverride(Size finalSize)
+    {
+        if (TableView?.RowsViewportWidth is > 0d and var viewportWidth && viewportWidth < finalSize.Width)
+        {
+            base.ArrangeOverride(new Size(viewportWidth, finalSize.Height));
+
+            return finalSize;
+        }
+
+        return base.ArrangeOverride(finalSize);
+    }
+
+    /// <inheritdoc/>
     protected override void OnApplyTemplate()
     {
         base.OnApplyTemplate();
