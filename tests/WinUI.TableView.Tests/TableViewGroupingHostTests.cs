@@ -587,6 +587,64 @@ public class TableViewGroupingHostTests
     }
 
     [UITestMethod]
+    public async Task NestedGrouping_RowHeaderTemplate_FillsTheIndentBeforeWideningTheRowHeader()
+    {
+        var tableView = await CreateTableViewAsync(CreateItems(6));
+        await GroupAsync(tableView, TableViewGroupState.Expanded, nameof(GroupItem.Category), nameof(GroupItem.Kind));
+
+        double CellsLeft() => tableView.Rows[0].Cells[0].TransformToVisual(tableView).TransformPoint(default).X;
+
+        var before = CellsLeft();
+        var header = GetTemplatePart<TableViewRowHeader>(tableView.Rows[0], "RowHeader");
+        var emptyWidth = header.ActualWidth;
+
+        // One that fits in the indent, then one that does not.
+        foreach (var width in new[] { 30d, 60d })
+        {
+            tableView.RowHeaderTemplate = (DataTemplate)Microsoft.UI.Xaml.Markup.XamlReader.Load(
+                $"<DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'><Border Width='{width}' Height='10' /></DataTemplate>");
+            await WaitForLayoutAsync(tableView);
+            await WaitForLayoutAsync(tableView);
+
+            header = GetTemplatePart<TableViewRowHeader>(tableView.Rows[0], "RowHeader");
+            var used = header.ActualWidth - header.MinWidth;
+            var indent = Math.Max(0d, 24d - used);
+
+            Assert.IsTrue(used > 0d, "the template should make the header wider than its minimum");
+            Assert.AreEqual(indent, GetTemplatePart<Border>(tableView.Rows[0], "IndentPlaceholder").Width, 0.5, $"indent with a {width} px template");
+            // The grid line was inside the indent and follows the header once the indent is used up.
+            Assert.AreEqual(before + (header.ActualWidth - emptyWidth) - (24d - indent), CellsLeft(), 1.5, $"cells with a {width} px template");
+        }
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task NestedGrouping_DetailsButton_FillsTheIndent()
+    {
+        var tableView = await CreateTableViewAsync(CreateItems(6));
+        await GroupAsync(tableView, TableViewGroupState.Expanded, nameof(GroupItem.Category), nameof(GroupItem.Kind));
+
+        tableView.RowDetailsTemplate = (DataTemplate)Microsoft.UI.Xaml.Markup.XamlReader.Load(
+            "<DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'><TextBlock Text='Details' /></DataTemplate>");
+        // The mode is the default; changing it and back shows the button for the template set after load.
+        tableView.RowDetailsVisibilityMode = TableViewRowDetailsVisibilityMode.Collapsed;
+        tableView.RowDetailsVisibilityMode = TableViewRowDetailsVisibilityMode.VisibleWhenExpanded;
+        await WaitForLayoutAsync(tableView);
+        await WaitForLayoutAsync(tableView);
+
+        var row = tableView.Rows[0];
+        var button = GetTemplatePart<Microsoft.UI.Xaml.Controls.Primitives.ToggleButton>(row, "DetailsToggleButton");
+        var buttonWidth = button.DesiredSize.Width;
+
+        Assert.AreEqual(Visibility.Visible, button.Visibility);
+        Assert.IsTrue(buttonWidth > 0d);
+        Assert.AreEqual(Math.Max(0d, 24d - buttonWidth), GetTemplatePart<Border>(row, "IndentPlaceholder").Width, 0.5);
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
     public async Task GroupHeaders_AreRecycled_AcrossExpandAndCollapse()
     {
         var tableView = await CreateTableViewAsync(CreateItems(6));
