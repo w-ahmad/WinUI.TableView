@@ -152,9 +152,6 @@ public class TableViewShiftClickSelectionTests
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }
 
-    /// <summary>
-    /// Selects a row or cell the way a plain click does: it becomes the only selection and the anchor.
-    /// </summary>
     [UITestMethod]
     public async Task Click_Row_RaisesSelectionChangedOnce()
     {
@@ -219,6 +216,9 @@ public class TableViewShiftClickSelectionTests
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }
 
+    /// <summary>
+    /// Selects a row or cell the way a plain click does: it becomes the only selection and the anchor.
+    /// </summary>
     private static void Click(TableView tableView, int row, int column = -1)
     {
         tableView.MakeSelection(new TableViewCellSlot(row, column), shiftKey: false);

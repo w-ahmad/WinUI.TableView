@@ -661,22 +661,31 @@ public partial class TableView : Control
         // Deselecting the others and selecting the pressed row is one change.
         BeginSelectionBatch();
 
-        if (!ctrlKey && SelectionMode is not ListViewSelectionMode.Multiple && LastSelectionUnit is not TableViewSelectionUnit.Cell)
-            DeselectAll();
+        try
+        {
+            if (!ctrlKey && SelectionMode is not ListViewSelectionMode.Multiple && LastSelectionUnit is not TableViewSelectionUnit.Cell)
+                DeselectAll();
 
-        StartDragSelection(canvasPoint.Value);
+            StartDragSelection(canvasPoint.Value);
+
+            if (IsDragSelecting)
+            {
+                MakeSelectionInDragRect();
+            }
+        }
+        finally
+        {
+            EndSelectionBatch();
+        }
 
         if (!IsDragSelecting)
         {
-            EndSelectionBatch();
             _pointerCaptureElement?.ReleasePointerCaptures();
             _pointerCaptureElement = null;
             _tableViewDragPointer = null;
             return false;
         }
 
-        MakeSelectionInDragRect();
-        EndSelectionBatch();
         return true;
     }
 
@@ -939,23 +948,29 @@ public partial class TableView : Control
 
         BeginSelectionBatch();
 
-        if (SelectionMode is ListViewSelectionMode.Single && rows.Length is 1)
+        try
         {
-            SelectedIndex = rows.FirstIndex;
-        }
-        else if (_lastDragSelectionRowRange is not null && _lastDragSelectionRowRange.Contains(rows))
-        {
-            foreach (var slicedRange in _lastDragSelectionRowRange.Subtract(rows))
+            if (SelectionMode is ListViewSelectionMode.Single && rows.Length is 1)
             {
-                DeselectRange(slicedRange);
+                SelectedIndex = rows.FirstIndex;
+            }
+            else if (_lastDragSelectionRowRange is not null && _lastDragSelectionRowRange.Contains(rows))
+            {
+                foreach (var slicedRange in _lastDragSelectionRowRange.Subtract(rows))
+                {
+                    DeselectRange(slicedRange);
+                }
+            }
+            else if (rows.Length > 0)
+            {
+                SelectRange(rows);
             }
         }
-        else if (rows.Length > 0)
+        finally
         {
-            SelectRange(rows);
+            EndSelectionBatch();
         }
 
-        EndSelectionBatch();
         _lastDragSelectionRowRange = rows;
     }
 
@@ -970,31 +985,37 @@ public partial class TableView : Control
         {
             BeginSelectionBatch();
 
-            if (_lastDragSelectionCellRange is null
-            && !KeyboardHelper.IsCtrlKeyDown()
-            && SelectionMode is not ListViewSelectionMode.Multiple)
+            try
             {
-                DeselectAllItems();
-                SelectedCellRanges.Clear();
-            }
-            else if (_lastDragSelectionCellRange is not null && cells is not null)
-            {
-                foreach (var range in _lastDragSelectionCellRange.Subtract(cells))
+                if (_lastDragSelectionCellRange is null
+                && !KeyboardHelper.IsCtrlKeyDown()
+                && SelectionMode is not ListViewSelectionMode.Multiple)
                 {
-                    SubtractCellRangeFromSelection(range);
+                    DeselectAllItems();
+                    SelectedCellRanges.Clear();
+                }
+                else if (_lastDragSelectionCellRange is not null && cells is not null)
+                {
+                    foreach (var range in _lastDragSelectionCellRange.Subtract(cells))
+                    {
+                        SubtractCellRangeFromSelection(range);
+                    }
+                }
+
+                if (SelectedCellRanges.Any(r => r == cells))
+                {
+                    OnCellSelectionChanged();
+                }
+                else if (cells?.Length > 0)
+                {
+                    SelectCellRange(cells);
                 }
             }
-
-            if (SelectedCellRanges.Any(r => r == cells))
+            finally
             {
-                OnCellSelectionChanged();
-            }
-            else if (cells?.Length > 0)
-            {
-                SelectCellRange(cells);
+                EndSelectionBatch();
             }
 
-            EndSelectionBatch();
             _lastDragSelectionCellRange = cells;
         });
     }
@@ -2225,36 +2246,41 @@ public partial class TableView : Control
         if (SelectionMode != ListViewSelectionMode.None)
         {
             BeginSelectionBatch();
-            ctrlKey = ctrlKey || SelectionMode is ListViewSelectionMode.Multiple;
-            _suppressSelectionChangedCellClear = SelectionUnit is TableViewSelectionUnit.CellWithRow;
-            var shouldSelectRows = SelectionUnit is TableViewSelectionUnit.Row
-                || (SelectionUnit is TableViewSelectionUnit.CellWithRow && !slot.IsValidColumn(this))
-                || (LastSelectionUnit is TableViewSelectionUnit.Row && slot.IsValidRow(this) && !slot.IsValidColumn(this))
-                || (SelectionUnit is TableViewSelectionUnit.CellOrRow && slot.IsValidRow(this) && !slot.IsValidColumn(this));
 
-            if (shouldSelectRows)
+            try
             {
-                if (!ctrlKey)
-                    DeselectAllCells();
-                SelectRows(slot, shiftKey, ctrlKey);
-                LastSelectionUnit = TableViewSelectionUnit.Row;
-            }
-            else
-            {
-                if (SelectionUnit is TableViewSelectionUnit.CellWithRow)
+                ctrlKey = ctrlKey || SelectionMode is ListViewSelectionMode.Multiple;
+                _suppressSelectionChangedCellClear = SelectionUnit is TableViewSelectionUnit.CellWithRow;
+                var shouldSelectRows = SelectionUnit is TableViewSelectionUnit.Row
+                    || (SelectionUnit is TableViewSelectionUnit.CellWithRow && !slot.IsValidColumn(this))
+                    || (LastSelectionUnit is TableViewSelectionUnit.Row && slot.IsValidRow(this) && !slot.IsValidColumn(this))
+                    || (SelectionUnit is TableViewSelectionUnit.CellOrRow && slot.IsValidRow(this) && !slot.IsValidColumn(this));
+
+                if (shouldSelectRows)
                 {
+                    if (!ctrlKey)
+                        DeselectAllCells();
                     SelectRows(slot, shiftKey, ctrlKey);
+                    LastSelectionUnit = TableViewSelectionUnit.Row;
                 }
-                else if (!ctrlKey)
+                else
                 {
-                    DeselectAllItems();
-                }
+                    if (SelectionUnit is TableViewSelectionUnit.CellWithRow)
+                    {
+                        SelectRows(slot, shiftKey, ctrlKey);
+                    }
+                    else if (!ctrlKey)
+                    {
+                        DeselectAllItems();
+                    }
 
-                SelectCells(slot, shiftKey, ctrlKey);
-                LastSelectionUnit = TableViewSelectionUnit.Cell;
+                    SelectCells(slot, shiftKey, ctrlKey);
+                    LastSelectionUnit = TableViewSelectionUnit.Cell;
+                }            }
+            finally
+            {
+                EndSelectionBatch();
             }
-
-            EndSelectionBatch();
         }
         else if (!IsReadOnly)
         {
