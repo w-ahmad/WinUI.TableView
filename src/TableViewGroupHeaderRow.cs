@@ -58,6 +58,11 @@ public partial class TableViewGroupHeaderRow : ContentControl
     internal int VisualIndex { get; set; } = -1;
 
     /// <summary>
+    /// Gets or sets a hash of the group the header showed before it was pooled.
+    /// </summary>
+    internal int LastGroupHash { get; set; }
+
+    /// <summary>
     /// Gets the group this header currently shows.
     /// </summary>
     public TableViewGroupInfo? GroupInfo => Content as TableViewGroupInfo;

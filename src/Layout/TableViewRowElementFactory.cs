@@ -25,7 +25,7 @@ internal sealed partial class TableViewRowElementFactory
 {
     private readonly TableView _tableView;
     private readonly Stack<TableViewRow> _rowPool = new();
-    private readonly Stack<TableViewGroupHeaderRow> _groupHeaderPool = new();
+    private readonly List<TableViewGroupHeaderRow> _groupHeaderPool = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TableViewRowElementFactory"/> class.
@@ -52,7 +52,7 @@ internal sealed partial class TableViewRowElementFactory
     {
         if (data is TableViewGroupInfo groupInfo)
         {
-            var header = _groupHeaderPool.Count > 0 ? _groupHeaderPool.Pop() : new TableViewGroupHeaderRow();
+            var header = TakeGroupHeader(GetGroupHash(groupInfo));
             header.TableView = _tableView;
             header.ContentTemplate = _tableView.GetGroupHeaderTemplate(groupInfo, header);
             groupInfo.PublishBindableValues();
@@ -79,6 +79,46 @@ internal sealed partial class TableViewRowElementFactory
         row.Content = data;
 
         return row;
+    }
+
+    /// <summary>
+    /// Takes a pooled header, preferring the one that last showed the group, so a view rebuild leaves each
+    /// header's pointer and focus state on its own group.
+    /// </summary>
+    private TableViewGroupHeaderRow TakeGroupHeader(int groupHash)
+    {
+        var index = _groupHeaderPool.Count - 1;
+
+        if (index < 0)
+        {
+            return new TableViewGroupHeaderRow();
+        }
+
+        for (var i = index; i >= 0; i--)
+        {
+            if (_groupHeaderPool[i].LastGroupHash == groupHash)
+            {
+                index = i;
+                break;
+            }
+        }
+
+        var header = _groupHeaderPool[index];
+        _groupHeaderPool.RemoveAt(index);
+
+        return header;
+    }
+
+    private static int GetGroupHash(TableViewGroupInfo groupInfo)
+    {
+        var hash = 17;
+
+        foreach (var key in groupInfo.GroupPath)
+        {
+            hash = (hash * 31) + (key?.GetHashCode() ?? 0);
+        }
+
+        return hash;
     }
 
     /// <summary>
@@ -119,8 +159,9 @@ internal sealed partial class TableViewRowElementFactory
             case TableViewGroupHeaderRow header:
                 // Drop the group so a pooled header does not keep a stale TableViewGroupInfo (and through it the
                 // CollectionView) alive, and so its next group always arrives as a content change.
+                header.LastGroupHash = header.GroupInfo is { } group ? GetGroupHash(group) : 0;
                 header.Content = null;
-                _groupHeaderPool.Push(header);
+                _groupHeaderPool.Add(header);
 
                 break;
         }
