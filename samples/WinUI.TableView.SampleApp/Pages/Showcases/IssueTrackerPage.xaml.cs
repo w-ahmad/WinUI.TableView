@@ -15,6 +15,7 @@ public sealed partial class IssueTrackerPage : Page
         InitializeComponent();
 
         tableView.FilterDescriptions.Add(new FilterDescription(null, IsMatch));
+        tableView.CollectionView.VectorChanged += (_, _) => UpdateSummary();
         ApplyGrouping();
         UpdateSummary();
     }
@@ -79,7 +80,6 @@ public sealed partial class IssueTrackerPage : Page
         Items.Insert(0, issue);
         tableView.SelectedItem = issue;
         tableView.ScrollIntoView(issue);
-        UpdateSummary();
     }
 
     private void OnDeleteClicked(object sender, RoutedEventArgs e)
@@ -88,8 +88,6 @@ public sealed partial class IssueTrackerPage : Page
         {
             Items.Remove(issue);
         }
-
-        UpdateSummary();
     }
 
     private void OnMarkDoneClicked(object sender, RoutedEventArgs e)
@@ -142,8 +140,10 @@ public sealed partial class IssueTrackerPage : Page
 
     private void UpdateSummary()
     {
-        var open = Items.Where(issue => issue.Status != "Done").ToList();
+        var shown = tableView.Items.OfType<WorkItem>().ToList();
+        var open = shown.Where(issue => issue.Status != "Done").ToList();
+        var count = shown.Count == Items.Count ? $"{Items.Count} issues" : $"{shown.Count} of {Items.Count} issues";
 
-        summary.Text = $"{Items.Count} issues · {open.Count} open · {open.Sum(issue => issue.Points)} points left";
+        summary.Text = $"{count} · {open.Count} open · {open.Sum(issue => issue.Points)} points left";
     }
 }
