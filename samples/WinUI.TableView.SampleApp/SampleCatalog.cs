@@ -104,8 +104,6 @@ public static class SampleCatalog
             "Keep leading columns in view while the rest scroll horizontally.") { AddedIn = "1.6" },
         new("Column Reorder", "", typeof(ReorderColumnsPage),
             "Drag column headers to reorder, with events to veto a move."),
-        new("Row Reorder", "", typeof(ReorderRowsPage),
-            "Drag rows to reorder the items of the bound collection."),
         new("Headers Visibility", "", typeof(HeadersVisibilityPage),
             "Show or hide the column headers and the row headers."),
         new("Corner Button", "", typeof(CornerButtonPage),

@@ -243,7 +243,7 @@ async function wheelSideways(page, steps, delta) {
 async function recordScrolling(page, navigate) {
     await wheel(page, 20); // Home, the landing page
     for (const name of ["Overview", "Sales Pipeline", "Market Watchlist", "Issue Tracker", "Inbox", "Grid Lines", "Grouping", "Row Virtualization", "Selection", "Corner Button", "Alternate Row Color",
-        "Context Flyouts", "Row Reorder", "Column Reorder", "Pagination", "Incremental Loading", "Editing", "Clipboard Actions", "Data Export",
+        "Context Flyouts", "Column Reorder", "Pagination", "Incremental Loading", "Editing", "Clipboard Actions", "Data Export",
         "Conditional Cell Styling", "Column Sizing", "Star Columns", "Headers Visibility"]) {
         if (await navigate(name)) await wheel(page, 20);
     }

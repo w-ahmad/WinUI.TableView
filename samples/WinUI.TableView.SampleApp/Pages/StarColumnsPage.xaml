@@ -35,6 +35,8 @@
                                 <Style TargetType="TextBlock">
                                     <Setter Property="HorizontalAlignment"
                                             Value="Right" />
+                                    <Setter Property="TextTrimming"
+                                            Value="CharacterEllipsis" />
                                 </Style>
                             </tv:TableViewTextColumn.ElementStyle>
                         </tv:TableViewTextColumn>
@@ -84,6 +86,7 @@
             &lt;tv:TableViewTextColumn.ElementStyle>
                 &lt;Style TargetType="TextBlock">
                     &lt;Setter Property="HorizontalAlignment" Value="Right" />
+                    &lt;Setter Property="TextTrimming" Value="CharacterEllipsis" />
                 &lt;/Style>
             &lt;/tv:TableViewTextColumn.ElementStyle>
         &lt;/tv:TableViewTextColumn>

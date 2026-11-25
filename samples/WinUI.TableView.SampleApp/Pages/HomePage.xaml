@@ -35,6 +35,13 @@
                    TargetType="HyperlinkButton">
                 <Setter Property="Padding" Value="10,6" />
             </Style>
+
+            <!--  A style, so the brush follows the theme of the page  -->
+            <Style x:Key="GroupDescriptionStyle"
+                   TargetType="TextBlock">
+                <Setter Property="TextWrapping" Value="Wrap" />
+                <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+            </Style>
         </ResourceDictionary>
     </Page.Resources>
 
@@ -237,7 +244,8 @@
             <ItemsRepeater ItemsSource="{x:Bind Highlights}">
                 <ItemsRepeater.Layout>
                     <UniformGridLayout MinItemWidth="230"
-                                       MinItemHeight="84"
+                                       MinItemHeight="100"
+                                       MaximumRowsOrColumns="4"
                                        MinRowSpacing="12"
                                        MinColumnSpacing="12"
                                        ItemsStretch="Fill" />
