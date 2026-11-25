@@ -152,6 +152,70 @@ public class TableViewShiftClickSelectionTests
         await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
     }
 
+    [UITestMethod]
+    public async Task Click_Row_RaisesSelectionChangedOnce()
+    {
+        var tableView = await CreateTableViewAsync(TableViewSelectionUnit.Row);
+
+        Click(tableView, 2);
+        ShiftClick(tableView, 6);
+
+        var raised = 0;
+        tableView.SelectionChanged += (_, _) => raised++;
+
+        Click(tableView, 9);
+        Assert.AreEqual(1, raised, "A click that replaces the selection");
+
+        ShiftClick(tableView, 4);
+        Assert.AreEqual(2, raised, "A Shift+Click that extends the selection");
+
+        ShiftClick(tableView, 11);
+        Assert.AreEqual(3, raised, "A Shift+Click on the other side of the anchor");
+        CollectionAssert.AreEqual(new[] { 9, 10, 11 }, SelectedRows(tableView));
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task Click_Row_ReportsTheWholeChangeInOneEvent()
+    {
+        var tableView = await CreateTableViewAsync(TableViewSelectionUnit.Row);
+
+        Click(tableView, 2);
+        ShiftClick(tableView, 4);
+
+        SelectionChangedEventArgs? args = null;
+        tableView.SelectionChanged += (_, e) => args = e;
+
+        Click(tableView, 9);
+
+        Assert.IsNotNull(args);
+        Assert.AreEqual(3, args.RemovedItems.Count);
+        Assert.AreEqual(1, args.AddedItems.Count);
+        Assert.AreSame(tableView.Items[9], args.AddedItems[0]);
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
+    [UITestMethod]
+    public async Task Click_Cell_RaisesCellSelectionChangedOnce()
+    {
+        var tableView = await CreateTableViewAsync(TableViewSelectionUnit.CellOrRow);
+
+        Click(tableView, 1, 0);
+
+        var raised = 0;
+        tableView.CellSelectionChanged += (_, _) => raised++;
+
+        Click(tableView, 3, 1);
+        Assert.AreEqual(1, raised, "A click that replaces the selection");
+
+        ShiftClick(tableView, 5, 1);
+        Assert.AreEqual(2, raised, "A Shift+Click that extends the selection");
+
+        await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+    }
+
     /// <summary>
     /// Selects a row or cell the way a plain click does: it becomes the only selection and the anchor.
     /// </summary>

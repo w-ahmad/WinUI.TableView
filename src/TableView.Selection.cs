@@ -254,16 +254,45 @@ public partial class TableView
     /// </param>
     private void ChangeSelection(Func<TableViewSelectionModel, bool> change, bool snapshotRemovedItems = false)
     {
+        // Snapshotted items cannot wait for the end of a batch: the view is about to be rebuilt.
+        var deferEvent = _selectionBatchDepth > 0 && !snapshotRemovedItems;
+
+        if (deferEvent)
+        {
+            _rowSelectionBeforeBatch ??= _rowSelection.Clone();
+        }
+        else
+        {
+            RaisePendingSelectionChanged();
+        }
+
         var before = _rowSelection.Clone();
 
-        if (!change(_rowSelection))
+        if (!change(_rowSelection) || !TryGetSelectionDiff(before, out var added, out var removed))
         {
             return;
         }
 
+        SyncSelectionProperties();
+        ApplySelectionToRealizedRows(added, removed);
+        OnRowSelectionChanged(added, removed);
+
+        if (!deferEvent)
+        {
+            SelectionChanged?.Invoke(this, new SelectionChangedEventArgs(
+                ProjectItems(removed, snapshotRemovedItems),
+                ProjectItems(added)));
+        }
+    }
+
+    /// <summary>
+    /// Computes what the selection gained and lost since <paramref name="before"/>, which is consumed.
+    /// </summary>
+    private bool TryGetSelectionDiff(TableViewSelectionModel before, out TableViewSelectionModel added, out TableViewSelectionModel removed)
+    {
         // The two directions of the diff, computed from ranges rather than from item lists.
-        var added = _rowSelection.Clone();
-        var removed = before;
+        added = _rowSelection.Clone();
+        removed = before;
 
         foreach (var range in before.GetRanges())
         {
@@ -275,18 +304,50 @@ public partial class TableView
             removed.Deselect(range.FirstIndex, range.LastIndex);
         }
 
-        if (added.Count is 0 && removed.Count is 0)
+        return added.Count > 0 || removed.Count > 0;
+    }
+
+    /// <summary>
+    /// Starts a batch: the row and cell selection changes made until <see cref="EndSelectionBatch"/> are
+    /// reported by one <see cref="SelectionChanged"/> and one <see cref="CellSelectionChanged"/>.
+    /// </summary>
+    private void BeginSelectionBatch()
+    {
+        _selectionBatchDepth++;
+    }
+
+    /// <summary>
+    /// Ends a batch and raises the events for what it changed overall.
+    /// </summary>
+    private void EndSelectionBatch()
+    {
+        if (--_selectionBatchDepth > 0)
         {
             return;
         }
 
-        SyncSelectionProperties();
-        ApplySelectionToRealizedRows(added, removed);
-        OnRowSelectionChanged(added, removed);
+        RaisePendingSelectionChanged();
 
-        SelectionChanged?.Invoke(this, new SelectionChangedEventArgs(
-            ProjectItems(removed, snapshotRemovedItems),
-            ProjectItems(added)));
+        if (_isCellSelectionChangePending)
+        {
+            _isCellSelectionChangePending = false;
+            OnCellSelectionChanged();
+        }
+    }
+
+    private void RaisePendingSelectionChanged()
+    {
+        if (_rowSelectionBeforeBatch is not { } before)
+        {
+            return;
+        }
+
+        _rowSelectionBeforeBatch = null;
+
+        if (TryGetSelectionDiff(before, out var added, out var removed))
+        {
+            SelectionChanged?.Invoke(this, new SelectionChangedEventArgs(ProjectItems(removed), ProjectItems(added)));
+        }
     }
 
     /// <summary>
