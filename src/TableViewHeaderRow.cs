@@ -79,6 +79,10 @@ public partial class TableViewHeaderRow : Control
         _frozenHeadersPanel = GetTemplateChild("FrozenHeadersPanel") as Panel;
         _scrollableHeadersPanel = GetTemplateChild("ScrollableHeadersPanel") as Panel;
         ForgetHeaders(); // those of the previous template
+#if !WINDOWS
+        // Uno re-arranges a resized panel at its layout slot without calling this ArrangeOverride, dropping the scroll offset.
+        _scrollableHeadersPanel?.SizeChanged += (_, _) => InvalidateArrange();
+#endif
         _columnDropIndicator = GetTemplateChild("ColumnDropIndicator") as Border;
         _columnDropIndicatorTransform = GetTemplateChild("ColumnDropIndicatorTransform") as TranslateTransform;
         _dragHeaderImage = GetTemplateChild("DragHeaderImage") as Image;

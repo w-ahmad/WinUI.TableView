@@ -577,12 +577,15 @@ public partial class TableView : Control
         var ctrlKey = KeyboardHelper.IsCtrlKeyDown();
         var isShiftKey = KeyboardHelper.IsShiftKeyDown();
 
-#if !WINDOWS
         if (e.Pointer.PointerDeviceType is Microsoft.UI.Input.PointerDeviceType.Touch)
         {
+#if !WINDOWS
             _touchTaps.Pressed(e.Pointer.PointerId, position, pressedElement);
-        }
 #endif
+
+            // Touch scrolls instead of drag-selecting; the press is only remembered and selected on Tapped.
+            return RememberTouchPressedElement(pressedElement, canvasPoint);
+        }
 
         if (SelectionMode is ListViewSelectionMode.None                                 // Skip selection when SelectionMode is None
             || IsDragSelecting                                                          // Skip selection when a drag is already in progress
@@ -614,26 +617,11 @@ public partial class TableView : Control
 #endif
         pressedElement ??= this; // If not, default to the TableView itself
 
-        SelectionStartCellSlot = (pressedElement as TableViewCell)?.Slot;
-        SelectionStartRowIndex = (pressedElement as TableViewRow)?.Index ?? SelectionStartCellSlot?.Row;
-
-        LastSelectionUnit = SelectionUnit switch
-        {
-            TableViewSelectionUnit.Cell => TableViewSelectionUnit.Cell,
-            TableViewSelectionUnit.Row => TableViewSelectionUnit.Row,
-            _ => pressedElement is TableViewCell
-                ? TableViewSelectionUnit.Cell
-                : TableViewSelectionUnit.Row
-        };
+        SetSelectionStart(pressedElement);
 
         if (SelectionMode is ListViewSelectionMode.Single)
         {
-            if (LastSelectionUnit is TableViewSelectionUnit.Cell && SelectionStartCellSlot is not null)
-                MakeSelection(SelectionStartCellSlot.Value, false, false);
-            else if (SelectionStartRowIndex is not null)
-                MakeSelection(new(SelectionStartRowIndex.Value, -1), false, false);
-
-            SetCurrentCell(SelectionStartCellSlot);
+            SelectPressed(false);
 
             return true;
         }
@@ -670,6 +658,37 @@ public partial class TableView : Control
 
         MakeSelectionInDragRect();
         return true;
+    }
+
+    /// <summary>
+    /// Sets the selection start slot, row and unit from the pressed element.
+    /// </summary>
+    private void SetSelectionStart(UIElement pressedElement)
+    {
+        SelectionStartCellSlot = (pressedElement as TableViewCell)?.Slot;
+        SelectionStartRowIndex = (pressedElement as TableViewRow)?.Index ?? SelectionStartCellSlot?.Row;
+
+        LastSelectionUnit = SelectionUnit switch
+        {
+            TableViewSelectionUnit.Cell => TableViewSelectionUnit.Cell,
+            TableViewSelectionUnit.Row => TableViewSelectionUnit.Row,
+            _ => pressedElement is TableViewCell
+                ? TableViewSelectionUnit.Cell
+                : TableViewSelectionUnit.Row
+        };
+    }
+
+    /// <summary>
+    /// Selects the cell or row at the selection start and makes it current.
+    /// </summary>
+    private void SelectPressed(bool ctrlKey)
+    {
+        if (LastSelectionUnit is TableViewSelectionUnit.Cell && SelectionStartCellSlot is not null)
+            MakeSelection(SelectionStartCellSlot.Value, false, ctrlKey);
+        else if (SelectionStartRowIndex is not null)
+            MakeSelection(new(SelectionStartRowIndex.Value, -1), false, ctrlKey);
+
+        SetCurrentCell(SelectionStartCellSlot);
     }
 
     /// <summary>
@@ -1342,6 +1361,10 @@ public partial class TableView : Control
                 UpdateRealizedColumns(flush: true); // the cells wait while the thumb is dragged far
             }
         };
+
+#if !WINDOWS
+        InitializeHorizontalScrollIndicator(xScrollBar);
+#endif
     }
 
     /// <summary>
