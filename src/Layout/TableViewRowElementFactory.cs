@@ -127,6 +127,11 @@ internal sealed partial class TableViewRowElementFactory
     internal int CreatedRowCount { get; private set; }
 
     /// <summary>
+    /// Gets the rows waiting to be reused.
+    /// </summary>
+    internal IReadOnlyCollection<TableViewRow> PooledRows => _rowPool;
+
+    /// <summary>
     /// Lets pooled rows drop the items they last showed, so those items are not kept alive.
     /// </summary>
     /// <remarks>
