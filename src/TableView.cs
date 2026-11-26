@@ -1944,7 +1944,7 @@ public partial class TableView : Control
         DetailsPaneStates.Clear();
 
         using var defer = _collectionView.DeferRefresh();
-        _collectionView.Source = null!;
+        _collectionView.Source = null;
 
         if (e.NewValue is IEnumerable source)
         {
