@@ -4,10 +4,13 @@ Builds the Microsoft Store upload package (.msixupload) of the WinUI sample agai
 
 .DESCRIPTION
 The Store build of the sample app references the WinUI.TableView package from NuGet, not the library project,
-so what goes to the Store is what users of that package version get. The version given is used for both: as the
-NuGet dependency, and (with a fourth component of 0, as the Store requires) as the package version written into
-Package.appxmanifest for the duration of the build only; the manifest is restored afterwards, so the repository
-stays clean.
+so what goes to the Store is what users of that package version get. The version given is written into
+Package.appxmanifest (with a fourth component of 0, as the Store requires) for the duration of the build only;
+the manifest is restored afterwards, so the repository stays clean.
+
+The NuGet package version is the same as the Store version unless -NuGetVersion is given. When it is not given,
+the script asks for it; press Enter to keep the Store version. Use it when the two differ, such as a preview
+package (2.0.0-preview1) shipped as Store version 1.9.1.0.
 
 The sample's bin and obj folders are removed first, because switching between a ProjectReference and a
 PackageReference leaves restore assets behind that break the build.
@@ -16,11 +19,14 @@ PackageReference leaves restore assets behind that break the build.
 .\tools\build-store-package.ps1 1.5.1            # package the sample against WinUI.TableView 1.5.1
 .\tools\build-store-package.ps1 v1.5.1.0         # the same, in the Store's own version form
 .\tools\build-store-package.ps1 1.5.1 -OutputDirectory some\dir
+.\tools\build-store-package.ps1 1.9.1 -NuGetVersion 2.0.0-preview1   # Store version 1.9.1.0, WinUI.TableView 2.0.0-preview1
 #>
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true, Position = 0)]
     [string]$Version,
+
+    [string]$NuGetVersion,
 
     [string]$Configuration = "Release",
 
@@ -76,7 +82,7 @@ if ($normalizedVersion -match '^(\d+)\.(\d+)\.(\d+)$') {
     $minor = [int]$Matches[2]
     $build = [int]$Matches[3]
 
-    $nugetVersion = "$major.$minor.$build"
+    $tableViewVersion = "$major.$minor.$build"
     $packageVersion = "$major.$minor.$build.0"
 }
 elseif ($normalizedVersion -match '^(\d+)\.(\d+)\.(\d+)\.(\d+)$') {
@@ -89,7 +95,7 @@ elseif ($normalizedVersion -match '^(\d+)\.(\d+)\.(\d+)\.(\d+)$') {
         throw "Microsoft Store package versions must use 0 as the fourth component. Use '$major.$minor.$build.0'."
     }
 
-    $nugetVersion = "$major.$minor.$build"
+    $tableViewVersion = "$major.$minor.$build"
     $packageVersion = "$major.$minor.$build.0"
 }
 else {
@@ -104,6 +110,18 @@ foreach ($part in @($major, $minor, $build)) {
 
 if ($major -lt 1) {
     throw "The major version must be at least 1. Version: $packageVersion"
+}
+
+if (-not $PSBoundParameters.ContainsKey('NuGetVersion')) {
+    $NuGetVersion = Read-Host "WinUI.TableView NuGet version (press Enter to use $tableViewVersion)"
+}
+
+if (-not [string]::IsNullOrWhiteSpace($NuGetVersion)) {
+    $tableViewVersion = $NuGetVersion.Trim() -replace '^v', ''
+
+    if ($tableViewVersion -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$') {
+        throw "Invalid NuGet version '$NuGetVersion'. Use a version such as '1.5.0' or '2.0.0-preview1'."
+    }
 }
 
 if (-not (Test-Path $projectPath)) {
@@ -122,7 +140,7 @@ $projectDirectory = Split-Path $projectPath
 Write-Host ""
 Write-Host "Microsoft Store package build"
 Write-Host "-----------------------------"
-Write-Host "NuGet version  : $nugetVersion"
+Write-Host "NuGet version  : $tableViewVersion"
 Write-Host "Store version  : $packageVersion"
 Write-Host "Configuration  : $Configuration"
 Write-Host "Architectures  : x86, x64, ARM64"
@@ -132,10 +150,11 @@ Write-Host "MSBuild        : $msbuild"
 Write-Host ""
 
 # Keep the repository clean: update the manifest only for the duration of the build.
-$originalManifest = [System.IO.File]::ReadAllText($manifestFullPath)
+# Its bytes are restored as they were, byte order mark included.
+$originalManifest = [System.IO.File]::ReadAllBytes($manifestFullPath)
 
 try {
-    [xml]$manifest = $originalManifest
+    [xml]$manifest = [System.IO.File]::ReadAllText($manifestFullPath)
     $manifest.Package.Identity.Version = $packageVersion
     $manifest.Save($manifestFullPath)
 
@@ -157,14 +176,14 @@ try {
     New-Item -ItemType Directory -Path $outputPath -Force | Out-Null
 
     Write-Host ""
-    Write-Host "Restoring Sample App with WinUI.TableView $nugetVersion from NuGet..."
+    Write-Host "Restoring Sample App with WinUI.TableView $tableViewVersion from NuGet..."
 
     & $msbuild $projectPath `
         /t:Restore `
         /p:Configuration=$Configuration `
         /p:StorePackaging=true `
         /p:UseTableViewNuGet=true `
-        /p:TableViewPackageVersion=$nugetVersion
+        /p:TableViewPackageVersion=$tableViewVersion
 
     if ($LASTEXITCODE -ne 0) {
         throw "Restore failed with exit code $LASTEXITCODE."
@@ -178,7 +197,7 @@ try {
         /p:Platform=x86 `
         /p:StorePackaging=true `
         /p:UseTableViewNuGet=true `
-        /p:TableViewPackageVersion=$nugetVersion `
+        /p:TableViewPackageVersion=$tableViewVersion `
         "/p:AppxBundlePlatforms=$bundlePlatforms" `
         /p:AppxBundle=Always `
         /p:UapAppxPackageBuildMode=StoreUpload `
@@ -229,13 +248,13 @@ try {
     Write-Host "Store package created successfully:"
     Write-Host "  $($package.FullName)"
     Write-Host ""
-    Write-Host "NuGet dependency : WinUI.TableView $nugetVersion"
+    Write-Host "NuGet dependency : WinUI.TableView $tableViewVersion"
     Write-Host "Store version    : $packageVersion"
     Write-Host ""
     Write-Host "Upload the .msixupload file above to the existing app submission in Partner Center."
 }
 finally {
-    [System.IO.File]::WriteAllText($manifestFullPath, $originalManifest)
+    [System.IO.File]::WriteAllBytes($manifestFullPath, $originalManifest)
 
     Write-Host ""
     Write-Host "Restored the original Package.appxmanifest."

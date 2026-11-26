@@ -90,12 +90,19 @@ Both "publish and open" scripts first close a copy of the app already running fr
 .\tools\build-store-package.ps1 1.5.1
 ```
 
-Builds the `.msixupload` bundle (x86, x64 and ARM64) of the sample app for the Microsoft Store, referencing the given **released** WinUI.TableView package from NuGet rather than the library project, so the Store app is what users of that package version get. The version is also written into `Package.appxmanifest` (as `1.5.1.0`; the Store requires a fourth component of 0) for the duration of the build only, and the manifest is restored afterwards. The sample's `bin` and `obj` folders are removed first, because switching between a project reference and a package reference leaves restore assets behind that break the build.
+Builds the `.msixupload` bundle (x86, x64 and ARM64) of the sample app for the Microsoft Store, referencing a **released** WinUI.TableView package from NuGet rather than the library project, so the Store app is what users of that package version get. The version given is written into `Package.appxmanifest` (as `1.5.1.0`; the Store requires a fourth component of 0) for the duration of the build only, and the manifest is restored afterwards. The sample's `bin` and `obj` folders are removed first, because switching between a project reference and a package reference leaves restore assets behind that break the build.
+
+The script then asks for the WinUI.TableView NuGet version: press Enter to use the same version as the Store package, or type another one, such as a preview package that ships under a numeric Store version:
+
+```powershell
+.\tools\build-store-package.ps1 1.9.1 -NuGetVersion 2.0.0-preview1
+```
 
 Upload the `.msixupload` it reports to the app's submission in Partner Center.
 
 | Option | Effect |
 | --- | --- |
+| `-NuGetVersion <version>` | WinUI.TableView package to build against, without being asked (default: the Store version) |
 | `-Configuration <name>` | Build configuration (default `Release`) |
 | `-OutputDirectory <dir>` | Where the bundle goes (default `artifacts\store`) |
 
