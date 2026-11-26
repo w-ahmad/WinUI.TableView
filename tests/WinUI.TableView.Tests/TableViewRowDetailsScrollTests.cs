@@ -146,6 +146,38 @@ public class TableViewRowDetailsScrollTests
             await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
         }
     }
+
+    [UITestMethod]
+    public async Task ReusedRow_AfterDetailsModeChanged_FollowsTheNewMode()
+    {
+        var tableView = await CreateTableViewAsync(TableViewRowDetailsVisibilityMode.Visible);
+        try
+        {
+            await Task.Delay(300);
+            Assert.IsTrue(GetAttachedRows(tableView).All(r => r.RowPresenter!.IsDetailsPanelVisible), "Precondition: every row shows its details");
+
+            // Filtering the rows away sends their containers to the pool, where the mode change does not reach them.
+            tableView.FilterDescriptions.Add(new FilterDescription(nameof(DetailsTestItem.Name), item => ((DetailsTestItem)item!).Name == "Item 0"));
+            await Task.Delay(300);
+            tableView.RowDetailsVisibilityMode = TableViewRowDetailsVisibilityMode.Collapsed;
+            tableView.FilterDescriptions.Clear();
+            await Task.Delay(500);
+
+            var rows = GetAttachedRows(tableView);
+            Assert.IsTrue(rows.Count > 1, "Precondition: rows came back after the filter was cleared");
+            Assert.IsFalse(rows.Any(r => r.RowPresenter!.IsDetailsPanelVisible), "A reused row must not keep the details of the earlier mode");
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
+    private static List<TableViewRow> GetAttachedRows(TableView tableView)
+    {
+        return [.. tableView.FindDescendants().OfType<TableViewRow>().Where(r => r.Index >= 0)];
+    }
+
     private static ScrollViewer GetScrollViewer(TableView tableView)
     {
         var scrollViewer = tableView.FindDescendant<ScrollViewer>();

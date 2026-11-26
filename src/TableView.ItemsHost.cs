@@ -23,6 +23,7 @@ public partial class TableView
     private bool _isIncrementalLoadQueued;
     private TableViewRealizedRows? _realizedRows;
     private int _selectionModeVersion;
+    private int _rowDetailsVersion;
     private double _suspendedVerticalOffset;
     private (double Height, double MinHeight, double MaxHeight)? _rowHeights;
 
@@ -531,6 +532,13 @@ public partial class TableView
     {
         row.EnsureCellsStyle(default, row.Content);
         row.EnsureAlternateColors();
+
+        // A pooled row missed any change of the row details mode or template.
+        if (row.RowDetailsVersion != _rowDetailsVersion)
+        {
+            ApplyRowDetails(row);
+        }
+
         row.RowPresenter?.ApplyDetailsPaneState(row.Content);
         row.RowPresenter?.SetGroupIndent();
         row.RowPresenter?.SetRowNumber();
@@ -554,6 +562,31 @@ public partial class TableView
 
         row.RefreshVisualStates();
         row.ApplyCellStates();
+    }
+
+    /// <summary>
+    /// Brings the realized rows in line with the table's row details mode and template.
+    /// </summary>
+    private void RefreshRowDetails()
+    {
+        // Pooled rows catch up when they are reused; see ApplyRowVisuals.
+        _rowDetailsVersion++;
+
+        foreach (var row in _rows)
+        {
+            ApplyRowDetails(row);
+        }
+    }
+
+    /// <summary>
+    /// Gives a row the details template, details visibility and expand button of the table's current settings.
+    /// </summary>
+    private void ApplyRowDetails(TableViewRow row)
+    {
+        row.RowDetailsVersion = _rowDetailsVersion;
+        row.RowPresenter?.SetRowHeaderVisibility();
+        row.RowPresenter?.SetRowDetailsTemplate();
+        row.RowPresenter?.SetRowDetailsVisibility();
     }
 
     /// <summary>

@@ -434,6 +434,11 @@ public partial class TableViewRow : ContentControl
     internal int SelectionModeVersion { get; set; }
 
     /// <summary>
+    /// Gets or sets the table's row details version the row was last brought in line with.
+    /// </summary>
+    internal int RowDetailsVersion { get; set; }
+
+    /// <summary>
     /// Drives the row's visual states. <c>SelectorItem</c> used to do this; now that the row is a plain
     /// <see cref="ContentControl"/> it owns the state machine.
     /// </summary>
