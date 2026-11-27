@@ -1697,9 +1697,7 @@ public partial class TableView : Control
     /// <returns>A string of selected cell content separated by the specified character.</returns>
     public string GetSelectedContent(bool includeHeaders, char separator = '\t')
     {
-        var slots = GetSelectedCellSlots();
-
-        return GetCellsContent(slots, includeHeaders, separator);
+        return GetSelectedContent(includeHeaders, separator, false);
     }
 
     /// <summary>
@@ -1710,9 +1708,28 @@ public partial class TableView : Control
     /// <returns>A string of selected cell clipboard content separated by the specified character.</returns>
     public string GetSelectedClipboardContent(bool includeHeaders, char separator = '\t')
     {
-        var slots = GetSelectedCellSlots();
+        return GetSelectedContent(includeHeaders, separator, true);
+    }
 
-        return GetCellsContent(slots, includeHeaders, separator, true);
+    private string GetSelectedContent(bool includeHeaders, char separator, bool isClipboardContent)
+    {
+        // Whole rows need no slot per cell.
+        if (_rowSelection.Count > 0 && SelectedCells.Count == 0)
+        {
+            var rows = new List<int>(_rowSelection.Count);
+
+            foreach (var range in _rowSelection.GetRanges())
+            {
+                for (var row = range.FirstIndex; row <= range.LastIndex; row++)
+                {
+                    rows.Add(row);
+                }
+            }
+
+            return GetCellsContent(rows, 0, Columns.VisibleColumns.Count - 1, null, includeHeaders, separator, isClipboardContent);
+        }
+
+        return GetCellsContent(GetSelectedCellSlots(), includeHeaders, separator, isClipboardContent);
     }
 
     private IEnumerable<TableViewCellSlot> GetSelectedCellSlots()
@@ -1829,7 +1846,7 @@ public partial class TableView : Control
             for (var col = minColumn; col <= maxColumn; col++)
             {
                 if (Columns.VisibleColumns[col] is not TableViewColumn column ||
-                   slots?.Contains(new TableViewCellSlot(row, col)) is false)
+                   (slots is not null && !slots.Contains(new TableViewCellSlot(row, col))))
                 {
                     stringBuilder.Append(separator);
                     continue;

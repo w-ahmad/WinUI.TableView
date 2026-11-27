@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
@@ -72,6 +73,42 @@ public class TableViewContentTests
 
         Assert.AreEqual(20_000, lines.Length);
         Assert.AreEqual("Item19999\t199990", lines[^1]);
+    }
+
+    [UITestMethod]
+    public void Selected_Content_Of_Rows_Has_Every_Cell_In_Row_Order()
+    {
+        var tableView = CreateTableView(6);
+        tableView.SelectionMode = ListViewSelectionMode.Extended;
+        tableView.SelectRange(new ItemIndexRange(4, 1));
+        tableView.SelectRange(new ItemIndexRange(1, 2));
+
+        Assert.AreEqual("Name\tValue\nItem1\t10\nItem2\t20\nItem4\t40", tableView.GetSelectedContent(true));
+        Assert.AreEqual("Item1,10\nItem2,20\nItem4,40", tableView.GetSelectedClipboardContent(false, ','));
+    }
+
+    [UITestMethod]
+    public void Selected_Content_Of_Cells_Leaves_Unselected_Cells_Empty()
+    {
+        var tableView = CreateTableView(4);
+        tableView.SelectionMode = ListViewSelectionMode.Extended;
+        tableView.SelectionUnit = TableViewSelectionUnit.Cell;
+        tableView.SelectCellRange(new TableViewCellSlotRange(0, 0, 1, 1));
+        tableView.SelectCellRange(new TableViewCellSlotRange(2, 1, 1, 1));
+
+        Assert.AreEqual("Item0\t\n\t20", tableView.GetSelectedContent(false));
+    }
+
+    [UITestMethod]
+    public void Selected_Content_Without_A_Selection_Is_The_Current_Cell()
+    {
+        var tableView = CreateTableView(3);
+
+        Assert.AreEqual(string.Empty, tableView.GetSelectedContent(false));
+
+        tableView.CurrentCellSlot = new TableViewCellSlot(1, 1);
+
+        Assert.AreEqual("10", tableView.GetSelectedContent(false));
     }
 
     private static TableView CreateTableView(int count)
