@@ -557,6 +557,36 @@ public partial class TableView
     }
 
     /// <summary>
+    /// Brings every row in line with the table's row details mode and template.
+    /// </summary>
+    private void RefreshRowDetails()
+    {
+        foreach (var row in _rows)
+        {
+            ApplyRowDetails(row);
+        }
+
+        // Pooled rows are not in _rows and would otherwise come back with the earlier details state.
+        if (_rowElementFactory is not null)
+        {
+            foreach (var row in _rowElementFactory.PooledRows)
+            {
+                ApplyRowDetails(row);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gives a row the details template, details visibility and expand button of the table's current settings.
+    /// </summary>
+    private static void ApplyRowDetails(TableViewRow row)
+    {
+        row.RowPresenter?.SetRowHeaderVisibility();
+        row.RowPresenter?.SetRowDetailsTemplate();
+        row.RowPresenter?.SetRowDetailsVisibility();
+    }
+
+    /// <summary>
     /// Brings a group header's table-driven appearance up to date as it becomes visible.
     /// </summary>
     private void AttachGroupHeader(TableViewGroupHeaderRow header)

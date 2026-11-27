@@ -1557,11 +1557,7 @@ public partial class TableView
     {
         if (d is TableView tableView)
         {
-            foreach (var row in tableView._rows)
-            {
-                row.RowPresenter?.SetRowHeaderVisibility();
-                row.RowPresenter?.SetRowDetailsVisibility();
-            }
+            tableView.RefreshRowDetails();
         }
     }
 
@@ -1572,10 +1568,7 @@ public partial class TableView
     {
         if (d is TableView tableView)
         {
-            foreach (var row in tableView._rows)
-            {
-                row.RowPresenter?.SetRowDetailsTemplate();
-            }
+            tableView.RefreshRowDetails();
         }
     }
 
