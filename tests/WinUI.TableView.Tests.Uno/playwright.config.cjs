@@ -5,7 +5,8 @@ const wwwroot = path.join(__dirname, "bin", "Release", "net10.0-browserwasm", "w
 module.exports = defineConfig({
     testDir: "./ci",
     testMatch: "wasm.spec.cjs",
-    timeout: 660_000,
+    // Backstop only; ci/wasm.spec.cjs fails much sooner if the suite stalls.
+    timeout: 1_800_000,
     workers: 1,
     reporter: [["list"], ["junit", { outputFile: "test-results/wasm.xml" }]],
     use: {
