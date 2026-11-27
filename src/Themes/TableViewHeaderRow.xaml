@@ -93,7 +93,7 @@
                                     VerticalAlignment="Stretch"
                                     VerticalContentAlignment="Bottom"
                                     HorizontalContentAlignment="Right">
-                                <FontIcon Opacity="0.5"
+                                <FontIcon Opacity="{ThemeResource TableViewHeaderSubtleIconOpacity}"
                                           Margin="-12,0,0,0"
                                           Glyph="&#xE788;"
                                           VerticalAlignment="Bottom" />
