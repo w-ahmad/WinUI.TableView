@@ -658,6 +658,7 @@ public partial class TableView
                     SyncSelectionProperties();
                 }
 
+                RestoreSelectionAfterFilterReset();
                 _visualRows?.Reset();
 
                 // A group expanded or collapsed keeps its header object, so the sticky one is not shown anew.
@@ -699,7 +700,56 @@ public partial class TableView
             _selectionBeforeReattachReset = [.. SelectedItems];
         }
 
+        _selectionBeforeFilterReset = null;
+
+        // A filter change keeps the selected rows that still pass, as it does when it is applied item by item.
+        // A grouped view never kept them.
+        if (_collectionView.IsResettingForFilter && _rowSelection.Count > 0 && !IsGrouped)
+        {
+            _selectionBeforeFilterReset = [.. SelectedItems];
+            _rowSelection.Clear();
+            ClearSelectionAnchorsBeforeViewReset();
+            return;
+        }
+
         DeselectAllBeforeViewReset();
+    }
+
+    /// <summary>
+    /// Selects the rows that were selected before a filter change rebuilt the view and are still in it, and
+    /// reports the ones that are not as deselected.
+    /// </summary>
+    private void RestoreSelectionAfterFilterReset()
+    {
+        if (_selectionBeforeFilterReset is not { } selectedItems)
+        {
+            return;
+        }
+
+        _selectionBeforeFilterReset = null;
+
+        // One pass over the view, however many rows are selected.
+        var remaining = new HashSet<object>(selectedItems);
+        var kept = new HashSet<object>();
+
+        for (var index = 0; index < _collectionView.Count && SelectionMode is not ListViewSelectionMode.None; index++)
+        {
+            if (_collectionView[index] is { } item && remaining.Contains(item))
+            {
+                _rowSelection.Select(index, index);
+                kept.Add(item);
+
+                if (SelectionMode is ListViewSelectionMode.Single) break;
+            }
+        }
+
+        SyncSelectionProperties();
+
+        if (kept.Count < remaining.Count)
+        {
+            selectedItems.RemoveAll(kept.Contains);
+            SelectionChanged?.Invoke(this, new SelectionChangedEventArgs(selectedItems, []));
+        }
     }
 
     /// <summary>

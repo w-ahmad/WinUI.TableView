@@ -781,9 +781,23 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
 
         if (!TryFilterViewIncrementally(maxChanges))
         {
-            HandleSourceChanged();
+            IsResettingForFilter = true;
+
+            try
+            {
+                HandleSourceChanged();
+            }
+            finally
+            {
+                IsResettingForFilter = false;
+            }
         }
     }
+
+    /// <summary>
+    /// Gets a value indicating whether the view is being rebuilt only because the filters changed.
+    /// </summary>
+    internal bool IsResettingForFilter { get; private set; }
 
     /// <summary>
     /// Applies the filters by removing and inserting single items instead of resetting the view. Not done

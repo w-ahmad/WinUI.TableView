@@ -356,6 +356,11 @@ public partial class TableView
     private void DeselectAllBeforeViewReset()
     {
         ChangeSelection(static model => model.Clear(), snapshotRemovedItems: true);
+        ClearSelectionAnchorsBeforeViewReset();
+    }
+
+    private void ClearSelectionAnchorsBeforeViewReset()
+    {
         DeselectAllCells();
 
         // The anchors are indexes into the view being rebuilt.
