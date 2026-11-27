@@ -776,39 +776,101 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     /// </summary>
     private void HandleFilterChanged()
     {
-        if (FilterDescriptions.Count > 0)
-        {
-            for (var index = 0; index < _groupingSourceItems.Count; index++)
-            {
-                var item = _groupingSourceItems.ElementAt(index);
-                if (FilterDescriptions.All(x => x.Predicate(item)))
-                {
-                    continue;
-                }
+        // A grouped view is rebuilt for any change, so only an unchanged one is left alone.
+        var maxChanges = GroupDescriptions.Count > 0 ? 0 : MaxIncrementalSyncChanges;
 
-                RemoveFromView(index, item);
-                index--;
+        if (!TryFilterViewIncrementally(maxChanges))
+        {
+            IsResettingForFilter = true;
+
+            try
+            {
+                HandleSourceChanged();
+            }
+            finally
+            {
+                IsResettingForFilter = false;
             }
         }
+    }
 
-        var sourceHash = new HashSet<object?>(_groupingSourceItems);
-        var sourceIndex = 0;
-        var i = 0;
-        foreach (var item in Source)
+    /// <summary>
+    /// Gets a value indicating whether the view is being rebuilt only because the filters changed.
+    /// </summary>
+    internal bool IsResettingForFilter { get; private set; }
+
+    /// <summary>
+    /// Applies the filters by removing and inserting single items instead of resetting the view. Not done
+    /// if it takes more than <paramref name="maxChanges"/> changes.
+    /// </summary>
+    /// <returns><see langword="true"/> if the view now holds the filtered items.</returns>
+    private bool TryFilterViewIncrementally(int maxChanges)
+    {
+        var changes = 0;
+        var kept = new HashSet<object?>();
+        List<int>? removedIndexes = null;
+
+        for (var index = 0; index < _groupingSourceItems.Count; index++)
         {
-            if (sourceHash.Contains(item))
+            var item = _groupingSourceItems[index];
+
+            if (PassesFilters(item))
             {
-                sourceIndex++;
+                kept.Add(item);
                 continue;
             }
 
-            if (HandleItemAdded(i, item, sourceIndex))
+            if (++changes > maxChanges) return false;
+
+            (removedIndexes ??= []).Add(index);
+        }
+
+        List<(object? Item, int Index)>? added = null;
+        var filteredIndex = 0;
+
+        foreach (var item in Source)
+        {
+            if (kept.Contains(item))
             {
-                sourceIndex++;
+                filteredIndex++;
+                continue;
             }
 
-            i++;
+            if (!PassesFilters(item)) continue;
+
+            if (++changes > maxChanges) return false;
+
+            (added ??= []).Add((item, filteredIndex++));
         }
+
+        if (removedIndexes is not null)
+        {
+            for (var i = 0; i < removedIndexes.Count; i++)
+            {
+                var index = removedIndexes[i] - i;
+                RemoveFromView(index, _groupingSourceItems[index]);
+            }
+        }
+
+        if (added is not null)
+        {
+            foreach (var (item, index) in added)
+            {
+                HandleItemAdded(index, item, index);
+            }
+        }
+
+        return true;
+    }
+
+    private bool PassesFilters(object? item)
+    {
+        for (var i = 0; i < _filterDescriptions.Count; i++)
+        {
+            if (!_filterDescriptions[i].Predicate(item)) return false;
+        }
+
+        return true;
     }
 
     /// <summary>

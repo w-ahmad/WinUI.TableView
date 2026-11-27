@@ -1121,6 +1121,174 @@ public class CollectionViewTests
         CollectionAssert.AreEqual(new object[] { 3, 5, 2 }, view.ToArray(), "A changed source of value types must update the view");
     }
 
+    [UITestMethod]
+    public void FilterChange_ManyItemsRemoved_ResetsOnce()
+    {
+        var src = CreateItems(10_000);
+        var view = new CollectionView(src);
+        var changes = new List<CollectionChange>();
+        view.VectorChanged += (_, e) => changes.Add(e.CollectionChange);
+
+        view.FilterDescriptions.Add(new FilterDescription(null, item => ((TestItem)item!).Id % 3 == 0));
+
+        CollectionAssert.AreEqual(src.Where(item => item.Id % 3 == 0).ToArray(), view.ToArray());
+        CollectionAssert.AreEqual(new[] { CollectionChange.Reset }, changes);
+    }
+
+    [UITestMethod]
+    public void FilterChange_ManyItemsAdded_ResetsOnce()
+    {
+        var src = CreateItems(10_000);
+        var view = new CollectionView(src);
+        var filter = new FilterDescription(null, item => ((TestItem)item!).Id % 3 == 0);
+        view.FilterDescriptions.Add(filter);
+        var changes = new List<CollectionChange>();
+        view.VectorChanged += (_, e) => changes.Add(e.CollectionChange);
+
+        view.FilterDescriptions.Remove(filter);
+
+        CollectionAssert.AreEqual(src.ToArray(), view.ToArray());
+        CollectionAssert.AreEqual(new[] { CollectionChange.Reset }, changes);
+    }
+
+    [UITestMethod]
+    public void FilterChange_ManyItemsRemoved_SortedView_StaysSorted()
+    {
+        var src = CreateItems(10_000);
+        var view = new CollectionView(src);
+        view.SortDescriptions.Add(SortByValueAscending());
+        var changes = new List<CollectionChange>();
+        view.VectorChanged += (_, e) => changes.Add(e.CollectionChange);
+
+        view.FilterDescriptions.Add(new FilterDescription(null, item => ((TestItem)item!).Id % 3 == 0));
+
+        CollectionAssert.AreEqual(src.Where(item => item.Id % 3 == 0).OrderBy(item => item.Value).ToArray(), view.ToArray());
+        CollectionAssert.AreEqual(new[] { CollectionChange.Reset }, changes);
+    }
+
+    [UITestMethod]
+    public void FilterChange_ManyItemsRemoved_KeepsCurrentItem()
+    {
+        var src = CreateItems(10_000);
+        var view = new CollectionView(src);
+        view.MoveCurrentTo(src[300]);
+
+        view.FilterDescriptions.Add(new FilterDescription(null, item => ((TestItem)item!).Id % 3 == 0));
+
+        Assert.AreSame(src[300], view.CurrentItem);
+        Assert.AreEqual(100, view.CurrentPosition);
+    }
+
+    [UITestMethod]
+    public void FilterChange_FewItemsChanged_SyncsWithoutReset()
+    {
+        var src = CreateItems(1_000);
+        var view = new CollectionView(src);
+        view.MoveCurrentTo(src[550]);
+        var changes = new List<CollectionChange>();
+        view.VectorChanged += (_, e) => changes.Add(e.CollectionChange);
+        var filter = new FilterDescription(null, item => ((TestItem)item!).Id % 100 != 0);
+
+        view.FilterDescriptions.Add(filter);
+
+        CollectionAssert.AreEqual(src.Where(item => item.Id % 100 != 0).ToArray(), view.ToArray());
+        CollectionAssert.AreEqual(Enumerable.Repeat(CollectionChange.ItemRemoved, 10).ToArray(), changes);
+        Assert.AreSame(src[550], view.CurrentItem);
+
+        changes.Clear();
+        view.FilterDescriptions.Remove(filter);
+
+        CollectionAssert.AreEqual(src.ToArray(), view.ToArray());
+        CollectionAssert.AreEqual(Enumerable.Repeat(CollectionChange.ItemInserted, 10).ToArray(), changes);
+        Assert.AreSame(src[550], view.CurrentItem);
+    }
+
+    [UITestMethod]
+    public void RefreshFilter_NothingChanged_RaisesNoChange()
+    {
+        var src = CreateItems(1_000);
+        var view = new CollectionView(src);
+        view.FilterDescriptions.Add(FilterByValueGreaterThan(500));
+        var changes = new List<CollectionChange>();
+        view.VectorChanged += (_, e) => changes.Add(e.CollectionChange);
+
+        view.RefreshFilter();
+        Assert.AreEqual(0, changes.Count);
+
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+        view.GroupDescriptions.Add(GroupByValue());
+        changes.Clear();
+
+        view.RefreshFilter();
+        Assert.AreEqual(0, changes.Count);
+    }
+
+    [UITestMethod]
+    public void FilterChange_GroupedView_RebuildsGroupsOnce()
+    {
+        var src = new ObservableCollection<TestItem>();
+        for (var i = 0; i < 3_000; i++)
+        {
+            src.Add(new TestItem { Id = i, Name = $"Item{i}", Value = i % 10 });
+        }
+
+        var view = new CollectionView(src);
+        view.DefaultGroupState = TableViewGroupState.Expanded;
+        view.GroupDescriptions.Add(GroupByValue());
+        var changes = new List<CollectionChange>();
+        view.VectorChanged += (_, e) => changes.Add(e.CollectionChange);
+        var filter = new FilterDescription(null, item => ((TestItem)item!).Value < 4);
+
+        view.FilterDescriptions.Add(filter);
+
+        Assert.AreEqual(4, view.CollectionGroups!.Count);
+        CollectionAssert.AreEqual(src.Where(item => item.Value < 4).OrderBy(item => item.Value).ToArray(), view.ToArray());
+        CollectionAssert.AreEqual(new[] { CollectionChange.Reset }, changes);
+
+        changes.Clear();
+        view.FilterDescriptions.Remove(filter);
+
+        Assert.AreEqual(10, view.CollectionGroups!.Count);
+        Assert.AreEqual(3_000, view.Count);
+        CollectionAssert.AreEqual(new[] { CollectionChange.Reset }, changes);
+    }
+
+    [UITestMethod]
+    public void FilterChange_NullSource_DoesNotThrow()
+    {
+        var view = new CollectionView(CreateItems(4));
+        view.Source = null;
+        var filter = FilterByValueGreaterThan(2);
+
+        view.FilterDescriptions.Add(filter);
+        view.SortDescriptions.Add(SortByValueAscending());
+        view.GroupDescriptions.Add(GroupByValue());
+        view.FilterDescriptions.Remove(filter);
+        view.RefreshFilter();
+
+        Assert.AreEqual(0, view.Count);
+        Assert.IsTrue(view.IsReadOnly);
+    }
+
+    [UITestMethod]
+    public void TableView_FilterChange_NullItemsSource_DoesNotThrow()
+    {
+        var tableView = new TableView { ItemsSource = CreateItems(4) };
+        tableView.ItemsSource = null;
+        var filter = FilterByValueGreaterThan(2);
+
+        tableView.FilterDescriptions.Add(filter);
+        tableView.FilterDescriptions.Remove(filter);
+
+        Assert.AreEqual(0, tableView.Items.Count);
+
+        var src = CreateItems(4);
+        tableView.FilterDescriptions.Add(filter);
+        tableView.ItemsSource = src;
+
+        Assert.AreEqual(2, tableView.Items.Count);
+    }
+
     private static ObservableCollection<TestItem> CreateItems(int count)
     {
         var list = new ObservableCollection<TestItem>();

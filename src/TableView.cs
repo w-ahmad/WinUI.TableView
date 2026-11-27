@@ -40,6 +40,7 @@ public partial class TableView : Control
     private bool _isReattachingItemsSource;
     private List<object>? _selectionBeforeReattachReset;
     private List<object>? _selectedItemsRemovedWhileReattaching;
+    private List<object>? _selectionBeforeFilterReset;
     // Half of MinValue, so subtracting it from a tick count cannot overflow into "recent".
     private long _lastIntermediateViewChange = long.MinValue / 2;
     private readonly List<TableViewRow> _rows = [];
@@ -1988,7 +1989,7 @@ public partial class TableView : Control
         DetailsPaneStates.Clear();
 
         using var defer = _collectionView.DeferRefresh();
-        _collectionView.Source = null!;
+        _collectionView.Source = null;
 
         if (e.NewValue is IEnumerable source)
         {

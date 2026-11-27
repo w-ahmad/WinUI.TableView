@@ -1,6 +1,8 @@
 ﻿using Microsoft.UI.Xaml.Data;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using Windows.Foundation.Collections;
 using WinUI.TableView.Collections;
 using WinUI.TableView.Extensions;
@@ -12,11 +14,14 @@ partial class CollectionView
     /// <summary>
     /// Gets or sets the source collection.
     /// </summary>
+    [AllowNull]
     public IEnumerable Source
     {
         get;
         set
         {
+            value ??= ReadOnlyCollection<object>.Empty;
+
             if (field == value) return;
 
             // Detaches from the old source, then attaches to the new one.

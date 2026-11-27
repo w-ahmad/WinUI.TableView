@@ -327,6 +327,57 @@ public class TableViewSelectionSyncTests
         Assert.AreEqual(0, tableView.SelectedItems.Count);
     }
 
+    [UITestMethod]
+    public async Task FilterChangingManyRows_KeepsTheSurvivingRowsSelected()
+    {
+        var (tableView, items) = await CreateTableViewAsync(ListViewSelectionMode.Extended, itemCount: 1_000);
+        tableView.SelectRange(new ItemIndexRange(0, 1));
+        tableView.SelectRange(new ItemIndexRange(2, 1));
+        tableView.SelectRange(new ItemIndexRange(600, 1));
+
+        var changes = 0;
+        tableView.SelectionChanged += (_, _) => changes++;
+        var filter = new FilterDescription(null, item => ((Item)item!).Index % 2 == 0);
+
+        tableView.FilterDescriptions.Add(filter);
+        await WaitForLayoutAsync(tableView);
+
+        CollectionAssert.AreEqual(new object[] { items[0], items[2], items[600] }, tableView.SelectedItems.ToArray());
+        Assert.AreSame(items[0], tableView.SelectedItem);
+        Assert.AreEqual(0, changes, "Rows that pass the filter stay selected without a SelectionChanged");
+        Assert.IsTrue(((TableViewRow)tableView.ContainerFromIndex(1)!).IsSelected, "Item 2 is now the second row and shows as selected");
+        Assert.IsFalse(((TableViewRow)tableView.ContainerFromIndex(2)!).IsSelected);
+
+        tableView.FilterDescriptions.Remove(filter);
+        await WaitForLayoutAsync(tableView);
+
+        CollectionAssert.AreEqual(new object[] { items[0], items[2], items[600] }, tableView.SelectedItems.ToArray());
+        Assert.AreEqual(0, changes);
+        Assert.IsTrue(((TableViewRow)tableView.ContainerFromIndex(2)!).IsSelected);
+        Assert.IsFalse(((TableViewRow)tableView.ContainerFromIndex(1)!).IsSelected);
+    }
+
+    [UITestMethod]
+    public async Task FilterChangingManyRows_ReportsTheSelectedRowsItRemoved()
+    {
+        var (tableView, items) = await CreateTableViewAsync(ListViewSelectionMode.Extended, itemCount: 1_000);
+        tableView.SelectRange(new ItemIndexRange(200, 3));
+
+        var removed = new List<object>();
+        var added = 0;
+        tableView.SelectionChanged += (_, e) =>
+        {
+            removed.AddRange(e.RemovedItems);
+            added += e.AddedItems.Count;
+        };
+
+        tableView.FilterDescriptions.Add(new FilterDescription(null, item => ((Item)item!).Index % 2 == 0));
+
+        CollectionAssert.AreEqual(new object[] { items[200], items[202] }, tableView.SelectedItems.ToArray());
+        CollectionAssert.AreEqual(new object[] { items[201] }, removed);
+        Assert.AreEqual(0, added);
+    }
+
     private async Task<(TableView, ObservableCollection<Item>)> CreateTableViewAsync(ListViewSelectionMode selectionMode, int itemCount = 10)
     {
         var items = new ObservableCollection<Item>(Enumerable.Range(0, itemCount).Select(i => new Item { Index = i, Name = $"Item {i}" }));
