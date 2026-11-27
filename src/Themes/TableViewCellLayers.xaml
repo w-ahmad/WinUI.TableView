@@ -39,6 +39,8 @@
            TargetType="Border">
         <Setter Property="Background"
                 Value="{ThemeResource TableViewCellBackgroundSelected}" />
+        <Setter Property="BorderBrush"
+                Value="{ThemeResource TableViewCellSelectedBorderBrush}" />
     </Style>
 
     <Style x:Key="TableViewCellCurrentLayerStyle"

@@ -62,7 +62,7 @@
                                         <Setter Target="SortIcon.Glyph"
                                                 Value="{ThemeResource SortIconUnsorted}" />
                                         <Setter Target="SortIcon.Opacity"
-                                                Value="0.5" />
+                                                Value="{ThemeResource TableViewHeaderSubtleIconOpacity}" />
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="SortAscending">

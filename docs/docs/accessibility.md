@@ -169,6 +169,23 @@ To override the automation name of a column header (for example, to provide a lo
 </tv:TableViewTextColumn>
 ```
 
+## High contrast
+
+In a Windows contrast theme the table draws with the system colors only: text, grid lines and the border use the window text color on the window background, and the header row uses the button colors.
+
+Hover and selection are shown with outlines in the highlight color instead of fills, so the content of a highlighted row or cell, including check boxes, toggle switches and hyperlinks, stays on the window background:
+
+| State | Cue |
+|---|---|
+| Pointer over a row | An outline around the row |
+| Selected row | The outline, a band at the row's leading edge and the selection indicator or check box |
+| Selected cell | A border in the highlight color |
+| Current cell | A border in the window text color |
+
+The outline's resources are `TableViewRowHighlightBorderBrush`, `TableViewRowHighlightBorderThickness` and `TableViewCellSelectedBorderBrush`. To change the look, override them, or the `TableViewRowBackground*` and `TableViewCellBackground*` brushes, in the `HighContrast` theme dictionary of your app's resources. A fill you bring back sits behind the cell content, so check the controls in your cells against it.
+
+On Uno Platform the high contrast look needs Uno 7 or later; earlier versions do not select the `HighContrast` theme dictionary.
+
 ## Notes and limitations
 
 - **Virtualized cells**: `IGridProvider.GetItem(row, column)` realizes an off-screen row on demand (see [Virtualized rows](#virtualized-rows)), and the cell of a column that is out of view sideways, and returns `null` only for an index outside `RowCount` or `ColumnCount`. A cell created this way for a column out of view stays until the row next brings its cells in line with the columns in view, for example when the table scrolls sideways or the row is reused, unless it has become the current cell. A row's children are the cells that exist; its help text describes every visible column. Items inside a collapsed group are not rows until the group is expanded, so they are not counted in `RowCount`.

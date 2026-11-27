@@ -14,6 +14,7 @@
             <x:String x:Key="FilterIcon">&#xe71c;</x:String>
             <x:String x:Key="OptionsButtonIcon">&#xe712;</x:String>
             <x:String x:Key="SelectAllButtonIcon">&#xE936;</x:String>
+            <x:Double x:Key="TableViewHeaderSubtleIconOpacity">0.5</x:Double>
             <x:Double x:Key="TableViewRowDisabledThemeOpacity">0.3</x:Double>
             <x:Double x:Key="TableViewRowDragThemeOpacity">0.80</x:Double>
             <x:Double x:Key="TableViewRowReorderHintThemeOffset">10.0</x:Double>
@@ -33,6 +34,7 @@
             <StaticResource x:Key="TableViewCellSelectionBrush" ResourceKey="FocusStrokeColorOuterBrush" />
             <StaticResource x:Key="TableViewCellBackgroundPointerOver" ResourceKey="SubtleFillColorSecondaryBrush" />
             <StaticResource x:Key="TableViewCellBackgroundSelected" ResourceKey="SubtleFillColorSecondaryBrush" />
+            <StaticResource x:Key="TableViewCellSelectedBorderBrush" ResourceKey="SubtleFillColorTransparentBrush" />
             <StaticResource x:Key="TableViewHeaderForeground" ResourceKey="TextFillColorPrimaryBrush" />
             <StaticResource x:Key="TableViewHeaderRowBackground" ResourceKey="SubtleFillColorSecondaryBrush" />
             <StaticResource x:Key="TableViewRowBackground" ResourceKey="SubtleFillColorTransparentBrush" />
@@ -67,6 +69,8 @@
             <StaticResource x:Key="TableViewRowCheckBoxPressedBorderBrush" ResourceKey="ControlStrongStrokeColorDefaultBrush" />
             <StaticResource x:Key="TableViewRowCheckBoxDisabledBorderBrush" ResourceKey="ControlStrongStrokeColorDisabledBrush" />
             <StaticResource x:Key="TableViewRowBackgroundSelectedDisabled" ResourceKey="SubtleFillColorSecondaryBrush" />
+            <StaticResource x:Key="TableViewRowHighlightBorderBrush" ResourceKey="SubtleFillColorTransparentBrush" />
+            <Thickness x:Key="TableViewRowHighlightBorderThickness">0</Thickness>
             <StaticResource x:Key="TableViewRowSelectionIndicatorBrush" ResourceKey="AccentFillColorDefaultBrush" />
             <StaticResource x:Key="TableViewRowSelectionIndicatorPointerOverBrush" ResourceKey="AccentFillColorDefaultBrush" />
             <StaticResource x:Key="TableViewRowSelectionIndicatorPressedBrush" ResourceKey="AccentFillColorDefaultBrush" />
@@ -97,6 +101,7 @@
             <x:String x:Key="FilterIcon">&#xe71c;</x:String>
             <x:String x:Key="OptionsButtonIcon">&#xe712;</x:String>
             <x:String x:Key="SelectAllButtonIcon">&#xE936;</x:String>
+            <x:Double x:Key="TableViewHeaderSubtleIconOpacity">0.5</x:Double>
             <x:Double x:Key="TableViewRowDisabledThemeOpacity">0.3</x:Double>
             <x:Double x:Key="TableViewRowDragThemeOpacity">0.80</x:Double>
             <x:Double x:Key="TableViewRowReorderHintThemeOffset">10.0</x:Double>
@@ -116,6 +121,7 @@
             <StaticResource x:Key="TableViewCellSelectionBrush" ResourceKey="FocusStrokeColorOuterBrush" />
             <StaticResource x:Key="TableViewCellBackgroundPointerOver" ResourceKey="SubtleFillColorSecondaryBrush" />
             <StaticResource x:Key="TableViewCellBackgroundSelected" ResourceKey="SubtleFillColorSecondaryBrush" />
+            <StaticResource x:Key="TableViewCellSelectedBorderBrush" ResourceKey="SubtleFillColorTransparentBrush" />
             <StaticResource x:Key="TableViewHeaderForeground" ResourceKey="TextFillColorPrimaryBrush" />
             <StaticResource x:Key="TableViewHeaderRowBackground" ResourceKey="SubtleFillColorSecondaryBrush" />
             <StaticResource x:Key="TableViewRowBackground" ResourceKey="SubtleFillColorTransparentBrush" />
@@ -150,6 +156,8 @@
             <StaticResource x:Key="TableViewRowCheckBoxPressedBorderBrush" ResourceKey="ControlStrongStrokeColorDefaultBrush" />
             <StaticResource x:Key="TableViewRowCheckBoxDisabledBorderBrush" ResourceKey="ControlStrongStrokeColorDisabledBrush" />
             <StaticResource x:Key="TableViewRowBackgroundSelectedDisabled" ResourceKey="SubtleFillColorSecondaryBrush" />
+            <StaticResource x:Key="TableViewRowHighlightBorderBrush" ResourceKey="SubtleFillColorTransparentBrush" />
+            <Thickness x:Key="TableViewRowHighlightBorderThickness">0</Thickness>
             <StaticResource x:Key="TableViewRowSelectionIndicatorBrush" ResourceKey="AccentFillColorDefaultBrush" />
             <StaticResource x:Key="TableViewRowSelectionIndicatorPointerOverBrush" ResourceKey="AccentFillColorDefaultBrush" />
             <StaticResource x:Key="TableViewRowSelectionIndicatorPressedBrush" ResourceKey="AccentFillColorDefaultBrush" />
@@ -180,6 +188,7 @@
             <x:String x:Key="FilterIcon">&#xe71c;</x:String>
             <x:String x:Key="OptionsButtonIcon">&#xe712;</x:String>
             <x:String x:Key="SelectAllButtonIcon">&#xE936;</x:String>
+            <x:Double x:Key="TableViewHeaderSubtleIconOpacity">1</x:Double>
             <x:Double x:Key="TableViewRowDisabledThemeOpacity">0.3</x:Double>
             <x:Double x:Key="TableViewRowDragThemeOpacity">0.80</x:Double>
             <x:Double x:Key="TableViewRowReorderHintThemeOffset">10.0</x:Double>
@@ -195,52 +204,69 @@
             <CornerRadius x:Key="TableViewRowCornerRadius">4</CornerRadius>
             <CornerRadius x:Key="TableViewRowCheckBoxCornerRadius">3</CornerRadius>
             <CornerRadius x:Key="TableViewRowSelectionIndicatorCornerRadius">1.5</CornerRadius>
-            <StaticResource x:Key="TableViewBorderBrush" ResourceKey="SystemColorButtonTextColorBrush" />
+            <StaticResource x:Key="TableViewBorderBrush" ResourceKey="SystemColorWindowTextColorBrush" />
             <SolidColorBrush x:Key="TableViewCellSelectionBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
-            <SolidColorBrush x:Key="TableViewCellBackgroundPointerOver" Color="{ThemeResource SystemColorHighlightColor}" />
-            <SolidColorBrush x:Key="TableViewCellBackgroundSelected" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="TableViewCellBackgroundPointerOver" Color="Transparent" />
+            <SolidColorBrush x:Key="TableViewCellBackgroundSelected" Color="Transparent" />
+            <SolidColorBrush x:Key="TableViewCellSelectedBorderBrush" Color="{ThemeResource SystemColorHighlightColor}" />
             <SolidColorBrush x:Key="TableViewHeaderForeground" Color="{ThemeResource SystemColorButtonTextColor}" />
-            <SolidColorBrush x:Key="TableViewHeaderRowBackground" Color="{ThemeResource SystemColorHighlightColor}" />
-            <SolidColorBrush x:Key="TableViewRowBackground" Color="{ThemeResource SystemColorWindowColor}" />
-            <SolidColorBrush x:Key="TableViewRowBackgroundPointerOver" Color="{ThemeResource SystemColorHighlightColor}" />
-            <SolidColorBrush x:Key="TableViewRowBackgroundPressed" Color="{ThemeResource SystemColorHighlightColor}" />
-            <SolidColorBrush x:Key="TableViewRowBackgroundSelected" Color="{ThemeResource SystemColorHighlightColor}" />
-            <SolidColorBrush x:Key="TableViewRowBackgroundSelectedPointerOver" Color="{ThemeResource SystemColorHighlightColor}" />
-            <SolidColorBrush x:Key="TableViewRowBackgroundSelectedPressed" Color="{ThemeResource SystemColorHighlightColor}" />
-            <SolidColorBrush x:Key="TableViewRowForeground" Color="{ThemeResource SystemColorButtonTextColor}" />
-            <SolidColorBrush x:Key="TableViewRowForegroundPointerOver" Color="{ThemeResource SystemColorHighlightTextColor}" />
-            <SolidColorBrush x:Key="TableViewRowForegroundSelected" Color="{ThemeResource SystemColorHighlightTextColor}" />
+            <SolidColorBrush x:Key="TableViewHeaderRowBackground" Color="{ThemeResource SystemColorButtonFaceColor}" />
+            <!--  Highlights are outlines, not fills: a fill in the highlight color hides the controls in the cells.
+                  A selected row also gets a band along its leading edge.  -->
+            <SolidColorBrush x:Key="TableViewRowBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="TableViewRowBackgroundPointerOver" Color="Transparent" />
+            <SolidColorBrush x:Key="TableViewRowBackgroundPressed" Color="Transparent" />
+            <LinearGradientBrush x:Key="TableViewRowBackgroundSelected" MappingMode="Absolute" StartPoint="0,0" EndPoint="6,0">
+                <GradientStop Color="{ThemeResource SystemColorHighlightColor}" Offset="0" />
+                <GradientStop Color="{ThemeResource SystemColorHighlightColor}" Offset="0.99" />
+                <GradientStop Color="Transparent" Offset="1" />
+            </LinearGradientBrush>
+            <LinearGradientBrush x:Key="TableViewRowBackgroundSelectedPointerOver" MappingMode="Absolute" StartPoint="0,0" EndPoint="6,0">
+                <GradientStop Color="{ThemeResource SystemColorHighlightColor}" Offset="0" />
+                <GradientStop Color="{ThemeResource SystemColorHighlightColor}" Offset="0.99" />
+                <GradientStop Color="Transparent" Offset="1" />
+            </LinearGradientBrush>
+            <LinearGradientBrush x:Key="TableViewRowBackgroundSelectedPressed" MappingMode="Absolute" StartPoint="0,0" EndPoint="6,0">
+                <GradientStop Color="{ThemeResource SystemColorHighlightColor}" Offset="0" />
+                <GradientStop Color="{ThemeResource SystemColorHighlightColor}" Offset="0.99" />
+                <GradientStop Color="Transparent" Offset="1" />
+            </LinearGradientBrush>
+            <SolidColorBrush x:Key="TableViewRowForeground" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="TableViewRowForegroundPointerOver" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="TableViewRowForegroundSelected" Color="{ThemeResource SystemColorWindowTextColor}" />
             <SolidColorBrush x:Key="TableViewRowFocusVisualPrimaryBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
             <SolidColorBrush x:Key="TableViewRowFocusVisualSecondaryBrush" Color="{ThemeResource SystemColorWindowColor}" />
             <SolidColorBrush x:Key="TableViewRowFocusBorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
             <SolidColorBrush x:Key="TableViewRowFocusSecondaryBorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
-            <SolidColorBrush x:Key="TableViewRowCheckBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="TableViewRowCheckBrush" Color="{ThemeResource SystemColorHighlightTextColor}" />
             <SolidColorBrush x:Key="TableViewRowCheckBoxBrush" Color="{ThemeResource SystemColorButtonFaceColor}" />
             <SolidColorBrush x:Key="TableViewRowDragBackground" Color="Transparent" />
             <SolidColorBrush x:Key="TableViewRowDragForeground" Color="{ThemeResource SystemColorWindowTextColor}" />
             <SolidColorBrush x:Key="TableViewRowPlaceholderBackground" Color="{ThemeResource SystemColorButtonFaceColor}" />
-            <SolidColorBrush x:Key="TableViewRowCheckPressedBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="TableViewRowCheckPressedBrush" Color="{ThemeResource SystemColorHighlightTextColor}" />
             <SolidColorBrush x:Key="TableViewRowCheckDisabledBrush" Color="{ThemeResource SystemColorGrayTextColor}" />
             <SolidColorBrush x:Key="TableViewRowCheckBoxPointerOverBrush" Color="{ThemeResource SystemColorButtonFaceColor}" />
             <SolidColorBrush x:Key="TableViewRowCheckBoxPressedBrush" Color="{ThemeResource SystemColorButtonFaceColor}" />
             <SolidColorBrush x:Key="TableViewRowCheckBoxDisabledBrush" Color="{ThemeResource SystemColorButtonFaceColor}" />
-            <SolidColorBrush x:Key="TableViewRowCheckBoxSelectedBrush" Color="{ThemeResource SystemColorWindowColor}" />
-            <SolidColorBrush x:Key="TableViewRowCheckBoxSelectedPointerOverBrush" Color="{ThemeResource SystemColorWindowColor}" />
-            <SolidColorBrush x:Key="TableViewRowCheckBoxSelectedPressedBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="TableViewRowCheckBoxSelectedBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="TableViewRowCheckBoxSelectedPointerOverBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="TableViewRowCheckBoxSelectedPressedBrush" Color="{ThemeResource SystemColorHighlightColor}" />
             <SolidColorBrush x:Key="TableViewRowCheckBoxSelectedDisabledBrush" Color="{ThemeResource SystemColorWindowColor}" />
-            <SolidColorBrush x:Key="TableViewRowCheckBoxBorderBrush" Color="{ThemeResource SystemColorButtonTextColor}" />
-            <SolidColorBrush x:Key="TableViewRowCheckBoxPointerOverBorderBrush" Color="{ThemeResource SystemColorButtonTextColor}" />
-            <SolidColorBrush x:Key="TableViewRowCheckBoxPressedBorderBrush" Color="{ThemeResource SystemColorButtonTextColor}" />
+            <SolidColorBrush x:Key="TableViewRowCheckBoxBorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="TableViewRowCheckBoxPointerOverBorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="TableViewRowCheckBoxPressedBorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
             <SolidColorBrush x:Key="TableViewRowCheckBoxDisabledBorderBrush" Color="{ThemeResource SystemColorButtonTextColor}" />
-            <SolidColorBrush x:Key="TableViewRowBackgroundSelectedDisabled" Color="{ThemeResource SystemColorWindowColor}" />
-            <SolidColorBrush x:Key="TableViewRowSelectionIndicatorBrush" Color="{ThemeResource SystemColorHighlightTextColor}" />
-            <SolidColorBrush x:Key="TableViewRowSelectionIndicatorPointerOverBrush" Color="{ThemeResource SystemColorHighlightTextColor}" />
-            <SolidColorBrush x:Key="TableViewRowSelectionIndicatorPressedBrush" Color="{ThemeResource SystemColorHighlightTextColor}" />
+            <SolidColorBrush x:Key="TableViewRowBackgroundSelectedDisabled" Color="Transparent" />
+            <SolidColorBrush x:Key="TableViewRowHighlightBorderBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+            <Thickness x:Key="TableViewRowHighlightBorderThickness">2</Thickness>
+            <SolidColorBrush x:Key="TableViewRowSelectionIndicatorBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="TableViewRowSelectionIndicatorPointerOverBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="TableViewRowSelectionIndicatorPressedBrush" Color="{ThemeResource SystemColorHighlightColor}" />
             <SolidColorBrush x:Key="TableViewRowSelectionIndicatorDisabledBrush" Color="{ThemeResource SystemColorGrayTextColor}" />
-            <StaticResource x:Key="TableViewHorizontalGridLineStroke" ResourceKey="SystemColorButtonTextColorBrush" />
-            <StaticResource x:Key="TableViewVerticalGridLineStroke" ResourceKey="SystemColorButtonTextColorBrush" />
+            <StaticResource x:Key="TableViewHorizontalGridLineStroke" ResourceKey="SystemColorWindowTextColorBrush" />
+            <StaticResource x:Key="TableViewVerticalGridLineStroke" ResourceKey="SystemColorWindowTextColorBrush" />
             <SolidColorBrush x:Key="TableViewRowDetailsBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
-            <SolidColorBrush x:Key="TableViewDragRectangleFill" Color="{ThemeResource SystemColorHighlightColor}" Opacity="0.3" />
+            <SolidColorBrush x:Key="TableViewDragRectangleFill" Color="Transparent" />
             <SolidColorBrush x:Key="TableViewDragRectangleStroke" Color="{ThemeResource SystemColorHighlightColor}" />
             <CornerRadius x:Key="TableViewDragRectangleCornerRadius">0</CornerRadius>
             <SolidColorBrush x:Key="TableViewGroupHeaderRowBackground" Color="{ThemeResource SystemColorWindowColor}" />
@@ -250,7 +276,7 @@
             <Thickness x:Key="TableViewGroupHeaderRowExpanderMargin">4,0,0,0</Thickness>
             <Thickness x:Key="TableViewGroupHeaderRowContentMargin">8,0,16,0</Thickness>
             <x:Double x:Key="TableViewGroupHeaderRowFontSize">18</x:Double>
-            <SolidColorBrush x:Key="TableViewRowNumberForeground" Color="{ThemeResource SystemColorButtonTextColor}" />
+            <SolidColorBrush x:Key="TableViewRowNumberForeground" Color="{ThemeResource SystemColorWindowTextColor}" />
             <x:Double x:Key="TableViewRowNumberFontSize">12</x:Double>
             <Thickness x:Key="TableViewRowNumberMargin">8,0,4,0</Thickness>
             <x:Double x:Key="TableViewRowNumberMinWidth">24</x:Double>
