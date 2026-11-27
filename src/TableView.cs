@@ -1266,6 +1266,15 @@ public partial class TableView : Control
         base.OnApplyTemplate();
 
         _headerRow = GetTemplateChild("HeaderRow") as TableViewHeaderRow;
+
+        // Detach from the outgoing ScrollViewer so a re-applied template doesn't leave its handlers behind.
+        if (_scrollViewer is { } previousScrollViewer)
+        {
+            previousScrollViewer.Loaded -= OnScrollViewerLoaded;
+            previousScrollViewer.ViewChanged -= OnScrollViewerViewChanged;
+            previousScrollViewer.SizeChanged -= OnScrollViewerSizeChanged;
+        }
+
         _scrollViewer = GetTemplateChild("ScrollViewer") as ScrollViewer;
         _headerRowDefinition = GetTemplateChild("HeaderRowDefinition") as RowDefinition;
         DragRectangleCanvas = GetTemplateChild("DragRectangleCanvas") as FrameworkElement;
@@ -1372,6 +1381,8 @@ public partial class TableView : Control
         var xScrollBar = _scrollViewer?.FindDescendant<ScrollBar>(sb => sb.Name is "HorizontalScrollBar2");
         var yScrollBar = _scrollViewer?.FindDescendant<ScrollBar>(sb => sb.Name is "VerticalScrollBar");
 
+        // ScrollViewer.Loaded fires on every reload (e.g. a page switch); remove first so handlers don't pile up.
+        scrollPresenter?.PointerWheelChanged -= OnScrollContentPresenterPointerWheelChanged;
         scrollPresenter?.PointerWheelChanged += OnScrollContentPresenterPointerWheelChanged;
 
         if (_scrollViewer is not null)
@@ -1379,7 +1390,8 @@ public partial class TableView : Control
             AttachStickyGroupHeaderHost(_scrollViewer);
         }
 
-        yScrollBar?.ValueChanged += (_, _) => SetValue(VerticalOffsetProperty, yScrollBar.Value);
+        yScrollBar?.ValueChanged -= OnVerticalScrollBarValueChanged;
+        yScrollBar?.ValueChanged += OnVerticalScrollBarValueChanged;
 
         xScrollBar?.SetBinding(RangeBase.ValueProperty, new Binding
         {
@@ -1388,19 +1400,27 @@ public partial class TableView : Control
             Source = this
         });
 
-        xScrollBar?.Scroll += (_, e) =>
-        {
-            IsHorizontalThumbTracking = e.ScrollEventType is ScrollEventType.ThumbTrack;
-
-            if (!IsHorizontalThumbTracking)
-            {
-                UpdateRealizedColumns(flush: true); // the cells wait while the thumb is dragged far
-            }
-        };
+        xScrollBar?.Scroll -= OnHorizontalScrollBarScroll;
+        xScrollBar?.Scroll += OnHorizontalScrollBarScroll;
 
 #if !WINDOWS
         InitializeHorizontalScrollIndicator(xScrollBar);
 #endif
+    }
+
+    private void OnVerticalScrollBarValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+    {
+        SetValue(VerticalOffsetProperty, e.NewValue);
+    }
+
+    private void OnHorizontalScrollBarScroll(object sender, ScrollEventArgs e)
+    {
+        IsHorizontalThumbTracking = e.ScrollEventType is ScrollEventType.ThumbTrack;
+
+        if (!IsHorizontalThumbTracking)
+        {
+            UpdateRealizedColumns(flush: true); // the cells wait while the thumb is dragged far
+        }
     }
 
     /// <summary>
