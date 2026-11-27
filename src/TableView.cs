@@ -1697,9 +1697,7 @@ public partial class TableView : Control
     /// <returns>A string of selected cell content separated by the specified character.</returns>
     public string GetSelectedContent(bool includeHeaders, char separator = '\t')
     {
-        var slots = GetSelectedCellSlots();
-
-        return GetCellsContent(slots, includeHeaders, separator);
+        return GetSelectedContent(includeHeaders, separator, false);
     }
 
     /// <summary>
@@ -1710,9 +1708,28 @@ public partial class TableView : Control
     /// <returns>A string of selected cell clipboard content separated by the specified character.</returns>
     public string GetSelectedClipboardContent(bool includeHeaders, char separator = '\t')
     {
-        var slots = GetSelectedCellSlots();
+        return GetSelectedContent(includeHeaders, separator, true);
+    }
 
-        return GetCellsContent(slots, includeHeaders, separator, true);
+    private string GetSelectedContent(bool includeHeaders, char separator, bool isClipboardContent)
+    {
+        // Whole rows need no slot per cell.
+        if (_rowSelection.Count > 0 && SelectedCells.Count == 0)
+        {
+            var rows = new List<int>(_rowSelection.Count);
+
+            foreach (var range in _rowSelection.GetRanges())
+            {
+                for (var row = range.FirstIndex; row <= range.LastIndex; row++)
+                {
+                    rows.Add(row);
+                }
+            }
+
+            return GetCellsContent(rows, 0, Columns.VisibleColumns.Count - 1, null, includeHeaders, separator, isClipboardContent);
+        }
+
+        return GetCellsContent(GetSelectedCellSlots(), includeHeaders, separator, isClipboardContent);
     }
 
     private IEnumerable<TableViewCellSlot> GetSelectedCellSlots()
@@ -1744,9 +1761,14 @@ public partial class TableView : Control
     /// <returns>A string of all cell content separated by the specified character.</returns>
     public string GetAllContent(bool includeHeaders, char separator = '\t')
     {
-        var rows = Enumerable.Range(0, Items.Count).ToArray();
+        var rows = new int[Items.Count];
 
-        return GetRowsContent(rows, includeHeaders, separator);
+        for (var index = 0; index < rows.Length; index++)
+        {
+            rows[index] = index;
+        }
+
+        return GetCellsContent(rows, 0, Columns.VisibleColumns.Count - 1, null, includeHeaders, separator, false);
     }
 
     /// <summary>
@@ -1758,12 +1780,10 @@ public partial class TableView : Control
     /// <returns>A string of specified row content separated by the specified character.</returns>
     public string GetRowsContent(int[] rows, bool includeHeaders, char separator = '\t')
     {
-        var slots = rows.SelectMany(r => Enumerable.Range(0, Columns.VisibleColumns.Count)
-                                                           .Select(c => new TableViewCellSlot(r, c)))
-                        .OrderBy(x => x.Row)
-                        .ThenByDescending(x => x.Column);
+        var orderedRows = rows.Distinct().ToArray();
+        Array.Sort(orderedRows);
 
-        return GetCellsContent(slots, includeHeaders, separator);
+        return GetCellsContent(orderedRows, 0, Columns.VisibleColumns.Count - 1, null, includeHeaders, separator, false);
     }
 
     /// <summary>
@@ -1780,13 +1800,36 @@ public partial class TableView : Control
 
     private string GetCellsContent(IEnumerable<TableViewCellSlot> slots, bool includeHeaders, char separator, bool isClipboardContent)
     {
-        if (!slots.Any())
+        // Read once: the sequence may be lazy, and every cell is looked up in it.
+        var slotSet = new HashSet<TableViewCellSlot>();
+        var rows = new List<int>();
+        var seenRows = new HashSet<int>();
+        var minColumn = int.MaxValue;
+        var maxColumn = int.MinValue;
+
+        foreach (var slot in slots)
+        {
+            slotSet.Add(slot);
+            minColumn = Math.Min(minColumn, slot.Column);
+            maxColumn = Math.Max(maxColumn, slot.Column);
+
+            if (seenRows.Add(slot.Row))
+            {
+                rows.Add(slot.Row);
+            }
+        }
+
+        return GetCellsContent(rows, minColumn, maxColumn, slotSet, includeHeaders, separator, isClipboardContent);
+    }
+
+    // A null slot set means every cell of the rows between the two columns.
+    private string GetCellsContent(IReadOnlyList<int> rows, int minColumn, int maxColumn, HashSet<TableViewCellSlot>? slots, bool includeHeaders, char separator, bool isClipboardContent)
+    {
+        if (rows.Count == 0 || maxColumn < minColumn)
         {
             return string.Empty;
         }
 
-        var minColumn = slots.Select(x => x.Column).Min();
-        var maxColumn = slots.Select(x => x.Column).Max();
         var stringBuilder = new StringBuilder();
 
         if (includeHeaders)
@@ -1795,14 +1838,15 @@ public partial class TableView : Control
             stringBuilder.Append('\n');
         }
 
-        foreach (var row in slots.Select(x => x.Row).Distinct())
+        for (var index = 0; index < rows.Count; index++)
         {
+            var row = rows[index];
             var item = Items[row];
 
             for (var col = minColumn; col <= maxColumn; col++)
             {
                 if (Columns.VisibleColumns[col] is not TableViewColumn column ||
-                   !slots.Contains(new TableViewCellSlot(row, col)))
+                   (slots is not null && !slots.Contains(new TableViewCellSlot(row, col))))
                 {
                     stringBuilder.Append(separator);
                     continue;
