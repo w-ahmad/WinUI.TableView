@@ -2,8 +2,6 @@ namespace WinUI.TableView;
 
 partial class CollectionView
 {
-    private static readonly object _unreadSortValue = new();
-
     /// <summary>
     /// Sorts <paramref name="items"/> by the sort descriptions, reading each item's sort values at most once
     /// instead of on every comparison.
@@ -15,40 +13,53 @@ partial class CollectionView
 
         if (depth == 0 || count < 2) return;
 
-        var descriptions = new SortDescription[depth];
-        SortDescriptions.CopyTo(descriptions, 0);
+        var comparers = new SortKeyComparer[depth];
 
-        var first = descriptions[0];
+        for (var level = 0; level < depth; level++)
+        {
+            comparers[level] = new SortKeyComparer(SortDescriptions[level]);
+        }
+
         var sorted = new object?[count];
         items.CopyTo(sorted);
 
-        // Array.Sort with keys runs the same algorithm as List.Sort(this), so equal items end up in the same order.
-        if (depth == 1)
-        {
-            var keys = new object?[count];
-
-            for (var index = 0; index < count; index++)
-            {
-                keys[index] = ReadSortValue(first, sorted[index]);
-            }
-
-            Array.Sort(keys, sorted, new SortKeyComparer(first));
-        }
-        else
-        {
-            var keys = new SortKey[count];
-
-            for (var index = 0; index < count; index++)
-            {
-                keys[index] = new SortKey(ReadSortValue(first, sorted[index]), index);
-            }
-
-            Array.Sort(keys, sorted, new MultiSortKeyComparer(descriptions, items));
-        }
+        SortRange(comparers, sorted, new object?[count], 0, count, 0);
 
         for (var index = 0; index < count; index++)
         {
             items[index] = sorted[index];
+        }
+    }
+
+    // Sorts a range by one description, then each run of equal keys by the next, so later values are only read for ties.
+    private static void SortRange(SortKeyComparer[] comparers, object?[] items, object?[] keys, int start, int length, int level)
+    {
+        var comparer = comparers[level];
+        var end = start + length;
+
+        for (var index = start; index < end; index++)
+        {
+            keys[index] = ReadSortValue(comparer.Description, items[index]);
+        }
+
+        // Array.Sort with keys runs the same algorithm as List.Sort, so one description orders equal items as before.
+        Array.Sort(keys, items, start, length, comparer);
+
+        if (level + 1 == comparers.Length) return;
+
+        var runStart = start;
+
+        for (var index = start + 1; index <= end; index++)
+        {
+            if (index < end && comparer.Compare(keys[runStart], keys[index]) == 0) continue;
+
+            // The next level reuses the key slots of the run.
+            if (index - runStart > 1)
+            {
+                SortRange(comparers, items, keys, runStart, index - runStart, level + 1);
+            }
+
+            runStart = index;
         }
     }
 
@@ -65,72 +76,14 @@ partial class CollectionView
         }
     }
 
-    private static int CompareSortValues(SortDescription description, object? x, object? y)
-    {
-        var cmp = description.Compare(x, y);
-        return description.Direction is SortDirection.Ascending ? +cmp : -cmp;
-    }
-
-    // A class, so both sorts share one compiled Array.Sort instead of the runtime compiling another for a struct.
-    private sealed class SortKey(object? value, int index)
-    {
-        public readonly object? Value = value;
-        public readonly int Index = index;
-    }
-
     private sealed class SortKeyComparer(SortDescription description) : IComparer<object?>
     {
-        public int Compare(object? x, object? y) => CompareSortValues(description, x, y);
-    }
+        public SortDescription Description => description;
 
-    private sealed class MultiSortKeyComparer : IComparer<SortKey>
-    {
-        private readonly SortDescription[] _descriptions;
-        private readonly List<object?> _items;
-        private object?[]? _laterValues;
-
-        public MultiSortKeyComparer(SortDescription[] descriptions, List<object?> items)
+        public int Compare(object? x, object? y)
         {
-            _descriptions = descriptions;
-            _items = items;
-        }
-
-        public int Compare(SortKey? x, SortKey? y)
-        {
-            if (ReferenceEquals(x, y)) return 0;
-            if (x is null) return -1;
-            if (y is null) return 1;
-
-            var cmp = CompareSortValues(_descriptions[0], x.Value, y.Value);
-
-            for (var level = 1; cmp == 0 && level < _descriptions.Length; level++)
-            {
-                cmp = CompareSortValues(_descriptions[level], GetLaterValue(x.Index, level), GetLaterValue(y.Index, level));
-            }
-
-            return cmp;
-        }
-
-        // Read on first use, so later values are only read for items that tie on the earlier ones.
-        private object? GetLaterValue(int index, int level)
-        {
-            var width = _descriptions.Length - 1;
-
-            if (_laterValues is null)
-            {
-                _laterValues = new object?[(long)_items.Count * width];
-                Array.Fill(_laterValues, _unreadSortValue);
-            }
-
-            var slot = (long)index * width + level - 1;
-            var value = _laterValues[slot];
-
-            if (ReferenceEquals(value, _unreadSortValue))
-            {
-                _laterValues[slot] = value = _descriptions[level].GetPropertyValue(_items[index]);
-            }
-
-            return value;
+            var cmp = description.Compare(x, y);
+            return description.Direction is SortDirection.Ascending ? +cmp : -cmp;
         }
     }
 }

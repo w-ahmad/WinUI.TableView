@@ -300,26 +300,13 @@ public class CollectionViewTests
     }
 
     [UITestMethod]
-    public void Sorting_By_Two_Descriptions_Orders_Equal_Items_As_A_Plain_Sort_Does()
+    public void Sorting_By_Two_Descriptions_Orders_Items_As_A_Plain_Sort_Does()
     {
-        var src = new ObservableCollection<TestItem>();
-        for (var i = 0; i < 5000; i++)
-        {
-            src.Add(new TestItem { Id = i, Name = $"Item{i % 3}", Value = i * 7919 % 13 });
-        }
-
-        var view = new CollectionView(src);
-
-        using (view.DeferRefresh())
-        {
-            view.SortDescriptions.Add(SortByValueAscending());
-            view.SortDescriptions.Add(new SortDescription(nameof(TestItem.Name), SortDirection.Descending));
-        }
-
-        var expected = src.Cast<object?>().ToList();
-        expected.Sort(view);
-
-        CollectionAssert.AreEqual(expected.Select(i => ((TestItem)i!).Id).ToArray(), view.Select(i => ((TestItem)i).Id).ToArray());
+        AssertSortsAsAPlainSortDoes(
+            CreateItemsWithEqualValues(),
+            item => (item.Value, item.Name),
+            SortByValueAscending(),
+            SortByNameDescending());
     }
 
     [UITestMethod]
@@ -329,6 +316,131 @@ public class CollectionViewTests
 
         Assert.ThrowsExactly<InvalidOperationException>(() =>
             view.SortDescriptions.Add(new SortDescription(null, valueDelegate: _ => throw new FormatException())));
+    }
+
+    [UITestMethod]
+    public void Sorting_Wraps_A_Failing_Later_Value_Read_Like_A_Failing_Comparison()
+    {
+        var src = CreateItems(3);
+        foreach (var item in src) item.Value = 1;
+        var view = new CollectionView(src);
+        view.SortDescriptions.Add(SortByValueAscending());
+
+        Assert.ThrowsExactly<InvalidOperationException>(() =>
+            view.SortDescriptions.Add(new SortDescription(null, valueDelegate: _ => throw new FormatException())));
+    }
+
+    [UITestMethod]
+    public void Sorting_Descending_Orders_Equal_Items_As_A_Plain_Sort_Does()
+    {
+        AssertSortsAsAPlainSortDoes(CreateItemsWithEqualValues(), item => item.Id, new SortDescription(nameof(TestItem.Value), SortDirection.Descending));
+    }
+
+    [UITestMethod]
+    public void Sorting_By_Three_Descriptions_Orders_Items_As_A_Plain_Sort_Does()
+    {
+        AssertSortsAsAPlainSortDoes(
+            CreateItemsWithEqualValues(),
+            item => (item.Value, item.Name, item.Id % 5),
+            new SortDescription(nameof(TestItem.Value), SortDirection.Descending),
+            new SortDescription(nameof(TestItem.Name), SortDirection.Ascending),
+            new SortDescription(null, SortDirection.Descending, valueDelegate: item => ((TestItem)item!).Id % 5));
+    }
+
+    [UITestMethod]
+    public void Sorting_With_Null_Values_Orders_Items_As_A_Plain_Sort_Does()
+    {
+        var src = CreateItemsWithEqualValues();
+        for (var i = 0; i < src.Count; i += 4)
+        {
+            src[i].Name = null!;
+        }
+
+        var view = AssertSortsAsAPlainSortDoes(src, item => item.Id, SortByNameDescending());
+        Assert.IsNull(((TestItem)view[^1]).Name);
+
+        view = AssertSortsAsAPlainSortDoes(src, item => (item.Value, item.Name), SortByValueAscending(), new SortDescription(nameof(TestItem.Name), SortDirection.Ascending));
+        Assert.IsNull(((TestItem)view[0]).Name);
+    }
+
+    [UITestMethod]
+    public void Sorting_With_A_Comparer_Orders_Items_As_A_Plain_Sort_Does()
+    {
+        var src = CreateItemsWithEqualValues();
+        foreach (var item in src)
+        {
+            item.Name = item.Id % 2 == 0 ? item.Name.ToUpperInvariant() : item.Name;
+        }
+
+        var byName = new SortDescription(nameof(TestItem.Name), SortDirection.Ascending, StringComparer.OrdinalIgnoreCase);
+        var view = AssertSortsAsAPlainSortDoes(src, item => item.Id, byName);
+        var names = view.Select(i => ((TestItem)i).Name).ToArray();
+
+        CollectionAssert.AreEqual(
+            names.Select(n => n.ToUpperInvariant()).OrderBy(n => n, StringComparer.Ordinal).ToArray(),
+            names.Select(n => n.ToUpperInvariant()).ToArray());
+        AssertSortsAsAPlainSortDoes(src, item => (item.Value, item.Name.ToUpperInvariant()), SortByValueAscending(), byName);
+    }
+
+    [UITestMethod]
+    public void Sorting_A_Grouped_View_Orders_Each_Group_As_A_Plain_Sort_Does()
+    {
+        var src = CreateItemsWithEqualValues();
+        var view = new CollectionView(src) { DefaultGroupState = TableViewGroupState.Expanded };
+
+        using (view.DeferRefresh())
+        {
+            view.GroupDescriptions.Add(GroupByValue());
+            view.SortDescriptions.Add(SortByNameDescending());
+            view.SortDescriptions.Add(new SortDescription(null, valueDelegate: item => ((TestItem)item!).Id % 5));
+        }
+
+        var expected = src.Cast<object?>().ToList();
+        expected.Sort(view);
+
+        Assert.AreEqual(13, view.CollectionGroups!.Count);
+
+        foreach (var group in view.CollectionGroups.Cast<CollectionViewGroup>())
+        {
+            var key = (int)((TableViewGroupInfo)group.Group!).Key!;
+
+            CollectionAssert.AreEqual(
+                expected.Cast<TestItem>().Where(i => i.Value == key).Select(i => (i.Name, i.Id % 5)).ToArray(),
+                group.GroupItems!.Cast<TestItem>().Select(i => (i.Name, i.Id % 5)).ToArray());
+        }
+    }
+
+    private static ObservableCollection<TestItem> CreateItemsWithEqualValues()
+    {
+        var src = new ObservableCollection<TestItem>();
+        for (var i = 0; i < 5000; i++)
+        {
+            src.Add(new TestItem { Id = i, Name = $"Item{i % 3}", Value = i * 7919 % 13 });
+        }
+
+        return src;
+    }
+
+    // Items equal by every description may be ordered differently, so sortKey is what must match.
+    private static CollectionView AssertSortsAsAPlainSortDoes<T>(ObservableCollection<TestItem> src, Func<TestItem, T> sortKey, params SortDescription[] descriptions)
+    {
+        var view = new CollectionView(src);
+
+        using (view.DeferRefresh())
+        {
+            foreach (var description in descriptions)
+            {
+                view.SortDescriptions.Add(description);
+            }
+        }
+
+        var expected = src.Cast<object?>().ToList();
+        expected.Sort(view);
+
+        CollectionAssert.AreEqual(expected.Cast<TestItem>().Select(sortKey).ToArray(), view.Cast<TestItem>().Select(sortKey).ToArray());
+        CollectionAssert.AreEquivalent(src, view.Cast<TestItem>().ToArray());
+
+        return view;
     }
 
     [UITestMethod]
