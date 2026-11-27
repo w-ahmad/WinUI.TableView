@@ -241,6 +241,97 @@ public class CollectionViewTests
     }
 
     [UITestMethod]
+    public void Sorting_Reads_Each_Item_Value_Once()
+    {
+        var src = CreateItems(1000);
+        var view = new CollectionView(src);
+        var reads = 0;
+
+        view.SortDescriptions.Add(new SortDescription(null, valueDelegate: item => { reads++; return ((TestItem)item!).Value; }));
+
+        Assert.AreEqual(1000, reads);
+        CollectionAssert.AreEqual(Enumerable.Range(1, 1000).ToArray(), view.Select(i => ((TestItem)i).Value).ToArray());
+
+        reads = 0;
+        view.Refresh();
+
+        Assert.AreEqual(1000, reads);
+    }
+
+    [UITestMethod]
+    public void Sorting_Reads_Later_Values_Only_For_Ties()
+    {
+        var src = new ObservableCollection<TestItem>();
+        for (var i = 0; i < 1000; i++)
+        {
+            // Only the items with Value 0 tie on the first description.
+            src.Add(new TestItem { Id = i, Name = $"Item{999 - i:D3}", Value = i < 10 ? 0 : i });
+        }
+
+        var view = new CollectionView(src);
+        var secondReads = 0;
+
+        using (view.DeferRefresh())
+        {
+            view.SortDescriptions.Add(SortByValueAscending());
+            view.SortDescriptions.Add(new SortDescription(null, valueDelegate: item => { secondReads++; return ((TestItem)item!).Name; }));
+        }
+
+        Assert.AreEqual(10, secondReads);
+        CollectionAssert.AreEqual(Enumerable.Range(0, 10).Reverse().ToArray(), view.Take(10).Select(i => ((TestItem)i).Id).ToArray());
+    }
+
+    [UITestMethod]
+    public void Sorting_Orders_Equal_Items_As_A_Plain_Sort_Does()
+    {
+        var src = new ObservableCollection<TestItem>();
+        for (var i = 0; i < 5000; i++)
+        {
+            src.Add(new TestItem { Id = i, Name = $"Item{i}", Value = i * 7919 % 13 });
+        }
+
+        var view = new CollectionView(src);
+        view.SortDescriptions.Add(SortByValueAscending());
+
+        var expected = src.Cast<object?>().ToList();
+        expected.Sort(view);
+
+        CollectionAssert.AreEqual(expected.Select(i => ((TestItem)i!).Id).ToArray(), view.Select(i => ((TestItem)i).Id).ToArray());
+    }
+
+    [UITestMethod]
+    public void Sorting_By_Two_Descriptions_Orders_Equal_Items_As_A_Plain_Sort_Does()
+    {
+        var src = new ObservableCollection<TestItem>();
+        for (var i = 0; i < 5000; i++)
+        {
+            src.Add(new TestItem { Id = i, Name = $"Item{i % 3}", Value = i * 7919 % 13 });
+        }
+
+        var view = new CollectionView(src);
+
+        using (view.DeferRefresh())
+        {
+            view.SortDescriptions.Add(SortByValueAscending());
+            view.SortDescriptions.Add(new SortDescription(nameof(TestItem.Name), SortDirection.Descending));
+        }
+
+        var expected = src.Cast<object?>().ToList();
+        expected.Sort(view);
+
+        CollectionAssert.AreEqual(expected.Select(i => ((TestItem)i!).Id).ToArray(), view.Select(i => ((TestItem)i).Id).ToArray());
+    }
+
+    [UITestMethod]
+    public void Sorting_Wraps_A_Failing_Value_Read_Like_A_Failing_Comparison()
+    {
+        var view = new CollectionView(CreateItems(3));
+
+        Assert.ThrowsExactly<InvalidOperationException>(() =>
+            view.SortDescriptions.Add(new SortDescription(null, valueDelegate: _ => throw new FormatException())));
+    }
+
+    [UITestMethod]
     public void Filter_With_PropertyName_Only_Responds_To_Relevant_Changes()
     {
         var src = CreateItems(3);
