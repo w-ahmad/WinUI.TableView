@@ -95,9 +95,10 @@ partial class CollectionView
             _items = items;
         }
 
-        public int Compare(SortKey x, SortKey y)
+        // Every key in the array is set, so neither argument is ever null.
+        public int Compare(SortKey? x, SortKey? y)
         {
-            var cmp = CompareSortValues(_descriptions[0], x.Value, y.Value);
+            var cmp = CompareSortValues(_descriptions[0], x!.Value, y!.Value);
 
             for (var level = 1; cmp == 0 && level < _descriptions.Length; level++)
             {
