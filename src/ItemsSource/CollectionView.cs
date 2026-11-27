@@ -596,7 +596,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
             }
 
             if (SortDescriptions.Count > 0)
-                items.Sort(this);
+                SortItems(items);
         }
 
         return items;
@@ -880,7 +880,7 @@ internal partial class CollectionView : ICollectionView, ISupportIncrementalLoad
     {
         if (SortDescriptions.Count > 0)
         {
-            _groupingSourceItems.Sort(this);
+            SortItems(_groupingSourceItems);
 
             if (GroupDescriptions.Count > 0)
             {
