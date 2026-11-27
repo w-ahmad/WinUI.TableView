@@ -173,6 +173,73 @@ public class TableViewRowDetailsScrollTests
         }
     }
 
+    [UITestMethod]
+    public async Task ReusedRow_AfterDetailsModeChangedToVisible_ShowsItsDetails()
+    {
+        var tableView = await CreateTableViewAsync(TableViewRowDetailsVisibilityMode.Collapsed);
+        try
+        {
+            await ChangeWhileRowsArePooledAsync(tableView, () => tableView.RowDetailsVisibilityMode = TableViewRowDetailsVisibilityMode.Visible);
+
+            Assert.IsTrue(GetAttachedRows(tableView).All(r => r.RowPresenter!.IsDetailsPanelVisible), "A reused row must show its details in the new mode");
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
+    [UITestMethod]
+    public async Task ReusedRow_AfterDetailsTemplateSet_ShowsItsDetails()
+    {
+        var tableView = await CreateTableViewAsync(TableViewRowDetailsVisibilityMode.Visible, withDetailsTemplate: false);
+        try
+        {
+            await ChangeWhileRowsArePooledAsync(tableView, () => tableView.RowDetailsTemplate = CreateDetailsTemplate());
+
+            Assert.IsTrue(GetAttachedRows(tableView).All(r => r.RowPresenter!.IsDetailsPanelVisible), "A reused row must show the details of the new template");
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
+    [UITestMethod]
+    public async Task ReusedRow_AfterDetailsTemplateRemoved_ShowsNoDetails()
+    {
+        var tableView = await CreateTableViewAsync(TableViewRowDetailsVisibilityMode.Visible);
+        try
+        {
+            await ChangeWhileRowsArePooledAsync(tableView, () => tableView.RowDetailsTemplate = null);
+
+            Assert.IsFalse(GetAttachedRows(tableView).Any(r => r.RowPresenter!.IsDetailsPanelVisible), "A reused row must not keep the details of the removed template");
+        }
+        finally
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
+    // Filtering the rows away sends their containers to the pool; clearing the filter reuses them.
+    private static async Task ChangeWhileRowsArePooledAsync(TableView tableView, Action change)
+    {
+        await Task.Delay(300);
+        tableView.FilterDescriptions.Add(new FilterDescription(nameof(DetailsTestItem.Name), item => ((DetailsTestItem)item!).Name == "Item 0"));
+        await Task.Delay(300);
+        change();
+        tableView.FilterDescriptions.Clear();
+        await Task.Delay(500);
+
+        Assert.IsTrue(GetAttachedRows(tableView).Count > 1, "Precondition: rows came back after the filter was cleared");
+    }
+
+    private static DataTemplate CreateDetailsTemplate()
+    {
+        return (DataTemplate)XamlReader.Load(
+            "<DataTemplate xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"><Border Height=\"200\" /></DataTemplate>");
+    }
+
     private static List<TableViewRow> GetAttachedRows(TableView tableView)
     {
         return [.. tableView.FindDescendants().OfType<TableViewRow>().Where(r => r.Index >= 0)];
@@ -207,7 +274,7 @@ public class TableViewRowDetailsScrollTests
         return row!;
     }
 
-    private static async Task<TableView> CreateTableViewAsync(TableViewRowDetailsVisibilityMode mode)
+    private static async Task<TableView> CreateTableViewAsync(TableViewRowDetailsVisibilityMode mode, bool withDetailsTemplate = true)
     {
         var tableView = new TableView
         {
@@ -215,8 +282,7 @@ public class TableViewRowDetailsScrollTests
             Height = 300,
             AutoGenerateColumns = false,
             RowDetailsVisibilityMode = mode,
-            RowDetailsTemplate = (DataTemplate)XamlReader.Load(
-                "<DataTemplate xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"><Border Height=\"200\" /></DataTemplate>")
+            RowDetailsTemplate = withDetailsTemplate ? CreateDetailsTemplate() : null
         };
 
         tableView.Columns.Add(new TableViewTextColumn
