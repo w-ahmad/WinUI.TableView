@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -245,6 +246,60 @@ public class TableViewLifecycleTests
         }
         finally
         {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+        }
+    }
+
+    // ScrollViewer.Loaded fires on every reload; the scroll handlers must not stack up.
+    [UITestMethod]
+    public async Task TableView_UnloadAndReload_DoesNotStackScrollHandlers()
+    {
+        var items = new ObservableCollection<LifecycleTestItem>(
+            Enumerable.Range(0, 200).Select(i => new LifecycleTestItem { Name = $"Item {i}" }));
+        var tableView = CreateTableView(items);
+
+        await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+        await WaitForRenderedFramesAsync(10);
+
+        for (var i = 0; i < 3; i++)
+        {
+            await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
+            await UnitTestApp.Current.MainWindow.LoadTestContentAsync(tableView);
+            await WaitForRenderedFramesAsync(10);
+        }
+
+        long token = 0;
+        try
+        {
+            var scrollBar = tableView.FindDescendant<ScrollBar>(sb => sb.Name is "VerticalScrollBar");
+            Assert.IsNotNull(scrollBar, "Precondition: the vertical scroll bar exists");
+
+            // Each handler that runs writes VerticalOffset once; resetting it to a sentinel lets the next write
+            // raise the callback again, so the count equals the number of stacked handlers.
+            var count = 0;
+            token = tableView.RegisterPropertyChangedCallback(TableView.VerticalOffsetProperty, (d, _) =>
+            {
+                if ((double)d.GetValue(TableView.VerticalOffsetProperty) == -1d)
+                {
+                    return;
+                }
+
+                count++;
+                d.SetValue(TableView.VerticalOffsetProperty, -1d);
+            });
+
+            scrollBar!.Value = 100d;
+            await WaitForRenderedFramesAsync(5);
+
+            Assert.AreEqual(1, count, "One scroll must run the vertical scroll handler once");
+        }
+        finally
+        {
+            if (token != 0)
+            {
+                tableView.UnregisterPropertyChangedCallback(TableView.VerticalOffsetProperty, token);
+            }
+
             await UnitTestApp.Current.MainWindow.UnloadTestContentAsync(tableView);
         }
     }

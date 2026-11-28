@@ -132,7 +132,7 @@ internal sealed partial class TableViewRowElementFactory
     internal IReadOnlyCollection<TableViewRow> PooledRows => _rowPool;
 
     /// <summary>
-    /// Lets pooled rows drop the items they last showed and their cells, so neither is kept alive while the table is unloaded.
+    /// Lets pooled rows drop the items they last showed, so those items are not kept alive.
     /// </summary>
     /// <remarks>
     /// Must not run inside a repeater callback: clearing a row's content rebuilds its cells.
@@ -141,7 +141,7 @@ internal sealed partial class TableViewRowElementFactory
     {
         foreach (var row in _rowPool)
         {
-            row.ReleaseContent();
+            row.Content = null;
         }
     }
 

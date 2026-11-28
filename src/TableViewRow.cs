@@ -478,20 +478,6 @@ public partial class TableViewRow : ContentControl
     }
 
     /// <summary>
-    /// Drops the item and the cells of a row that sits in the pool while the table is unloaded.
-    /// </summary>
-    /// <remarks>
-    /// A pooled row keeps every cell it built, and each cell roots a subtree of native XAML objects that the GC
-    /// walks on every collection. The next content change rebuilds the cells (<see cref="EnsureCells"/>).
-    /// </remarks>
-    internal void ReleaseContent()
-    {
-        Content = null; // before the cells go: with them gone this would rebuild them
-        RowPresenter?.ClearCells();
-        _ensureCells = true;
-    }
-
-    /// <summary>
     /// Gets or sets a value indicating whether the row is in the table's list of realized rows.
     /// </summary>
     internal bool IsAttached { get; set; }
